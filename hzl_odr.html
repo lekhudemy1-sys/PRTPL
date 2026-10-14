@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>HZL ODR</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root{
+    --bg:#78716c;--surface:#ffffff;--text:#1c1917;--muted:#78716c;--line:#e7e5e4;--line-strong:#d6d3d1;
+    --navy:#292524;--navy-d:#1c1917;--primary:#b45309;--primary-soft:#fef3c7;
+    --ok:#15803d;--bad:#b91c1c;
+    --radius:10px;
+    --shadow-sm:0 1px 2px rgba(28,25,23,.08);
+    --shadow-md:0 6px 18px rgba(28,25,23,.18);
+    --SECL:#ea580c;--CCL:#7c3aed;--MCL:#0d9488;--other:#db2777;
+  }
+  /* Per-area palette: --accent (strong), --side (light siding header), --hl (dark highlight) */
+  .area-sec,.area-sec[data-area="OTHER"]{--accent:#db2777;--side:#fce7f3;--hl:#be185d}
+  .area-sec[data-area="SECL"]{--accent:#ea580c;--side:#fed7aa;--hl:#c2410c}
+  .area-sec[data-area="CCL"]{--accent:#7c3aed;--side:#ddd6fe;--hl:#6d28d9}
+  .area-sec[data-area="MCL"]{--accent:#0d9488;--side:#99f6e4;--hl:#0f766e}
+
+  *{box-sizing:border-box}
+  html{scroll-padding-top:120px}
+  body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh}
+  button{font-family:inherit}
+
+  /* ===== Header ===== */
+  header{position:sticky;top:0;z-index:20;background:var(--navy);box-shadow:var(--shadow-md)}
+  .bar{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:12px 24px;flex-wrap:wrap}
+  .brand{font-weight:800;font-size:17px;letter-spacing:.05em;color:#fff}
+  .brand small{display:block;font-weight:500;color:#fcd34d;font-size:11px;letter-spacing:.02em}
+  nav{display:flex;gap:6px;justify-content:center;flex:1}
+  nav button{border:1px solid transparent;background:transparent;padding:8px 18px;border-radius:999px;font-size:14px;font-weight:600;color:#e7e5e4;cursor:pointer;transition:background .2s,color .2s,transform .15s,border-color .2s}
+  nav button:hover{background:rgba(255,255,255,.12);color:#fff;transform:translateY(-1px);border-color:rgba(255,255,255,.25)}
+  nav button.active{background:#fff;color:var(--navy);box-shadow:0 2px 6px rgba(0,0,0,.15)}
+  .top-actions{display:flex;gap:10px;align-items:center}
+  .hbtn{border:1px solid rgba(255,255,255,.4);background:transparent;color:#fff;border-radius:999px;padding:8px 16px;font-weight:600;font-size:13px;cursor:pointer;transition:background .2s,color .2s,transform .15s}
+  .hbtn:hover:not(:disabled){background:#fff;color:var(--navy);transform:translateY(-1px)}
+  .hbtn:disabled{opacity:.5;cursor:not-allowed}
+  button:focus-visible,.areabtn:focus-visible,.search input:focus-visible{outline:3px solid #fcd34d;outline-offset:2px}
+
+  .filters{display:flex;align-items:center;justify-content:center;gap:16px;padding:12px 24px;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,.12);background:var(--navy-d)}
+  .filters .lbl{font-size:11px;font-weight:700;letter-spacing:.1em;color:#fcd34d;text-transform:uppercase}
+  .areabtns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+  .areabtn{--c:var(--primary);border:1.5px solid rgba(255,255,255,.3);background:transparent;color:#e7e5e4;padding:7px 18px;border-radius:999px;font-weight:700;font-size:13px;cursor:pointer;transition:background .2s,color .2s,transform .15s,border-color .2s,box-shadow .2s}
+  .areabtn:hover{background:#fff;color:var(--c);border-color:#fff;transform:translateY(-1px);box-shadow:0 3px 10px rgba(0,0,0,.2)}
+  .areabtn.on{background:#fff;border-color:#fff;color:var(--c);box-shadow:0 2px 8px rgba(0,0,0,.2)}
+  .areabtn .n{opacity:.8;font-weight:500;margin-left:6px;font-size:12px}
+  .search{position:relative}
+  .search input{padding:8px 14px;border:1px solid rgba(255,255,255,.3);border-radius:999px;font-size:13px;width:260px;background:rgba(255,255,255,.1);color:#fff;transition:background .2s,border-color .2s}
+  .search input::placeholder{color:#d6d3d1}
+  .search input:focus{outline:none;background:#fff;color:var(--text);border-color:#fff;box-shadow:0 0 0 3px rgba(252,211,77,.5)}
+  .search input:focus::placeholder{color:var(--muted)}
+  .stats{font-size:12px;color:#d6d3d1}
+  .stats b{color:#fff}
+
+  main{padding:14px 10px 40px;max-width:none;margin:0 auto}
+  .hidden{display:none!important}
+
+  /* ===== Dashboard ===== */
+  .area-sec{margin-bottom:20px}
+  .area-title{display:flex;align-items:center;justify-content:center;gap:12px;padding:8px 14px;margin-bottom:10px;background:#fff;border-radius:var(--radius);border-bottom:3px solid var(--accent);box-shadow:var(--shadow-sm)}
+  .area-title h2{margin:0;font-size:22px;color:var(--accent);letter-spacing:.06em;font-weight:800}
+  .area-title span{color:var(--muted);font-size:13px;font-weight:600}
+
+  .stn-grid{display:grid;grid-template-columns:repeat(var(--cols),minmax(190px,1fr));gap:10px;align-items:start;overflow-x:auto;overflow-y:hidden;padding:4px 4px 14px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.7) rgba(0,0,0,.2)}
+  .stn-grid::-webkit-scrollbar{height:12px}
+  .stn-grid::-webkit-scrollbar-track{background:rgba(0,0,0,.2);border-radius:999px}
+  .stn-grid::-webkit-scrollbar-thumb{background:rgba(255,255,255,.7);border-radius:999px;border:2px solid transparent;background-clip:padding-box}
+  .stn{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--accent);border-radius:var(--radius);box-shadow:var(--shadow-md);overflow:hidden;min-width:0;transition:box-shadow .2s,transform .2s}
+  .stn:hover{box-shadow:0 10px 24px rgba(28,25,23,.25);transform:translateY(-2px)}
+  .stn-head{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2px;padding:12px 14px;font-weight:800;font-size:15px;background:var(--side);color:var(--hl);border-bottom:1px solid var(--line);text-align:center}
+  .stn-head small{font-weight:600;color:var(--hl);opacity:.75;font-size:11px}
+  table{width:100%;border-collapse:collapse;table-layout:fixed}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);text-align:center;padding:8px 6px;border-bottom:1px solid var(--line);font-weight:700;background:#fafaf9}
+  td{padding:7px 6px;border-bottom:1px solid #f5f5f4;word-break:break-word;text-align:center;transition:background .15s,color .15s}
+  tbody tr:nth-child(even){background:#fafaf9}
+  tbody tr{transition:background .15s}
+  tbody tr:hover{background:color-mix(in srgb,var(--side) 55%,#fff)}
+  th.num,td.num{width:64px}
+  .pill{display:inline-block;min-width:28px;text-align:center;padding:2px 8px;border-radius:999px;background:var(--side);color:var(--hl);font-weight:800;transition:transform .15s,background .15s,color .15s}
+  tbody tr:hover .pill{transform:scale(1.05)}
+
+  /* HZL destinations: small oval badge in the light shade of each area's colour */
+  .hzl{display:inline-block;background:var(--side);color:var(--hl);font-size:11px;font-weight:700;padding:2px 10px;border-radius:999px;border:1px solid var(--accent);line-height:1.4;letter-spacing:.02em}
+
+  /* ===== Settings ===== */
+  .page-head{text-align:center;margin-bottom:18px}
+  .page-head h2{margin:0;color:#fff;font-weight:800;font-size:24px}
+  .page-head p{margin:6px 0 0;color:#e7e5e4}
+  .set-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .col-card{background:#fff;border-radius:var(--radius);padding:16px;box-shadow:var(--shadow-md)}
+  .list-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+  .list-head h3{margin:0;font-size:14px;font-weight:800;color:var(--accent)}
+  .list-head small{color:var(--muted);font-weight:500;margin-left:6px}
+  .mini{display:flex;gap:8px}
+  .mini button{border:1px solid var(--line-strong);background:#fff;border-radius:999px;padding:5px 14px;font-size:12px;font-weight:700;cursor:pointer;transition:background .2s,color .2s,border-color .2s,transform .15s}
+  .mini .acc{color:var(--ok)}
+  .mini .rej{color:var(--bad)}
+  .mini .acc:hover{background:var(--ok);border-color:var(--ok);color:#fff;transform:translateY(-1px)}
+  .mini .rej:hover{background:var(--bad);border-color:var(--bad);color:#fff;transform:translateY(-1px)}
+  .checks{border:1px solid var(--line);background:var(--surface);max-height:360px;overflow:auto;border-radius:var(--radius)}
+  .chk{display:flex;align-items:center;justify-content:center;gap:10px;padding:8px 12px;border-bottom:1px solid #f5f5f4;transition:background .15s}
+  .chk:hover{background:var(--primary-soft)}
+  .chk label{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
+  .chk input{width:17px;height:17px;accent-color:var(--accent);cursor:pointer}
+  .chk.off span{color:var(--muted);text-decoration:line-through}
+
+  /* ===== Upload ===== */
+  .upload-wrap{max-width:900px;margin:0 auto}
+  .card{background:#fff;border-radius:14px;padding:28px;box-shadow:var(--shadow-md);text-align:center}
+  .card h2{margin:0 0 6px;font-size:24px;color:var(--navy);font-weight:800}
+  .sub{color:var(--muted);margin:0 0 20px}
+  .drop{border:2px dashed #fbbf24;background:#fffbeb;padding:44px 20px;text-align:center;cursor:pointer;border-radius:12px;transition:background .2s,border-color .2s,transform .15s,box-shadow .2s}
+  .drop:hover,.drop.dragover{border-color:var(--primary);background:var(--primary-soft);transform:translateY(-2px);box-shadow:var(--shadow-sm)}
+  .drop h3{color:var(--navy);margin:8px 0 0}
+  .drop p{margin:4px 0 0;color:var(--muted)}
+  .actions{display:flex;gap:12px;margin:18px 0 10px;justify-content:center;flex-wrap:wrap}
+  .btn{border:0;border-radius:8px;padding:11px 22px;font-weight:700;cursor:pointer;font-size:14px;display:inline-flex;gap:8px;align-items:center;justify-content:center;transition:background .2s,transform .15s,box-shadow .2s}
+  .btn-primary{background:var(--navy);color:#fff;box-shadow:0 2px 6px rgba(41,37,36,.25)}
+  .btn-primary:hover:not(:disabled){background:var(--navy-d);transform:translateY(-2px);box-shadow:0 6px 16px rgba(41,37,36,.35)}
+  .btn-ghost{background:#fff;color:var(--navy);border:1.5px solid var(--navy)}
+  .btn-ghost:hover:not(:disabled){background:var(--primary-soft);transform:translateY(-2px)}
+  .btn:active:not(:disabled){transform:translateY(0)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .warn{color:var(--bad);font-weight:600;font-size:13px;background:#fef2f2;border-radius:8px;padding:8px 12px;display:inline-block}
+  .prev-stats{display:flex;gap:16px;margin:20px 0;flex-wrap:wrap;justify-content:center}
+  .prev-stats div{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;background:#fafaf9;border:1px solid var(--line);border-radius:var(--radius);padding:12px 22px;min-width:130px}
+  .prev-stats b{display:block;font-size:26px;color:var(--navy);letter-spacing:0}
+  #preview table{background:#fff;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line)}
+
+  .empty{text-align:center;padding:60px 20px;color:var(--muted)}
+  .empty h3{color:var(--text);margin-bottom:6px}
+  .dash-empty{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow-md)}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,12px);padding:12px 22px;border-radius:999px;color:#fff;font-weight:600;z-index:100;opacity:0;transition:.25s;pointer-events:none;box-shadow:var(--shadow-md)}
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+  .toast.success{background:var(--ok)}
+  .toast.error{background:var(--bad)}
+  .loader{width:16px;height:16px;border:3px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  .all-row{display:flex;gap:10px;align-items:flex-start;justify-content:flex-start;overflow-x:auto;padding:4px 4px 14px}
+  .all-row .area-sec{margin-bottom:0}
+  .all-row{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.7) rgba(0,0,0,.2)}
+  .all-row::-webkit-scrollbar{height:12px}
+  .all-row::-webkit-scrollbar-track{background:rgba(0,0,0,.2);border-radius:999px}
+  .all-row::-webkit-scrollbar-thumb{background:rgba(255,255,255,.7);border-radius:999px;border:2px solid transparent;background-clip:padding-box}
+  .all-row .stn-grid{grid-template-columns:repeat(var(--cols),minmax(165px,1fr));overflow:visible;padding:0}
+  .all-row .area-title{background:var(--accent);border:0;padding:8px 10px;margin-bottom:8px}
+  .all-row .area-title h2,.all-row .area-title span{color:#fff}
+  .stn-grid.compact{gap:8px}
+  .stn-grid.compact .stn-head{padding:8px 6px;font-size:13px}
+  .stn-grid.compact th{padding:6px 4px;font-size:10px}
+  .stn-grid.compact td{padding:6px 4px;font-size:12px}
+  .stn-grid.compact th.num,.stn-grid.compact td.num{width:52px}
+  @media(max-width:760px){.set-grid{grid-template-columns:1fr}.bar,.filters,main{padding-left:14px;padding-right:14px}.search input{width:100%}nav{flex-wrap:wrap}}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="brand">HZL ODR<small>Railway Operations</small></div>
+    <nav id="nav">
+      <button data-page="dashboard" class="active">Dashboard</button>
+      <button data-page="settings">Settings</button>
+      <button data-page="upload">Upload Excel</button>
+    </nav>
+    <div class="top-actions">
+      <a class="hbtn" href="odr_home.html" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;">&larr; Back</a>
+      <button class="hbtn" id="dlimg">Download Image</button>
+      <button class="hbtn" id="refresh">Refresh</button>
+    </div>
+  </div>
+  <div class="filters" id="filters">
+    <span class="lbl">Area</span>
+    <div class="areabtns" id="areabtns"></div>
+    <span class="stats" id="stats"></span>
+    <div class="search"><input id="search" placeholder="Search station or destination..." /></div>
+  </div>
+</header>
+
+<main>
+  <section id="page-dashboard"><div id="dash"></div></section>
+
+  <section id="page-settings" class="hidden">
+    <div class="page-head">
+      <h2>Filter Settings</h2>
+      <p>Accept or reject stations and destinations for each area. Rejected items disappear from the dashboard.</p>
+    </div>
+    <div id="set"></div>
+  </section>
+
+  <section id="page-upload" class="hidden">
+    <div class="upload-wrap">
+      <div class="card">
+        <h2>Upload Excel</h2>
+        <p class="sub">Columns needed: <b>SIDING</b>, <b>AREA</b>, <b>DESTINATION</b> (the SECL / CCL / MCL block layout also works).</p>
+        <div class="drop" id="drop">
+          <h3>Drop your Excel file here or click to browse</h3>
+          <p>.xlsx, .xls</p>
+          <input type="file" id="file" accept=".xlsx,.xls" class="hidden" />
+        </div>
+        <div id="preview" class="hidden"></div>
+        <div class="actions">
+          <button class="btn btn-primary" id="replace" disabled>Upload and Replace Database</button>
+          <button class="btn btn-ghost" id="clear">Clear</button>
+        </div>
+        <p class="warn">This deletes all existing rows in HZL_ODR and inserts the new data.</p>
+      </div>
+    </div>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = "https://jzkrywwrsewchtiqsczk.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6a3J5d3dyc2V3Y2h0aXFzY3prIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1NDU0MzQsImV4cCI6MjEwNzEyMTQzNH0.IDwfVhqDI9uXfAALCVKBD0pNjsNVu38fW4eEueaKDSs";
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const ODR_TABLE = "HZL_ODR";
+const FILTER_TABLE = "hzl_filters";
+
+let allData = [], allFilters = [], fmap = new Map(), parsedRecords = [];
+let page = "dashboard", selArea = "ALL", loaded = false, loading = null;
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fkey = (a, t, v) => `${a}|${t}|${v}`;
+const isOn = (a, t, v) => fmap.get(fkey(a, t, v))?.accepted !== false;
+const isHzl = d => /\bHZL\b/i.test(String(d ?? ""));        // HZL destinations are always highlighted
+const ORDER = ["SECL", "CCL", "MCL"];
+const areaColor = a => ({ SECL: "var(--SECL)", CCL: "var(--CCL)", MCL: "var(--MCL)" }[a] || "var(--other)");
+
+function toast(msg, type = "success") {
+  const t = $("toast"); t.textContent = msg; t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove("show"), 3000);
+}
+
+/* ---------- Data (fetched in parallel) ---------- */
+async function fetchAll(table, order) {
+  const size = 1000;                                   // Supabase returns max 1000 rows per request
+  const { count, error: ce } = await db.from(table).select("*", { count: "exact", head: true });
+  if (ce) throw ce;
+  const pages = Math.ceil((count || 0) / size);
+  if (!pages) return [];
+  const results = await Promise.all(Array.from({ length: pages }, (_, i) => {
+    let q = db.from(table).select("*");
+    if (order) q = q.order(order, { ascending: true });
+    return q.range(i * size, i * size + size - 1);
+  }));
+  const out = [];
+  for (const r of results) { if (r.error) throw r.error; out.push(...r.data); }
+  return out;
+}
+function rebuildMap() { fmap = new Map(allFilters.map(f => [fkey(f.area, f.filter_type, f.value), f])); }
+
+async function refreshAll() {
+  const [odr, flt] = await Promise.all([fetchAll(ODR_TABLE, "seq"), fetchAll(FILTER_TABLE)]);
+  allData = odr; allFilters = flt; rebuildMap();
+
+  // Create filter rows for any station/destination that does not have one yet
+  const add = [], seen = new Set();
+  const need = (a, t, v) => { const k = fkey(a, t, v); if (!fmap.has(k) && !seen.has(k)) { seen.add(k); add.push({ area: a, filter_type: t, value: v, accepted: true }); } };
+  allData.forEach(r => { need(r.area, "sttn_from", r.sttn_from); need(r.area, "dstn", r.dstn); });
+  if (add.length) {
+    const chunks = [];
+    for (let i = 0; i < add.length; i += 500) chunks.push(add.slice(i, i + 500));
+    const res = await Promise.all(chunks.map(c => db.from(FILTER_TABLE).insert(c).select()));
+    for (const r of res) {                                             // reuse the inserted rows, no re-download
+      if (r.error) throw r.error;
+      allFilters.push(...r.data);
+    }
+    rebuildMap();
+  }
+}
+
+async function setFilter(area, type, value, accepted) {
+  const f = fmap.get(fkey(area, type, value)); if (!f) return;
+  const { error } = await db.from(FILTER_TABLE).update({ accepted }).eq("id", f.id);
+  if (error) throw error;
+  f.accepted = accepted;
+}
+async function setGroup(area, type, accepted) {
+  const { error } = await db.from(FILTER_TABLE).update({ accepted }).eq("area", area).eq("filter_type", type);
+  if (error) throw error;
+  allFilters.forEach(f => { if (f.area === area && f.filter_type === type) f.accepted = accepted; });
+}
+
+/* ---------- Helpers ---------- */
+function areas() {
+  const set = [...new Set(allData.map(r => r.area))];
+  return set.sort((a, b) => {
+    const ia = ORDER.indexOf(a), ib = ORDER.indexOf(b);
+    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.localeCompare(b);
+  });
+}
+const visibleAreas = () => selArea === "ALL" ? areas() : areas().filter(a => a === selArea);
+const uniqueOrdered = (arr) => [...new Set(arr)];       // keeps Excel order
+
+/* ---------- Header ---------- */
+function renderAreaButtons() {
+  const list = areas();
+  if (selArea !== "ALL" && !list.includes(selArea)) selArea = "ALL";
+  const btn = (key, label, n, color) =>
+    `<button class="areabtn ${selArea === key ? "on" : ""}" style="--c:${color}" data-area="${esc(key)}">${esc(label)}<span class="n">${n}</span></button>`;
+  const stCount = a => new Set(allData.filter(r => r.area === a).map(r => r.sttn_from)).size;
+  $("areabtns").innerHTML = btn("ALL", "All", list.length, "var(--primary)") +
+    list.map(a => btn(a, a, stCount(a), areaColor(a))).join("");
+}
+$("areabtns").addEventListener("click", e => {
+  const b = e.target.closest(".areabtn"); if (!b) return;
+  selArea = b.dataset.area; renderAreaButtons(); renderCurrent();
+});
+$("nav").addEventListener("click", e => { const b = e.target.closest("button"); if (b) go(b.dataset.page); });
+$("search").addEventListener("input", renderCurrent);
+$("refresh").addEventListener("click", () => load(true));
+$("dlimg").addEventListener("click", downloadImage);
+
+function go(p) {
+  page = p;
+  document.querySelectorAll("main > section").forEach(s => s.classList.add("hidden"));
+  $(`page-${p}`).classList.remove("hidden");
+  document.querySelectorAll("#nav button").forEach(b => b.classList.toggle("active", b.dataset.page === p));
+  $("filters").classList.toggle("hidden", p === "upload");
+  $("dlimg").classList.toggle("hidden", p !== "dashboard");
+  if (p === "upload") return;
+  if (loaded) renderCurrent();                          // switching pages uses data already in memory
+  else load();
+}
+function renderCurrent() {
+  if (!loaded) return;
+  if (page === "dashboard") renderDashboard();
+  else if (page === "settings") renderSettings();
+}
+
+// Loads data once; a manual refresh (or a database replace) forces a reload.
+function load(manual) {
+  if (page === "upload") return Promise.resolve();
+  if (loading && !manual) return loading;
+  const box = page === "dashboard" ? $("dash") : $("set");
+  if (!loaded || manual) box.innerHTML = `<div class="empty"><h3>Loading...</h3></div>`;
+  loading = (async () => {
+    try {
+      await refreshAll(); loaded = true;
+      renderAreaButtons(); renderCurrent();
+      if (manual) toast("Refreshed");
+    } catch (e) {
+      console.error(e); box.innerHTML = `<div class="empty dash-empty"><h3>Could not load data</h3><p>${esc(e.message)}</p></div>`; toast(e.message, "error");
+    } finally { loading = null; }
+  })();
+  return loading;
+}
+
+/* ---------- Download dashboard as image ---------- */
+async function downloadImage() {
+  const el = $("dash");
+  if (!el.innerHTML.trim() || !el.querySelector(".area-sec")) { toast("Nothing to download yet", "error"); return; }
+  if (typeof html2canvas === "undefined") { toast("Image library could not load", "error"); return; }
+  const scrollers = [...el.querySelectorAll(".all-row, .stn-grid")];
+  scrollers.forEach(x => { x.dataset.ov = x.style.overflow; x.style.overflow = "visible"; });
+  try {
+    const canvas = await html2canvas(el, {
+      backgroundColor: "#78716c", scale: 2, useCORS: true,
+      width: el.scrollWidth, height: el.scrollHeight,
+      windowWidth: el.scrollWidth, windowHeight: el.scrollHeight
+    });
+    const a = document.createElement("a");
+    const day = new Date().toISOString().slice(0, 10);
+    a.download = `HZL_ODR_${selArea}_${day}.png`;
+    a.href = canvas.toDataURL("image/png");
+    a.click();
+    toast("Image downloaded");
+  } catch (e) {
+    console.error(e); toast("Could not create image", "error");
+  } finally {
+    scrollers.forEach(x => { x.style.overflow = x.dataset.ov || ""; });
+  }
+}
+
+/* ---------- Dashboard ---------- */
+function renderDashboard() {
+  const q = $("search").value.toLowerCase().trim();
+  const out = []; let nAreas = 0, nStn = 0, nLines = 0, nInd = 0;
+
+  for (const area of visibleAreas()) {
+    // rejected stations / destinations are removed BEFORE counting indents
+    const byStn = new Map();
+    for (const r of allData) {
+      if (r.area !== area || !isOn(area, "sttn_from", r.sttn_from) || !isOn(area, "dstn", r.dstn)) continue;
+      if (!byStn.has(r.sttn_from)) byStn.set(r.sttn_from, []);
+      byStn.get(r.sttn_from).push(r.dstn);
+    }
+    const panels = [];
+    for (const [stn, list] of byStn) {
+      const runs = [];                                  // a,b,b,a -> a1 b2 a1
+      for (const d of list) { const l = runs[runs.length - 1]; if (l && l.d === d) l.n++; else runs.push({ d, n: 1 }); }
+      const stnMatch = !q || stn.toLowerCase().includes(q);
+      const shown = runs.filter(r => stnMatch || r.d.toLowerCase().includes(q));
+      if (!shown.length) continue;
+      nStn++; nLines += shown.length; nInd += shown.reduce((s, r) => s + r.n, 0);
+      panels.push(`
+        <div class="stn">
+          <div class="stn-head"><span>${esc(stn)}</span><small>${shown.length} lines</small></div>
+          <table><thead><tr><th>Destination</th><th class="num">Indents</th></tr></thead>
+          <tbody>${shown.map(r => `<tr><td>${isHzl(r.d) ? `<span class="hzl">${esc(r.d)}</span>` : esc(r.d)}</td><td class="num"><span class="pill">${r.n}</span></td></tr>`).join("")}</tbody></table>
+        </div>`);
+    }
+    if (!panels.length) continue;
+    nAreas++;
+    const all = selArea === "ALL", n = panels.length;
+    out.push(`
+      <section class="area-sec" data-area="${esc(area)}" ${all ? `style="flex:${n} 1 ${n * 175}px;min-width:${n * 175}px"` : ""}>
+        <div class="area-title"><h2>${esc(area)}</h2><span>${n} station${n > 1 ? "s" : ""}</span></div>
+        <div class="stn-grid ${all ? "compact" : ""}" style="--cols:${n}">${panels.join("")}</div>
+      </section>`);
+  }
+  $("stats").innerHTML = `<b>${nAreas}</b> areas · <b>${nStn}</b> stations · <b>${nLines}</b> lines · <b>${nInd}</b> indents`;
+  const body = out.join("");
+  $("dash").innerHTML = body ? (selArea === "ALL" ? `<div class="all-row">${body}</div>` : body) : `<div class="empty dash-empty"><h3>No matching records</h3><p>Check Settings, the search box, or upload an Excel file.</p></div>`;
+}
+
+/* ---------- Settings (area-wise) ---------- */
+function renderSettings() {
+  const q = $("search").value.toLowerCase().trim();
+  const out = [];
+  for (const area of visibleAreas()) {
+    const rows = allData.filter(r => r.area === area);
+    const lists = [["sttn_from", "Station (Siding)", uniqueOrdered(rows.map(r => r.sttn_from))],
+                   ["dstn", "Destinations", uniqueOrdered(rows.map(r => r.dstn))]];
+    const cols = lists.map(([type, title, vals]) => {
+      const on = vals.filter(v => isOn(area, type, v)).length;
+      const shown = vals.filter(v => !q || v.toLowerCase().includes(q));
+      return `
+      <div class="col-card">
+        <div class="list-head">
+          <h3>${title}<small>${on}/${vals.length} accepted</small></h3>
+          <div class="mini">
+            <button class="acc" data-bulk="1" data-area="${esc(area)}" data-type="${type}" data-val="1">Accept all</button>
+            <button class="rej" data-bulk="1" data-area="${esc(area)}" data-type="${type}" data-val="0">Reject all</button>
+          </div>
+        </div>
+        <div class="checks">${shown.length ? shown.map(v => `
+          <div class="chk ${isOn(area, type, v) ? "" : "off"}">
+            <label>
+              <input type="checkbox" ${isOn(area, type, v) ? "checked" : ""} data-area="${esc(area)}" data-type="${type}" data-v="${esc(v)}" />
+              <span>${esc(v)}</span>
+            </label>
+          </div>`).join("") : `<div class="empty" style="padding:24px">Nothing found</div>`}
+        </div>
+      </div>`;
+    }).join("");
+    out.push(`
+      <section class="area-sec" data-area="${esc(area)}">
+        <div class="area-title"><h2>${esc(area)}</h2><span>filters for this area</span></div>
+        <div class="set-grid">${cols}</div>
+      </section>`);
+  }
+  const n = allData.length;
+  $("stats").innerHTML = `<b>${n}</b> rows in database`;
+  $("set").innerHTML = out.join("") || `<div class="empty dash-empty"><h3>No data yet</h3><p>Upload an Excel file first.</p></div>`;
+}
+$("set").addEventListener("change", async e => {
+  const c = e.target; if (c.type !== "checkbox") return;
+  const { area, type, v } = c.dataset;
+  try { await setFilter(area, type, v, c.checked); c.closest(".chk").classList.toggle("off", !c.checked); renderSettingsCounts(); }
+  catch (err) { c.checked = !c.checked; toast(err.message, "error"); }
+});
+$("set").addEventListener("click", async e => {
+  const b = e.target.closest("[data-bulk]"); if (!b) return;
+  const on = b.dataset.val === "1";
+  try { await setGroup(b.dataset.area, b.dataset.type, on); renderSettings(); toast(`${b.dataset.area}: all ${on ? "accepted" : "rejected"}`); }
+  catch (err) { toast(err.message, "error"); }
+});
+function renderSettingsCounts() {   // keep scroll position; just refresh counters
+  document.querySelectorAll("#set .list-head").forEach(h => {
+    const first = h.querySelector("[data-bulk]"); if (!first) return;
+    const { area, type } = first.dataset;
+    const vals = uniqueOrdered(allData.filter(r => r.area === area).map(r => type === "dstn" ? r.dstn : r.sttn_from));
+    h.querySelector("small").textContent = `${vals.filter(v => isOn(area, type, v)).length}/${vals.length} accepted`;
+  });
+}
+
+/* ---------- Excel parsing ---------- */
+function parseWorkbook(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const wb = XLSX.read(ev.target.result, { type: "array" });
+        const records = []; const warnings = []; let seq = 0;
+
+        for (const name of wb.SheetNames) {
+          const key = name.trim().toUpperCase();
+          const rows = XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, defval: "" });
+          const cell = (r, c) => String(rows[r]?.[c] ?? "").trim().toUpperCase();
+
+          // ---- Flat format: columns SIDING, AREA, DESTINATION ----
+          let hRow = -1, cS = -1, cA = -1, cD = -1;
+          for (let r = 0; r < Math.min(15, rows.length); r++) {
+            const cols = (rows[r] || []).map(v => String(v).trim().toUpperCase());
+            const s = cols.indexOf("SIDING"), d = cols.indexOf("DESTINATION");
+            if (s >= 0 && d >= 0) { hRow = r; cS = s; cD = d; cA = cols.indexOf("AREA"); break; }
+          }
+          if (hRow >= 0) {
+            let lastS = "", lastA = "";
+            for (let r = hRow + 1; r < rows.length; r++) {
+              const dstn = String(rows[r]?.[cD] ?? "").trim();
+              const sid = String(rows[r]?.[cS] ?? "").trim().toUpperCase();
+              const ar = cA >= 0 ? String(rows[r]?.[cA] ?? "").trim().toUpperCase() : "";
+              if (sid) lastS = sid; if (ar) lastA = ar;
+              if (!dstn) continue;
+              records.push({ area: lastA || key, sttn_from: lastS || "UNKNOWN", dstn, seq: seq++ });
+            }
+            continue;
+          }
+
+          // ---- Block format: SECL / CCL / MCL sheets ----
+          if (!["SECL", "CCL", "MCL"].includes(key)) continue;
+          let destRow = -1;
+          for (let r = 0; r < Math.min(15, rows.length); r++)
+            if ((rows[r] || []).some(v => String(v).toUpperCase().includes("DESTINATION"))) { destRow = r; break; }
+          if (destRow < 0) { warnings.push(`${key}: DESTINATION header not found`); continue; }
+          let sidingRow = -1;
+          for (let r = destRow - 1; r >= 0; r--)
+            if ((rows[r] || []).some(v => String(v).toUpperCase().includes("SIDING"))) { sidingRow = r; break; }
+          const width = Math.max(...rows.slice(0, destRow + 1).map(r => r.length));
+          for (let c = 0; c < width; c++) {
+            if (!cell(destRow, c).includes("DESTINATION")) continue;
+            let siding = "UNKNOWN";
+            if (sidingRow >= 0) for (const off of [1, 2, 0, -1]) {
+              const v = cell(sidingRow, c + off);
+              if (v && !v.includes("SIDING")) { siding = v; break; }
+            }
+            for (let r = destRow + 1; r < rows.length; r++) {
+              const dstn = String(rows[r]?.[c] ?? "").trim();
+              if (dstn) records.push({ area: key, sttn_from: siding, dstn, seq: seq++ });
+            }
+          }
+        }
+        resolve({ records, warnings });
+      } catch (e) { reject(e); }
+    };
+    reader.onerror = () => reject(new Error("Could not read file"));
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+/* ---------- Upload ---------- */
+const drop = $("drop"), fileIn = $("file"), repBtn = $("replace");
+drop.addEventListener("click", () => fileIn.click());
+drop.addEventListener("dragover", e => { e.preventDefault(); drop.classList.add("dragover"); });
+drop.addEventListener("dragleave", () => drop.classList.remove("dragover"));
+drop.addEventListener("drop", e => { e.preventDefault(); drop.classList.remove("dragover"); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+fileIn.addEventListener("change", () => { if (fileIn.files[0]) handleFile(fileIn.files[0]); });
+$("clear").addEventListener("click", resetUpload);
+repBtn.addEventListener("click", replaceDatabase);
+
+async function handleFile(file) {
+  const pv = $("preview"); pv.classList.remove("hidden");
+  pv.innerHTML = `<div class="empty"><h3>Parsing Excel...</h3></div>`;
+  try {
+    const { records, warnings } = await parseWorkbook(file);
+    parsedRecords = records;
+    if (!records.length) {
+      pv.innerHTML = `<div class="empty"><h3>No data extracted</h3><p>Make sure the file has SIDING, AREA and DESTINATION columns. ${esc(warnings.join("; "))}</p></div>`;
+      repBtn.disabled = true; return;
+    }
+    const ar = new Set(records.map(r => r.area)), st = new Set(records.map(r => r.area + "|" + r.sttn_from)), ds = new Set(records.map(r => r.dstn));
+    pv.innerHTML = `
+      <div class="prev-stats">
+        <div><b>${records.length}</b>Rows</div><div><b>${ar.size}</b>Areas</div>
+        <div><b>${st.size}</b>Stations</div><div><b>${ds.size}</b>Unique destinations</div>
+      </div>
+      ${warnings.length ? `<p class="warn">${esc(warnings.join("; "))}</p>` : ""}
+      <table><thead><tr><th>Area</th><th>Siding</th><th>Destination</th></tr></thead>
+      <tbody>${records.slice(0, 30).map(r => `<tr><td>${esc(r.area)}</td><td>${esc(r.sttn_from)}</td><td>${esc(r.dstn)}</td></tr>`).join("")}</tbody></table>
+      <p class="sub" style="margin-top:8px">Showing first 30 rows.</p>`;
+    repBtn.disabled = false; toast(`Parsed ${records.length} rows`);
+  } catch (e) {
+    console.error(e); pv.innerHTML = `<div class="empty"><h3>Could not parse file</h3><p>${esc(e.message)}</p></div>`;
+    repBtn.disabled = true; toast(e.message, "error");
+  }
+}
+function resetUpload() { fileIn.value = ""; parsedRecords = []; $("preview").classList.add("hidden"); repBtn.disabled = true; }
+
+async function replaceDatabase() {
+  if (!parsedRecords.length) return;
+  repBtn.disabled = true; repBtn.innerHTML = `<div class="loader"></div> Replacing data...`;
+  try {
+    const { error: de } = await db.from(ODR_TABLE).delete().gte("id", 0);
+    if (de) throw de;
+    const chunks = [];
+    for (let i = 0; i < parsedRecords.length; i += 500) chunks.push(parsedRecords.slice(i, i + 500));
+    const res = await Promise.all(chunks.map(c => db.from(ODR_TABLE).insert(c)));
+    for (const r of res) if (r.error) throw r.error;
+    const n = parsedRecords.length; resetUpload();
+    toast(`Database replaced with ${n} rows`);
+    go("dashboard");
+    await load(true);                                    // reload once so the new data shows
+  } catch (e) { console.error(e); toast(e.message, "error"); }
+  finally { repBtn.innerHTML = "Upload and Replace Database"; repBtn.disabled = !parsedRecords.length; }
+}
+
+go("dashboard");
+</script>
+</body>
+</html>

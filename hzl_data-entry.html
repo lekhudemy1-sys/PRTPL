@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HZL Data Entry | AMM Reports</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+/* AMM Reports - shared light theme (matches the home page) */
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Instrument+Sans:wght@400;500;600&display=swap");
+:root{
+  --bg-primary:#e6edf7; --bg-secondary:#f5f8fd; --bg-card:#f5f8fd; --bg-glass:rgba(15,33,66,.05);
+  --border-glass:#d3ddee; --text-primary:#0f2142; --text-secondary:#4a5a78; --text-muted:#7685a0;
+  --accent:#0f8a6a; --accent-hzl:#0f8a6a; --party-accent:#0f8a6a; --accent-soft:#dcefe9;
+  --success:#16875f; --warning:#c27a0a; --danger:#d1344a; --info:#2f6fd0; --purple:#7c3aed;
+  --navy:#0f2142; --field:#eaf0fa;
+  --radius:16px; --radius-sm:10px;
+  --shadow:0 1px 2px rgba(15,33,66,.05),0 14px 30px -18px rgba(15,33,66,.28);
+  --transition:all .22s ease;
+  --head:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --body:"Instrument Sans","Segoe UI",system-ui,-apple-system,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--body);background:var(--bg-primary);color:var(--text-primary);min-height:100vh;line-height:1.55;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(900px 420px at 90% -10%,#d4e2ff 0,transparent 70%),radial-gradient(700px 380px at 0 100%,#d9efe8 0,transparent 70%)}
+a{text-decoration:none;color:inherit}
+h1,h2,h3{font-family:var(--head);letter-spacing:-.02em}
+
+/* Layout */
+.app-layout{display:flex;min-height:100vh}
+.main,.main-content{flex:1;margin-left:250px;padding:1.75rem 2rem;min-width:0;min-height:100vh}
+
+/* Sidebar (navy) */
+.sidebar{width:250px;background:var(--navy);color:#e8eefc;position:fixed;height:100vh;z-index:100;display:flex;flex-direction:column;transition:var(--transition)}
+.sidebar-header{padding:1.5rem 1.4rem;border-bottom:1px solid rgba(255,255,255,.1)}
+.party-name{font:700 1.4rem var(--head);letter-spacing:-.02em;display:flex;align-items:center;gap:.6rem;color:#fff}
+.party-name .dot{width:10px;height:10px;border-radius:50%;background:#34d3a6;box-shadow:0 0 0 4px rgba(52,211,166,.2)}
+.sidebar .subtitle{font-size:.8rem;color:#9fb0d0;margin-top:.2rem}
+.sidebar-nav{flex:1;padding:1rem .8rem;display:flex;flex-direction:column;gap:.3rem}
+.nav-item{display:flex;align-items:center;gap:.85rem;padding:.8rem 1rem;border-radius:var(--radius-sm);color:#b9c6e0;font-weight:500;border-left:3px solid transparent}
+.nav-item i{width:22px;text-align:center}
+.nav-item:hover{background:rgba(255,255,255,.08);color:#fff}
+.nav-item.active{background:rgba(52,211,166,.16);color:#fff;border-left-color:#34d3a6}
+.sidebar-footer{padding:1rem 1.3rem;border-top:1px solid rgba(255,255,255,.1);font-size:.8rem;color:#9fb0d0}
+.back-home{display:inline-flex;align-items:center;gap:.5rem;color:#cfd9ee}
+.back-home:hover{color:#fff}
+
+/* Top bar */
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.6rem;flex-wrap:wrap;gap:1rem}
+.topbar h1{font-size:1.75rem;font-weight:700}
+.topbar .breadcrumb,.topbar .period{color:var(--text-muted);font-size:.9rem}
+.topbar-left{display:flex;align-items:center;gap:.9rem}
+.topbar-actions{display:flex;gap:.5rem;flex-wrap:wrap}
+.menu-toggle{display:none;background:none;border:none;color:var(--text-primary);font-size:1.4rem;cursor:pointer}
+.live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--success);margin-right:.35rem;animation:pulse 2.4s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 7px rgba(22,135,95,0)}0%{box-shadow:0 0 0 0 rgba(22,135,95,.45)}100%{box-shadow:0 0 0 0 rgba(22,135,95,0)}}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:.5rem;padding:.65rem 1.3rem;border-radius:var(--radius-sm);font:600 .9rem var(--body);border:1px solid transparent;cursor:pointer;transition:var(--transition)}
+.btn-sm{padding:.4rem .9rem;font-size:.8rem}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 8px 16px -8px rgba(15,138,106,.6)}
+.btn-primary:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.btn-secondary{background:#fbfcfe;color:var(--text-primary);border-color:var(--border-glass)}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent)}
+.btn-danger{background:#fbe6e9;color:var(--danger);border-color:#f2c4cb}
+.btn-danger:hover{background:var(--danger);color:#fff}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.btn:active{transform:scale(.98)}
+
+/* Cards */
+.card{background:var(--bg-card);border:1px solid var(--border-glass);border-radius:var(--radius);padding:1.4rem;box-shadow:var(--shadow);margin-bottom:1.4rem}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.1rem;flex-wrap:wrap;gap:.7rem}
+.card-header h3{font-size:1.05rem;font-weight:600;display:flex;align-items:center;gap:.5rem}
+.card-header h3 i{color:var(--accent)}
+.grid-3{display:grid;grid-template-columns:1.1fr 1fr 1.1fr;gap:1.25rem}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
+
+/* Inputs */
+input,select,textarea{color-scheme:light}
+.form-group input,.form-group select,.form-group textarea,.rake-table input,.rake-table select,.month-pick,.filter-bar input,.filter-bar select,
+.metric-value,.area-table input,.mines-table input{background:var(--field);border:1px solid var(--border-glass);border-radius:var(--radius-sm);color:var(--text-primary);font-family:inherit;outline:none;transition:var(--transition)}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)!important;box-shadow:0 0 0 3px rgba(15,138,106,.18);background:#f9fbfe}
+
+/* Dashboard */
+.metric-row{display:flex;justify-content:space-between;align-items:center;gap:.6rem;padding:.5rem 0;border-bottom:1px dashed var(--border-glass)}
+.metric-row:last-child{border-bottom:none}
+.metric-label{font-size:.83rem;color:var(--text-secondary)}
+.metric-value{padding:.35rem .65rem;font-size:.9rem;font-weight:600;text-align:center;width:110px}
+.metric-value.neg,.area-table input.neg,.mines-table input.neg{color:var(--danger)}
+.metric-value.pos,.mines-table input.pos{color:var(--success)}
+.metric-value.accent,.area-table input.accent{color:var(--accent)}
+.area-table{width:100%;border-collapse:collapse;font-size:.85rem}
+.area-table th,.area-table td{padding:.45rem .5rem;text-align:center;border-bottom:1px solid var(--border-glass)}
+.area-table th{background:transparent;color:var(--text-secondary);font-weight:600;font-size:.72rem;text-transform:uppercase}
+.area-table input{width:70px;padding:.3rem .4rem;font-size:.85rem;text-align:center}
+.area-table .row-label,.mines-table .row-label{text-align:center;font-weight:500;color:var(--text-secondary);font-size:.8rem}
+.mines-wrap{overflow-x:auto}
+.mines-table{width:100%;border-collapse:collapse;font-size:.8rem;min-width:900px}
+.mines-table th,.mines-table td{padding:.4rem .45rem;text-align:center;border-bottom:1px solid var(--border-glass);white-space:nowrap}
+.mines-table th{background:var(--navy);color:#fff;font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.4px}
+.mines-table th:first-child{border-radius:10px 0 0 10px}.mines-table th:last-child{border-radius:0 10px 10px 0}
+.mines-table .row-label{min-width:170px}
+.mines-table input{width:74px;padding:.28rem .35rem;font-size:.8rem;text-align:center}
+.highlight-box{background:var(--accent-soft);border:1px solid #bfe0d5;border-radius:var(--radius-sm);padding:.85rem 1rem;text-align:center}
+.highlight-box .label{font-size:.75rem;color:var(--text-secondary);margin-bottom:.3rem}
+.highlight-box .val{font:700 1.35rem var(--head);color:var(--accent)}
+.highlight-box .metric-value{background:#f9fbfe}
+.report-footer{text-align:center;color:var(--text-muted);font-size:.82rem;padding:.75rem 0;border-top:1px solid var(--border-glass);margin-top:.5rem}
+
+/* Data entry form */
+.section{padding:1.25rem 0;border-top:1px dashed var(--border-glass)}
+.section:first-of-type{border-top:none;padding-top:0}
+.section-title{font-size:.8rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--navy);margin-bottom:1rem;display:flex;align-items:center;gap:.6rem}
+.section-title i{width:28px;height:28px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;background:var(--accent-soft);color:var(--accent);font-size:.8rem}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1.1rem}
+.form-group{display:flex;flex-direction:column;gap:.4rem;min-width:0}
+.form-group label{font-size:.82rem;color:var(--text-secondary);font-weight:500}
+.form-group label .req{color:var(--danger);margin-left:2px}
+.form-group label .tag{font-size:.65rem;margin-left:.4rem;padding:1px 7px;border-radius:50px;background:#e0e9fb;color:var(--info);font-weight:600;text-transform:uppercase}
+.form-group input,.form-group select,.form-group textarea{padding:.7rem 1rem;font-size:.95rem;width:100%}
+.form-group select,.rake-table select{cursor:pointer;appearance:none;-webkit-appearance:none;background-repeat:no-repeat;background-position:right 1rem center;padding-right:2.5rem;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234a5a78' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")}
+.form-group input[readonly],.rake-table input[readonly]{background:var(--accent-soft);border:1px dashed #9fd0c0;color:var(--accent);font-weight:600;cursor:default}
+.form-group input:invalid:not(:placeholder-shown):not([readonly]){border-color:var(--danger)}
+.unit-wrap{position:relative}.unit-wrap input{padding-right:3.4rem}
+.unit-wrap .unit{position:absolute;right:.9rem;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:.78rem;pointer-events:none}
+.form-actions{margin-top:1.5rem;display:flex;gap:.75rem;flex-wrap:wrap}
+.month-pick{padding:.5rem .9rem}
+
+/* Tables */
+.table-wrapper{overflow-x:auto}
+.records-wrap{overflow:auto;max-height:520px;border:1px solid var(--border-glass);border-radius:var(--radius-sm)}
+.records-wrap thead th{position:sticky;top:0;z-index:1}
+table{width:100%;border-collapse:collapse}
+th,td{padding:.75rem .9rem;text-align:center;border-bottom:1px solid var(--border-glass);white-space:nowrap}
+th{color:var(--text-secondary);font-weight:600;font-size:.76rem;text-transform:uppercase;letter-spacing:.5px;background:var(--field)}
+td{font-size:.9rem}
+tbody tr:hover td{background:rgba(15,33,66,.035)}
+td.num,th.num{text-align:center;font-variant-numeric:tabular-nums}
+tfoot td{background:var(--field)}
+.rake-table td{padding:.5rem .6rem}
+.rake-table input,.rake-table select{padding:.5rem .7rem;font-size:.9rem;width:100%;min-width:110px;text-align:center}
+.empty{text-align:center;color:var(--text-muted);padding:2rem}
+.badge{display:inline-block;padding:.2rem .7rem;border-radius:50px;font-size:.75rem;font-weight:600;background:#e0e9fb;color:var(--info)}
+.badge-success{background:#d7efe6;color:var(--success)}
+.badge-warning{background:#fbecd0;color:#a8680a}
+.badge-info{background:#e0e9fb;color:var(--info)}
+.badge-danger{background:#fbe6e9;color:var(--danger)}
+
+/* Reports */
+.filter-bar{display:flex;flex-wrap:wrap;align-items:center;gap:.7rem;padding:1rem 1.2rem;margin-bottom:1.4rem;background:var(--bg-card);border:1px solid var(--border-glass);border-radius:var(--radius);box-shadow:var(--shadow)}
+.filter-bar input,.filter-bar select{padding:.55rem .9rem;font-size:.88rem}
+
+/* Alerts */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem}
+.stat-card{background:var(--bg-card);border:1px solid var(--border-glass);border-radius:var(--radius);padding:1.1rem 1.3rem;box-shadow:var(--shadow);border-top:4px solid var(--border-glass);text-align:center}
+.stat-card:nth-child(1){border-top-color:var(--danger)}.stat-card:nth-child(2){border-top-color:var(--warning)}
+.stat-card:nth-child(3){border-top-color:var(--info)}.stat-card:nth-child(4){border-top-color:var(--success)}
+.stat-card .label{font-size:.82rem;color:var(--text-secondary);font-weight:500}
+.stat-card .value{font:700 2rem var(--head);line-height:1.2;margin-top:.2rem}
+.alert-item{--c:var(--info);--t:#e6eefc;display:flex;gap:1rem;align-items:center;justify-content:center;text-align:center;padding:1rem 1.1rem;margin-bottom:.8rem;border-radius:var(--radius-sm);background:var(--t);border:1px solid var(--border-glass);border-left:5px solid var(--c);transition:var(--transition)}
+.alert-item:hover{transform:translateX(3px)}
+.alert-item.critical{--c:var(--danger);--t:#fbebee}
+.alert-item.warning{--c:var(--warning);--t:#fcf3e0}
+.alert-item.info{--c:var(--info);--t:#e6eefc}
+.alert-item.success{--c:var(--success);--t:#e1f3ec}
+.alert-icon{flex:none;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--c);color:#fff;font-size:1.05rem}
+.alert-content{flex:1;min-width:0}
+.alert-content h4{font-size:.98rem;font-weight:600}
+.alert-content p{font-size:.88rem;color:var(--text-secondary);margin-top:.1rem}
+.alert-time{font-size:.78rem;color:var(--text-muted);margin-top:.35rem}
+
+/* Toast */
+.toast{position:fixed;bottom:1.75rem;right:1.75rem;background:var(--navy);color:#fff;border-left:4px solid #34d3a6;padding:.9rem 1.4rem;border-radius:var(--radius-sm);box-shadow:0 18px 34px -12px rgba(15,33,66,.5);z-index:1000;transform:translateY(100px);opacity:0;transition:var(--transition)}
+.toast.show{transform:none;opacity:1}
+.toast.error{border-left-color:#ff7a8c}
+
+:focus-visible{outline:3px solid rgba(15,138,106,.4);outline-offset:2px}
+@media (max-width:1200px){.grid-3,.grid-2{grid-template-columns:1fr}}
+@media (max-width:768px){
+  .sidebar{transform:translateX(-100%)}.sidebar.open{transform:none}
+  .main,.main-content{margin-left:0;padding:1.2rem 1rem}
+  .menu-toggle{display:inline-block}
+  .form-grid{grid-template-columns:1fr 1fr}
+}
+@media (max-width:480px){.form-grid{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ===== Motion ===== */
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes slideIn{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.main>*,.main-content>*{animation:rise .55s cubic-bezier(.2,.8,.2,1) backwards}
+.main>:nth-child(2),.main-content>:nth-child(2){animation-delay:.07s}
+.main>:nth-child(3),.main-content>:nth-child(3){animation-delay:.14s}
+.main>:nth-child(4),.main-content>:nth-child(4){animation-delay:.21s}
+.main>:nth-child(5),.main-content>:nth-child(5){animation-delay:.28s}
+.main>:nth-child(n+6),.main-content>:nth-child(n+6){animation-delay:.35s}
+.grid-3>.card:nth-child(2){animation:rise .55s .08s cubic-bezier(.2,.8,.2,1) backwards}
+.grid-3>.card:nth-child(3){animation:rise .55s .16s cubic-bezier(.2,.8,.2,1) backwards}
+.stat-card{animation:rise .5s cubic-bezier(.2,.8,.2,1) backwards}
+.stat-card:nth-child(2){animation-delay:.07s}.stat-card:nth-child(3){animation-delay:.14s}.stat-card:nth-child(4){animation-delay:.21s}
+.alert-item{animation:rise .45s cubic-bezier(.2,.8,.2,1) backwards}
+.alert-item:nth-of-type(2){animation-delay:.05s}.alert-item:nth-of-type(3){animation-delay:.1s}.alert-item:nth-of-type(4){animation-delay:.15s}
+.alert-item:nth-of-type(5){animation-delay:.2s}.alert-item:nth-of-type(6){animation-delay:.25s}.alert-item:nth-of-type(n+7){animation-delay:.3s}
+tbody tr{animation:fadeIn .5s .25s ease backwards}
+.sidebar-nav .nav-item{animation:slideIn .45s cubic-bezier(.2,.8,.2,1) backwards}
+.sidebar-nav .nav-item:nth-child(2){animation-delay:.06s}.sidebar-nav .nav-item:nth-child(3){animation-delay:.12s}.sidebar-nav .nav-item:nth-child(4){animation-delay:.18s}
+.nav-item:hover{transform:translateX(3px)}
+.card{transition:transform .22s ease,box-shadow .22s ease}
+.card:hover{transform:translateY(-2px);box-shadow:0 1px 2px rgba(15,33,66,.05),0 20px 36px -18px rgba(15,33,66,.32)}
+.btn i{transition:transform .22s ease}.btn:hover i{transform:scale(1.15)}
+.metric-row{transition:background .2s}.metric-row:hover{background:rgba(15,33,66,.03)}
+body{transition:opacity .18s ease}
+body.leaving{opacity:0}
+</style>
+<script>
+/* ===== Login guard: admin = all pages, user = dashboard + report (+ home) only ===== */
+(function(){
+  var LOGIN='index.html', HOME='amm_home.html';
+  var USER_PAGES=['dashboard','report','amm_home'];
+  var s; try{ s=JSON.parse(sessionStorage.getItem('amm-auth')); }catch(e){}
+  var page=(location.pathname.split('/').pop()||'').replace(/\.html$/,'');
+  if(!s){ location.replace(LOGIN); return; }
+  if(s.role!=='admin' && USER_PAGES.indexOf(page)===-1){ location.replace(HOME); return; }
+  function logout(){ sessionStorage.removeItem('amm-auth'); location.replace(LOGIN); }
+  document.addEventListener('DOMContentLoaded',function(){
+    if(s.role!=='admin'){
+      document.querySelectorAll('a[href$="hzl_data-entry.html"], a[href$="hzl_alert.html"]').forEach(function(a){a.remove();});
+    }
+    var bar=document.createElement('div');
+    bar.style.cssText='position:fixed;top:12px;right:16px;z-index:999;display:flex;gap:.6rem;align-items:center;background:#fff;border:1px solid #d3ddee;border-radius:999px;padding:.3rem .4rem .3rem .9rem;font:600 .8rem system-ui,sans-serif;color:#0f2142;box-shadow:0 6px 16px -8px rgba(15,33,66,.3)';
+    bar.innerHTML='<span>'+s.name+' · '+s.role.toUpperCase()+'</span><button style="border:0;background:#0f2142;color:#fff;border-radius:999px;padding:.35rem .8rem;cursor:pointer;font:inherit">Logout</button>';
+    bar.querySelector('button').onclick=logout;
+    document.body.appendChild(bar);
+  });
+})();
+</script>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="party-name"><span class="dot"></span> HZL</div>
+      <div class="subtitle">Hindustan Zinc Limited</div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="hzl_dashboard.html" class="nav-item"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+      <a href="hzl_data-entry.html" class="nav-item active"><i class="fas fa-keyboard"></i> Data Entry</a>
+      <a href="hzl_report.html" class="nav-item"><i class="fas fa-file-alt"></i> Reports</a>
+      <a href="hzl_alert.html" class="nav-item"><i class="fas fa-bell"></i> Alerts</a>
+    </nav>
+    <div class="sidebar-footer"><a href="amm_home.html" class="back-home"><i class="fas fa-arrow-left"></i> Back to Parties</a></div>
+  </aside>
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="menu-toggle" id="menuToggle" aria-label="Menu"><i class="fas fa-bars"></i></button>
+        <div>
+          <h1>Data Entry</h1>
+          <div class="breadcrumb">Record coal rake loading, receipt, freight &amp; cost data</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3><i class="fas fa-plus-circle"></i> New Rake Record</h3>
+        <button type="button" class="btn btn-secondary btn-sm" id="fillSample"><i class="fas fa-wand-magic-sparkles"></i> Fill Sample Data</button>
+      </div>
+      <form id="entryForm" novalidate>
+        <div id="formSections"></div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Record</button>
+          <button type="button" class="btn btn-secondary" id="clearForm">Clear Form</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- ===== TARGET RAKE CARD ===== -->
+    <div class="card">
+      <div class="card-header">
+        <h3><i class="fas fa-bullseye"></i> <span id="rakeTitle"></span></h3>
+        <div style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;">
+          <button type="button" class="btn btn-secondary btn-sm" id="carryFwd" title="Set Qtr Target = previous quarter's balance"><i class="fas fa-forward"></i> Carry Forward</button>
+          <!-- Quarter -->
+          <select id="rakeQuarter" class="month-pick" aria-label="Quarter" style="min-width:110px">
+            <option value="Q1">Q1 (Apr–Jun)</option>
+            <option value="Q2">Q2 (Jul–Sep)</option>
+            <option value="Q3">Q3 (Oct–Dec)</option>
+            <option value="Q4">Q4 (Jan–Mar)</option>
+          </select>
+
+          <!-- Report making date -->
+          <input type="date" class="month-pick" id="rakeReportDate" aria-label="Report making date" title="Report making date">
+        </div>
+      </div>
+      <div class="table-wrapper">
+        <table class="rake-table">
+          <thead>
+            <tr>
+              <th>SL. No.</th>
+              <th>Area</th>
+              <th>Qtr Target</th>
+              <th>Loaded Till</th>
+              <th>Balance Rake</th>
+              <th>Asking Per Day</th>
+              <th>Asking (%)</th>
+            </tr>
+          </thead>
+          <tbody id="rakeBody"></tbody>
+          <tfoot>
+            <tr>
+              <td colspan="2"><strong>Total</strong></td>
+              <td><strong id="tTarget">0</strong></td>
+              <td><strong id="tLoaded">0</strong></td>
+              <td><strong id="tBalance">0</strong></td>
+              <td><strong id="tAskingDay">0</strong></td>
+              <td><strong id="tAskingPct">0</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <!-- Fixed service charge + per GCV cost target (saved for the selected quarter, shown on the dashboard) -->
+      <div class="form-grid" style="margin-top:1.1rem">
+        <div class="form-group">
+          <label for="svcRate">Fixed Service Charge <span class="tag">₹ / MT</span></label>
+          <input type="number" id="svcRate" min="0" step="0.01" placeholder="e.g. 24">
+        </div>
+        <div class="form-group">
+          <label for="gcvCostTarget">Per GCV Cost Target <span class="tag">₹</span></label>
+          <input type="number" id="gcvCostTarget" min="0" step="0.001" placeholder="e.g. 0.400">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3><i class="fas fa-table"></i> Saved Records <span class="badge" id="recCount">0</span></h3>
+        <button type="button" class="btn btn-secondary btn-sm" id="exportCsv"><i class="fas fa-download"></i> Export CSV</button>
+      </div>
+      <div class="records-wrap">
+        <table>
+          <thead>
+            <tr id="recHead"></tr>
+          </thead>
+          <tbody id="recBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ============ Supabase ============ */
+const SUPABASE_URL = 'https://pycmkjrmdieaqsbgrher.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5Y21ranJtZGllYXFzYmdyaGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwMjMxNzAsImV4cCI6MjEwNjU5OTE3MH0.9IE2c2FZ4BPv6Rvhfa_VniQ7LJvQ_c4EGDXFihYR4Lc';
+
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/* ============ Field definitions ============ */
+const OPT = {
+  area:   ['SECL', 'WCL', 'CCL', 'MCL'],
+  unit:   ['CPP', 'IPP', 'EAC'],
+  tranch: ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX'],
+  grade:  ['G-07', 'G-08', 'G-09', 'G-10', 'G-11', 'G-12', 'G-13', 'G-14', 'G-15'],
+  box:    ['N+NHL', 'BOXN', 'BOXNHL', 'BCN']
+};
+
+const SECTIONS = [
+  { title: 'Basic Details', icon: 'fa-circle-info', fields: [
+    { key: 'srNo',   label: 'Sr No', type: 'calc', tag: 'auto' },
+    { key: 'area',   label: 'Area', type: 'select', options: OPT.area, req: 1 },
+    { key: 'date',   label: 'Date', type: 'date', req: 1 },
+    { key: 'siding', label: 'Siding', type: 'text', ph: 'e.g. ABC', req: 1 },
+    { key: 'unit',   label: 'Unit', type: 'select', options: OPT.unit, req: 1 },
+    { key: 'tranch', label: 'Tranch', type: 'select', options: OPT.tranch, req: 1 },
+  ]},
+  { title: 'Allotment', icon: 'fa-file-signature', fields: [
+    { key: 'fsa',         label: 'FSA', type: 'text', ph: 'e.g. ABC123456', req: 1 },
+    { key: 'allotDate',   label: 'Date Of Allotment', type: 'date', req: 1 },
+    { key: 'seniorityNo', label: 'Seniority No', type: 'number', step: 1, ph: 'e.g. 123' },
+  ]},
+  { title: 'Mines Loading Time', icon: 'fa-clock', fields: [
+    { key: 'timePT',   label: 'P/T', type: 'time' },
+    { key: 'timeCT',   label: 'C/T', type: 'time' },
+    { key: 'timeDOT',  label: 'D/O/T', type: 'time' },
+    { key: 'duration', label: 'Mines Loading Duration', type: 'calc', tag: 'auto' },
+  ]},
+  { title: 'Box Details', icon: 'fa-box', fields: [
+    { key: 'supplyBox', label: 'Supply Box', type: 'number', step: 1, ph: 'e.g. 11' },
+    { key: 'loadBox',   label: 'Load Box', type: 'number', step: 1, ph: 'e.g. 10' },
+    { key: 'sickBox',   label: 'Sick Box', type: 'calc', tag: 'auto' },
+    { key: 'boxType',   label: 'Box Type', type: 'select', options: OPT.box },
+  ]},
+  { title: 'Weight & Quality', icon: 'fa-weight-scale', fields: [
+    { key: 'netWt',  label: 'Net Wt.', type: 'number', step: 0.01, unit: 'MT', req: 1 },
+    { key: 'recvWt', label: 'Received Wt.', type: 'number', step: 0.01, unit: 'MT' },
+    { key: 'grnQty', label: 'GRN Qty. (MT)', type: 'number', step: 0.01, unit: 'MT' },
+    { key: 'gcvAdb', label: 'GCV ADB', type: 'number', step: 1, unit: 'kcal' },
+    { key: 'gcvArb', label: 'GCV ARB', type: 'number', step: 1, unit: 'kcal' },
+    { key: 'arbTm',  label: 'ARB TM%', type: 'number', step: 0.01, unit: '%' },
+    { key: 'chWt',   label: 'Ch Weight', type: 'number', step: 0.01, unit: 'MT' },
+    { key: 'rrWt',   label: 'RR Weight', type: 'number', step: 0.01, unit: 'MT' },
+  ]},
+  { title: 'Railway Receipt', icon: 'fa-train', fields: [
+    { key: 'rrNo',   label: 'RR Number', type: 'text', ph: 'e.g. 123456789' },
+    { key: 'rrDate', label: 'RR Date', type: 'date' },
+  ]},
+  { title: 'Underload', icon: 'fa-arrow-down-wide-short', fields: [
+    { key: 'ulQty',     label: 'Underload Quantity', type: 'number', step: 0.01 },
+    { key: 'ulPaidCil', label: 'Underload Qty Paid Coal India', type: 'number', step: 0.01 },
+    { key: 'ulOnUs',    label: 'Underload Qty On Us', type: 'number', step: 0.01 },
+  ]},
+  { title: 'Freight & Charges', icon: 'fa-indian-rupee-sign', fields: [
+    { key: 'polGroup',   label: 'POL1/PO2/POLA/PCLA/DCLA', type: 'number', step: 0.01, unit: '₹' },
+    { key: 'ehbcGroup',  label: 'EHBC/FAUC/TC/ST', type: 'number', step: 0.01, unit: '₹' },
+    { key: 'enhcCharge', label: 'ENHC Charge', type: 'number', step: 0.01, unit: '₹' },
+    { key: 'totalFright',label: 'Total Fright', type: 'number', step: 0.01, unit: '₹' },
+    { key: 'deadFrQty',  label: 'Dead Freight Qty', type: 'number', step: 0.01 },
+    { key: 'deadFrChg',  label: 'Dead Freight Charges', type: 'number', step: 0.01, unit: '₹' },
+  ]},
+  { title: 'Grade & Cost', icon: 'fa-medal', fields: [
+    { key: 'grade',        label: 'Grade', type: 'select', options: OPT.grade, req: 1 },
+    { key: 'landedCost',   label: 'Landed cost', type: 'number', step: 0.01, unit: '₹' },
+    { key: 'declaredGrade',label: 'Loading Declared Grade', type: 'select', options: OPT.grade },
+  ]},
+];
+const ALL_FIELDS = SECTIONS.flatMap(s => s.fields);
+
+/* ============ Helpers ============ */
+const $ = (id) => document.getElementById(id);
+const form = $('entryForm');
+const el = (k) => form.elements[k];
+const num = (v) => (v === '' || v == null || isNaN(+v)) ? null : +v;
+const fmt = (v) => (v === '' || v == null) ? '—' : (isNaN(+v) ? v : (+v).toLocaleString('en-IN', { maximumFractionDigits: 2 }));
+const fmtDate = (v) => { if (!v) return '—'; const [y, m, d] = v.split('-'); return `${d}-${m}-${y}`; };
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const pad2 = (n) => String(n).padStart(2, '0');
+let toastTimer;
+function showToast(msg, error) {
+  let t = document.querySelector('.toast');
+  if (!t) { t = document.createElement('div'); t.className = 'toast'; document.body.appendChild(t); }
+  t.textContent = msg;
+  t.classList.toggle('error', !!error);
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+/* ============ Build form ============ */
+function buildForm() {
+  $('formSections').innerHTML = SECTIONS.map(s => `
+    <div class="section">
+      <div class="section-title"><i class="fas ${s.icon}"></i> ${s.title}</div>
+      <div class="form-grid">
+        ${s.fields.map(f => {
+          const label = `<label for="f_${f.key}">${f.label}${f.req ? '<span class="req">*</span>' : ''}${f.tag ? `<span class="tag">${f.tag}</span>` : ''}</label>`;
+          let input;
+          if (f.type === 'select') {
+            input = `<select id="f_${f.key}" name="${f.key}" ${f.req ? 'required' : ''}>
+              <option value="">Select ${f.label.toLowerCase()}</option>
+              ${f.options.map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('')}
+            </select>`;
+          } else if (f.type === 'calc') {
+            input = `<input id="f_${f.key}" name="${f.key}" type="text" readonly tabindex="-1" placeholder="Auto">`;
+          } else {
+            const attrs = `${f.step ? `step="${f.step}"` : ''} ${f.type === 'number' ? 'min="0"' : ''} ${f.ph ? `placeholder="${f.ph}"` : 'placeholder=" "'} ${f.req ? 'required' : ''}`;
+            input = `<input id="f_${f.key}" name="${f.key}" type="${f.type}" ${attrs}>`;
+            if (f.unit) input = `<div class="unit-wrap">${input}<span class="unit">${f.unit}</span></div>`;
+          }
+          return `<div class="form-group">${label}${input}</div>`;
+        }).join('')}
+      </div>
+    </div>`).join('') + `
+    <div class="section">
+      <div class="section-title"><i class="fas fa-note-sticky"></i> Remarks</div>
+      <div class="form-group">
+        <label for="f_remarks">Remarks / Notes</label>
+        <textarea id="f_remarks" name="remarks" rows="3" placeholder="Any observations, issues or comments..." style="min-height:90px;resize:vertical"></textarea>
+      </div>
+    </div>`;
+}
+
+/* ============ Calculated fields ============ */
+function toMin(t) { if (!t) return null; const [h, m] = t.split(':').map(Number); return h * 60 + m; }
+function recalc() {
+  const p = toMin(el('timePT').value), c = toMin(el('timeCT').value);
+  if (p == null || c == null) el('duration').value = '';
+  else {
+    const d = Math.abs(c - p);
+    el('duration').value = `${pad2(Math.floor(d / 60))}:${pad2(d % 60)} hrs`;
+  }
+  const s = num(el('supplyBox').value), l = num(el('loadBox').value);
+  el('sickBox').value = (s == null || l == null) ? '' : s - l;
+}
+
+/* ============ Sample data ============ */
+const SAMPLE_BASE = {
+  area: 'SECL', date: '2026-10-03', siding: 'ABC', unit: 'CPP', tranch: 'I',
+  fsa: 'ABC123456', allotDate: '2026-10-01', seniorityNo: 123,
+  timePT: '06:30', timeCT: '14:45', timeDOT: '15:30',
+  supplyBox: 59, loadBox: 58, boxType: 'N+NHL',
+  netWt: 4000, recvWt: 3985.5, grnQty: 3985.5, gcvAdb: 4350, gcvArb: 4120, arbTm: 10.12, chWt: 4000, rrWt: 3998.4,
+  rrNo: '123456789', rrDate: '2026-10-01',
+  ulQty: 1.12, ulPaidCil: 0.62, ulOnUs: 0.5,
+  polGroup: 124567, ehbcGroup: 98450, enhcCharge: 12300, totalFright: 1245670, deadFrQty: 0, deadFrChg: 0,
+  grade: 'G-07', landedCost: 3456789, declaredGrade: 'G-07',
+  remarks: 'Rake loaded as per schedule. No major delays.'
+};
+const SAMPLE_VARIANTS = [
+  {},
+  { area: 'WCL', siding: 'DEF', unit: 'IPP', tranch: 'II', fsa: 'DEF234567', seniorityNo: 124, grade: 'G-08', declaredGrade: 'G-08', netWt: 3920.5, recvWt: 3905, grnQty: 3905, rrNo: '223456780', supplyBox: 58, loadBox: 55, boxType: 'BOXN', deadFrQty: 74.5, deadFrChg: 18250, ulQty: 79.5, ulPaidCil: 40, ulOnUs: 39.5, remarks: '' },
+  { area: 'CCL', siding: 'GHI', unit: 'EAC', tranch: 'III', fsa: 'GHI345678', seniorityNo: 125, grade: 'G-10', declaredGrade: 'G-09', netWt: 4010, recvWt: 4002.3, grnQty: 4002.3, rrNo: '323456781', boxType: 'BOXNHL', remarks: 'Declared grade differs from analysed grade.' },
+];
+function sampleFor(i) {
+  return Object.assign({}, SAMPLE_BASE, SAMPLE_VARIANTS[i % SAMPLE_VARIANTS.length]);
+}
+function fillForm(data) {
+  Object.entries(data).forEach(([k, v]) => { if (el(k)) el(k).value = v ?? ''; });
+  recalc();
+}
+function nextSrNo() { return records.length ? Math.max(...records.map(r => +r.srNo)) + 1 : 1; }
+
+/* ============ Column mapping (form key ↔ database column) ============ */
+const COL_MAP = {
+  srNo: 'sr_no', area: 'area', date: 'date', siding: 'siding', unit: 'unit', tranch: 'tranch',
+  fsa: 'fsa', allotDate: 'allot_date', seniorityNo: 'seniority_no',
+  timePT: 'time_pt', timeCT: 'time_ct', timeDOT: 'time_dot', duration: 'duration',
+  supplyBox: 'supply_box', loadBox: 'load_box', sickBox: 'sick_box', boxType: 'box_type',
+  netWt: 'net_wt', recvWt: 'recv_wt', grnQty: 'grn_qty', gcvAdb: 'gcv_adb', gcvArb: 'gcv_arb',
+  arbTm: 'arb_tm', chWt: 'ch_wt', rrWt: 'rr_wt',
+  rrNo: 'rr_no', rrDate: 'rr_date',
+  ulQty: 'ul_qty', ulPaidCil: 'ul_paid_cil', ulOnUs: 'ul_on_us',
+  polGroup: 'pol_group', ehbcGroup: 'ehbc_group', enhcCharge: 'enhc_charge',
+  totalFright: 'total_fright', deadFrQty: 'dead_fr_qty', deadFrChg: 'dead_fr_chg',
+  grade: 'grade', landedCost: 'landed_cost', declaredGrade: 'declared_grade',
+  remarks: 'remarks'
+};
+
+function toDbRow(formData) {
+  const row = {};
+  for (const [formKey, dbCol] of Object.entries(COL_MAP)) {
+    let val = formData[formKey];
+    if (val === '' || val === undefined) val = null;
+    if (['seniorityNo','supplyBox','loadBox','sickBox','gcvAdb','gcvArb',
+         'netWt','recvWt','grnQty','arbTm','chWt','rrWt',
+         'ulQty','ulPaidCil','ulOnUs','polGroup','ehbcGroup','enhcCharge',
+         'totalFright','deadFrQty','deadFrChg','landedCost'].includes(formKey) && val !== null) {
+      val = Number(val);
+    }
+    row[dbCol] = val;
+  }
+  return row;
+}
+
+function fromDbRow(dbRow) {
+  const obj = { id: dbRow.id };
+  for (const [formKey, dbCol] of Object.entries(COL_MAP)) {
+    obj[formKey] = dbRow[dbCol] ?? '';
+  }
+  return obj;
+}
+
+/* ============ Records (proper columns) ============ */
+let records = [];
+
+/* Fetch every row, in pages, so the default 1000-row limit does not cut off data */
+const PAGE_SIZE = 1000;
+async function fetchAllRecords() {
+  const all = [];
+  for (let from = 0; ; from += PAGE_SIZE) {
+    const { data, error } = await db
+      .from('hzl_rake_records')
+      .select('*')
+      .order('sr_no', { ascending: true })
+      .order('id', { ascending: true })
+      .range(from, from + PAGE_SIZE - 1);
+    if (error) throw error;
+    all.push(...(data || []));
+    if (!data || data.length < PAGE_SIZE) break;
+  }
+  return all;
+}
+
+async function loadRecords() {
+  try {
+    records = (await fetchAllRecords()).map(fromDbRow);
+  } catch (error) {
+    console.error(error);
+    showToast('Could not load records from Supabase', true);
+    return;
+  }
+  renderRecords();
+  el('srNo').value = nextSrNo();
+}
+
+/* Every database column except id, created_at, updated_at and remarks.
+   Header labels come from COL_MAP (the database column names). */
+const TABLE_COLS = [
+  { key: 'srNo', type: 'num' }, { key: 'area', type: 'text' }, { key: 'date', type: 'date' },
+  { key: 'siding', type: 'text' }, { key: 'unit', type: 'text' }, { key: 'tranch', type: 'text' },
+  { key: 'fsa', type: 'text' }, { key: 'allotDate', type: 'date' }, { key: 'seniorityNo', type: 'num' },
+  { key: 'timePT', type: 'text' }, { key: 'timeCT', type: 'text' }, { key: 'timeDOT', type: 'text' },
+  { key: 'duration', type: 'text' }, { key: 'supplyBox', type: 'num' }, { key: 'loadBox', type: 'num' },
+  { key: 'sickBox', type: 'num' }, { key: 'boxType', type: 'text' }, { key: 'netWt', type: 'num' },
+  { key: 'recvWt', type: 'num' }, { key: 'grnQty', type: 'num' }, { key: 'gcvAdb', type: 'num' },
+  { key: 'gcvArb', type: 'num' }, { key: 'arbTm', type: 'num' }, { key: 'chWt', type: 'num' },
+  { key: 'rrWt', type: 'num' }, { key: 'rrNo', type: 'text' }, { key: 'rrDate', type: 'date' },
+  { key: 'ulQty', type: 'num' }, { key: 'ulPaidCil', type: 'num' }, { key: 'ulOnUs', type: 'num' },
+  { key: 'polGroup', type: 'num' }, { key: 'ehbcGroup', type: 'num' }, { key: 'enhcCharge', type: 'num' },
+  { key: 'totalFright', type: 'num' }, { key: 'deadFrQty', type: 'num' }, { key: 'deadFrChg', type: 'num' },
+  { key: 'grade', type: 'text' }, { key: 'landedCost', type: 'num' }, { key: 'declaredGrade', type: 'text' },
+];
+
+function cellHtml(col, r) {
+  const v = r[col.key];
+  if (col.type === 'date') return fmtDate(v);
+  if (col.type === 'num') return fmt(v);
+  return esc(v) || '—';
+}
+
+function renderRecords() {
+  $('recCount').textContent = records.length;
+  $('recHead').innerHTML = TABLE_COLS.map(c => `<th>${esc(COL_MAP[c.key])}</th>`).join('') + '<th></th>';
+  // Display oldest date first; records array keeps Sr No order for resequencing
+  const sorted = [...records].sort((a, b) =>
+    String(a.date).localeCompare(String(b.date)) || (Number(a.srNo) - Number(b.srNo)));
+  $('recBody').innerHTML = sorted.length ? sorted.map((r) => `
+    <tr>
+      ${TABLE_COLS.map(c => `<td>${cellHtml(c, r)}</td>`).join('')}
+      <td><button class="btn btn-danger btn-sm" data-del="${esc(r.id)}" title="Delete"><i class="fas fa-trash"></i></button></td>
+    </tr>`).join('') : `<tr><td class="empty" colspan="${TABLE_COLS.length + 1}">No records yet.</td></tr>`;
+}
+
+function collect() {
+  const o = {};
+  ALL_FIELDS.forEach(f => o[f.key] = el(f.key).value);
+  o.remarks = el('remarks').value;
+  return o;
+}
+
+function resetForm() {
+  form.reset();
+  el('date').value = new Date().toISOString().slice(0, 10);
+  el('srNo').value = nextSrNo();
+  recalc();
+}
+
+async function saveRecord(formData) {
+  const row = toDbRow(formData);
+  const { data, error } = await db
+    .from('hzl_rake_records')
+    .insert(row)
+    .select('*')
+    .single();
+  if (error) throw error;
+  return fromDbRow(data);
+}
+
+async function deleteRecord(id) {
+  const { error } = await db.from('hzl_rake_records').delete().eq('id', id);
+  if (error) throw error;
+}
+
+async function resequenceRecords() {
+  for (let i = 0; i < records.length; i++) {
+    const newSr = i + 1;
+    if (Number(records[i].srNo) === newSr) continue;
+    const { error } = await db
+      .from('hzl_rake_records')
+      .update({ sr_no: newSr })
+      .eq('id', records[i].id);
+    if (error) throw error;
+    records[i].srNo = newSr;
+  }
+}
+
+/* ============ Form events ============ */
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!form.checkValidity()) {
+    form.reportValidity();
+    showToast('Please fill the required fields', true);
+    return;
+  }
+  const btn = form.querySelector('button[type="submit"]');
+  const oldHtml = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+  try {
+    const saved = await saveRecord(collect());
+    records.push(saved);
+    renderRecords();
+    // Loaded Till is recalculated from hzl_rake_records for the quarter this record belongs to
+    await syncRakeLoaded(saved.date);
+    showToast('Record saved successfully!');
+    resetForm();
+  } catch (err) {
+    console.error(err);
+    showToast(`Save failed: ${err.message || 'Supabase error'}`, true);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = oldHtml;
+  }
+});
+
+$('clearForm').addEventListener('click', resetForm);
+$('fillSample').addEventListener('click', () => {
+  fillForm(Object.assign(sampleFor(records.length), { srNo: nextSrNo() }));
+  showToast('Sample data filled');
+});
+
+$('recBody').addEventListener('click', async (e) => {
+  const b = e.target.closest('[data-del]');
+  if (!b) return;
+  const i = records.findIndex(r => String(r.id) === b.dataset.del);
+  const record = records[i];
+  if (i < 0 || !record?.id) return;
+  if (!confirm(`Delete record Sr No. ${record.srNo}?`)) return;
+  try {
+    const delDate = record.date;
+    await deleteRecord(record.id);
+    records.splice(i, 1);
+    await resequenceRecords();
+    renderRecords();
+    el('srNo').value = nextSrNo();
+    // Loaded Till is recalculated from hzl_rake_records for the quarter this record belonged to
+    await syncRakeLoaded(delDate);
+    showToast('Record deleted');
+  } catch (err) {
+    console.error(err);
+    showToast(`Delete failed: ${err.message || 'Supabase error'}`, true);
+  }
+});
+
+$('exportCsv').addEventListener('click', () => {
+  if (!records.length) {
+    showToast('No records to export', true);
+    return;
+  }
+  const cols = TABLE_COLS.map(c => c.key);
+  const head = cols.map(k => COL_MAP[k]);
+  const q = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const csv = [
+    head.map(q).join(','),
+    ...records.map(r => cols.map(c => q(r[c])).join(','))
+  ].join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = 'hzl_data_entry.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+/* ============ Target rake – stored QUARTER-WISE in hzl_rake_targets ============
+   One row per (quarter + quarter-start month key + area).
+   - New quarter  -> new rows are created
+   - Same quarter -> existing rows are UPDATED (never deleted)
+   - Loaded Till is always counted from hzl_rake_records                        */
+const RAKE_TYPES = ['SECL', 'CCL', 'MCL'];
+let rake = [];   // [{ type, target, loaded }]
+
+const QUARTER_START_MONTH = { Q1: 4, Q2: 7, Q3: 10, Q4: 1 };
+const QUARTER_END_MONTH   = { Q1: 6, Q2: 9, Q3: 12, Q4: 3 };
+
+function defaultRake() {
+  return RAKE_TYPES.map(t => ({ type: t, target: 0, loaded: 0 }));
+}
+function currentYear() { return new Date().getFullYear(); }
+
+/* quarter helpers that work for ANY quarter/year (not just the selected one) */
+function qKey(quarter, year)  { return `${year}-${pad2(QUARTER_START_MONTH[quarter])}`; }
+function qStart(quarter, year){ return `${year}-${pad2(QUARTER_START_MONTH[quarter])}-01`; }
+function qEnd(quarter, year) {
+  const m = QUARTER_END_MONTH[quarter];
+  return `${year}-${pad2(m)}-${pad2(new Date(Date.UTC(year, m, 0)).getUTCDate())}`;
+}
+function quarterOfDate(dateStr) {
+  const [y, m] = dateStr.split('-').map(Number);
+  const quarter = m >= 4 && m <= 6 ? 'Q1' : m >= 7 && m <= 9 ? 'Q2' : m >= 10 ? 'Q3' : 'Q4';
+  return { quarter, year: y };
+}
+
+function quarterKey()    { return qKey($('rakeQuarter').value, currentYear()); }
+function quarterEndDate(){ return qEnd($('rakeQuarter').value, currentYear()); }
+
+function fiscalYearLabel(monthYYYYMM) {
+  if (!monthYYYYMM) return '';
+  const [y, m] = monthYYYYMM.split('-').map(Number);
+  if (m >= 4) return `${y}-${String(y + 1).slice(2)}`;
+  return `${y - 1}-${String(y).slice(2)}`;
+}
+
+function rakeTitle() {
+  const label = $('rakeQuarter').selectedOptions[0]?.textContent || $('rakeQuarter').value;
+  const fy = fiscalYearLabel(quarterKey());
+  $('rakeTitle').textContent = `TARGET RAKE — ${label}${fy ? ' (' + fy + ')' : ''}`;
+}
+
+/* Days left = quarter end − report date (0 if report date is on/after quarter end) */
+function daysBetween(reportDate, endDate) {
+  const days = Math.round((new Date(endDate + 'T00:00:00Z') - new Date(reportDate + 'T00:00:00Z')) / 86400000);
+  return days > 0 ? days : 0;
+}
+function daysRemaining() {
+  const rep = $('rakeReportDate').value || new Date().toISOString().slice(0, 10);
+  return daysBetween(rep, quarterEndDate());
+}
+function askingPerDay(balance, days) {
+  const d = (days === undefined) ? daysRemaining() : days;
+  if (!d) return 0;
+  return Math.round((balance / d) * 100) / 100;
+}
+function askingPct(loaded, target) {
+  if (!target) return 0;
+  return Math.round((loaded / target) * 1000) / 10;
+}
+function fmtAskingDay(v) {
+  return (v == null || isNaN(v)) ? '0' : Number(v).toLocaleString('en-IN', { maximumFractionDigits: 2, minimumFractionDigits: 0 });
+}
+function fmtAskingPct(v) {
+  return (v == null || isNaN(v)) ? '0%' : Number(v).toLocaleString('en-IN', { maximumFractionDigits: 1, minimumFractionDigits: 0 }) + '%';
+}
+
+function renderRake() {
+  $('rakeBody').innerHTML = rake.map((r, i) => {
+    const bal = (+r.target || 0) - (+r.loaded || 0);
+    const apd = askingPerDay(bal);
+    const apc = askingPct(+r.loaded || 0, +r.target || 0);
+    r.askingPerDay = apd;
+    r.askingPct = apc;
+    return `
+    <tr>
+      <td><input readonly value="${i + 1}"></td>
+      <td><input readonly value="${r.type}"></td>
+      <td><input type="number" min="0" data-i="${i}" data-k="target" value="${r.target}"></td>
+      <td><input readonly title="Auto: rakes in hzl_rake_records for this area" value="${r.loaded}"></td>
+      <td><input readonly data-bal="${i}" value="${bal}"></td>
+      <td><input readonly data-apd="${i}" title="Balance ÷ days left in quarter" value="${fmtAskingDay(apd)}"></td>
+      <td><input readonly data-apc="${i}" title="Loaded Till ÷ Qtr Target" value="${fmtAskingPct(apc)}"></td>
+    </tr>`;
+  }).join('');
+  totals();
+}
+
+function totals() {
+  const t = rake.reduce((a, r) => a + (+r.target || 0), 0);
+  const l = rake.reduce((a, r) => a + (+r.loaded || 0), 0);
+  const bal = t - l;
+  $('tTarget').textContent  = t;
+  $('tLoaded').textContent  = l;
+  $('tBalance').textContent = bal;
+  $('tAskingDay').textContent = fmtAskingDay(askingPerDay(bal));
+  $('tAskingPct').textContent = fmtAskingPct(askingPct(l, t));
+}
+
+/* Count window: quarter start → report date (clamped inside the quarter) */
+function loadedRange() {
+  const quarter = $('rakeQuarter').value, y = currentYear();
+  const from = qStart(quarter, y), end = qEnd(quarter, y);
+  const rep = $('rakeReportDate').value;
+  const to = (rep && rep >= from && rep <= end) ? rep : end;
+  return { from, to };
+}
+
+async function countRakesFor(area, range) {
+  const { count, error } = await db
+    .from('hzl_rake_records')
+    .select('id', { count: 'exact', head: true })
+    .eq('area', area)
+    .gte('date', range.from)
+    .lte('date', range.to);
+  if (error) throw error;
+  return count || 0;
+}
+
+/* Recalculate Loaded Till for the selected quarter from hzl_rake_records */
+async function refreshLoaded() {
+  const range = loadedRange();
+  try {
+    const counts = await Promise.all(rake.map(r => countRakesFor(r.type, range)));
+    rake.forEach((r, i) => { r.loaded = counts[i]; });
+  } catch (err) {
+    console.error(err);
+    showToast('Could not count loaded rakes', true);
+  }
+  renderRake();
+}
+
+/* Put the report date inside the selected quarter (today if inside, otherwise quarter start/end) */
+function clampReportDate() {
+  const quarter = $('rakeQuarter').value, y = currentYear();
+  const from = qStart(quarter, y), end = qEnd(quarter, y);
+  const cur = $('rakeReportDate').value || new Date().toISOString().slice(0, 10);
+  $('rakeReportDate').value = cur < from ? from : (cur > end ? end : cur);
+}
+
+/* Previous quarter (Q1 -> Q4 of same year, Q4 -> Q3 of previous year, else same year) */
+function prevQuarter(quarter, year) {
+  if (quarter === 'Q1') return { quarter: 'Q4', year };
+  if (quarter === 'Q2') return { quarter: 'Q1', year };
+  if (quarter === 'Q3') return { quarter: 'Q2', year };
+  return { quarter: 'Q3', year: year - 1 };      // Q4 (Jan-Mar)
+}
+
+/* Qtr Target = previous quarter's Balance Rake (its target - rakes loaded in the WHOLE previous quarter).
+   Returns false if the previous quarter has no saved targets. */
+async function carryForwardTargets() {
+  const p = prevQuarter($('rakeQuarter').value, currentYear());
+  const { data, error } = await db
+    .from('hzl_rake_targets')
+    .select('box_type, qtr_target')
+    .eq('quarter', p.quarter)
+    .eq('month', qKey(p.quarter, p.year));
+  if (error || !data || !data.length) return false;
+
+  const range = { from: qStart(p.quarter, p.year), to: qEnd(p.quarter, p.year) };
+  for (const r of rake) {
+    const s = data.find(x => x.box_type === r.type);
+    if (!s) continue;
+    const loaded = await countRakesFor(r.type, range);
+    r.target = Math.max(0, (Number(s.qtr_target) || 0) - loaded);
+  }
+  return true;
+}
+
+/* Load this quarter's saved targets (hzl_rake_targets), then recalc Loaded Till and re-save */
+async function loadRake() {
+  const quarter = $('rakeQuarter').value;
+  if (!quarter) return;
+
+  const { data, error } = await db
+    .from('hzl_rake_targets')
+    .select('box_type, qtr_target, report_date')
+    .eq('quarter', quarter)
+    .eq('month', quarterKey());
+
+  if (error) {
+    console.error(error);
+    showToast('Could not load rake targets', true);
+    rake = defaultRake();
+    renderRake();
+    return;
+  }
+
+  rake = defaultRake();                       // new quarter → starts with fresh (0) values
+  if (data && data.length) {
+    data.forEach(row => {
+      const r = rake.find(x => x.type === row.box_type);
+      if (r) r.target = row.qtr_target ?? 0;
+    });
+    if (data[0].report_date) $('rakeReportDate').value = data[0].report_date;
+  }
+
+  // New quarter (no rows yet, or every target still 0) -> target = previous quarter's balance
+  if (!rake.some(r => Number(r.target) > 0)) {
+    const carried = await carryForwardTargets();
+    if (carried) showToast("Qtr Target set from previous quarter's balance");
+  }
+  clampReportDate();
+
+  await refreshLoaded();
+  rakeTitle();
+  await saveRake(true);
+}
+
+/* Build the DB row for one area */
+function rakeRow(quarter, month, r, reportDate, days) {
+  const target = Number(r.target) || 0, loaded = Number(r.loaded) || 0;
+  return {
+    quarter, month,
+    box_type:       r.type,
+    qtr_target:     target,
+    loaded_till:    loaded,
+    report_date:    reportDate,
+    fiscal_year:    fiscalYearLabel(month) || null,
+    asking_per_day: askingPerDay(target - loaded, days),
+    asking_pct:     askingPct(loaded, target)
+  };
+}
+
+/* Save quarter-wise: UPDATE existing rows of this quarter, INSERT only the missing ones */
+async function upsertQuarterRows(quarter, month, rows) {
+  const { data: existing, error: selErr } = await db
+    .from('hzl_rake_targets')
+    .select('id, box_type')
+    .eq('quarter', quarter)
+    .eq('month', month);
+  if (selErr) throw selErr;
+
+  const byType = {};
+  (existing || []).forEach(e => { if (!byType[e.box_type]) byType[e.box_type] = e.id; });
+
+  for (const row of rows) {
+    if (byType[row.box_type]) {
+      const { error } = await db.from('hzl_rake_targets').update(row).eq('id', byType[row.box_type]);
+      if (error) throw error;
+    } else {
+      const { error } = await db.from('hzl_rake_targets').insert(row);
+      if (error) throw error;
+    }
+  }
+}
+
+let rakeSaving = Promise.resolve();
+function saveRake(silent) {
+  // queue saves so two quick saves can never insert duplicate rows
+  rakeSaving = rakeSaving.then(async () => {
+    const quarter = $('rakeQuarter').value;
+    if (!quarter) return;
+    const month = quarterKey();
+    const reportDate = $('rakeReportDate').value || null;
+    const days = daysRemaining();
+    try {
+      await upsertQuarterRows(quarter, month, rake.map(r => rakeRow(quarter, month, r, reportDate, days)));
+      if (!silent) showToast('Rake target saved');
+    } catch (err) {
+      console.error(err);
+      showToast(`Rake target save failed: ${err.message || 'Supabase error'}`, true);
+    }
+  });
+  return rakeSaving;
+}
+
+/* A record was saved/deleted: recalc Loaded Till (+ asking values) for the quarter that record belongs to.
+   Selected quarter → refresh the screen and save. Another quarter → update its stored rows directly. */
+async function syncRakeLoaded(recordDate) {
+  const sel = $('rakeQuarter').value;
+  const target = recordDate ? quarterOfDate(recordDate) : { quarter: sel, year: currentYear() };
+
+  if (target.quarter === sel && target.year === currentYear()) {
+    await refreshLoaded();
+    await saveRake(true);
+    return;
+  }
+  try {
+    const month = qKey(target.quarter, target.year);
+    const { data: stored, error } = await db
+      .from('hzl_rake_targets').select('box_type, qtr_target, report_date')
+      .eq('quarter', target.quarter).eq('month', month);
+    if (error) throw error;
+    if (!stored || !stored.length) return;     // that quarter was never opened – nothing stored yet
+
+    const from = qStart(target.quarter, target.year), end = qEnd(target.quarter, target.year);
+    const rep = stored[0].report_date;
+    const to = (rep && rep >= from && rep <= end) ? rep : end;
+    const days = daysBetween(rep || end, end);
+
+    const rows = [];
+    for (const t of RAKE_TYPES) {
+      const s = stored.find(x => x.box_type === t);
+      rows.push(rakeRow(target.quarter, month,
+        { type: t, target: s ? s.qtr_target : 0, loaded: await countRakesFor(t, { from, to }) },
+        rep || null, days));
+    }
+    await upsertQuarterRows(target.quarter, month, rows);
+  } catch (err) {
+    console.error(err);
+    showToast("Could not update that quarter's rake targets", true);
+  }
+}
+
+let rakeSaveTimer;
+function scheduleRakeSave() {
+  clearTimeout(rakeSaveTimer);
+  rakeSaveTimer = setTimeout(() => saveRake(false), 600);
+}
+
+/* Only Qtr Target is typed; everything else recalculates and is saved */
+$('rakeBody').addEventListener('input', (e) => {
+  const t = e.target;
+  const i = t.dataset.i;
+  if (i == null || t.dataset.k !== 'target') return;
+
+  rake[i].target = +t.value || 0;
+  const balVal = rake[i].target - rake[i].loaded;
+  const apd = askingPerDay(balVal), apc = askingPct(rake[i].loaded, rake[i].target);
+  rake[i].askingPerDay = apd; rake[i].askingPct = apc;
+
+  const bal = document.querySelector(`[data-bal="${i}"]`);   if (bal) bal.value = balVal;
+  const apdEl = document.querySelector(`[data-apd="${i}"]`); if (apdEl) apdEl.value = fmtAskingDay(apd);
+  const apcEl = document.querySelector(`[data-apc="${i}"]`); if (apcEl) apcEl.value = fmtAskingPct(apc);
+
+  totals();
+  scheduleRakeSave();
+});
+
+$('rakeQuarter').addEventListener('change', async () => { await loadRake(); });
+
+$('carryFwd').addEventListener('click', async () => {
+  if (!confirm("Replace Qtr Target with the previous quarter's balance?")) return;
+  const ok = await carryForwardTargets();
+  if (!ok) { showToast('No saved targets found for the previous quarter', true); return; }
+  renderRake();
+  await saveRake(false);
+});
+
+$('rakeReportDate').addEventListener('change', async () => {
+  clampReportDate();
+  await refreshLoaded();
+  scheduleRakeSave();
+});
+
+/* ============ Fixed service charge + per GCV cost target (saved per quarter, read by the dashboard) ============ */
+const SETTING_KEYS = ['svcRate', 'gcvCostTarget'];
+
+/* Same key the dashboard uses: fiscal year + quarter, e.g. "2026-Q3" (Jan–Mar belongs to the previous fiscal year) */
+function dashPeriodKey() {
+  const q = $('rakeQuarter').value, y = currentYear();
+  return `${q === 'Q4' ? y - 1 : y}-${q}`;
+}
+
+async function loadSettings() {
+  SETTING_KEYS.forEach(k => { $(k).value = ''; });
+  try {
+    const { data, error } = await db.from('hzl_dashboard_values')
+      .select('field_key, field_value')
+      .eq('period_key', dashPeriodKey())
+      .in('field_key', SETTING_KEYS);
+    if (error) throw error;
+    (data || []).forEach(r => { if ($(r.field_key)) $(r.field_key).value = r.field_value ?? ''; });
+  } catch (err) {
+    console.error(err);
+    showToast('Could not load service charge / GCV cost target', true);
+  }
+}
+
+async function saveSettings() {
+  try {
+    const period_key = dashPeriodKey();
+    const rows = SETTING_KEYS.map(k => ({
+      period_key, field_key: k, field_value: $(k).value, sort_order: 0
+    }));
+    const { error } = await db.from('hzl_dashboard_values').upsert(rows, { onConflict: 'period_key,field_key' });
+    if (error) throw error;
+    showToast('Saved');
+  } catch (err) {
+    console.error(err);
+    showToast(`Save failed: ${err.message || 'Supabase error'}`, true);
+  }
+}
+
+let settingsTimer;
+SETTING_KEYS.forEach(k => $(k).addEventListener('input', () => {
+  clearTimeout(settingsTimer);
+  settingsTimer = setTimeout(saveSettings, 600);
+}));
+$('rakeQuarter').addEventListener('change', loadSettings);
+
+/* ============ Sidebar ============ */
+$('menuToggle').addEventListener('click', () => document.querySelector('.sidebar').classList.toggle('open'));
+document.addEventListener('click', (e) => {
+  const sb = document.querySelector('.sidebar');
+  if (sb.classList.contains('open') && !sb.contains(e.target) && !$('menuToggle').contains(e.target)) {
+    sb.classList.remove('open');
+  }
+});
+
+/* ============ Init ============ */
+buildForm();
+['timePT', 'timeCT', 'supplyBox', 'loadBox'].forEach(k => el(k).addEventListener('input', recalc));
+
+async function initApp() {
+  await loadRecords();
+
+  // set sensible defaults for quarter / report date
+  const now = new Date();
+  const m = now.getMonth() + 1; // 1-12
+  let q = 'Q1';
+  if (m >= 7 && m <= 9)  q = 'Q2';
+  else if (m >= 10)      q = 'Q3';
+  else if (m <= 3)       q = 'Q4';
+  $('rakeQuarter').value = q;
+
+  // default report date = today
+  $('rakeReportDate').value = now.toISOString().slice(0, 10);
+
+  await loadRake();
+  await loadSettings();
+  resetForm();
+}
+initApp();
+</script>
+<script>
+/* page transitions + stat count-up */
+document.addEventListener('click',function(e){
+  var a=e.target.closest('a[href]');
+  if(!a||e.defaultPrevented||e.metaKey||e.ctrlKey||e.shiftKey||e.button||a.target||a.hasAttribute('download'))return;
+  var h=a.getAttribute('href');
+  if(!h||h.charAt(0)==='#'||/^(https?:|mailto:|tel:|javascript:)/i.test(h))return;
+  e.preventDefault();document.body.classList.add('leaving');
+  setTimeout(function(){location.href=h;},180);
+});
+window.addEventListener('pageshow',function(){document.body.classList.remove('leaving');});
+document.querySelectorAll('.stat-card .value').forEach(function(el){
+  var end=parseInt(el.textContent,10);if(isNaN(end)||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  var t0=performance.now();el.textContent='0';
+  (function step(t){var p=Math.min((t-t0)/700,1);el.textContent=Math.round(end*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(step);})(t0);
+});
+</script>
+</body>
+</html>

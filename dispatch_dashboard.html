@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dispatch Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  /* Original palette, unchanged */
+  :root{ --bg:#f5f6f8; --card:#fff; --text:#1c2230; --muted:#6b7385; --line:#e3e6ec; --brand:#0f5c4d; --brand2:#e8f3f0; --danger:#b3261e;
+         --shadow:0 1px 2px rgba(28,34,48,.06),0 6px 18px -10px rgba(28,34,48,.14);
+         --shadow-hover:0 2px 4px rgba(28,34,48,.06),0 18px 34px -16px rgba(28,34,48,.28);
+         --r:12px; }
+  *{box-sizing:border-box}
+  html,body{min-height:100%}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.4;-webkit-font-smoothing:antialiased}
+  .hidden{display:none!important}
+
+  /* ---------- pop-up motion ---------- */
+  @keyframes pop{
+    0%{opacity:0;transform:translateY(14px) scale(.94)}
+    65%{opacity:1;transform:translateY(-3px) scale(1.012)}
+    100%{opacity:1;transform:none}
+  }
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  .pop{animation:pop .5s cubic-bezier(.2,.8,.2,1) backwards}
+  .pop-d1{animation-delay:.06s}.pop-d2{animation-delay:.12s}.pop-d3{animation-delay:.18s}.pop-d4{animation-delay:.24s}
+  .lift{transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}
+  .lift:hover{transform:translateY(-4px);box-shadow:var(--shadow-hover);border-color:#d3d9e2}
+  @media (prefers-reduced-motion:reduce){ .pop,.toast{animation:none!important} .lift{transition:none} }
+
+  /* ---------- top bar ---------- */
+  header{position:sticky;top:0;z-index:30;background:var(--brand);color:#fff;box-shadow:0 2px 10px rgba(0,0,0,.12)}
+  .topbar{max-width:1640px;margin:0 auto;padding:0 24px;min-height:60px;display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+  .dback{display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:999px;padding:7px 14px;font-weight:600;font-size:13px;white-space:nowrap;transition:background .2s}
+  .dback:hover{background:rgba(255,255,255,.12)}
+  .brand{display:flex;align-items:center;gap:10px;white-space:nowrap}
+  .brand-mark{width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.14);display:grid;place-items:center}
+  .brand-mark svg{width:17px;height:17px}
+  .brand h1{font-size:16px;margin:0;font-weight:700;letter-spacing:.01em}
+  nav.tabs{display:flex;gap:4px;align-self:stretch}
+  nav.tabs button{position:relative;background:none;border:0;color:#cfe5df;padding:0 14px;font:600 14px system-ui,sans-serif;cursor:pointer;display:flex;align-items:center;gap:7px;transition:color .15s}
+  nav.tabs button:hover{color:#fff}
+  nav.tabs button svg{width:15px;height:15px}
+  nav.tabs button.active{color:#fff}
+  nav.tabs button.active::after{content:"";position:absolute;left:10px;right:10px;bottom:0;height:3px;border-radius:3px 3px 0 0;background:#fff}
+
+  .hctl{display:flex;align-items:center;gap:10px}
+  .hseg{display:inline-flex;padding:3px;background:rgba(255,255,255,.12);border-radius:10px}
+  .hseg button{border:0;background:transparent;color:#cfe5df;padding:6px 16px;border-radius:7px;font:600 13px system-ui,sans-serif;cursor:pointer;transition:all .15s}
+  .hseg button:hover{color:#fff}
+  .hseg button.active{background:#fff;color:var(--brand);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+  .hmonth{height:34px;width:150px;padding:0 10px;border:1px solid rgba(255,255,255,.25);border-radius:8px;background:rgba(255,255,255,.12);color:#fff;font:600 13px system-ui,sans-serif;outline:none;color-scheme:dark;text-align:center}
+  .hmonth:focus{border-color:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.2)}
+  .hbtn{height:34px;padding:0 12px;border-radius:8px;border:1px solid rgba(255,255,255,.25);background:transparent;color:#fff;font:600 13px system-ui,sans-serif;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background .15s}
+  .hbtn:hover{background:rgba(255,255,255,.12)}
+  .hbtn svg{width:14px;height:14px}
+  .sync{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12.5px;color:#cfe5df;white-space:nowrap}
+  .sync .dot{width:8px;height:8px;border-radius:50%;background:#9fe0cc;box-shadow:0 0 0 3px rgba(159,224,204,.22)}
+  .sync.bad .dot{background:#ffb4ab;box-shadow:0 0 0 3px rgba(255,180,171,.25)}
+
+  main{max-width:1640px;margin:0 auto;padding:20px 24px 40px}
+
+  /* ---------- building blocks ---------- */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:18px 20px;margin-bottom:16px}
+  .card-h{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+  .card-h h2{font-size:16px;margin:0;font-weight:700}
+  .card-h p{margin:4px 0 0;font-size:13px;color:var(--muted);max-width:720px}
+  .eyebrow{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--brand);margin-bottom:4px}
+  .note{font-size:12.5px;color:var(--muted)}
+
+  label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px}
+  input,select{width:100%;height:40px;padding:0 12px;border:1px solid var(--line);border-radius:9px;font:500 14px system-ui,sans-serif;background:var(--card);color:var(--text);outline:none;transition:border-color .15s,box-shadow .15s;text-align:center}
+  input:hover,select:hover{border-color:#cfd5de}
+  input:focus,select:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(15,92,77,.14)}
+  select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7385' stroke-width='2.6'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;text-align-last:center}
+
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 16px;border-radius:9px;border:1px solid var(--line);background:var(--card);color:var(--text);font:600 13.5px system-ui,sans-serif;cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s,transform .05s,box-shadow .2s}
+  .btn:hover{border-color:#cfd5de;background:#fafbfc;box-shadow:0 4px 10px -6px rgba(28,34,48,.25)}
+  .btn:active{transform:translateY(1px)}
+  .btn svg{width:15px;height:15px;color:var(--muted)}
+  .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+  .btn.primary svg{color:#fff}
+  .btn.primary:hover{background:#0c4a3e;border-color:#0c4a3e}
+  .btn.sm{height:32px;padding:0 12px;font-size:12.5px;border-radius:8px}
+  .btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+  .btn:disabled:hover{background:var(--card);border-color:var(--line)}
+  .btn.primary:disabled:hover{background:var(--brand);border-color:var(--brand)}
+  .btn.danger{color:var(--danger);border-color:#f2c4bf}
+  .btn.danger:hover{background:#fce8e6;border-color:var(--danger)}
+
+  .chipset{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+  .chipset button{border:1px solid var(--line);background:var(--card);color:var(--muted);padding:6px 13px;border-radius:999px;font:600 12.5px system-ui,sans-serif;cursor:pointer;transition:all .18s}
+  .chipset button:hover{color:var(--text);border-color:#cfd5de;transform:translateY(-1px)}
+  .chipset button.active{background:var(--brand2);color:var(--brand);border-color:#bfe0d6}
+
+  /* ---------- KPI cards (centred) ---------- */
+  .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:18px 16px;position:relative;overflow:hidden;min-width:0;text-align:center}
+  .kpi::before{content:"";position:absolute;left:18px;right:18px;top:0;height:3px;border-radius:0 0 3px 3px;background:var(--tint,var(--brand))}
+  .kpi .l{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+  .kpi .v{font-size:28px;font-weight:800;letter-spacing:-.01em;margin-top:8px;font-variant-numeric:tabular-nums;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .kpi .s{font-size:12px;color:var(--muted);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  /* ---------- filters ---------- */
+  .filters{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr)) auto;gap:14px;align-items:end}
+  .filters.f3{grid-template-columns:repeat(3,minmax(150px,1fr))}
+  .filters.fauto{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+
+  /* ---------- monthly toolbar ---------- */
+  .mtool{display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:center;margin-bottom:16px}
+  .mtool .note{width:100%;text-align:center}
+
+  /* ---------- monthly table (original colours) ---------- */
+  .tbl-wrap{overflow-x:auto;border:1px solid #bfbfbf;border-radius:8px;background:#fff}
+  table.secl{border-collapse:separate;border-spacing:0;font-size:12px;width:max-content;min-width:100%;font-family:Arial,Helvetica,sans-serif}
+  .secl th,.secl td{border-right:1px solid #8c8c8c;border-bottom:1px solid #8c8c8c;padding:4px 7px;text-align:center;white-space:nowrap;color:#000}
+  .secl tr.title th{background:#ffc000;font-size:15px;font-weight:700;padding:0 7px;height:34px;text-align:center}
+  .secl tr.grp th{font-weight:700;height:28px}
+  .secl tr.sub th{font-weight:700;height:28px}
+  .secl th.date{position:sticky;left:0;z-index:2;background:#ffc000;min-width:62px}
+  .secl td.date{position:sticky;left:0;z-index:1;background:#fff;font-weight:700;text-align:center}
+  .secl td.tot{font-weight:700}
+  .secl td.zero{color:#9a9a9a}
+  .secl tr.total td{background:#ffc000;font-weight:700;border-top:2px solid #000;height:30px}
+  .secl tr.total td.date{z-index:2;left:0}
+  .secl th.perf,.secl th.single{white-space:normal;min-width:70px}
+
+  /* ---------- average page (original colours) ---------- */
+  .avtitle{border:3px double #1f3864;border-radius:16px;background:linear-gradient(#eaf1fb,#cfdcf0);color:#1f3864;text-align:center;font:700 24px/1.2 Copperplate,"Copperplate Gothic Bold",Georgia,serif;letter-spacing:1px;padding:12px 10px;margin-bottom:16px;text-transform:uppercase}
+  .avgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:24px;align-items:start}
+  .avcard{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:16px;overflow-x:auto;text-align:center}
+  .chips{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;margin-bottom:12px;gap:6px}
+  .chip{font:700 13px Arial,sans-serif;padding:7px 14px;border:1px solid #000;color:#000;text-align:center;white-space:nowrap}
+  table.av{border-collapse:collapse;width:100%;font:13px Arial,Helvetica,sans-serif}
+  table.av th,table.av td{border:1px solid #7f7f7f;padding:4px 8px;text-align:center;color:#000}
+  table.av th{color:#fff;font-size:13px;height:48px;text-transform:uppercase}
+  table.av th.h1{background:#843c0c}table.av th.h2{background:#595959}table.av th.h3{background:#806000}table.av th.h4{background:#375623}
+  table.av td.c1{background:#f8cbad}table.av td.c2{background:#ddebf7}table.av td.c3{background:#fff2cc}table.av td.c4{background:#e2efda}
+  table.av tr.tot td{font-weight:700;background:#ffc000}
+  table.av td.empty{height:26px}
+
+  .sgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;margin-top:20px}
+  .sbox{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:12px;overflow-x:auto;text-align:center}
+  table.sum{border-collapse:collapse;width:100%;font:13px Arial,Helvetica,sans-serif;border:2px solid #000;margin:0 auto}
+  table.sum th,table.sum td{border:1px solid #000;padding:5px 10px;text-align:center;color:#000}
+  table.sum th.ttl{font-size:14px;font-weight:700;padding:8px 10px}
+  table.sum td.sr{font-weight:700;width:48px}
+  table.sum td.lbl{font-weight:700}
+  table.sum td.val{position:relative;font-weight:700;background:#fff;min-width:110px}
+  table.sum td.val .fill{position:absolute;left:0;top:0;bottom:0;opacity:.55;z-index:0;transition:width .4s ease}
+  table.sum td.val span{position:relative;z-index:1}
+  table.sum tr.tot td{font-weight:700;font-size:14px}
+
+  /* ---------- states ---------- */
+  .state{padding:44px 20px;text-align:center;color:var(--muted)}
+  .state b{display:block;color:var(--text);font-size:15px;margin-bottom:4px}
+  .skel{height:14px;border-radius:6px;background:linear-gradient(90deg,#eceff4 25%,#f7f8fa 37%,#eceff4 63%);background-size:400% 100%;animation:sh 1.3s ease infinite;margin:10px 16px}
+  @keyframes sh{0%{background-position:100% 50%}100%{background-position:0 50%}}
+
+  /* ---------- entry ---------- */
+  .entry-layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(300px,1fr);gap:16px;align-items:start}
+  .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px}
+  .form-grid .span-all{grid-column:1/-1}
+  .form-foot{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:20px;flex-wrap:wrap}
+  .req{color:var(--danger)}
+  .newin{margin-top:8px}
+  .recent-wrap{overflow-x:auto}
+  table.recent{width:100%;border-collapse:collapse;font-size:13px}
+  table.recent th,table.recent td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
+  table.recent th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;background:#fafbfc}
+  table.recent tr:last-child td{border-bottom:0}
+
+  /* destination multi-select */
+  .destbox{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-content:flex-start;padding:12px;border:1px solid var(--line);border-radius:9px;min-height:60px;background:#fafbfc}
+  .dchip{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--text);font:600 13px system-ui,sans-serif;cursor:pointer;transition:background .15s,border-color .15s,color .15s}
+  .dchip:hover{border-color:#cfd5de}
+  .dchip.on{background:var(--brand2);border-color:#bfe0d6;color:var(--brand)}
+  .dchip.on::before{content:"\2713";font-weight:800}
+  .addrow{display:flex;gap:8px;margin:10px auto 0;max-width:440px}
+  .addrow .btn{flex:none}
+
+  /* ---------- type & log tables ---------- */
+  .logwrap{overflow:auto;max-height:68vh}
+  table.logt{width:100%;border-collapse:collapse;font-size:13px}
+  table.logt th,table.logt td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
+  table.logt th{position:sticky;top:0;z-index:2;background:#fafbfc;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700}
+  table.logt input,table.logt select{height:32px;padding:0 8px;font-size:12.5px;border-radius:7px;min-width:96px}
+  table.logt select{padding-right:26px;background-position:right 8px center}
+  table.logt td.wide input{min-width:140px}
+  table.logt tr.dirty td{background:#fff8e1}
+  table.logt tr:hover td{background:#fafbfc}
+  table.logt tr.dirty:hover td{background:#fff3cd}
+  .pager{display:flex;align-items:center;justify-content:center;gap:14px;padding:12px;border-top:1px solid var(--line);flex-wrap:wrap}
+
+  /* ---------- upload ---------- */
+  .drop{border:2px dashed #b8c4c1;border-radius:14px;padding:40px 20px;text-align:center;color:var(--muted);cursor:pointer;background:var(--brand2);transition:background .15s,border-color .15s,transform .25s}
+  .drop:hover,.drop.over{border-color:var(--brand);background:#d7ebe5;transform:scale(1.01)}
+  .drop .ico{width:50px;height:50px;margin:0 auto 10px;border-radius:14px;background:var(--brand);display:grid;place-items:center}
+  .drop .ico svg{width:24px;height:24px;color:#fff}
+  .drop b{display:block;color:var(--text);font-size:15px;margin-bottom:3px}
+  .stats{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;justify-content:center}
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;background:var(--brand2);color:var(--brand);font-size:12.5px;font-weight:600}
+  .pill.skip{background:#fce8e6;color:var(--danger)}
+  .pill.file{background:#eef1f6;color:#3b4560}
+  .tablewrap{overflow-x:auto;margin-top:14px;border:1px solid var(--line);border-radius:10px}
+  .ptable{width:100%;border-collapse:collapse;font-size:13px}
+  .ptable th,.ptable td{text-align:center;padding:9px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+  .ptable th{background:#fafbfc;color:var(--muted);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+  .ptable tr:last-child td{border-bottom:0}
+  .bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:14px}
+  .bar>div{height:100%;background:var(--brand);width:0;transition:width .25s}
+
+  /* ---------- alerts & toasts ---------- */
+  .msg{padding:10px 12px;border-radius:8px;font-size:13px;margin-top:12px;text-align:center}
+  .msg.ok{background:#e6f4ea;color:#1e6b34}.msg.err{background:#fce8e6;color:var(--danger)}.msg.info{background:#eef1f6;color:#3b4560}
+  #toasts{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;z-index:60;pointer-events:none}
+  .toast{min-width:240px;max-width:420px;background:var(--text);color:#fff;padding:11px 16px;border-radius:999px;font-size:13px;box-shadow:0 14px 30px -10px rgba(0,0,0,.4);display:flex;align-items:center;gap:10px;animation:tpop .4s cubic-bezier(.2,.8,.2,1) backwards}
+  .toast i{width:8px;height:8px;border-radius:50%;background:#9fe0cc;flex:none}
+  .toast.err i{background:#ffb4ab}
+  .toast.out{opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s}
+  @keyframes tpop{0%{opacity:0;transform:translateY(16px) scale(.92)}70%{transform:translateY(-2px) scale(1.02)}100%{opacity:1;transform:none}}
+
+  /* ---------- responsive ---------- */
+  @media (max-width:1100px){ .kpis{grid-template-columns:repeat(2,minmax(0,1fr))} .sgrid{grid-template-columns:repeat(2,minmax(0,1fr))} .entry-layout{grid-template-columns:1fr} }
+  @media (max-width:760px){
+    .topbar{padding:12px 16px;gap:12px}
+    .sync{margin-left:0;width:100%;justify-content:center}
+    nav.tabs{width:100%;justify-content:space-between}
+    nav.tabs button{flex:1;justify-content:center;padding:0 6px;min-height:40px}
+    nav.tabs button svg{display:none}
+    nav.tabs button.active::after{bottom:0}
+    main{padding:16px}
+    .filters,.filters.f3,.filters.fauto{grid-template-columns:1fr 1fr}
+    .filters .btn{grid-column:1/-1}
+    .kpis{grid-template-columns:1fr 1fr}
+    .sgrid{grid-template-columns:1fr}
+    .kpi .v{font-size:22px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="topbar">
+    <a class="dback" href="home_page.html">&larr; Back</a>
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 4 8-9"/><path d="M14 7h7v7"/></svg>
+      </div>
+      <h1>Dispatch Dashboard</h1>
+    </div>
+
+    <nav class="tabs">
+      <button data-tab="dashboard" class="active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        Dashboard</button>
+      <button data-tab="entry">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        Entry</button>
+      <button data-tab="type">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg>
+        Type</button>
+      <button data-tab="log">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16"/></svg>
+        Log</button>
+      <button data-tab="upload">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg>
+        Upload</button>
+    </nav>
+
+    <div class="hctl" id="hctl">
+      <div class="hseg" id="modes">
+        <button data-mode="average" class="active">Average</button>
+        <button data-mode="monthly">Monthly</button>
+      </div>
+      <input type="month" id="m-month" class="hmonth hidden" aria-label="Month">
+      <button class="hbtn hidden" id="m-refresh" title="Reload month">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
+        Refresh</button>
+    </div>
+
+    <div class="sync" id="sync"><span class="dot"></span><span id="sync-text">Connecting…</span></div>
+  </div>
+</header>
+
+<main>
+
+<!-- ================= DASHBOARD ================= -->
+<section id="tab-dashboard">
+
+  <!-- MONTHLY -->
+  <div id="mode-monthly" class="hidden">
+    <div class="mtool">
+      <div class="chipset" id="subtabs">
+        <button data-sub="TOTAL" class="active">Total</button>
+        <button data-sub="SECL">SECL</button>
+        <button data-sub="MCFL">MCFL</button>
+        <button data-sub="CCL">CCL</button>
+        <button data-sub="NCL">NCL</button>
+        <button data-sub="WCF">WCF</button>
+      </div>
+      <button class="btn sm" id="m-img" title="Save the AMM Total Dispatch table as a PNG image">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+        Download image</button>
+      <span class="note" id="m-note"></span>
+    </div>
+    <div class="kpis" id="m-kpis"></div>
+    <div class="tbl-wrap pop"><table class="secl" id="m-table"></table></div>
+  </div>
+
+  <!-- AVERAGE -->
+  <div id="mode-average">
+    <div class="card pop">
+      <div class="filters">
+        <div><label for="a-from">Start date</label><input type="date" id="a-from"></div>
+        <div><label for="a-to">End date</label><input type="date" id="a-to"></div>
+        <div><label for="a-mine">Mine</label>
+          <select id="a-mine"><option value="ALL">OVERALL</option><option>SECL</option><option>MCFL</option><option>CCL</option><option>WCF</option><option>NCL</option></select></div>
+        <div><label for="a-area">Area</label><select id="a-area"><option value="">All areas</option></select></div>
+        <button class="btn primary" id="a-refresh">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
+          Refresh</button>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;margin-top:12px">
+        <span class="note" id="a-note"></span>
+        <button class="btn sm" id="a-img" title="Save this view as a PNG image">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+          Download image</button>
+      </div>
+    </div>
+
+    <div class="kpis" id="a-kpis"></div>
+    <div id="a-out"></div>
+    <div class="sgrid" id="a-sum"></div>
+  </div>
+</section>
+
+<!-- ================= ENTRY ================= -->
+<section id="tab-entry" class="hidden">
+  <div class="entry-layout">
+    <div class="card pop">
+      <div class="card-h" style="justify-content:center;text-align:center">
+        <div>
+          <div class="eyebrow">Data entry</div>
+          <h2>New dispatch entry</h2>
+          <p>Pick subsidiary, area and siding, then tick every destination that received a rake. One row is saved per destination.</p>
+        </div>
+      </div>
+      <form id="entry-form" onsubmit="return false">
+        <div class="form-grid">
+          <div><label for="e-date">Date <span class="req">*</span></label><input type="date" id="e-date" required></div>
+          <div><label for="e-sub">Subsidiary <span class="req">*</span></label>
+            <select id="e-sub"><option>SECL</option><option>MCFL</option><option>CCL</option><option>NCL</option><option>WCF</option></select></div>
+          <div><label for="e-area">Area <span class="req">*</span></label>
+            <select id="e-area"></select>
+            <input id="e-area-new" class="newin hidden" placeholder="New area name" autocomplete="off"></div>
+          <div><label for="e-siding">Siding <span class="req">*</span></label>
+            <select id="e-siding"></select>
+            <input id="e-siding-new" class="newin hidden" placeholder="New siding name" autocomplete="off"></div>
+          <div class="span-all">
+            <label>Destinations <span class="req">*</span></label>
+            <div class="destbox" id="e-dests"></div>
+            <div class="addrow">
+              <input id="e-dest-new" placeholder="Add a new destination" autocomplete="off">
+              <button type="button" class="btn" id="e-dest-add">Add</button>
+            </div>
+            <div class="note" id="e-count" style="text-align:center;margin-top:8px"></div>
+          </div>
+        </div>
+        <div class="form-foot">
+          <button class="btn primary" id="e-save">Save entry</button>
+          <button class="btn" id="e-clear" type="button">Clear destinations</button>
+        </div>
+        <div class="note" style="text-align:center;margin-top:12px">Date, subsidiary, area and siding stay filled for the next entry. Type is filled automatically when the destination already has one.</div>
+        <div id="e-msg"></div>
+      </form>
+    </div>
+
+    <div class="card pop pop-d1" style="padding:0;overflow:hidden">
+      <div style="padding:16px 18px 12px;text-align:center">
+        <div class="eyebrow">Latest</div>
+        <h2 style="font-size:15px;margin:0">Recently added</h2>
+      </div>
+      <div class="recent-wrap" id="recent"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= TYPE ================= -->
+<section id="tab-type" class="hidden">
+  <div class="card pop">
+    <div class="card-h" style="justify-content:center;text-align:center">
+      <div>
+        <div class="eyebrow">Classification</div>
+        <h2>Destination type</h2>
+        <p>Choose Power or Non-power for each destination, then press Update. Only rows with no type are filled; later entries and uploads for that destination get the same type automatically.</p>
+      </div>
+    </div>
+    <div class="filters f3">
+      <div><label for="t-sub">Subsidiary</label>
+        <select id="t-sub"><option value="">All subsidiaries</option><option>SECL</option><option>MCFL</option><option>CCL</option><option>NCL</option><option>WCF</option></select></div>
+      <div><label for="t-status">Show</label>
+        <select id="t-status"><option value="">All destinations</option><option value="empty">Has rows without a type</option><option value="unset">No type assigned</option><option value="set">Type assigned</option></select></div>
+      <div><label for="t-q">Search destination</label><input id="t-q" placeholder="e.g. NBSK" autocomplete="off"></div>
+    </div>
+    <div class="note" id="t-note" style="margin-top:12px;text-align:center"></div>
+  </div>
+  <div class="card pop pop-d1" style="padding:0;overflow:hidden">
+    <div class="logwrap"><table class="logt" id="t-table"></table></div>
+  </div>
+</section>
+
+<!-- ================= LOG ================= -->
+<section id="tab-log" class="hidden">
+  <div class="card pop">
+    <div class="card-h" style="justify-content:center;text-align:center">
+      <div>
+        <div class="eyebrow">Database</div>
+        <h2>Log</h2>
+        <p>Every row in the database, newest first. Edit any cell, then press Save on that row. Edited rows turn yellow. Delete removes a row permanently.</p>
+      </div>
+    </div>
+    <div class="filters fauto">
+      <div><label for="l-from">From date</label><input type="date" id="l-from"></div>
+      <div><label for="l-to">To date</label><input type="date" id="l-to"></div>
+      <div><label for="l-sub">Subsidiary</label>
+        <select id="l-sub"><option value="">All</option><option>SECL</option><option>MCFL</option><option>CCL</option><option>NCL</option><option>WCF</option></select></div>
+      <div><label for="l-status">Type</label>
+        <select id="l-status"><option value="">All rows</option><option value="empty">Empty type only</option></select></div>
+      <div><label for="l-q">Search</label><input id="l-q" placeholder="Area, siding or destination" autocomplete="off"></div>
+      <div><label for="l-size">Rows per page</label>
+        <select id="l-size"><option>25</option><option selected>50</option><option>100</option><option>200</option></select></div>
+      <button class="btn primary" id="l-go">Load</button>
+    </div>
+  </div>
+  <div class="card pop pop-d1" style="padding:0;overflow:hidden">
+    <div class="logwrap"><table class="logt" id="l-table"></table></div>
+    <div class="pager">
+      <button class="btn sm" id="l-prev">Previous</button>
+      <span class="note" id="l-info"></span>
+      <button class="btn sm" id="l-next">Next</button>
+      <button class="btn sm primary" id="l-saveall" disabled>Save all edited rows</button>
+    </div>
+  </div>
+  <datalist id="dl-ltype"></datalist>
+</section>
+
+<!-- ================= UPLOAD ================= -->
+<section id="tab-upload" class="hidden">
+  <div class="card pop">
+    <div class="card-h" style="justify-content:center;text-align:center">
+      <div>
+        <div class="eyebrow">Bulk import</div>
+        <h2>Upload Excel workbook</h2>
+        <p>Sheets are named after the subsidiary (SECL, CCL, MCFL, NCL, WCF). Each sheet needs columns for Date, Subsidiary, Area, Siding, Destination and Type. Old names MCL and WCL convert automatically. Rows with an empty Type get the type already assigned to their destination.</p>
+      </div>
+    </div>
+    <div class="drop" id="drop">
+      <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg></div>
+      <b>Drop your file here</b>
+      <span>or click to choose a file &middot; .xlsx, .xls, .xlsm, .csv</span>
+      <input type="file" id="file" accept=".xlsx,.xls,.xlsm,.csv" class="hidden">
+    </div>
+    <div id="u-summary"></div>
+    <div id="u-preview"></div>
+    <div class="form-foot">
+      <button class="btn primary" id="u-save" disabled>Save to database</button>
+    </div>
+    <div class="note" id="u-hint" style="text-align:center;margin-top:10px">Choose a file to preview it first.</div>
+    <div class="bar hidden" id="u-bar"><div></div></div>
+    <div id="u-msg"></div>
+  </div>
+</section>
+
+</main>
+
+<div id="toasts"></div>
+
+<script>
+/* ======== CONFIG ======== */
+const SUPABASE_URL = "https://jzkrywwrsewchtiqsczk.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6a3J5d3dyc2V3Y2h0aXFzY3prIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1NDU0MzQsImV4cCI6MjEwNzEyMTQzNH0.IDwfVhqDI9uXfAALCVKBD0pNjsNVu38fW4eEueaKDSs";
+const TABLE = "dispatch_entries";
+const SHEETS = ["SECL","CCL","MCFL","MCL","NCL","WCF","WCL"];
+const SUBS = ["SECL","MCFL","CCL","NCL","WCF"];
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const p2 = n => String(n).padStart(2, "0");
+const nk = s => String(s ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+const normSub = s => { s = String(s || "").trim().toUpperCase(); return s === "MCL" ? "MCFL" : s === "WCL" ? "WCF" : s; };
+const fmt = n => Number(n || 0).toLocaleString("en-IN");
+const dmy = iso => iso ? iso.split("-").reverse().join("-") : "";
+const MONTHS = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
+const MON3 = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const cap = s => s[0] + s.slice(1).toLowerCase();
+
+/* alerts, toasts, connection state */
+const msg = (el, text, kind="info") => { $(el).innerHTML = text ? `<div class="msg ${kind}">${text}</div>` : ""; };
+function toast(text, kind="ok"){
+  const t = document.createElement("div");
+  t.className = "toast " + (kind === "err" ? "err" : "");
+  t.innerHTML = `<i></i><span>${esc(text)}</span>`;
+  $("toasts").appendChild(t);
+  setTimeout(() => { t.classList.add("out"); setTimeout(() => t.remove(), 300); }, 3200);
+}
+function setSync(ok, text){ $("sync").classList.toggle("bad", !ok); $("sync-text").textContent = text; }
+const loadingRow = () => `<div style="padding:10px 0"><div class="skel"></div><div class="skel" style="width:80%"></div><div class="skel" style="width:60%"></div></div>`;
+
+/* ======== HEADER: tabs, mode switch, month picker ======== */
+let CUR_MODE = "average", LOG_LOADED = false;
+function syncHeader(){
+  const onDash = !$("tab-dashboard").classList.contains("hidden");
+  const monthly = CUR_MODE === "monthly";
+  $("modes").classList.toggle("hidden", !onDash);
+  $("m-month").classList.toggle("hidden", !(onDash && monthly));
+  $("m-refresh").classList.toggle("hidden", !(onDash && monthly));
+}
+const NAVTABS = ["dashboard","entry","type","log","upload"];
+document.querySelectorAll("nav.tabs button").forEach(b => b.onclick = () => {
+  document.querySelectorAll("nav.tabs button").forEach(x => x.classList.toggle("active", x === b));
+  NAVTABS.forEach(t => $("tab-"+t).classList.toggle("hidden", t !== b.dataset.tab));
+  if (b.dataset.tab === "entry") loadRecent();
+  if (b.dataset.tab === "type") renderTypeTab();
+  if (b.dataset.tab === "log" && !LOG_LOADED) loadLog(0);
+  syncHeader();
+});
+document.querySelectorAll("#modes button").forEach(b => b.onclick = () => {
+  CUR_MODE = b.dataset.mode;
+  document.querySelectorAll("#modes button").forEach(x => x.classList.toggle("active", x === b));
+  ["monthly","average"].forEach(m => $("mode-"+m).classList.toggle("hidden", m !== CUR_MODE));
+  syncHeader();
+});
+
+/* ======== CLASSIFICATION RULES (edit here if your Excel spellings differ) ======== */
+/* Text is compared ignoring case, spaces and symbols: "NON-POWER (CPP)" == "non power cpp" */
+const TK = { NONPOWERCPP:"cpp", POWER:"ipp", NONPOWEREAC:"eac", WASHCOAL:"wc" };
+const catOf = t => t.includes("WASH") ? "p_wc" : t.includes("NON") ? "np" : t.includes("POWER") ? "p" : "";
+const catKey = t => { const c = catOf(t); return c === "p_wc" ? "wc" : c; };
+const isNonPower = r => catOf(nk(r.type)) === "np";
+/* Rows entered under SECL whose area is one of these are counted under MCFL (IB and CKP belong to MCFL) */
+const MCFL_AREAS = ["IB","CKP"];
+const effSub = r => { const s = normSub(r.subsidiary); return (s === "SECL" && MCFL_AREAS.includes(nk(r.area))) ? "MCFL" : s; };
+
+/* ======== MONTHLY TABLE DEFINITIONS (original colours) ======== */
+const L = { p:"POWER", np:"NON-POWER", wc:"WASH COAL", t:"TOTAL" };
+const sc = keys => keys.map(k => ({ k, l:L[k], kind: k === "t" ? "sum" : undefined }));
+const dc = (keys, labels) => keys.map((k,i) => ({ k, l:labels[i] })).concat([{ k:"total", l:"TOTAL", kind:"sum" }]);
+const PCW = ["p","np","wc","t"], PN = ["p","np","t"];
+const TABS = {
+  TOTAL: { title:"AMM TOTAL DISPATCH", groups:[
+    { id:"SECL", title:"SECL", head:"#ffd966", body:"#fff2cc", cols:sc(PCW) },
+    { id:"MCFL", title:"MCFL", head:"#9dc3e6", body:"#ddebf7", cols:sc(PCW) },
+    { id:"CCL",  title:"CCL",  head:"#f4b183", body:"#fce4d6", cols:sc(PN) },
+    { id:"NCL",  title:"NCL",  head:"#c6e0b4", body:"#e2efda", cols:sc(PN) },
+    { id:"WCF",  title:"WCF",  head:"#d9d9d9", body:"#f2f2f2", cols:sc(PN) },
+    { id:"ALL",  title:"ALL TOTAL", head:"#b4c6e7", body:"#dae3f3", cols:sc(PCW) } ] },
+  SECL: { title:"AMM BALCO PERFORMANCE AND AREA WISE DISPATCH", groups:[
+    { id:"korba", title:"KORBA / RAIGARH DISPATCH", head:"#ffd966", body:"#fff2cc", cols:dc(["cpp","ipp","eac","wc"],["CPP","IPP","EAC","WC"]) },
+    { id:"balco", title:"BALCO DISPATCH", head:"#d9d9d9", body:"#f2f2f2", cols:dc(["cpp","ipp","eac"],["CPP","IPP","EAC"]) },
+    { id:"perf",  title:"PERFORMANCE %", head:"#c6e0b4", body:"#e2efda", single:true, pct:true, cols:[{k:"value",l:"",kind:"data"}] },
+    { id:"cic",   title:"CIC DISPATCH", head:"#f4b183", body:"#fce4d6", cols:dc(["cpp","ipp","eac"],["CPP","IPP","EAC"]) },
+    { id:"ps",    title:"CIC (PS)", head:"#f8cbad", body:"#fdeee6", single:true, cols:[{k:"total",l:"TOTAL",kind:"data"}] },
+    { id:"gs",    title:"CIC (GS)", head:"#a9d18e", body:"#e2efda", single:true, cols:[{k:"total",l:"TOTAL",kind:"data"}] } ] },
+  MCFL: { title:"AMM MCFL DISPATCH", groups:[
+    { id:"ib",  title:"IB DISPATCH",  head:"#9dc3e6", body:"#ddebf7", cols:dc(["cpp","ipp","wc"],["CPP","IPP","WC"]) },
+    { id:"ckp", title:"CKP DISPATCH", head:"#b4c6e7", body:"#dae3f3", cols:dc(["cpp","ipp"],["CPP","IPP"]) } ] },
+  CCL: { title:"AMM CCL DISPATCH", groups:[{ id:"d", title:"CCL DISPATCH", head:"#f4b183", body:"#fce4d6", cols:sc(PN) }] },
+  NCL: { title:"AMM NCL DISPATCH", groups:[{ id:"d", title:"NCL DISPATCH", head:"#c6e0b4", body:"#e2efda", cols:sc(PN) }] },
+  WCF: { title:"AMM WCF DISPATCH", groups:[{ id:"d", title:"WCF DISPATCH", head:"#d9d9d9", body:"#f2f2f2", cols:sc(PN) }] }
+};
+
+/* which data keys a database row adds 1 to, for a given tab */
+function keysFor(tab, r) {
+  const sub = r.sub, a = nk(r.area), d = nk(r.destination), t = nk(r.type), ck = catKey(t), tk = TK[t], k = [];
+  if (tab === "TOTAL") { if (ck) k.push(sub + "." + ck, "ALL." + ck); return k; }
+  if (sub !== tab) return k;
+  if (tab === "SECL") {
+    if (a === "KORBA" && tk) k.push("korba." + tk);
+    if (d === "NBSK" && ["cpp","ipp","eac"].includes(tk)) k.push("balco." + tk);
+    if (a === "CIC" && ["cpp","ipp","eac"].includes(tk)) k.push("cic." + tk);
+    if (a === "CICPS") k.push("ps.total");
+    if (a === "CICGS") k.push("gs.total");
+  } else if (tab === "MCFL") {
+    if (a === "IB" && ["cpp","ipp","wc"].includes(tk)) k.push("ib." + tk);
+    if (a === "CKP" && ["cpp","ipp"].includes(tk)) k.push("ckp." + tk);
+  } else if (ck) k.push("d." + ck);
+  const valid = new Set(TABS[tab].groups.flatMap(g => g.cols.map(c => g.id + "." + c.k)));
+  return k.filter(x => valid.has(x));
+}
+
+const DATA = {};
+function buildData(rows) {
+  Object.keys(TABS).forEach(t => DATA[t] = {});
+  let unmatched = 0;
+  rows.forEach(r => {
+    if (!r.entry_date) { unmatched++; return; }
+    const x = { sub:effSub(r), area:r.area, destination:r.destination, type:r.type };
+    if (!catKey(nk(x.type))) unmatched++;
+    Object.keys(TABS).forEach(t => keysFor(t, x).forEach(key => {
+      const day = DATA[t][r.entry_date] || (DATA[t][r.entry_date] = {});
+      day[key] = (day[key] || 0) + 1;
+    }));
+  });
+  return unmatched;
+}
+
+async function fetchRows(from, to, cols) {
+  const rows = [], size = 1000;
+  for (let f = 0; ; f += size) {
+    const { data, error } = await sb.from(TABLE).select(cols).gte("entry_date", from).lte("entry_date", to).order("id").range(f, f + size - 1);
+    if (error) throw error;
+    rows.push(...data);
+    if (data.length < size) break;
+  }
+  /* keep only the calendar date (YYYY-MM-DD) so every row lands on the right day, even if the database sends a time too */
+  rows.forEach(r => { if (r.entry_date) r.entry_date = String(r.entry_date).slice(0, 10); });
+  return rows;
+}
+
+/* ======== KPI helpers ======== */
+const TINTS = ["#0f5c4d","#9dc3e6","#f4b183","#c6e0b4"];
+function setKpis(el, items){
+  $(el).innerHTML = items.map((k,i) =>
+    `<div class="kpi lift pop pop-d${i}" style="--tint:${TINTS[i%TINTS.length]}"><div class="l">${esc(k.l)}</div><div class="v" title="${esc(k.v)}">${esc(k.v)}</div><div class="s">${esc(k.s||"")}</div></div>`
+  ).join("");
+}
+
+/* ======== MONTHLY ======== */
+let curTab = "TOTAL", mToken = 0, MONTH_DATA = [];
+document.querySelectorAll("#subtabs button").forEach(b => b.onclick = () => {
+  document.querySelectorAll("#subtabs button").forEach(x => x.classList.toggle("active", x === b));
+  curTab = b.dataset.sub; renderMonthly();
+});
+
+async function loadMonthly() {
+  const val = $("m-month").value; if (!val) return;
+  const [y, m] = val.split("-").map(Number);
+  const from = `${y}-${p2(m)}-01`, to = `${y}-${p2(m)}-${p2(new Date(y, m, 0).getDate())}`;
+  const token = ++mToken;
+  $("m-note").textContent = "Loading…";
+  $("m-table").innerHTML = `<tr><td style="padding:24px;text-align:center;color:#6b7385">Loading ${MONTHS[m-1]} ${y}…</td></tr>`;
+  try {
+    const rows = await fetchRows(from, to, "entry_date,subsidiary,area,destination,type");
+    if (token !== mToken) return;
+    MONTH_DATA = rows;
+    const un = buildData(rows);
+    renderMonthly();
+    setSync(true, "Live");
+    $("m-note").textContent = `${fmt(rows.length)} rows` + (un ? ` · ${fmt(un)} without a readable date or type` : "");
+  } catch (e) { if (token === mToken) { $("m-note").textContent = "Could not load: " + e.message; setSync(false, "Offline"); } }
+}
+
+const gsum = (day, g) => g.cols.filter(c => !c.kind).reduce((s, c) => s + (Number(day[g.id + "." + c.k]) || 0), 0);
+
+function cellValue(day, tab, g, c) {
+  if (g.pct) {
+    const kt = gsum(day, TABS[tab].groups.find(x => x.id === "korba")), bt = gsum(day, TABS[tab].groups.find(x => x.id === "balco"));
+    return kt ? Math.round(bt / kt * 100) : "";
+  }
+  if (c.kind === "sum") return gsum(day, g);
+  return Number(day[g.id + "." + c.k]) || 0;
+}
+
+function renderMonthly() {
+  const val = $("m-month").value; if (!val) return;
+  const [y, m] = val.split("-").map(Number), days = new Date(y, m, 0).getDate();
+  const tab = TABS[curTab], G = tab.groups, src = DATA[curTab] || {};
+  const ncols = 1 + G.reduce((n, g) => n + g.cols.length, 0);
+
+  let h = `<tr class="title"><th colspan="${ncols}">${tab.title} FOR THE MONTH OF ${MONTHS[m-1]} ' ${y}</th></tr><tr class="grp"><th class="date" rowspan="2">DATE</th>`;
+  G.forEach(g => h += g.single
+    ? `<th rowspan="2" class="single ${g.pct?'perf':''}" style="background:${g.head}">${g.title}</th>`
+    : `<th colspan="${g.cols.length}" style="background:${g.head}">${g.title}</th>`);
+  h += `</tr><tr class="sub">`;
+  G.forEach(g => { if (!g.single) g.cols.forEach(c => h += `<th style="background:${g.head}">${c.l}</th>`); });
+  h += `</tr>`;
+
+  const totals = {};
+  for (let d = 1; d <= days; d++) {
+    const key = `${y}-${p2(m)}-${p2(d)}`, day = src[key] || {};
+    h += `<tr><td class="date">${d}-${MON3[m-1]}</td>`;
+    G.forEach(g => g.cols.forEach(c => {
+      const v = cellValue(day, curTab, g, c);
+      if (!g.pct) totals[g.id + "." + c.k] = (totals[g.id + "." + c.k] || 0) + v;
+      const cls = (c.kind === "sum" || c.k === "total" ? "tot" : "") + (v === 0 ? " zero" : "");
+      h += `<td class="${cls.trim()}" style="background:${g.body}">${g.pct && v !== "" ? v + "%" : v}</td>`;
+    }));
+    h += `</tr>`;
+  }
+  h += `<tr class="total"><td class="date">TOTAL</td>`;
+  G.forEach(g => g.cols.forEach(c => {
+    if (g.pct) { const pv = cellValue(totals, curTab, g, c); h += `<td>${pv === "" ? "" : pv + "%"}</td>`; }
+    else h += `<td>${fmt(totals[g.id + "." + c.k] || 0)}</td>`;
+  }));
+  $("m-table").innerHTML = h + `</tr>`;
+
+  /* KPIs follow the selected mine (or all mines for TOTAL) */
+  const scope = MONTH_DATA.filter(r => curTab === "TOTAL" || effSub(r) === curTab);
+  const all = scope.length;
+  const power = scope.filter(r => catOf(nk(r.type)) === "p").length;
+  const nonp  = scope.filter(isNonPower).length;
+  const activeDays = new Set(scope.filter(r => r.entry_date).map(r => r.entry_date)).size;
+  const avg = activeDays ? all / activeDays : 0;
+  const pct = n => all ? Math.round(n / all * 100) + "% of total" : "No rakes yet";
+  const who = curTab === "TOTAL" ? "All mines" : curTab;
+  setKpis("m-kpis", [
+    { l:"Total rake this month", v:fmt(all), s:`${who} · ${cap(MONTHS[m-1])} ${y}` },
+    { l:"Total power rake", v:fmt(power), s:pct(power) },
+    { l:"Total non-power rake", v:fmt(nonp), s:pct(nonp) },
+    { l:"Average rake placed", v:avg.toFixed(2), s:`Per day · ${activeDays} day${activeDays===1?"":"s"} with data` }
+  ]);
+}
+
+(function initMonthly() {
+  const now = new Date();
+  $("m-month").value = `${now.getFullYear()}-${p2(now.getMonth()+1)}`;
+  $("m-month").onchange = loadMonthly;
+  $("m-refresh").onclick = loadMonthly;
+  $("m-img").onclick = downloadMonthlyImage;
+  Object.keys(TABS).forEach(t => DATA[t] = {});
+  renderMonthly(); loadMonthly(); syncHeader();
+})();
+
+/* ======== DOWNLOAD IMAGES (PNG) ======== */
+const ANIM_CLS = ["pop","lift","pop-d1","pop-d2","pop-d3","pop-d4"];
+/* copy of an element with the entrance animation classes removed, so the picture is never captured mid-animation */
+function plainClone(el) {
+  const c = el.cloneNode(true);
+  c.classList.remove(...ANIM_CLS);
+  c.querySelectorAll("*").forEach(n => n.classList.remove(...ANIM_CLS));
+  /* html2canvas misplaces "sticky" cells (the DATE column jumped to the right), so freeze them in the picture only */
+  const src = [el, ...el.querySelectorAll("*")], dst = [c, ...c.querySelectorAll("*")];
+  src.forEach((n, i) => { if (getComputedStyle(n).position === "sticky") dst[i].style.position = "static"; });
+  return c;
+}
+async function saveStageAsPng(stage, widthCss, filename) {
+  stage.style.cssText = `position:fixed;left:-10000px;top:0;width:${widthCss};background:#fff;padding:22px;box-sizing:border-box;`;
+  document.body.appendChild(stage);
+  try {
+    const w = stage.offsetWidth, h = stage.offsetHeight;
+    const canvas = await html2canvas(stage, { backgroundColor: "#ffffff", scale: 2, width: w, height: h, windowWidth: w, windowHeight: h });
+    const a = document.createElement("a");
+    a.download = filename;
+    a.href = canvas.toDataURL("image/png");
+    a.click();
+  } finally { stage.remove(); }
+}
+const noLib = el => { $(el).textContent = "Image tool did not load. Check your internet connection and try again."; };
+
+/* Monthly: the table for the mine that is selected (TOTAL, SECL, MCFL, CCL, NCL or WCF) */
+async function downloadMonthlyImage() {
+  const btn = $("m-img"), val = $("m-month").value;
+  if (!val) return;
+  if (typeof html2canvas === "undefined") return noLib("m-note");
+  const [y, m] = val.split("-");
+  const name = curTab === "TOTAL" ? "TOTAL_DISPATCH" : `${curTab}_DISPATCH`;
+  btn.disabled = true;
+  try {
+    const stage = document.createElement("div");
+    stage.appendChild(plainClone($("m-table")));
+    await saveStageAsPng(stage, "max-content", `AMM_${name}_${MONTHS[+m - 1]}_${y}.png`);
+  } catch (e) { $("m-note").textContent = "Could not create image: " + e.message; }
+  finally { btn.disabled = false; }
+}
+
+/* Average: siding and destination tables side by side in one picture; Overall: the four boxes in one row */
+let LAST_AV = null;
+async function downloadAverageImage() {
+  if (!LAST_AV) return;
+  if (typeof html2canvas === "undefined") return noLib("a-note");
+  const btn = $("a-img"), { from, to, mine, area, rows, days } = LAST_AV;
+  btn.disabled = true;
+  const stage = document.createElement("div");
+  try {
+    if (mine === "ALL") {
+      stage.innerHTML = `<div class="avtitle">Overall · ${dmy(from)} to ${dmy(to)}</div>`;
+      const grid = plainClone($("a-sum"));
+      grid.style.cssText = "display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;margin:0;";
+      stage.appendChild(grid);
+      await saveStageAsPng(stage, "1400px", `OVERALL_${from}_to_${to}.png`);
+    } else {
+      const dates = `<span class="chip" style="background:#fbe5d6">${dmy(from)}</span><span class="chip" style="background:#ddebf7">${dmy(to)}</span>`;
+      const who = `<span class="chip" style="background:#806000;color:#fff">${esc(mine)}</span><span class="chip" style="background:#843c0c;color:#fff">${esc(area || "ALL AREAS")}</span>`;
+      stage.innerHTML = `<div class="avtitle">Average Rakes Per Day By Siding And Destination</div>` +
+        `<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start">` +
+          `<div class="avcard"><div class="chips">${dates}</div>${avTable(rows, "siding", "Siding", days)}</div>` +
+          `<div class="avcard"><div class="chips">${who}</div>${avTable(rows, "destination", "Destination", days)}</div>` +
+        `</div>`;
+      await saveStageAsPng(stage, "1200px", `AVERAGE_${mine}${area ? "_" + nk(area) : ""}_${from}_to_${to}.png`);
+    }
+  } catch (e) { $("a-note").textContent = "Could not create image: " + e.message; }
+  finally { btn.disabled = false; }
+}
+
+/* ======== AVERAGE ======== */
+let AV = [], aToken = 0;
+
+(function initAverage() {
+  const now = new Date();
+  $("a-from").value = `${now.getFullYear()}-${p2(now.getMonth()+1)}-01`;
+  $("a-to").value = `${now.getFullYear()}-${p2(now.getMonth()+1)}-${p2(now.getDate())}`;
+  $("a-from").onchange = $("a-to").onchange = $("a-refresh").onclick = loadAverage;
+  $("a-mine").onchange = () => { fillAreas(); renderAverage(); };
+  $("a-area").onchange = renderAverage;
+  $("a-img").onclick = downloadAverageImage;
+  loadAverage();
+})();
+
+async function loadAverage() {
+  const from = $("a-from").value, to = $("a-to").value;
+  if (!from || !to) return;
+  if (from > to) { $("a-note").textContent = "Start date is after end date."; return; }
+  const token = ++aToken;
+  $("a-note").textContent = "Loading…";
+  $("a-out").innerHTML = loadingRow();
+  try {
+    const rows = await fetchRows(from, to, "entry_date,subsidiary,area,siding,destination,type");
+    if (token !== aToken) return;
+    AV = rows.map(r => ({ ...r, sub: effSub(r) }));
+    setSync(true, "Live");
+    fillAreas(); renderAverage();
+  } catch (e) { if (token === aToken) { $("a-note").textContent = "Could not load: " + e.message; setSync(false, "Offline"); } }
+}
+
+function fillAreas() {
+  const mine = $("a-mine").value, sel = $("a-area"), prev = sel.value;
+  const areas = [...new Set(AV.filter(r => mine === "ALL" || r.sub === mine).map(r => (r.area || "").trim()).filter(Boolean))].sort();
+  sel.innerHTML = `<option value="">All areas</option>` + areas.map(a => `<option value="${esc(a)}">${esc(a)}</option>`).join("");
+  if (areas.includes(prev)) sel.value = prev;
+}
+
+function avTable(rows, key, head, days) {
+  const map = {};
+  rows.forEach(r => { const n = (r[key] || "").trim() || "(blank)"; map[n] = (map[n] || 0) + 1; });
+  const list = Object.entries(map).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  const total = list.reduce((s, x) => s + x[1], 0);
+  if (!list.length) return `<div class="state"><b>No rakes in this range</b>Widen the dates or change the filters.</div>`;
+  let h = `<table class="av"><tr><th class="h1">Sr No.</th><th class="h2">${head}</th><th class="h3">Total<br>Rakes</th><th class="h4">Avg Rakes<br>Per Day</th></tr>`;
+  list.forEach(([n, c], i) => h += `<tr><td class="c1">${i+1}</td><td class="c2">${esc(n)}</td><td class="c3">${c}</td><td class="c4">${(c / days).toFixed(2)}</td></tr>`);
+  for (let i = list.length; i < 12; i++) h += `<tr><td class="c1 empty"></td><td class="c2"></td><td class="c3"></td><td class="c4"></td></tr>`;
+  return h + `<tr class="tot"><td colspan="2">TOTAL</td><td>${total}</td><td>${(total / days).toFixed(2)}</td></tr></table>`;
+}
+
+function renderAverage() {
+  const from = $("a-from").value, to = $("a-to").value, mine = $("a-mine").value, area = $("a-area").value;
+  if (!from || !to || from > to) return;
+  const u = s => { const [y, m, d] = s.split("-").map(Number); return Date.UTC(y, m - 1, d); };
+  const days = Math.round((u(to) - u(from)) / 864e5) + 1;
+  $("a-area").disabled = mine === "ALL";
+  $("a-out").classList.toggle("hidden", mine === "ALL");
+
+  /* four KPI boxes: total rakes, days, average total coal placed per day, average non-power coal placed per day */
+  const scope = mine === "ALL" ? AV : AV.filter(r => r.sub === mine && (!area || (r.area || "").trim() === area));
+  const np = scope.filter(isNonPower).length;
+  LAST_AV = { from, to, mine, area, rows: scope, days };
+  const label = mine === "ALL" ? "Overall" : `${mine}${area ? " · " + area : ""}`;
+  setKpis("a-kpis", [
+    { l:"Total rakes", v:fmt(scope.length), s:`${label} · ${dmy(from)} to ${dmy(to)}` },
+    { l:"Days in range", v:days, s:"Calendar days" },
+    { l:"Average total coal placed", v:(scope.length / days).toFixed(2), s:"Rakes per day · all coal" },
+    { l:"Average non-power coal placed", v:(np / days).toFixed(2), s:"Rakes per day · non-power" }
+  ]);
+
+  if (mine === "ALL") {
+    renderOverall(days);
+    $("a-note").textContent = `Overall · ${dmy(from)} to ${dmy(to)} (${days} days). Average = total rakes ÷ ${days}.`;
+    return;
+  }
+  $("a-sum").innerHTML = "";
+  const chips = `<span class="chip" style="background:#fbe5d6">${dmy(from)}</span><span class="chip" style="background:#ddebf7">${dmy(to)}</span>`;
+  $("a-out").innerHTML =
+    `<div class="avtitle pop">Average Rakes Per Day By Siding And Destination</div>` +
+    `<div class="avgrid">` +
+      `<div class="avcard lift pop pop-d1"><div class="chips">${chips}</div>${avTable(scope, "siding", "Siding", days)}</div>` +
+      `<div class="avcard lift pop pop-d2"><div class="chips"><span class="chip" style="background:#806000;color:#fff">${esc(mine)}</span><span class="chip" style="background:#843c0c;color:#fff">${esc(area || "ALL AREAS")}</span></div>${avTable(scope, "destination", "Destination", days)}</div>` +
+    `</div>`;
+  $("a-note").textContent = `${fmt(scope.length)} rakes between ${dmy(from)} and ${dmy(to)} (${days} days). Average = total rakes ÷ ${days}.`;
+}
+
+/* ======== SUMMARY BOXES (original colours) ======== */
+const SUMBOX = [
+  { key:"sub", title:"PER DAY AVERAGE - MINES / SUBSIDIARY WISE", lh:"MINE", cols:["#d9d2e9","#7030a0","#fff","#8e5cc0","#4a1f70"] },
+  { key:"area", title:"PER DAY AVERAGE - AREA WISE", lh:"AREA", cols:["#a9d18e","#a9d18e","#000","#70ad47","#548235"] },
+  { key:"siding", title:"PER DAY AVERAGE - SIDING WISE", lh:"SIDING", cols:["#ffc000","#ffc000","#000","#ffc000","#bf8f00"] },
+  { key:"destination", title:"PER DAY AVERAGE - DESTINATION WISE", lh:"DEST.", cols:["#b4c6e7","#4472c4","#fff","#4472c4","#2f5597"] }
+];
+function sumBox(t, rows, days) {
+  const map = {};
+  rows.forEach(r => { const n = String(r[t.key] || "").trim() || "(blank)"; map[n] = (map[n] || 0) + 1; });
+  const list = t.order ? t.order.map(n => [n, map[n] || 0]) : Object.entries(map).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  const vals = list.map(x => x[1] / days), max = Math.max(...vals, 0), total = vals.reduce((a, b) => a + b, 0);
+  const [tb, hb, hc, bar, tot] = t.cols;
+  let h = `<table class="sum"><tr><th class="ttl" colspan="3" style="background:${tb}">${t.title}</th></tr>` +
+    `<tr>${["Sr.no.", t.lh, "AVERAGE/DAY"].map(x => `<th style="background:${hb};color:${hc}">${x}</th>`).join("")}</tr>`;
+  list.forEach(([n], i) => {
+    const pct = max ? vals[i] / max * 100 : 0;
+    h += `<tr><td class="sr" style="background:${hb};color:${hc}">${i+1}</td><td class="lbl" style="background:${hb};color:${hc}">${esc(n)}</td>` +
+         `<td class="val"><div class="fill" style="width:${pct}%;background:${bar}"></div><span>${vals[i].toFixed(2)}</span></td></tr>`;
+  });
+  return h + `<tr class="tot"><td colspan="2" style="background:${tot};color:#fff">TOTAL RAKES</td><td style="background:${tot};color:#fff">${total.toFixed(2)}</td></tr></table>`;
+}
+
+/* ======== OVERALL (front page boxes, original colours) ======== */
+const OV_MINES = ["SECL","MCFL","CCL","NCL","WCF"];
+const OV_AREAS = ["KORBA","CKP","IB","CIC"];
+const OV_DESTS = ["NBSK","SEBD","HZL","MVAA","MVAB"];
+const CPP_EAC  = ["NONPOWERCPP","NONPOWEREAC"];
+const destName = r => { const d = nk(r.destination); return d === "MAVB" ? "MVAB" : d; };
+function renderOverall(days) {
+  const boxes = [
+    [{ ...SUMBOX[0], key:"name", order:OV_MINES }, AV.map(r => ({ name:r.sub }))],
+    [{ key:"name", order:OV_AREAS, lh:"AREA", title:"PER DAY AVERAGE - AREA WISE (ALL EXCEPT WASH COAL)", cols:["#cfe8e4","#1f7a6d","#fff","#3aa595","#14524a"] },
+      AV.filter(r => !nk(r.type).includes("WASH") && OV_AREAS.includes(nk(r.area))).map(r => ({ name:nk(r.area) }))],
+    [{ ...SUMBOX[1], key:"name", order:OV_AREAS, title:"PER DAY AVERAGE - AREA WISE (NON POWER CPP + EAC)" },
+      AV.filter(r => CPP_EAC.includes(nk(r.type)) && OV_AREAS.includes(nk(r.area))).map(r => ({ name:nk(r.area) }))],
+    [{ ...SUMBOX[3], key:"name", order:OV_DESTS, title:"PER DAY AVERAGE - DESTINATION WISE (NON POWER CPP + EAC)" },
+      AV.filter(r => CPP_EAC.includes(nk(r.type)) && OV_DESTS.includes(destName(r))).map(r => ({ name:destName(r) }))]
+  ];
+  $("a-sum").innerHTML = boxes.map(([t, r], i) => `<div class="sbox lift pop pop-d${i}">${sumBox(t, r, days)}</div>`).join("");
+}
+
+/* ======== CATALOG: every row in the database, kept in memory for dropdowns and the Type tab ======== */
+let CAT = [], TYPE_GROUPS = new Map(), TYPE_SEL = {};
+const NEW = "__new__";
+function uniqNk(list){
+  const m = new Map();
+  list.forEach(v => { const k = nk(v); if (k && !m.has(k)) m.set(k, v); });
+  return [...m.values()].sort((a, b) => a.localeCompare(b));
+}
+const canon = (list, v) => list.find(x => nk(x) === nk(v)) || v;
+
+async function loadCatalog() {
+  const rows = [], size = 1000;
+  for (let f = 0; ; f += size) {
+    const { data, error } = await sb.from(TABLE).select("id,subsidiary,area,siding,destination,type").order("id").range(f, f + size - 1);
+    if (error) { setSync(false, "Offline"); throw error; }
+    rows.push(...data);
+    if (data.length < size) break;
+  }
+  CAT = rows.map(r => ({
+    id: r.id, sub: effSub(r),
+    area: (r.area || "").trim(), siding: (r.siding || "").trim(),
+    dest: (r.destination || "").trim(), type: (r.type || "").trim()
+  }));
+  buildGroups();
+  fillTypeLists();
+  refreshArea(true);
+  renderTypeTab();
+  setSync(true, "Live");
+}
+
+/* destination groups: one per subsidiary + destination */
+function buildGroups() {
+  const g = new Map();
+  CAT.forEach(r => {
+    if (!r.dest) return;
+    const key = r.sub + "|" + nk(r.dest);
+    let x = g.get(key);
+    if (!x) { x = { key, sub:r.sub, dest:r.dest, rows:0, emptyIds:[], types:{} }; g.set(key, x); }
+    x.rows++;
+    if (r.type) x.types[r.type] = (x.types[r.type] || 0) + 1; else x.emptyIds.push(r.id);
+  });
+  g.forEach(x => {
+    const t = Object.entries(x.types).sort((a, b) => b[1] - a[1]);
+    x.type = t.length ? t[0][0] : "";
+  });
+  TYPE_GROUPS = g;
+}
+const typeFor = (sub, dest) => (TYPE_GROUPS.get(sub + "|" + nk(dest)) || {}).type || "";
+
+function typeOpts() {
+  const m = new Map();
+  ["POWER","NON-POWER"].forEach(t => m.set(nk(t), t));
+  CAT.forEach(r => { if (r.type && !m.has(nk(r.type))) m.set(nk(r.type), r.type); });
+  return [...m.values()];
+}
+function fillTypeLists() {
+  $("dl-ltype").innerHTML = typeOpts().map(t => `<option value="${esc(t)}">`).join("");
+}
+
+let refreshT;
+function refreshAll() {
+  clearTimeout(refreshT);
+  refreshT = setTimeout(() => { loadCatalog().catch(() => {}); loadMonthly(); loadAverage(); }, 600);
+}
+
+/* ======== ENTRY ======== */
+const areasFor    = sub => uniqNk(CAT.filter(r => r.sub === sub).map(r => r.area));
+const sidingsFor  = (sub, a) => uniqNk(CAT.filter(r => r.sub === sub && nk(r.area) === nk(a)).map(r => r.siding));
+const destsFor    = (sub, a, s) => uniqNk(CAT.filter(r => r.sub === sub && nk(r.area) === nk(a) && nk(r.siding) === nk(s)).map(r => r.dest));
+
+let SELD = new Map(), NEWD = [];
+const getVal = id => { const s = $("e-" + id); return s.value === NEW ? $("e-" + id + "-new").value.trim() : s.value; };
+const toggleNew = id => $("e-" + id + "-new").classList.toggle("hidden", $("e-" + id).value !== NEW);
+
+function fillSelect(sel, items, ph, newLabel, keep) {
+  const prev = sel.value;
+  sel.innerHTML = `<option value="">${ph}</option>` + items.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join("") + `<option value="${NEW}">${newLabel}</option>`;
+  sel.value = (keep && (prev === NEW || items.includes(prev))) ? prev : "";
+}
+function refreshArea(keep) {
+  fillSelect($("e-area"), areasFor($("e-sub").value), "Select area…", "+ Add new area…", keep);
+  if (!keep) $("e-area-new").value = "";
+  toggleNew("area");
+  refreshSiding(keep);
+}
+function refreshSiding(keep) {
+  const a = getVal("area"), items = a ? sidingsFor($("e-sub").value, a) : [];
+  fillSelect($("e-siding"), items, "Select siding…", "+ Add new siding…", keep);
+  if (!keep) $("e-siding-new").value = "";
+  if (a && !items.length && !$("e-siding").value) $("e-siding").value = NEW;
+  toggleNew("siding");
+  renderDests();
+}
+function renderDests() {
+  const sub = $("e-sub").value, a = getVal("area"), s = getVal("siding"), box = $("e-dests");
+  const base = (a && s) ? destsFor(sub, a, s) : [];
+  const all = uniqNk([...base, ...NEWD]);
+  if (!a || !s) box.innerHTML = `<span class="note">Choose an area and a siding to see its destinations.</span>`;
+  else if (!all.length) box.innerHTML = `<span class="note">No destinations yet for this siding. Add one below.</span>`;
+  else box.innerHTML = all.map(d => { const on = SELD.has(nk(d));
+    return `<button type="button" class="dchip ${on ? "on" : ""}" data-d="${esc(d)}" aria-pressed="${on}">${esc(d)}</button>`; }).join("");
+  $("e-count").textContent = SELD.size ? `${SELD.size} destination${SELD.size === 1 ? "" : "s"} selected` : "Tap destinations to select one or more.";
+}
+function setSel(id, value) {
+  const s = $("e-" + id);
+  if ([...s.options].some(o => o.value === value)) { s.value = value; $("e-" + id + "-new").value = ""; }
+  toggleNew(id);
+}
+function resetDests() { SELD.clear(); NEWD = []; }
+
+$("e-sub").onchange = () => { resetDests(); refreshArea(false); };
+$("e-area").onchange = () => { resetDests(); toggleNew("area"); refreshSiding(false); };
+$("e-area-new").onchange = () => { resetDests(); refreshSiding(false); };
+$("e-siding").onchange = () => { resetDests(); toggleNew("siding"); renderDests(); };
+$("e-siding-new").onchange = () => { resetDests(); renderDests(); };
+$("e-dests").onclick = e => {
+  const b = e.target.closest(".dchip"); if (!b) return;
+  const d = b.dataset.d, k = nk(d);
+  SELD.has(k) ? SELD.delete(k) : SELD.set(k, d);
+  renderDests();
+};
+function addDest() {
+  const v = $("e-dest-new").value.trim(); if (!v) return true;
+  const a = getVal("area"), s = getVal("siding");
+  if (!a || !s) { toast("Choose an area and a siding first", "err"); return false; }
+  const k = nk(v), existing = [...destsFor($("e-sub").value, a, s), ...NEWD].find(x => nk(x) === k);
+  const name = existing || v;
+  if (!existing) NEWD.push(name);
+  SELD.set(k, name);
+  $("e-dest-new").value = "";
+  renderDests();
+  return true;
+}
+$("e-dest-add").onclick = addDest;
+$("e-dest-new").onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); addDest(); } };
+$("e-clear").onclick = () => { resetDests(); $("e-dest-new").value = ""; renderDests(); };
+
+(function initEntryDate() {
+  const y = new Date(); y.setDate(y.getDate() - 1);
+  $("e-date").value = `${y.getFullYear()}-${p2(y.getMonth() + 1)}-${p2(y.getDate())}`;
+})();
+
+$("e-save").onclick = async () => {
+  if (!addDest()) return;
+  const date = $("e-date").value, sub = $("e-sub").value;
+  let area = getVal("area"), siding = getVal("siding");
+  if (!date) return msg("e-msg", "Choose a date.", "err");
+  if (!area) return msg("e-msg", "Choose an area.", "err");
+  if (!siding) return msg("e-msg", "Choose a siding.", "err");
+  if (!SELD.size) return msg("e-msg", "Select at least one destination.", "err");
+  area = canon(areasFor(sub), area);
+  siding = canon(sidingsFor(sub, area), siding);
+  const rows = [...SELD.values()].map(d => ({
+    entry_date: date, subsidiary: sub, area, siding, destination: d, type: typeFor(sub, d) || null
+  }));
+  $("e-save").disabled = true;
+  const { error } = await sb.from(TABLE).insert(rows);
+  $("e-save").disabled = false;
+  if (error) { msg("e-msg", esc(error.message), "err"); toast("Entry could not be saved", "err"); return; }
+  const typed = rows.filter(r => r.type).length;
+  msg("e-msg", `Saved ${rows.length} row${rows.length === 1 ? "" : "s"}` + (typed ? ` (${typed} with type filled automatically)` : "") + ".", "ok");
+  toast(`${rows.length} row${rows.length === 1 ? "" : "s"} saved`);
+  resetDests();
+  try { await loadCatalog(); } catch (e) {}
+  setSel("area", area); refreshSiding(true); setSel("siding", siding); renderDests();
+  loadRecent(); loadMonthly(); loadAverage();
+};
+
+async function loadRecent() {
+  $("recent").innerHTML = loadingRow();
+  const { data, error } = await sb.from(TABLE).select("entry_date,subsidiary,area,siding,destination,type").order("id", {ascending:false}).limit(8);
+  if (error) { $("recent").innerHTML = `<div class="state"><b>Could not load</b>${esc(error.message)}</div>`; return; }
+  if (!data || !data.length) { $("recent").innerHTML = `<div class="state"><b>No entries yet</b>Saved entries will appear here.</div>`; return; }
+  $("recent").innerHTML = `<table class="recent"><tr><th>Date</th><th>Sub</th><th>Area</th><th>Siding</th><th>Dest.</th><th>Type</th></tr>` +
+    data.map(r => `<tr><td>${dmy(r.entry_date)}</td><td>${esc(r.subsidiary)}</td><td>${esc(r.area)}</td><td>${esc(r.siding)}</td><td>${esc(r.destination)}</td><td>${esc(r.type)}</td></tr>`).join("") + `</table>`;
+}
+
+/* ======== TYPE TAB ======== */
+function renderTypeTab() {
+  const sub = $("t-sub").value, st = $("t-status").value, q = nk($("t-q").value);
+  const opts = typeOpts();
+  let list = [...TYPE_GROUPS.values()].filter(x =>
+    (!sub || x.sub === sub) &&
+    (!q || nk(x.dest).includes(q)) &&
+    (st === "" || (st === "empty" && x.emptyIds.length) || (st === "unset" && !x.type) || (st === "set" && x.type)));
+  list.sort((a, b) => SUBS.indexOf(a.sub) - SUBS.indexOf(b.sub) || a.dest.localeCompare(b.dest));
+  const needs = list.filter(x => x.emptyIds.length).length;
+  $("t-note").textContent = `${fmt(list.length)} destination${list.length === 1 ? "" : "s"} · ${fmt(needs)} with rows that still have no type`;
+  if (!list.length) { $("t-table").innerHTML = `<tr><td style="padding:40px;color:#6b7385">No destinations match. Entries you save will appear here.</td></tr>`; return; }
+  $("t-table").innerHTML = `<thead><tr><th>Subsidiary</th><th>Destination</th><th>Rows</th><th>Rows without type</th><th>Type</th><th></th></tr></thead><tbody>` +
+    list.map(x => {
+      const cur = x.key in TYPE_SEL ? TYPE_SEL[x.key] : x.type;
+      const options = `<option value="">Not set</option>` + opts.map(o => `<option value="${esc(o)}" ${nk(o) === nk(cur) ? "selected" : ""}>${esc(o)}</option>`).join("");
+      const can = cur && x.emptyIds.length;
+      return `<tr><td>${esc(x.sub)}</td><td><b>${esc(x.dest)}</b></td><td>${fmt(x.rows)}</td><td>${fmt(x.emptyIds.length)}</td>` +
+        `<td><select class="tsel" data-k="${esc(x.key)}">${options}</select></td>` +
+        `<td><button class="btn sm primary" data-up="${esc(x.key)}" ${can ? "" : "disabled"}>${x.emptyIds.length ? "Update " + fmt(x.emptyIds.length) : "Up to date"}</button></td></tr>`;
+    }).join("") + `</tbody>`;
+}
+["t-sub","t-status"].forEach(id => $(id).onchange = renderTypeTab);
+$("t-q").oninput = renderTypeTab;
+$("t-table").addEventListener("change", e => {
+  const s = e.target.closest(".tsel"); if (!s) return;
+  TYPE_SEL[s.dataset.k] = s.value;
+  const g = TYPE_GROUPS.get(s.dataset.k), btn = s.closest("tr").querySelector("[data-up]");
+  btn.disabled = !(s.value && g && g.emptyIds.length);
+});
+$("t-table").addEventListener("click", e => {
+  const b = e.target.closest("[data-up]");
+  if (b && !b.disabled) applyType(b.dataset.up, b);
+});
+
+async function applyType(key, btn) {
+  const g = TYPE_GROUPS.get(key); if (!g) return;
+  const val = canon(typeOpts(), TYPE_SEL[key] ?? g.type);
+  if (!val || !g.emptyIds.length) return;
+  btn.disabled = true; btn.textContent = "Updating…";
+  let done = 0;
+  try {
+    for (let i = 0; i < g.emptyIds.length; i += 200) {
+      const chunk = g.emptyIds.slice(i, i + 200);
+      const { data, error } = await sb.from(TABLE).update({ type: val }).in("id", chunk).select("id");
+      if (error) throw error;
+      done += data.length;
+    }
+    if (!done) { toast("No rows changed. Check that Supabase allows updates on this table.", "err"); }
+    else toast(`${g.dest}: ${fmt(done)} row${done === 1 ? "" : "s"} set to ${val}`);
+  } catch (e) { toast("Update failed: " + e.message, "err"); }
+  delete TYPE_SEL[key];
+  try { await loadCatalog(); } catch (e) {}
+  loadMonthly(); loadAverage();
+  if (LOG_LOADED) loadLog();
+}
+
+/* ======== LOG TAB ======== */
+let LOG_PAGE = 0, LOG_TOTAL = 0, lToken = 0;
+
+async function loadLog(page) {
+  if (page !== undefined) LOG_PAGE = page;
+  const size = Number($("l-size").value), from = $("l-from").value, to = $("l-to").value;
+  const sub = $("l-sub").value, st = $("l-status").value, q = $("l-q").value.trim().replace(/[,()%*\\]/g, "");
+  const token = ++lToken;
+  $("l-table").innerHTML = `<tr><td style="padding:30px;color:#6b7385">Loading…</td></tr>`;
+  let qy = sb.from(TABLE).select("id,entry_date,subsidiary,area,siding,destination,type", { count:"exact" });
+  if (from) qy = qy.gte("entry_date", from);
+  if (to) qy = qy.lte("entry_date", to);
+  if (sub) qy = qy.eq("subsidiary", sub);
+  if (st === "empty") qy = qy.or("type.is.null,type.eq.");
+  if (q) qy = qy.or(`area.ilike.%${q}%,siding.ilike.%${q}%,destination.ilike.%${q}%`);
+  qy = qy.order("entry_date", { ascending:false, nullsFirst:false }).order("id", { ascending:false }).range(LOG_PAGE * size, LOG_PAGE * size + size - 1);
+  const { data, error, count } = await qy;
+  if (token !== lToken) return;
+  if (error) { $("l-table").innerHTML = `<tr><td style="padding:30px;color:#b3261e">Could not load: ${esc(error.message)}</td></tr>`; return; }
+  LOG_LOADED = true; LOG_TOTAL = count || 0;
+  const subOpts = v => (SUBS.includes(v) ? SUBS : [...SUBS, v]).map(s => `<option ${s === v ? "selected" : ""}>${esc(s)}</option>`).join("");
+  $("l-table").innerHTML = `<thead><tr><th>ID</th><th>Date</th><th>Subsidiary</th><th>Area</th><th>Siding</th><th>Destination</th><th>Type</th><th></th></tr></thead><tbody>` +
+    (data.length ? data.map(r => `<tr data-id="${esc(r.id)}"><td class="note">${esc(r.id)}</td>` +
+      `<td><input type="date" data-f="entry_date" value="${esc(String(r.entry_date || "").slice(0, 10))}"></td>` +
+      `<td><select data-f="subsidiary">${subOpts(r.subsidiary || "")}</select></td>` +
+      `<td class="wide"><input data-f="area" value="${esc(r.area)}"></td>` +
+      `<td class="wide"><input data-f="siding" value="${esc(r.siding)}"></td>` +
+      `<td class="wide"><input data-f="destination" value="${esc(r.destination)}"></td>` +
+      `<td class="wide"><input data-f="type" list="dl-ltype" value="${esc(r.type)}"></td>` +
+      `<td><button class="btn sm primary" data-save disabled>Save</button> <button class="btn sm danger" data-del>Delete</button></td></tr>`).join("")
+      : `<tr><td colspan="8" style="padding:40px;color:#6b7385">No rows match these filters.</td></tr>`) + `</tbody>`;
+  const start = LOG_TOTAL ? LOG_PAGE * size + 1 : 0, end = LOG_PAGE * size + data.length;
+  $("l-info").textContent = `${fmt(start)}–${fmt(end)} of ${fmt(LOG_TOTAL)} rows`;
+  $("l-prev").disabled = LOG_PAGE === 0;
+  $("l-next").disabled = end >= LOG_TOTAL;
+  updateSaveAll();
+}
+function updateSaveAll() {
+  const n = $("l-table").querySelectorAll("tr.dirty").length;
+  $("l-saveall").disabled = !n;
+  $("l-saveall").textContent = n ? `Save ${n} edited row${n === 1 ? "" : "s"}` : "Save all edited rows";
+}
+$("l-go").onclick = () => loadLog(0);
+$("l-size").onchange = () => loadLog(0);
+["l-from","l-to","l-sub","l-status"].forEach(id => $(id).onchange = () => loadLog(0));
+$("l-q").onkeydown = e => { if (e.key === "Enter") loadLog(0); };
+$("l-prev").onclick = () => loadLog(LOG_PAGE - 1);
+$("l-next").onclick = () => loadLog(LOG_PAGE + 1);
+
+function markDirty(e) {
+  const tr = e.target.closest("tr[data-id]"); if (!tr) return;
+  tr.classList.add("dirty");
+  tr.querySelector("[data-save]").disabled = false;
+  updateSaveAll();
+}
+$("l-table").addEventListener("input", markDirty);
+$("l-table").addEventListener("change", markDirty);
+
+async function saveLogRow(tr) {
+  const g = f => tr.querySelector(`[data-f="${f}"]`).value.trim(), btn = tr.querySelector("[data-save]");
+  const row = {
+    entry_date: g("entry_date") || null, subsidiary: normSub(g("subsidiary")),
+    area: g("area"), siding: g("siding"), destination: g("destination"), type: g("type") || null
+  };
+  btn.disabled = true; btn.textContent = "Saving…";
+  const { data, error } = await sb.from(TABLE).update(row).eq("id", tr.dataset.id).select("id");
+  btn.textContent = "Save";
+  if (error) { btn.disabled = false; toast("Save failed: " + error.message, "err"); return false; }
+  if (!data || !data.length) { btn.disabled = false; toast("Nothing was updated. Check that Supabase allows updates on this table.", "err"); return false; }
+  tr.classList.remove("dirty");
+  return true;
+}
+$("l-table").addEventListener("click", async e => {
+  const b = e.target.closest("[data-save]"); if (!b || b.disabled) return;
+  if (await saveLogRow(b.closest("tr"))) { toast("Row saved"); updateSaveAll(); refreshAll(); }
+});
+
+/* delete one row from the database, after confirmation */
+$("l-table").addEventListener("click", async e => {
+  const b = e.target.closest("[data-del]"); if (!b) return;
+  const tr = b.closest("tr"), id = tr.dataset.id;
+  const desc = ["entry_date","area","siding","destination"]
+    .map(f => tr.querySelector(`[data-f="${f}"]`).value.trim()).filter(Boolean).join(" · ");
+  if (!confirm(`Delete row ${id} (${desc})? This cannot be undone.`)) return;
+  b.disabled = true; b.textContent = "Deleting…";
+  const { data, error } = await sb.from(TABLE).delete().eq("id", id).select("id");
+  if (error || !data || !data.length) {
+    b.disabled = false; b.textContent = "Delete";
+    toast(error ? "Delete failed: " + error.message : "Nothing was deleted. Check that Supabase allows deletes on this table.", "err");
+    return;
+  }
+  toast("Row deleted");
+  loadLog(LOG_PAGE);
+  refreshAll();
+});
+
+$("l-saveall").onclick = async () => {
+  const rows = [...$("l-table").querySelectorAll("tr.dirty")];
+  $("l-saveall").disabled = true;
+  let ok = 0;
+  for (const tr of rows) if (await saveLogRow(tr)) ok++;
+  toast(`${ok} of ${rows.length} rows saved`, ok === rows.length ? "ok" : "err");
+  updateSaveAll();
+  if (ok) refreshAll();
+};
+
+/* ======== EXCEL UPLOAD ======== */
+let PARSED = [];
+const norm = s => String(s ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
+const FIELD_MATCH = {
+  entry_date:  h => h.includes("date"),
+  subsidiary:  h => h.includes("subsidiary") || h === "subs" || h === "company",
+  area:        h => h === "area" || h.startsWith("area"),
+  siding:      h => h.includes("siding"),
+  destination: h => h.includes("destination") || h === "dest",
+  type:        h => h === "type" || h.endsWith("type")
+};
+
+function toISODate(v) {
+  if (v === null || v === undefined || v === "") return null;
+  if (v instanceof Date && !isNaN(v)) return `${v.getFullYear()}-${p2(v.getMonth()+1)}-${p2(v.getDate())}`;
+  if (typeof v === "number") {
+    const d = XLSX.SSF.parse_date_code(v);
+    return d ? `${d.y}-${p2(d.m)}-${p2(d.d)}` : null;
+  }
+  const s = String(v).trim();
+  let m = s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/);
+  if (m) return `${m[1]}-${m[2].padStart(2,"0")}-${m[3].padStart(2,"0")}`;
+  m = s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})/);
+  if (m) { const y = m[3].length === 2 ? "20"+m[3] : m[3]; return `${y}-${m[2].padStart(2,"0")}-${m[1].padStart(2,"0")}`; }
+  const d = new Date(s);
+  return isNaN(d) ? null : toISODate(d);
+}
+
+function parseWorkbook(wb, fileName) {
+  const out = [], report = [];
+  wb.SheetNames.forEach(name => {
+    const upper = name.trim().toUpperCase();
+    const isKnown = SHEETS.includes(upper);
+    const rows = XLSX.utils.sheet_to_json(wb.Sheets[name], { header:1, raw:true, defval:null });
+    let hi = -1, map = {};
+    for (let i = 0; i < Math.min(rows.length, 20); i++) {
+      const mm = {}; let hits = 0;
+      (rows[i] || []).forEach((cell, c) => {
+        const h = norm(cell); if (!h) return;
+        for (const [f, test] of Object.entries(FIELD_MATCH)) if (!(f in mm) && test(h)) { mm[f] = c; hits++; break; }
+      });
+      if (hits >= 3) { hi = i; map = mm; break; }
+    }
+    if (hi < 0) { report.push({ name, count:0, skipped:true }); return; }
+    let count = 0;
+    for (let i = hi+1; i < rows.length; i++) {
+      const r = rows[i]; if (!r || r.every(c => c === null || c === "")) continue;
+      const get = f => (f in map && r[map[f]] != null) ? String(r[map[f]]).trim() : "";
+      const rec = {
+        entry_date: toISODate(r[map.entry_date]),
+        subsidiary: normSub(get("subsidiary") || (isKnown ? upper : "")),
+        area: get("area"), siding: get("siding"), destination: get("destination"), type: get("type"),
+        source_sheet: name, source_file: fileName
+      };
+      if (!rec.entry_date && !rec.area && !rec.siding && !rec.destination) continue;
+      out.push(rec); count++;
+    }
+    report.push({ name, count, skipped:false });
+  });
+  return { rows: out, report };
+}
+
+async function handleFile(file) {
+  msg("u-msg",""); $("u-save").disabled = true; $("u-preview").innerHTML = ""; $("u-summary").innerHTML = "";
+  $("u-hint").textContent = "Reading file…";
+  try {
+    const wb = XLSX.read(await file.arrayBuffer(), { type:"array", cellDates:false });
+    const { rows, report } = parseWorkbook(wb, file.name);
+    PARSED = rows;
+    $("u-summary").innerHTML =
+      `<div class="stats pop"><span class="pill file">${esc(file.name)}</span><span class="pill">${fmt(rows.length)} rows found</span></div>` +
+      `<div class="stats pop pop-d1">${report.map(r => `<span class="pill ${r.skipped?'skip':''}">${esc(r.name)}: ${r.skipped ? "no matching header, skipped" : fmt(r.count) + " rows"}</span>`).join("")}</div>`;
+    if (!rows.length) { $("u-hint").textContent = "Nothing to save."; return msg("u-msg", "No rows found. Check that the sheets have headers: Date, Subsidiary, Area, Siding, Destination, Type.", "err"); }
+    const bad = rows.filter(r => !r.entry_date).length;
+    if (bad) msg("u-msg", `${fmt(bad)} rows have a date that could not be read; they will be saved with an empty date.`, "info");
+    $("u-preview").innerHTML = `<div class="tablewrap pop pop-d2"><table class="ptable"><thead><tr><th>Date</th><th>Subsidiary</th><th>Area</th><th>Siding</th><th>Destination</th><th>Type</th></tr></thead><tbody>` +
+      rows.slice(0,10).map(r => `<tr><td>${esc(r.entry_date)}</td><td>${esc(r.subsidiary)}</td><td>${esc(r.area)}</td><td>${esc(r.siding)}</td><td>${esc(r.destination)}</td><td>${esc(r.type)}</td></tr>`).join("") +
+      `</tbody></table></div><div class="note" style="margin-top:6px;text-align:center">Preview of the first 10 of ${fmt(rows.length)} rows</div>`;
+    $("u-save").disabled = false;
+    $("u-hint").textContent = "Review the preview, then save.";
+  } catch (e) { msg("u-msg", "Could not read file: " + esc(e.message), "err"); $("u-hint").textContent = ""; }
+}
+
+const drop = $("drop"), fileInput = $("file");
+drop.onclick = () => fileInput.click();
+fileInput.onchange = () => fileInput.files[0] && handleFile(fileInput.files[0]);
+["dragenter","dragover"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave","drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", e => e.dataTransfer.files[0] && handleFile(e.dataTransfer.files[0]));
+
+$("u-save").onclick = async () => {
+  if (!PARSED.length) return;
+  $("u-save").disabled = true; $("u-bar").classList.remove("hidden");
+  /* empty type -> use the type already assigned to that destination, otherwise leave it empty (null) */
+  PARSED.forEach(r => { r.type = r.type || typeFor(effSub(r), r.destination) || null; });
+  const bar = $("u-bar").firstElementChild; const size = 500; let done = 0;
+  try {
+    for (let i = 0; i < PARSED.length; i += size) {
+      const chunk = PARSED.slice(i, i+size);
+      const { error } = await sb.from(TABLE).insert(chunk);
+      if (error) throw error;
+      done += chunk.length; bar.style.width = (done / PARSED.length * 100) + "%";
+    }
+    msg("u-msg", `Saved ${fmt(done)} rows to the database.`, "ok");
+    toast(`Imported ${fmt(done)} rows`);
+    $("u-hint").textContent = "Done. Choose another file to import.";
+    PARSED = []; refreshAll(); loadRecent();
+  } catch (e) {
+    msg("u-msg", `Stopped after ${fmt(done)} rows: ${esc(e.message)}`, "err");
+    toast("Import stopped", "err");
+    $("u-save").disabled = false;
+  }
+  setTimeout(() => { $("u-bar").classList.add("hidden"); bar.style.width = "0"; }, 1500);
+};
+
+/* ======== START ======== */
+renderDests();
+loadCatalog().catch(e => toast("Could not load lists: " + e.message, "err"));
+</script>
+</body>
+</html>
