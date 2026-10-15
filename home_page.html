@@ -38,7 +38,10 @@ body{font-family:var(--body);color:var(--ink);min-height:100vh;background:var(--
 @keyframes blink{50%{opacity:0}}
 .sub{margin-top:.6rem;color:var(--ink2);font-size:1.02rem;animation:rise .7s var(--ease) .2s both}
 
-.grid{width:100%;max-width:1040px;margin:0 auto;display:grid;gap:1.25rem;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.grid{width:100%;max-width:1040px;margin:0 auto;display:grid;gap:1.25rem;grid-template-columns:repeat(6,1fr)}
+.grid>.tile{grid-column:span 2}
+.grid>.tile:nth-child(n+4){grid-column:span 3}
+@media (max-width:700px){.grid{grid-template-columns:1fr}.grid>.tile,.grid>.tile:nth-child(n+4){grid-column:auto}}
 .tile{--c:#1d4ed8;--t:#e8efff;--mx:50%;--my:50%;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;gap:2rem;min-height:210px;padding:1.5rem;background:rgba(255,255,255,.92);backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:20px;color:inherit;text-decoration:none;box-shadow:0 1px 2px rgba(15,33,66,.04),0 14px 30px -20px rgba(15,33,66,.25);transition:transform .35s var(--ease),border-color .3s,box-shadow .35s;animation:rise .6s var(--ease) both;animation-delay:calc(var(--i)*90ms + .3s);-webkit-tap-highlight-color:transparent}
 .tile::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .35s;background:radial-gradient(260px circle at var(--mx) var(--my),var(--t),transparent 70%)}
 .tile:hover{transform:translateY(-6px);border-color:var(--c);box-shadow:0 26px 40px -20px rgba(15,33,66,.35)}
@@ -90,6 +93,10 @@ body{font-family:var(--body);color:var(--ink);min-height:100vh;background:var(--
   <a class="tile" href="notices.html" data-access="notices" style="--i:3;--c:#b7791f;--t:#fdf3e1">
     <div class="ico"><i class="fas fa-bell"></i></div>
     <div class="foot"><div><span class="name">Notices</span><span class="desc">Latest updates and reminders</span></div><span class="go"><i class="fas fa-arrow-right"></i></span></div>
+  </a>
+  <a class="tile" href="daily_rake_loading.html" data-access="amm" style="--i:4;--c:#0e7490;--t:#e0f4f8">
+    <div class="ico"><i class="fas fa-truck-loading"></i></div>
+    <div class="foot"><div><span class="name">Daily Rake Loading</span><span class="desc">Daily rake loading entry and report</span></div><span class="go"><i class="fas fa-arrow-right"></i></span></div>
   </a>
 </nav>
 
