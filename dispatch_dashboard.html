@@ -654,7 +654,7 @@ const catOf = t => t.includes("WASH") ? "p_wc" : t.includes("NON") ? "np" : t.in
 const catKey = t => { const c = catOf(t); return c === "p_wc" ? "wc" : c; };
 const isNonPower = r => catOf(nk(r.type)) === "np";
 /* Rows entered under SECL whose area is one of these are counted under MCFL (IB and CKP belong to MCFL) */
-const MCFL_AREAS = ["KUR","CKP"];
+const MCFL_AREAS = ["KUR","CKP","IB"];
 const effSub = r => { const s = normSub(r.subsidiary); return (s === "SECL" && MCFL_AREAS.includes(nk(r.area))) ? "MCFL" : s; };
 
 /* ======== MONTHLY TABLE DEFINITIONS (original colours) ======== */
@@ -1041,6 +1041,7 @@ const OV_AREA_ROWS = [
   { label:"KORBA (SECL)", area:"KORBA", sub:"SECL" },
   { label:"CIC (SECL)",   area:"CIC",   sub:"SECL" },
   { label:"CKP (MCFL)", area:"CKP", sub:"MCFL" },
+  { label:"IB (MCFL)",  area:"IB",  sub:"MCFL" },
   { label:"KUR (MCFL)", area:"KUR", sub:"MCFL" },
   { label:"NAG (WCF)",  area:"NAG", sub:"WCF" },
   { label:"NGP (WCF)",  area:"NGP", sub:"WCF" },
