@@ -764,7 +764,8 @@ async function loadMonthly() {
     const un = buildData(rows);
     renderMonthly();
     setSync(true, "Live");
-    $("m-note").textContent = `${fmt(rows.length)} rows` + (un ? ` · ${fmt(un)} without a readable date or type` : "");
+    const activeDateCount = new Set(rows.filter(r => r.entry_date).map(r => r.entry_date)).size;
+    $("m-note").textContent = `${fmt(rows.length)} rows · ${fmt(activeDateCount)} active dates` + (un ? ` · ${fmt(un)} without a readable date or type` : "");
   } catch (e) { if (token === mToken) { $("m-note").textContent = "Could not load: " + e.message; setSync(false, "Offline"); } }
 }
 
@@ -794,8 +795,16 @@ function renderMonthly() {
   h += `</tr>`;
 
   const totals = {};
-  for (let d = 1; d <= days; d++) {
-    const key = `${y}-${p2(m)}-${p2(d)}`, day = src[key] || {};
+  // Show only calendar dates that have at least one source row for the selected tab.
+  // TOTAL uses all mines; an individual tab uses only rows mapped to that mine.
+  const visibleDates = [...new Set(
+    MONTH_DATA
+      .filter(r => (curTab === "TOTAL" || effSub(r) === curTab) && r.entry_date && r.entry_date.startsWith(`${y}-${p2(m)}-`))
+      .map(r => r.entry_date)
+  )].sort();
+
+  for (const key of visibleDates) {
+    const d = Number(key.slice(8, 10)), day = src[key] || {};
     h += `<tr><td class="date">${d}-${MON3[m-1]}</td>`;
     G.forEach(g => g.cols.forEach(c => {
       const v = cellValue(day, curTab, g, c);
