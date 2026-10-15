@@ -467,7 +467,7 @@ var COL = { SECL:['#2f6fb5','#e5edf7'], MCL:['#1b8a7f','#e3f1ef'], WCL:['#7656a8
 
   function drawImage() {
     var W = 1700, P = 40, S = 2, mainRows = readTable($('mainGrid')), sumRows = readTable($('sumGrid'));
-    var TY = 420, H = TY + Math.max(tblH(mainRows), tblH(sumRows)) + 74;
+    var TY = 626, H = TY + Math.max(tblH(mainRows), tblH(sumRows)) + 74;
     var cv = document.createElement('canvas'); cv.width = W * S; cv.height = H * S;
     var c = cv.getContext('2d'); c.scale(S, S);
     function path(x, y, w, h, r) { c.beginPath(); if (r && c.roundRect) c.roundRect(x, y, w, h, r); else c.rect(x, y, w, h); }
@@ -530,7 +530,27 @@ var COL = { SECL:['#2f6fb5','#e5edf7'], MCL:['#1b8a7f','#e3f1ef'], WCL:['#7656a8
       txt(k[0], x + 20, 308, '400 16px ' + BT, key ? '#a9b6c3' : '#55636f');
       txt($(k[1]).textContent, x + 20, 355, '700 50px ' + CD, key ? '#ffb400' : '#17283a');
     });
-    txt('Subsidiary-wise loading', P, 408, '700 26px ' + CD, '#17283a'); txt('Party-wise summary', P + 984, 408, '700 26px ' + CD, '#17283a');
+
+    /* loading train: wagon width follows target, fill follows loaded */
+    var wg = Array.prototype.slice.call(document.querySelectorAll('.wagon')), gp = 12, av = W - 2 * P - gp * (wg.length - 1), y0 = 404, bh = 92;
+    var gr = wg.map(function (w) { return Math.max(parseFloat(w.style.flexGrow) || 1, 1); }), gs = gr.reduce(function (a, b) { return a + b; }, 0), wx = P;
+    wg.forEach(function (w, i) {
+      var k = w.id.slice(2), cl = COL[k], bw = av * (0.35 / wg.length + 0.65 * gr[i] / gs), fh, p = Math.max(0, Math.min(100, parseInt(w.querySelector('em').textContent, 10) || 0));
+      fh = bh * p / 100;
+      rect(wx, y0, bw, bh, cl[1], 8);
+      c.save(); path(wx, y0, bw, bh, 8); c.clip();
+      rect(wx, y0 + bh - fh, bw, fh, cl[0]);
+      c.globalAlpha = 0.24; for (var sx = wx; sx < wx + bw; sx += 11) rect(sx, y0 + bh - fh, 2, fh, '#fff'); c.globalAlpha = 1;
+      c.restore();
+      path(wx + 1.5, y0 + 1.5, bw - 3, bh - 3, 7); c.strokeStyle = cl[0]; c.lineWidth = 3; c.stroke();
+      rect(wx - 4, y0 + bh + 12, bw + 8, 3, '#17283a');
+      [wx + bw * 0.14 + 8, wx + bw * 0.86 - 8].forEach(function (cx) { c.beginPath(); c.arc(cx, y0 + bh + 8, 8, 0, 6.2832); c.fillStyle = '#17283a'; c.fill(); c.lineWidth = 3; c.strokeStyle = '#f1f4f8'; c.stroke(); });
+      txt(k, wx, y0 + bh + 48, '700 28px ' + CD, cl[0]);
+      txt(w.querySelector('em').textContent, wx + bw, y0 + bh + 48, '600 26px ' + CD, '#17283a', 'right');
+      txt(w.querySelector('.of').textContent, wx, y0 + bh + 70, '400 15px ' + BT, '#55636f');
+      wx += bw + gp;
+    });
+    txt('Subsidiary-wise loading', P, 612, '700 26px ' + CD, '#17283a'); txt('Party-wise summary', P + 984, 612, '700 26px ' + CD, '#17283a');
     table(P, TY, 960, [27, 13, 13, 15, 17, 15], mainRows, false);
     table(P + 984, TY, 636, [15, 26, 13, 13, 15, 17], sumRows, true);
     txt('Balance = Target - Loaded. Asking rakes per day = Balance / (days in month - day of the report date).', P, H - 30, '400 15px ' + BT, '#55636f');
