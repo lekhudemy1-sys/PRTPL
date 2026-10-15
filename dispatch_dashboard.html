@@ -586,8 +586,10 @@ function keysFor(tab, r) {
     if (a === "CICPS") k.push("ps.total");
     if (a === "CICGS") k.push("gs.total");
   } else if (tab === "MCFL") {
-    if (a === "KUR" && ["cpp","ipp","wc"].includes(tk)) k.push("kur." + tk);
-    if (a === "CKP" && ["cpp","ipp"].includes(tk)) k.push("ckp." + tk);
+    /* MCFL columns are NON-POWER (cpp), POWER (ipp) and WASH COAL (wc); every non-power type counts as NON-POWER */
+    const mk = ck === "np" ? "cpp" : ck === "p" ? "ipp" : ck === "wc" ? "wc" : "";
+    if (a === "KUR" && mk) k.push("kur." + mk);
+    if (a === "CKP" && (mk === "cpp" || mk === "ipp")) k.push("ckp." + mk);
   } else if (ck) k.push("d." + ck);
   const valid = new Set(TABS[tab].groups.flatMap(g => g.cols.map(c => g.id + "." + c.k)));
   return k.filter(x => valid.has(x));
