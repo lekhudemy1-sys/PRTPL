@@ -3,22 +3,21 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>HZL ODR</title>
+<title>Hindustan Zinc Limited | ODR</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
   :root{
-    --bg:#78716c;--surface:#ffffff;--text:#1c1917;--muted:#78716c;--line:#e7e5e4;--line-strong:#d6d3d1;
-    --navy:#292524;--navy-d:#1c1917;--primary:#b45309;--primary-soft:#fef3c7;
+    --bg:#6b84a3;--surface:#ffffff;--text:#0f172a;--muted:#64748b;--line:#e2e8f0;--line-strong:#cbd5e1;
+    --navy:#1e3a5f;--navy-d:#17304f;--primary:#1e40af;--primary-soft:#dbeafe;
     --ok:#15803d;--bad:#b91c1c;
     --radius:10px;
-    --shadow-sm:0 1px 2px rgba(28,25,23,.08);
-    --shadow-md:0 6px 18px rgba(28,25,23,.18);
-    --SECL:#ea580c;--CCL:#7c3aed;--MCL:#0d9488;--other:#db2777;
+    --shadow-sm:0 1px 2px rgba(15,23,42,.08);
+    --shadow-md:0 6px 18px rgba(15,23,42,.18);
   }
   /* Per-area palette: --accent (strong), --side (light siding header), --hl (dark highlight) */
-  .area-sec,.area-sec[data-area="OTHER"]{--accent:#db2777;--side:#fce7f3;--hl:#be185d}
+  .area-sec,.area-sec[data-area="OTHER"]{--accent:#7c3aed;--side:#ede9fe;--hl:#6d28d9}
   .area-sec[data-area="SECL"]{--accent:#ea580c;--side:#fed7aa;--hl:#c2410c}
   .area-sec[data-area="CCL"]{--accent:#7c3aed;--side:#ddd6fe;--hl:#6d28d9}
   .area-sec[data-area="MCL"]{--accent:#0d9488;--side:#99f6e4;--hl:#0f766e}
@@ -32,57 +31,54 @@
   header{position:sticky;top:0;z-index:20;background:var(--navy);box-shadow:var(--shadow-md)}
   .bar{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:12px 24px;flex-wrap:wrap}
   .brand{font-weight:800;font-size:17px;letter-spacing:.05em;color:#fff}
-  .brand small{display:block;font-weight:500;color:#fcd34d;font-size:11px;letter-spacing:.02em}
+  .brand small{display:block;font-weight:500;color:#bfdbfe;font-size:11px;letter-spacing:.02em}
   nav{display:flex;gap:6px;justify-content:center;flex:1}
-  nav button{border:1px solid transparent;background:transparent;padding:8px 18px;border-radius:999px;font-size:14px;font-weight:600;color:#e7e5e4;cursor:pointer;transition:background .2s,color .2s,transform .15s,border-color .2s}
+  nav button{border:1px solid transparent;background:transparent;padding:8px 18px;border-radius:999px;font-size:14px;font-weight:600;color:#dbeafe;cursor:pointer;transition:background .2s,color .2s,transform .15s,border-color .2s}
   nav button:hover{background:rgba(255,255,255,.12);color:#fff;transform:translateY(-1px);border-color:rgba(255,255,255,.25)}
   nav button.active{background:#fff;color:var(--navy);box-shadow:0 2px 6px rgba(0,0,0,.15)}
   .top-actions{display:flex;gap:10px;align-items:center}
   .hbtn{border:1px solid rgba(255,255,255,.4);background:transparent;color:#fff;border-radius:999px;padding:8px 16px;font-weight:600;font-size:13px;cursor:pointer;transition:background .2s,color .2s,transform .15s}
   .hbtn:hover:not(:disabled){background:#fff;color:var(--navy);transform:translateY(-1px)}
   .hbtn:disabled{opacity:.5;cursor:not-allowed}
-  button:focus-visible,.areabtn:focus-visible,.search input:focus-visible{outline:3px solid #fcd34d;outline-offset:2px}
+  button:focus-visible,.areabtn:focus-visible,.search input:focus-visible{outline:3px solid #93c5fd;outline-offset:2px}
 
   .filters{display:flex;align-items:center;justify-content:center;gap:16px;padding:12px 24px;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,.12);background:var(--navy-d)}
-  .filters .lbl{font-size:11px;font-weight:700;letter-spacing:.1em;color:#fcd34d;text-transform:uppercase}
+  .filters .lbl{font-size:11px;font-weight:700;letter-spacing:.1em;color:#93c5fd;text-transform:uppercase}
   .areabtns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
-  .areabtn{--c:var(--primary);border:1.5px solid rgba(255,255,255,.3);background:transparent;color:#e7e5e4;padding:7px 18px;border-radius:999px;font-weight:700;font-size:13px;cursor:pointer;transition:background .2s,color .2s,transform .15s,border-color .2s,box-shadow .2s}
+  .areabtn{--c:var(--primary);border:1.5px solid rgba(255,255,255,.3);background:transparent;color:#e0e7ff;padding:7px 18px;border-radius:999px;font-weight:700;font-size:13px;cursor:pointer;transition:background .2s,color .2s,transform .15s,border-color .2s,box-shadow .2s}
   .areabtn:hover{background:#fff;color:var(--c);border-color:#fff;transform:translateY(-1px);box-shadow:0 3px 10px rgba(0,0,0,.2)}
   .areabtn.on{background:#fff;border-color:#fff;color:var(--c);box-shadow:0 2px 8px rgba(0,0,0,.2)}
   .areabtn .n{opacity:.8;font-weight:500;margin-left:6px;font-size:12px}
   .search{position:relative}
   .search input{padding:8px 14px;border:1px solid rgba(255,255,255,.3);border-radius:999px;font-size:13px;width:260px;background:rgba(255,255,255,.1);color:#fff;transition:background .2s,border-color .2s}
-  .search input::placeholder{color:#d6d3d1}
-  .search input:focus{outline:none;background:#fff;color:var(--text);border-color:#fff;box-shadow:0 0 0 3px rgba(252,211,77,.5)}
+  .search input::placeholder{color:#bfdbfe}
+  .search input:focus{outline:none;background:#fff;color:var(--text);border-color:#fff;box-shadow:0 0 0 3px rgba(147,197,253,.5)}
   .search input:focus::placeholder{color:var(--muted)}
-  .stats{font-size:12px;color:#d6d3d1}
+  .stats{font-size:12px;color:#bfdbfe}
   .stats b{color:#fff}
 
-  main{padding:14px 10px 40px;max-width:none;margin:0 auto}
+  main{padding:26px 24px 60px;max-width:1800px;margin:0 auto}
   .hidden{display:none!important}
 
   /* ===== Dashboard ===== */
-  .area-sec{margin-bottom:20px}
-  .area-title{display:flex;align-items:center;justify-content:center;gap:12px;padding:8px 14px;margin-bottom:10px;background:#fff;border-radius:var(--radius);border-bottom:3px solid var(--accent);box-shadow:var(--shadow-sm)}
+  .area-sec{margin-bottom:34px}
+  .area-title{display:flex;align-items:center;justify-content:center;gap:12px;padding:10px 16px;margin-bottom:16px;background:#fff;border-radius:var(--radius);border-bottom:4px solid var(--accent);box-shadow:var(--shadow-sm)}
   .area-title h2{margin:0;font-size:22px;color:var(--accent);letter-spacing:.06em;font-weight:800}
   .area-title span{color:var(--muted);font-size:13px;font-weight:600}
 
-  .stn-grid{display:grid;grid-template-columns:repeat(var(--cols),minmax(190px,1fr));gap:10px;align-items:start;overflow-x:auto;overflow-y:hidden;padding:4px 4px 14px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.7) rgba(0,0,0,.2)}
-  .stn-grid::-webkit-scrollbar{height:12px}
-  .stn-grid::-webkit-scrollbar-track{background:rgba(0,0,0,.2);border-radius:999px}
-  .stn-grid::-webkit-scrollbar-thumb{background:rgba(255,255,255,.7);border-radius:999px;border:2px solid transparent;background-clip:padding-box}
-  .stn{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--accent);border-radius:var(--radius);box-shadow:var(--shadow-md);overflow:hidden;min-width:0;transition:box-shadow .2s,transform .2s}
-  .stn:hover{box-shadow:0 10px 24px rgba(28,25,23,.25);transform:translateY(-2px)}
+  .stn-grid{display:grid;grid-template-columns:repeat(var(--cols),minmax(0,1fr));gap:18px;align-items:start}
+  .stn{background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:var(--radius);box-shadow:var(--shadow-md);overflow:hidden;transition:box-shadow .2s,transform .2s}
+  .stn:hover{box-shadow:0 10px 24px rgba(15,23,42,.25);transform:translateY(-2px)}
   .stn-head{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2px;padding:12px 14px;font-weight:800;font-size:15px;background:var(--side);color:var(--hl);border-bottom:1px solid var(--line);text-align:center}
   .stn-head small{font-weight:600;color:var(--hl);opacity:.75;font-size:11px}
-  table{width:100%;border-collapse:collapse;table-layout:fixed}
-  th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);text-align:center;padding:8px 6px;border-bottom:1px solid var(--line);font-weight:700;background:#fafaf9}
-  td{padding:7px 6px;border-bottom:1px solid #f5f5f4;word-break:break-word;text-align:center;transition:background .15s,color .15s}
-  tbody tr:nth-child(even){background:#fafaf9}
+  table{width:100%;border-collapse:collapse}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);text-align:center;padding:9px 12px;border-bottom:1px solid var(--line);font-weight:700;background:#f8fafc}
+  td{padding:8px 12px;border-bottom:1px solid #f1f5f9;word-break:break-word;text-align:center;transition:background .15s,color .15s}
+  tbody tr:nth-child(even){background:#fafbfd}
   tbody tr{transition:background .15s}
   tbody tr:hover{background:color-mix(in srgb,var(--side) 55%,#fff)}
-  th.num,td.num{width:64px}
-  .pill{display:inline-block;min-width:28px;text-align:center;padding:2px 8px;border-radius:999px;background:var(--side);color:var(--hl);font-weight:800;transition:transform .15s,background .15s,color .15s}
+  th.num,td.num{width:90px}
+  .pill{display:inline-block;min-width:32px;text-align:center;padding:3px 10px;border-radius:999px;background:var(--side);color:var(--hl);font-weight:800;transition:transform .15s,background .15s,color .15s}
   tbody tr:hover .pill{transform:scale(1.05)}
 
   /* HZL destinations: small oval badge in the light shade of each area's colour */
@@ -91,7 +87,7 @@
   /* ===== Settings ===== */
   .page-head{text-align:center;margin-bottom:18px}
   .page-head h2{margin:0;color:#fff;font-weight:800;font-size:24px}
-  .page-head p{margin:6px 0 0;color:#e7e5e4}
+  .page-head p{margin:6px 0 0;color:#e0e7ff}
   .set-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
   .col-card{background:#fff;border-radius:var(--radius);padding:16px;box-shadow:var(--shadow-md)}
   .list-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap}
@@ -104,7 +100,7 @@
   .mini .acc:hover{background:var(--ok);border-color:var(--ok);color:#fff;transform:translateY(-1px)}
   .mini .rej:hover{background:var(--bad);border-color:var(--bad);color:#fff;transform:translateY(-1px)}
   .checks{border:1px solid var(--line);background:var(--surface);max-height:360px;overflow:auto;border-radius:var(--radius)}
-  .chk{display:flex;align-items:center;justify-content:center;gap:10px;padding:8px 12px;border-bottom:1px solid #f5f5f4;transition:background .15s}
+  .chk{display:flex;align-items:center;justify-content:center;gap:10px;padding:8px 12px;border-bottom:1px solid #f1f5f9;transition:background .15s}
   .chk:hover{background:var(--primary-soft)}
   .chk label{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
   .chk input{width:17px;height:17px;accent-color:var(--accent);cursor:pointer}
@@ -115,21 +111,21 @@
   .card{background:#fff;border-radius:14px;padding:28px;box-shadow:var(--shadow-md);text-align:center}
   .card h2{margin:0 0 6px;font-size:24px;color:var(--navy);font-weight:800}
   .sub{color:var(--muted);margin:0 0 20px}
-  .drop{border:2px dashed #fbbf24;background:#fffbeb;padding:44px 20px;text-align:center;cursor:pointer;border-radius:12px;transition:background .2s,border-color .2s,transform .15s,box-shadow .2s}
+  .drop{border:2px dashed #93c5fd;background:#f8fbff;padding:44px 20px;text-align:center;cursor:pointer;border-radius:12px;transition:background .2s,border-color .2s,transform .15s,box-shadow .2s}
   .drop:hover,.drop.dragover{border-color:var(--primary);background:var(--primary-soft);transform:translateY(-2px);box-shadow:var(--shadow-sm)}
   .drop h3{color:var(--navy);margin:8px 0 0}
   .drop p{margin:4px 0 0;color:var(--muted)}
   .actions{display:flex;gap:12px;margin:18px 0 10px;justify-content:center;flex-wrap:wrap}
   .btn{border:0;border-radius:8px;padding:11px 22px;font-weight:700;cursor:pointer;font-size:14px;display:inline-flex;gap:8px;align-items:center;justify-content:center;transition:background .2s,transform .15s,box-shadow .2s}
-  .btn-primary{background:var(--navy);color:#fff;box-shadow:0 2px 6px rgba(41,37,36,.25)}
-  .btn-primary:hover:not(:disabled){background:var(--navy-d);transform:translateY(-2px);box-shadow:0 6px 16px rgba(41,37,36,.35)}
+  .btn-primary{background:var(--navy);color:#fff;box-shadow:0 2px 6px rgba(30,58,95,.25)}
+  .btn-primary:hover:not(:disabled){background:var(--navy-d);transform:translateY(-2px);box-shadow:0 6px 16px rgba(30,58,95,.35)}
   .btn-ghost{background:#fff;color:var(--navy);border:1.5px solid var(--navy)}
   .btn-ghost:hover:not(:disabled){background:var(--primary-soft);transform:translateY(-2px)}
   .btn:active:not(:disabled){transform:translateY(0)}
   .btn:disabled{opacity:.5;cursor:not-allowed}
   .warn{color:var(--bad);font-weight:600;font-size:13px;background:#fef2f2;border-radius:8px;padding:8px 12px;display:inline-block}
   .prev-stats{display:flex;gap:16px;margin:20px 0;flex-wrap:wrap;justify-content:center}
-  .prev-stats div{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;background:#fafaf9;border:1px solid var(--line);border-radius:var(--radius);padding:12px 22px;min-width:130px}
+  .prev-stats div{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;background:#f8fafc;border:1px solid var(--line);border-radius:var(--radius);padding:12px 22px;min-width:130px}
   .prev-stats b{display:block;font-size:26px;color:var(--navy);letter-spacing:0}
   #preview table{background:#fff;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line)}
 
@@ -143,27 +139,84 @@
   .loader{width:16px;height:16px;border:3px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
 
-  .all-row{display:flex;gap:10px;align-items:flex-start;justify-content:flex-start;overflow-x:auto;padding:4px 4px 14px}
+  .all-row{display:flex;gap:18px;align-items:flex-start;justify-content:center;overflow-x:auto;padding-bottom:10px}
   .all-row .area-sec{margin-bottom:0}
-  .all-row{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.7) rgba(0,0,0,.2)}
-  .all-row::-webkit-scrollbar{height:12px}
-  .all-row::-webkit-scrollbar-track{background:rgba(0,0,0,.2);border-radius:999px}
-  .all-row::-webkit-scrollbar-thumb{background:rgba(255,255,255,.7);border-radius:999px;border:2px solid transparent;background-clip:padding-box}
-  .all-row .stn-grid{grid-template-columns:repeat(var(--cols),minmax(165px,1fr));overflow:visible;padding:0}
-  .all-row .area-title{background:var(--accent);border:0;padding:8px 10px;margin-bottom:8px}
+  .all-row .stn-grid{grid-template-columns:repeat(var(--cols),minmax(0,1fr))!important}
+  .all-row .area-title{background:var(--accent);border:0;padding:10px 12px;margin-bottom:12px}
   .all-row .area-title h2,.all-row .area-title span{color:#fff}
-  .stn-grid.compact{gap:8px}
-  .stn-grid.compact .stn-head{padding:8px 6px;font-size:13px}
-  .stn-grid.compact th{padding:6px 4px;font-size:10px}
-  .stn-grid.compact td{padding:6px 4px;font-size:12px}
-  .stn-grid.compact th.num,.stn-grid.compact td.num{width:52px}
-  @media(max-width:760px){.set-grid{grid-template-columns:1fr}.bar,.filters,main{padding-left:14px;padding-right:14px}.search input{width:100%}nav{flex-wrap:wrap}}
+  .stn-grid.compact{gap:12px}
+  .stn-grid.compact .stn-head{padding:9px 8px;font-size:13px}
+  .stn-grid.compact th,.stn-grid.compact td{padding:7px 8px;font-size:12px}
+  .stn-grid.compact th.num,.stn-grid.compact td.num{width:60px}
+  @media(max-width:1500px){.stn-grid{grid-template-columns:repeat(min(var(--cols),5),minmax(0,1fr))}}
+  @media(max-width:1100px){.stn-grid{grid-template-columns:repeat(min(var(--cols),3),minmax(0,1fr))}}
+  @media(max-width:760px){.stn-grid{grid-template-columns:repeat(min(var(--cols),2),minmax(0,1fr))}.set-grid{grid-template-columns:1fr}.bar,.filters,main{padding-left:14px;padding-right:14px}.search input{width:100%}nav{flex-wrap:wrap}}
+  @media(max-width:480px){.stn-grid{grid-template-columns:1fr}}
+
+  /* ===== Station totals ===== */
+  tfoot td{font-weight:800;background:var(--side);color:var(--hl);border-top:2px solid var(--accent);border-bottom:0}
+
+  /* ===== Summary card (manual entry) ===== */
+  .sum-card tr{--accent:#7c3aed;--side:#ede9fe;--hl:#6d28d9}
+  .sum-card tr[data-area="SECL"]{--accent:#ea580c;--side:#fed7aa;--hl:#c2410c}
+  .sum-card tr[data-area="CCL"]{--accent:#7c3aed;--side:#ddd6fe;--hl:#6d28d9}
+  .sum-card tr[data-area="MCL"]{--accent:#0d9488;--side:#99f6e4;--hl:#0f766e}
+
+  .sum-card{width:max-content;min-width:min(660px,100%);max-width:100%;margin:10px auto 0;background:#fff;border:1px solid var(--line);border-top:4px solid var(--primary);border-radius:14px;box-shadow:var(--shadow-md);overflow:hidden;color:var(--text)}
+  .sum-top{background:linear-gradient(135deg,var(--navy-d),var(--navy));color:#fff;text-align:center;padding:16px 40px 14px}
+  .sum-co{font-size:20px;font-weight:800;letter-spacing:.04em}
+  .sum-sub{font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;opacity:.8;margin-top:2px}
+  .sum-meta{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;padding:10px 20px;background:var(--primary-soft);border-bottom:1px solid var(--line)}
+  .sum-meta .t{font-weight:800;font-size:16px;color:var(--primary);letter-spacing:.02em}
+  .sum-meta .chip{background:#fff;border:1.5px solid var(--primary);color:var(--primary);border-radius:999px;padding:3px 16px;font-weight:800;font-size:14px}
+  .sum-card table{width:100%;table-layout:auto;border-collapse:collapse}
+  .sum-card th{background:#f8fafc;color:var(--muted);font-size:11px;font-weight:800;letter-spacing:.08em;padding:10px 22px;border-bottom:2px solid var(--line-strong);text-transform:uppercase;border-left:0;border-right:0;border-top:0}
+  .sum-card td{background:transparent;border:0;border-bottom:1px solid var(--line);padding:9px 22px;text-align:center;font-weight:700;font-size:14px}
+  .sum-card tbody tr:nth-child(even) td{background:#fafbfc}
+  .sum-card tbody tr:hover td{background:color-mix(in srgb,var(--side) 55%,#fff)}
+  .sum-card tbody tr.first td{border-top:2px solid var(--accent)}
+  .sum-card tbody tr.first:first-child td{border-top:0}
+  .sum-card td.sid{font-weight:800}
+  .sum-card tfoot td{background:var(--primary-soft);color:var(--primary);border-top:2px solid var(--primary);border-bottom:0;font-size:14px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
+  .sum-card tfoot .pill{background:var(--primary);color:#fff;font-size:16px;padding:3px 16px}
+  .dest-badge{display:inline-block;background:var(--side);color:var(--hl);font-size:12px;font-weight:800;padding:2px 12px;border-radius:999px;border:1px solid var(--accent);line-height:1.5;letter-spacing:.03em}
+  .dvs-in{width:92px;border:1.5px dashed var(--line-strong);background:#fff;text-align:center;font:inherit;font-weight:800;text-transform:uppercase;color:var(--text);padding:4px 6px;border-radius:8px;transition:border-color .15s,box-shadow .15s,background .15s}
+  .dvs-in::placeholder{color:#cbd5e1;font-weight:600}
+  .dvs-in:hover{border-color:var(--accent);background:var(--side)}
+  .dvs-in:focus{outline:none;border:1.5px solid var(--accent);background:#fff;box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 25%,transparent)}
+  .sum-hint{text-align:center;color:#fff;opacity:.85;font-size:12px;margin:12px 0 0;font-weight:600}
+
+  /* ===== Settings strip ===== */
+  .set-strip{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:0 auto 22px}
+  .set-strip div{background:#fff;border-radius:var(--radius);padding:10px 24px;text-align:center;box-shadow:var(--shadow-sm);min-width:140px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .set-strip b{display:block;font-size:24px;color:var(--navy);letter-spacing:0;line-height:1.2}
+  #set .area-sec{max-width:1180px;margin:0 auto 28px}
+  .col-card{padding:0;overflow:hidden;border-top:4px solid var(--accent)}
+  .col-card .list-head{padding:14px 16px 10px;margin:0}
+  .list-head h3{display:flex;flex-direction:column;gap:1px;font-size:15px}
+  .list-head h3 small{margin:0;font-size:12px;color:var(--muted)}
+  .prog{height:6px;background:var(--line);margin:0 16px 12px;border-radius:999px;overflow:hidden}
+  .prog i{display:block;height:100%;background:var(--accent);border-radius:999px;transition:width .25s}
+  .checks{border:0;border-top:1px solid var(--line);border-radius:0;max-height:380px}
+  .chk{padding:0;justify-content:stretch}
+  .chk label{flex:1;justify-content:space-between;padding:9px 16px;gap:12px;position:relative}
+  .chk .nm{flex:1;text-align:left;font-weight:600}
+  .chk input{position:absolute;opacity:0;width:0;height:0}
+  .sw{width:36px;height:20px;border-radius:999px;background:#cbd5e1;position:relative;flex:none;transition:background .2s}
+  .sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}
+  .chk input:checked+.sw{background:var(--accent)}
+  .chk input:checked+.sw::after{transform:translateX(16px)}
+  .chk input:focus-visible+.sw{outline:3px solid var(--accent);outline-offset:2px}
+  .ct{font-style:normal;font-size:11px;font-weight:800;color:var(--hl);background:var(--side);padding:2px 10px;border-radius:999px;white-space:nowrap}
+  .chk.off .ct{background:#f1f5f9;color:var(--muted)}
+  .chk.off .nm{color:var(--muted);text-decoration:line-through}
+  .mini button{padding:6px 14px}
 </style>
 </head>
 <body>
 <header>
   <div class="bar">
-    <div class="brand">HZL ODR<small>Railway Operations</small></div>
+    <div class="brand">Hindustan Zinc Limited<small>ODR · Railway Operations</small></div>
     <nav id="nav">
       <button data-page="dashboard" class="active">Dashboard</button>
       <button data-page="settings">Settings</button>
@@ -176,7 +229,7 @@
     </div>
   </div>
   <div class="filters" id="filters">
-    <span class="lbl">Area</span>
+    <span class="lbl">View</span>
     <div class="areabtns" id="areabtns"></div>
     <span class="stats" id="stats"></span>
     <div class="search"><input id="search" placeholder="Search station or destination..." /></div>
@@ -225,15 +278,18 @@ const ODR_TABLE = "HZL_ODR";
 const FILTER_TABLE = "hzl_filters";
 
 let allData = [], allFilters = [], fmap = new Map(), parsedRecords = [];
-let page = "dashboard", selArea = "ALL", loaded = false, loading = null;
+let page = "dashboard", selArea = "SUMMARY", loaded = false, loading = null;
 
 const $ = id => document.getElementById(id);
+const COMPANY = "Hindustan Zinc Limited";
+const SUM_DEST = "HZL";                     // destination counted and shown in the summary table
+const DVS_TYPE = s => "dvs|" + s;           // DVS is stored as a filter row: filter_type = "dvs|<siding>", value = DVS name
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fkey = (a, t, v) => `${a}|${t}|${v}`;
 const isOn = (a, t, v) => fmap.get(fkey(a, t, v))?.accepted !== false;
 const isHzl = d => /\bHZL\b/i.test(String(d ?? ""));        // HZL destinations are always highlighted
+const isSumDest = d => String(d ?? "").trim().toUpperCase() === SUM_DEST;
 const ORDER = ["SECL", "CCL", "MCL"];
-const areaColor = a => ({ SECL: "var(--SECL)", CCL: "var(--CCL)", MCL: "var(--MCL)" }[a] || "var(--other)");
 
 function toast(msg, type = "success") {
   const t = $("toast"); t.textContent = msg; t.className = `toast ${type} show`;
@@ -298,18 +354,15 @@ function areas() {
     return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.localeCompare(b);
   });
 }
-const visibleAreas = () => selArea === "ALL" ? areas() : areas().filter(a => a === selArea);
+const visibleAreas = () => areas();
 const uniqueOrdered = (arr) => [...new Set(arr)];       // keeps Excel order
 
 /* ---------- Header ---------- */
 function renderAreaButtons() {
-  const list = areas();
-  if (selArea !== "ALL" && !list.includes(selArea)) selArea = "ALL";
-  const btn = (key, label, n, color) =>
-    `<button class="areabtn ${selArea === key ? "on" : ""}" style="--c:${color}" data-area="${esc(key)}">${esc(label)}<span class="n">${n}</span></button>`;
-  const stCount = a => new Set(allData.filter(r => r.area === a).map(r => r.sttn_from)).size;
-  $("areabtns").innerHTML = btn("ALL", "All", list.length, "var(--primary)") +
-    list.map(a => btn(a, a, stCount(a), areaColor(a))).join("");
+  if (selArea !== "SUMMARY" && selArea !== "ALL") selArea = "SUMMARY";
+  const btn = (key, label) =>
+    `<button class="areabtn ${selArea === key ? "on" : ""}" style="--c:var(--primary)" data-area="${key}">${label}</button>`;
+  $("areabtns").innerHTML = btn("SUMMARY", "Summary") + btn("ALL", "All");
 }
 $("areabtns").addEventListener("click", e => {
   const b = e.target.closest(".areabtn"); if (!b) return;
@@ -326,6 +379,8 @@ function go(p) {
   $(`page-${p}`).classList.remove("hidden");
   document.querySelectorAll("#nav button").forEach(b => b.classList.toggle("active", b.dataset.page === p));
   $("filters").classList.toggle("hidden", p === "upload");
+  document.querySelector("#filters .lbl").classList.toggle("hidden", p === "settings");
+  $("areabtns").classList.toggle("hidden", p === "settings");
   $("dlimg").classList.toggle("hidden", p !== "dashboard");
   if (p === "upload") return;
   if (loaded) renderCurrent();                          // switching pages uses data already in memory
@@ -333,7 +388,8 @@ function go(p) {
 }
 function renderCurrent() {
   if (!loaded) return;
-  if (page === "dashboard") renderDashboard();
+  $("search").parentElement.classList.toggle("hidden", page === "dashboard" && selArea === "SUMMARY");
+  if (page === "dashboard") (selArea === "SUMMARY" ? renderSummary() : renderDashboard());
   else if (page === "settings") renderSettings();
 }
 
@@ -358,13 +414,23 @@ function load(manual) {
 /* ---------- Download dashboard as image ---------- */
 async function downloadImage() {
   const el = $("dash");
-  if (!el.innerHTML.trim() || !el.querySelector(".area-sec")) { toast("Nothing to download yet", "error"); return; }
+  if (!el.innerHTML.trim() || !(el.querySelector(".area-sec") || el.querySelector(".sum-card"))) { toast("Nothing to download yet", "error"); return; }
   if (typeof html2canvas === "undefined") { toast("Image library could not load", "error"); return; }
-  const scrollers = [...el.querySelectorAll(".all-row, .stn-grid")];
-  scrollers.forEach(x => { x.dataset.ov = x.style.overflow; x.style.overflow = "visible"; });
+  const sumEl = el.querySelector(".sum-card");
+  if (sumEl) {                                           // Summary tab -> image of the Pending Rakes table only
+    try {
+      const canvas = await html2canvas(sumEl, { backgroundColor: "#ffffff", scale: 3, useCORS: true });
+      const a = document.createElement("a");
+      a.download = `HZL_Pending_Rakes_${yesterdayStr().replace(/\//g, "-")}.png`;
+      a.href = canvas.toDataURL("image/png"); a.click(); toast("Image downloaded");
+    } catch (e) { console.error(e); toast("Could not create image", "error"); }
+    return;
+  }
+  const row = el.querySelector(".all-row");
+  if (row) row.style.overflow = "visible";
   try {
     const canvas = await html2canvas(el, {
-      backgroundColor: "#78716c", scale: 2, useCORS: true,
+      backgroundColor: "#6b84a3", scale: 2, useCORS: true,
       width: el.scrollWidth, height: el.scrollHeight,
       windowWidth: el.scrollWidth, windowHeight: el.scrollHeight
     });
@@ -377,7 +443,7 @@ async function downloadImage() {
   } catch (e) {
     console.error(e); toast("Could not create image", "error");
   } finally {
-    scrollers.forEach(x => { x.style.overflow = x.dataset.ov || ""; });
+    if (row) row.style.overflow = "";
   }
 }
 
@@ -387,6 +453,7 @@ function renderDashboard() {
   const out = []; let nAreas = 0, nStn = 0, nLines = 0, nInd = 0;
 
   for (const area of visibleAreas()) {
+    const ind0 = nInd;
     // rejected stations / destinations are removed BEFORE counting indents
     const byStn = new Map();
     for (const r of allData) {
@@ -404,24 +471,82 @@ function renderDashboard() {
       nStn++; nLines += shown.length; nInd += shown.reduce((s, r) => s + r.n, 0);
       panels.push(`
         <div class="stn">
-          <div class="stn-head"><span>${esc(stn)}</span><small>${shown.length} lines</small></div>
+          <div class="stn-head"><span>${esc(stn)}</span><small class="tot-chip">${shown.reduce((t, r) => t + r.n, 0)} ${shown.reduce((t, r) => t + r.n, 0) === 1 ? "indent" : "indents"}</small></div>
           <table><thead><tr><th>Destination</th><th class="num">Indents</th></tr></thead>
-          <tbody>${shown.map(r => `<tr><td>${isHzl(r.d) ? `<span class="hzl">${esc(r.d)}</span>` : esc(r.d)}</td><td class="num"><span class="pill">${r.n}</span></td></tr>`).join("")}</tbody></table>
+          <tbody>${shown.map(r => `<tr><td>${isHzl(r.d) ? `<span class="hzl">${esc(r.d)}</span>` : esc(r.d)}</td><td class="num"><span class="pill">${r.n}</span></td></tr>`).join("")}</tbody><tfoot><tr><td>Total</td><td class="num"><span class="pill">${shown.reduce((t, r) => t + r.n, 0)}</span></td></tr></tfoot></table>
         </div>`);
     }
     if (!panels.length) continue;
     nAreas++;
     const all = selArea === "ALL", n = panels.length;
     out.push(`
-      <section class="area-sec" data-area="${esc(area)}" ${all ? `style="flex:${n} 1 ${n * 175}px;min-width:${n * 175}px"` : ""}>
-        <div class="area-title"><h2>${esc(area)}</h2><span>${n} station${n > 1 ? "s" : ""}</span></div>
-        <div class="stn-grid ${all ? "compact" : ""}" style="--cols:${n}">${panels.join("")}</div>
+      <section class="area-sec" data-area="${esc(area)}" ${all ? `style="flex:${n} 1 ${n * 130}px;min-width:${n * 130}px"` : ""}>
+        <div class="area-title"><h2>${esc(area)}</h2><span>${n} station${n > 1 ? "s" : ""} · ${nInd - ind0} ${nInd - ind0 === 1 ? "indent" : "indents"}</span></div>
+        <div class="stn-grid ${all ? "compact" : ""}" style="--cols:${all ? n : Math.min(n, 5)}">${panels.join("")}</div>
       </section>`);
   }
-  $("stats").innerHTML = `<b>${nAreas}</b> areas · <b>${nStn}</b> stations · <b>${nLines}</b> lines · <b>${nInd}</b> indents`;
+  $("stats").innerHTML = `<b>${nAreas}</b> areas · <b>${nStn}</b> stations · <b>${nInd}</b> total indents`;
   const body = out.join("");
   $("dash").innerHTML = body ? (selArea === "ALL" ? `<div class="all-row">${body}</div>` : body) : `<div class="empty dash-empty"><h3>No matching records</h3><p>Check Settings, the search box, or upload an Excel file.</p></div>`;
 }
+
+/* ---------- Summary (Pending Rakes) ---------- */
+function yesterdayStr() {                               // date = today - 1, DD/Mon/YYYY (e.g. 14/Oct/2026)
+  const d = new Date(); d.setDate(d.getDate() - 1);
+  const M = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return `${String(d.getDate()).padStart(2, "0")}/${M[d.getMonth()]}/${d.getFullYear()}`;
+}
+const dvsRow = (area, siding) => allFilters.find(f => f.area === area && f.filter_type === DVS_TYPE(siding));
+
+function renderSummary() {
+  // Only rows whose destination is HZL count toward the summary indents
+  const cnt = new Map();                                // area|siding -> HZL indents (rejected items already excluded)
+  for (const r of allData) {
+    if (!isSumDest(r.dstn)) continue;
+    if (!isOn(r.area, "sttn_from", r.sttn_from) || !isOn(r.area, "dstn", r.dstn)) continue;
+    const k = r.area + "|" + r.sttn_from; cnt.set(k, (cnt.get(k) || 0) + 1);
+  }
+  const rows = []; let total = 0;
+  for (const area of areas()) {
+    const sidings = uniqueOrdered(allData.filter(r => r.area === area).map(r => r.sttn_from)).filter(s => isOn(area, "sttn_from", s));
+    for (const s of sidings) {
+      const n = cnt.get(area + "|" + s) || 0; total += n;
+      rows.push({ area, s, n, dvs: dvsRow(area, s)?.value || "" });
+    }
+  }
+  $("stats").innerHTML = `<b>${rows.length}</b> sidings · <b>${total}</b> ${SUM_DEST} indents`;
+  if (!rows.length) { $("dash").innerHTML = `<div class="empty dash-empty"><h3>No matching records</h3><p>Check Settings or upload an Excel file.</p></div>`; return; }
+  let prev = null;
+  $("dash").innerHTML = `
+    <div class="sum-card" id="sumwrap">
+      <div class="sum-top"><div class="sum-co">${esc(COMPANY)}</div><div class="sum-sub">Railway Operations</div></div>
+      <div class="sum-meta"><span class="t">Pending Rakes</span><span class="chip">${yesterdayStr()}</span></div>
+      <table>
+        <thead><tr><th>DVS</th><th>Area</th><th>Siding</th><th>Destin</th><th>Indents</th></tr></thead>
+        <tbody>${rows.map(r => { const first = r.area !== prev; prev = r.area; return `<tr data-area="${esc(r.area)}" class="${first ? "first" : ""}">
+          <td><input class="dvs-in" maxlength="12" placeholder="DVS" value="${esc(r.dvs)}" data-area="${esc(r.area)}" data-siding="${esc(r.s)}" aria-label="DVS for ${esc(r.s)}" /></td>
+          <td><span class="dest-badge">${esc(r.area)}</span></td><td class="sid">${esc(r.s)}</td><td>${esc(SUM_DEST)}</td><td><span class="pill">${r.n}</span></td></tr>`; }).join("")}</tbody>
+        <tfoot><tr><td colspan="4">Total Indents</td><td><span class="pill">${total}</span></td></tr></tfoot>
+      </table>
+    </div>
+    <p class="sum-hint">Type the DVS in the first column - it saves automatically. Use “Download Image” for the picture.</p>`;
+}
+async function saveDvs(area, siding, value) {
+  const ex = dvsRow(area, siding);
+  if (ex) {
+    const { error } = await db.from(FILTER_TABLE).update({ value }).eq("id", ex.id);
+    if (error) throw error; ex.value = value;
+  } else {
+    const { data, error } = await db.from(FILTER_TABLE).insert({ area, filter_type: DVS_TYPE(siding), value, accepted: true }).select();
+    if (error) throw error; allFilters.push(...data);
+  }
+}
+$("dash").addEventListener("change", async e => {
+  const i = e.target.closest(".dvs-in"); if (!i) return;
+  const v = i.value.trim().toUpperCase(); i.value = v;
+  try { await saveDvs(i.dataset.area, i.dataset.siding, v); toast("DVS saved"); }
+  catch (err) { console.error(err); toast(err.message, "error"); }
+});
 
 /* ---------- Settings (area-wise) ---------- */
 function renderSettings() {
@@ -429,7 +554,12 @@ function renderSettings() {
   const out = [];
   for (const area of visibleAreas()) {
     const rows = allData.filter(r => r.area === area);
-    const lists = [["sttn_from", "Station (Siding)", uniqueOrdered(rows.map(r => r.sttn_from))],
+    const cnt = { sttn_from: new Map(), dstn: new Map() };
+    rows.forEach(r => {
+      cnt.sttn_from.set(r.sttn_from, (cnt.sttn_from.get(r.sttn_from) || 0) + 1);
+      cnt.dstn.set(r.dstn, (cnt.dstn.get(r.dstn) || 0) + 1);
+    });
+    const lists = [["sttn_from", "Stations (Sidings)", uniqueOrdered(rows.map(r => r.sttn_from))],
                    ["dstn", "Destinations", uniqueOrdered(rows.map(r => r.dstn))]];
     const cols = lists.map(([type, title, vals]) => {
       const on = vals.filter(v => isOn(area, type, v)).length;
@@ -443,25 +573,32 @@ function renderSettings() {
             <button class="rej" data-bulk="1" data-area="${esc(area)}" data-type="${type}" data-val="0">Reject all</button>
           </div>
         </div>
-        <div class="checks">${shown.length ? shown.map(v => `
-          <div class="chk ${isOn(area, type, v) ? "" : "off"}">
+        <div class="prog"><i style="width:${vals.length ? (on / vals.length * 100) : 0}%"></i></div>
+        <div class="checks">${shown.length ? shown.map(v => {
+          const c = cnt[type].get(v) || 0, ok = isOn(area, type, v);
+          return `
+          <div class="chk ${ok ? "" : "off"}">
             <label>
-              <input type="checkbox" ${isOn(area, type, v) ? "checked" : ""} data-area="${esc(area)}" data-type="${type}" data-v="${esc(v)}" />
-              <span>${esc(v)}</span>
+              <span class="nm">${esc(v)}</span>
+              <em class="ct">${c} indent${c === 1 ? "" : "s"}</em>
+              <input type="checkbox" ${ok ? "checked" : ""} data-area="${esc(area)}" data-type="${type}" data-v="${esc(v)}" />
+              <span class="sw"></span>
             </label>
-          </div>`).join("") : `<div class="empty" style="padding:24px">Nothing found</div>`}
+          </div>`; }).join("") : `<div class="empty" style="padding:24px">Nothing found</div>`}
         </div>
       </div>`;
     }).join("");
     out.push(`
       <section class="area-sec" data-area="${esc(area)}">
-        <div class="area-title"><h2>${esc(area)}</h2><span>filters for this area</span></div>
+        <div class="area-title"><h2>${esc(area)}</h2><span>${rows.length} indents · filters for this area</span></div>
         <div class="set-grid">${cols}</div>
       </section>`);
   }
   const n = allData.length;
+  const nSid = new Set(allData.map(r => r.area + "|" + r.sttn_from)).size, nDst = new Set(allData.map(r => r.area + "|" + r.dstn)).size;
   $("stats").innerHTML = `<b>${n}</b> rows in database`;
-  $("set").innerHTML = out.join("") || `<div class="empty dash-empty"><h3>No data yet</h3><p>Upload an Excel file first.</p></div>`;
+  const strip = `<div class="set-strip"><div><b>${visibleAreas().length}</b>Areas</div><div><b>${nSid}</b>Sidings</div><div><b>${nDst}</b>Destinations</div><div><b>${n}</b>Total indents</div></div>`;
+  $("set").innerHTML = out.length ? strip + out.join("") : `<div class="empty dash-empty"><h3>No data yet</h3><p>Upload an Excel file first.</p></div>`;
 }
 $("set").addEventListener("change", async e => {
   const c = e.target; if (c.type !== "checkbox") return;
@@ -480,7 +617,9 @@ function renderSettingsCounts() {   // keep scroll position; just refresh counte
     const first = h.querySelector("[data-bulk]"); if (!first) return;
     const { area, type } = first.dataset;
     const vals = uniqueOrdered(allData.filter(r => r.area === area).map(r => type === "dstn" ? r.dstn : r.sttn_from));
-    h.querySelector("small").textContent = `${vals.filter(v => isOn(area, type, v)).length}/${vals.length} accepted`;
+    const on = vals.filter(v => isOn(area, type, v)).length;
+    h.querySelector("small").textContent = `${on}/${vals.length} accepted`;
+    const bar = h.parentElement.querySelector(".prog i"); if (bar) bar.style.width = (vals.length ? on / vals.length * 100 : 0) + "%";
   });
 }
 

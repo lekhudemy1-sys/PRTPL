@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>NALCO ODR</title>
+<title>National Aluminium Company Limited | ODR</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -152,12 +152,102 @@
   @media(max-width:1100px){.stn-grid{grid-template-columns:repeat(min(var(--cols),3),minmax(0,1fr))}}
   @media(max-width:760px){.stn-grid{grid-template-columns:repeat(min(var(--cols),2),minmax(0,1fr))}.set-grid{grid-template-columns:1fr}.bar,.filters,main{padding-left:14px;padding-right:14px}.search input{width:100%}nav{flex-wrap:wrap}}
   @media(max-width:480px){.stn-grid{grid-template-columns:1fr}}
+
+  /* ===== Station totals ===== */
+  tfoot td{font-weight:800;background:var(--side);color:var(--hl);border-top:2px solid var(--accent);border-bottom:0}
+  /* ===== Summary (Pending Rakes) ===== */
+  .sum-wrap{width:max-content;max-width:100%;margin:6px auto 0;background:#fff;border:2px solid #1f1f1f;font-family:Calibri,"Segoe UI",Arial,sans-serif;color:#111}
+  .sum-title{text-align:center;font-weight:800;font-size:18px;padding:11px 48px;border-bottom:2px solid #1f1f1f;background:#fff}
+  .sum-band{display:flex;border-bottom:2px solid #1f1f1f;background:#c8956d}
+  .sum-band .l{flex:1;text-align:center;font-weight:800;font-size:17px;padding:10px 24px;border-right:2px solid #1f1f1f}
+  .sum-band .r{min-width:130px;text-align:center;font-weight:800;font-size:17px;padding:10px 18px}
+  .sum-wrap table{width:100%;table-layout:auto;border-collapse:collapse}
+  .sum-wrap th{background:#3e5f9a;color:#fff;font-size:13px;font-weight:800;letter-spacing:.03em;padding:7px 20px;border:1px solid #1f1f1f;text-transform:uppercase}
+  .sum-wrap td{background:#c9c9c9;border:1px solid #666;padding:7px 20px;text-align:center;font-weight:700;font-size:14px}
+  .sum-wrap tbody tr:hover td{background:#c9c9c9}
+  .sum-wrap tbody tr:nth-child(even){background:transparent}
+  .sum-wrap tfoot td{background:#c9c9c9;color:#111;border:1px solid #666;border-top:2px solid #1f1f1f;font-size:15px}
+  .sum-wrap tfoot td.tot{border:2px solid #1f1f1f}
+  .dvs-in{width:72px;border:0;background:transparent;text-align:center;font:inherit;font-weight:700;text-transform:uppercase;color:#111;padding:2px 0;border-radius:4px}
+  .dvs-in:hover{background:rgba(255,255,255,.55)}
+  .dvs-in:focus{outline:2px solid #3e5f9a;background:#fff}
+  .sum-hint{text-align:center;color:#fff;opacity:.85;font-size:12px;margin:12px 0 0}
+
+  /* ===== v2 refresh: layout, centering, indents chips ===== */
+  main{padding:22px 20px 56px;max-width:1800px;margin:0 auto}
+  #dash>.area-sec .stn-grid{grid-template-columns:repeat(auto-fit,minmax(210px,310px));justify-content:center;overflow:visible;padding:4px 4px 14px;gap:16px}
+  .all-row{justify-content:safe center}
+  .area-title{flex-wrap:wrap}
+  .area-title span{background:var(--side);color:var(--hl);padding:3px 14px;border-radius:999px;font-weight:800;font-size:12px;letter-spacing:.02em}
+  .all-row .area-title span{background:rgba(255,255,255,.22);color:#fff}
+  .stn-head small.tot-chip{background:var(--accent);color:#fff;opacity:1;font-size:11px;font-weight:800;padding:2px 12px;border-radius:999px;margin-top:4px;letter-spacing:.02em}
+  .stats{text-align:center}
+  .all-row .area-title{flex-direction:column;justify-content:center;gap:5px;min-height:78px;text-align:center}
+  .stn-grid.compact th,.stn-grid.compact td{padding-left:4px;padding-right:4px}
+  .stn-grid.compact th{letter-spacing:0;font-size:10px}
+  .stn-grid.compact th.num,.stn-grid.compact td.num{width:68px}
+  .dest-badge{display:inline-block;background:var(--side);color:var(--hl);font-size:12px;font-weight:800;padding:2px 12px;border-radius:999px;border:1px solid var(--accent);line-height:1.5;letter-spacing:.03em}
+
+  /* ===== Summary card (manual entry) - same look as station cards ===== */
+  .sum-card tr{--accent:#7c3aed;--side:#ede9fe;--hl:#6d28d9}
+  .sum-card tr[data-area="ECO"]{--accent:#16a34a;--side:#bbf7d0;--hl:#15803d}
+  .sum-card tr[data-area="SEC"]{--accent:#2563eb;--side:#bfdbfe;--hl:#1d4ed8}
+  .sum-card tr[data-area="SE"]{--accent:#dc2626;--side:#fecaca;--hl:#b91c1c}
+
+  .sum-card{width:max-content;min-width:min(660px,100%);max-width:100%;margin:10px auto 0;background:#fff;border:1px solid var(--line);border-top:4px solid var(--primary);border-radius:14px;box-shadow:var(--shadow-md);overflow:hidden;color:var(--text)}
+  .sum-top{background:linear-gradient(135deg,var(--navy-d),var(--navy));color:#fff;text-align:center;padding:16px 40px 14px}
+  .sum-co{font-size:20px;font-weight:800;letter-spacing:.04em}
+  .sum-sub{font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;opacity:.8;margin-top:2px}
+  .sum-meta{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;padding:10px 20px;background:var(--primary-soft);border-bottom:1px solid var(--line)}
+  .sum-meta .t{font-weight:800;font-size:16px;color:var(--primary);letter-spacing:.02em}
+  .sum-meta .chip{background:#fff;border:1.5px solid var(--primary);color:var(--primary);border-radius:999px;padding:3px 16px;font-weight:800;font-size:14px}
+  .sum-card table{width:100%;table-layout:auto;border-collapse:collapse}
+  .sum-card th{background:#f8fafc;color:var(--muted);font-size:11px;font-weight:800;letter-spacing:.08em;padding:10px 22px;border-bottom:2px solid var(--line-strong);text-transform:uppercase;border-left:0;border-right:0;border-top:0}
+  .sum-card td{background:transparent;border:0;border-bottom:1px solid var(--line);padding:9px 22px;text-align:center;font-weight:700;font-size:14px}
+  .sum-card tbody tr:nth-child(even) td{background:#fafbfc}
+  .sum-card tbody tr:hover td{background:color-mix(in srgb,var(--side) 55%,#fff)}
+  .sum-card tbody tr.first td{border-top:2px solid var(--accent)}
+  .sum-card tbody tr.first:first-child td{border-top:0}
+  .sum-card td.sid{font-weight:800}
+  .sum-card tfoot td{background:var(--primary-soft);color:var(--primary);border-top:2px solid var(--primary);border-bottom:0;font-size:14px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
+  .sum-card tfoot .pill{background:var(--primary);color:#fff;font-size:16px;padding:3px 16px}
+  .dvs-in{width:92px;border:1.5px dashed var(--line-strong);background:#fff;text-align:center;font:inherit;font-weight:800;text-transform:uppercase;color:var(--text);padding:4px 6px;border-radius:8px;transition:border-color .15s,box-shadow .15s,background .15s}
+  .dvs-in::placeholder{color:#cbd5e1;font-weight:600}
+  .dvs-in:hover{border-color:var(--accent);background:var(--side)}
+  .dvs-in:focus{outline:none;border:1.5px solid var(--accent);background:#fff;box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 25%,transparent)}
+  .sum-hint{font-weight:600}
+
+  /* ===== Settings ===== */
+  .set-strip{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:0 auto 22px}
+  .set-strip div{background:#fff;border-radius:var(--radius);padding:10px 24px;text-align:center;box-shadow:var(--shadow-sm);min-width:140px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .set-strip b{display:block;font-size:24px;color:var(--navy);letter-spacing:0;line-height:1.2}
+  #set .area-sec{max-width:1180px;margin:0 auto 28px}
+  .col-card{padding:0;overflow:hidden;border-top:4px solid var(--accent)}
+  .col-card .list-head{padding:14px 16px 10px;margin:0}
+  .list-head h3{display:flex;flex-direction:column;gap:1px;font-size:15px}
+  .list-head h3 small{margin:0;font-size:12px;color:var(--muted)}
+  .prog{height:6px;background:var(--line);margin:0 16px 12px;border-radius:999px;overflow:hidden}
+  .prog i{display:block;height:100%;background:var(--accent);border-radius:999px;transition:width .25s}
+  .checks{border:0;border-top:1px solid var(--line);border-radius:0;max-height:380px}
+  .chk{padding:0;justify-content:stretch}
+  .chk label{flex:1;justify-content:space-between;padding:9px 16px;gap:12px;position:relative}
+  .chk .nm{flex:1;text-align:left;font-weight:600}
+  .chk input{position:absolute;opacity:0;width:0;height:0}
+  .sw{width:36px;height:20px;border-radius:999px;background:#cbd5e1;position:relative;flex:none;transition:background .2s}
+  .sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .2s}
+  .chk input:checked+.sw{background:var(--accent)}
+  .chk input:checked+.sw::after{transform:translateX(16px)}
+  .chk input:focus-visible+.sw{outline:3px solid var(--accent);outline-offset:2px}
+  .ct{font-style:normal;font-size:11px;font-weight:800;color:var(--hl);background:var(--side);padding:2px 10px;border-radius:999px;white-space:nowrap}
+  .chk.off .ct{background:#f1f5f9;color:var(--muted)}
+  .chk.off .nm{color:var(--muted);text-decoration:line-through}
+  .mini button{padding:6px 14px}
 </style>
 </head>
 <body>
 <header>
   <div class="bar">
-    <div class="brand">NALCO ODR<small>Railway Operations</small></div>
+    <div class="brand">National Aluminium Company Limited<small>ODR · Railway Operations</small></div>
     <nav id="nav">
       <button data-page="dashboard" class="active">Dashboard</button>
       <button data-page="settings">Settings</button>
@@ -170,7 +260,7 @@
     </div>
   </div>
   <div class="filters" id="filters">
-    <span class="lbl">Area</span>
+    <span class="lbl">View</span>
     <div class="areabtns" id="areabtns"></div>
     <span class="stats" id="stats"></span>
     <div class="search"><input id="search" placeholder="Search station or destination..." /></div>
@@ -216,13 +306,17 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let allData = [], allFilters = [], fmap = new Map(), parsedRecords = [];
-let page = "dashboard", selArea = "ALL", loaded = false, loading = null;
+let page = "dashboard", selArea = "SUMMARY", loaded = false, loading = null;
 
 const $ = id => document.getElementById(id);
+const COMPANY = "National Aluminium Company Limited";
+const SUM_DEST = "NLOD";                     // destination shown in the summary table
+const DVS_TYPE = s => "dvs|" + s;                      // DVS is stored as a filter row: filter_type = "dvs|<siding>", value = DVS name
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const fkey = (a, t, v) => `${a}|${t}|${v}`;
 const isOn = (a, t, v) => fmap.get(fkey(a, t, v))?.accepted !== false;
 const isNlod = d => /\bNLOD\b/i.test(String(d ?? ""));      // NLOD destinations are always highlighted
+const isSumDest = d => String(d ?? "").trim().toUpperCase() === SUM_DEST;
 const ORDER = ["ECO", "SEC", "SE"];
 const areaColor = a => ({ ECO: "var(--ECO)", SEC: "var(--SEC)", SE: "var(--SE)" }[a] || "var(--other)");
 
@@ -289,18 +383,15 @@ function areas() {
     return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.localeCompare(b);
   });
 }
-const visibleAreas = () => selArea === "ALL" ? areas() : areas().filter(a => a === selArea);
+const visibleAreas = () => areas();
 const uniqueOrdered = (arr) => [...new Set(arr)];       // keeps Excel order
 
 /* ---------- Header ---------- */
 function renderAreaButtons() {
-  const list = areas();
-  if (selArea !== "ALL" && !list.includes(selArea)) selArea = "ALL";
-  const btn = (key, label, n, color) =>
-    `<button class="areabtn ${selArea === key ? "on" : ""}" style="--c:${color}" data-area="${esc(key)}">${esc(label)}<span class="n">${n}</span></button>`;
-  const stCount = a => new Set(allData.filter(r => r.area === a).map(r => r.sttn_from)).size;
-  $("areabtns").innerHTML = btn("ALL", "All", list.length, "var(--primary)") +
-    list.map(a => btn(a, a, stCount(a), areaColor(a))).join("");
+  if (selArea !== "SUMMARY" && selArea !== "ALL") selArea = "SUMMARY";
+  const btn = (key, label) =>
+    `<button class="areabtn ${selArea === key ? "on" : ""}" style="--c:var(--primary)" data-area="${key}">${label}</button>`;
+  $("areabtns").innerHTML = btn("SUMMARY", "Summary") + btn("ALL", "All");
 }
 $("areabtns").addEventListener("click", e => {
   const b = e.target.closest(".areabtn"); if (!b) return;
@@ -317,6 +408,8 @@ function go(p) {
   $(`page-${p}`).classList.remove("hidden");
   document.querySelectorAll("#nav button").forEach(b => b.classList.toggle("active", b.dataset.page === p));
   $("filters").classList.toggle("hidden", p === "upload");
+  document.querySelector("#filters .lbl").classList.toggle("hidden", p === "settings");
+  $("areabtns").classList.toggle("hidden", p === "settings");
   $("dlimg").classList.toggle("hidden", p !== "dashboard");
   if (p === "upload") return;
   if (loaded) renderCurrent();                          // switching pages uses data already in memory
@@ -324,7 +417,8 @@ function go(p) {
 }
 function renderCurrent() {
   if (!loaded) return;
-  if (page === "dashboard") renderDashboard();
+  $("search").parentElement.classList.toggle("hidden", page === "dashboard" && selArea === "SUMMARY");
+  if (page === "dashboard") (selArea === "SUMMARY" ? renderSummary() : renderDashboard());
   else if (page === "settings") renderSettings();
 }
 
@@ -349,8 +443,18 @@ function load(manual) {
 /* ---------- Download dashboard as image ---------- */
 async function downloadImage() {
   const el = $("dash");
-  if (!el.innerHTML.trim() || !el.querySelector(".area-sec")) { toast("Nothing to download yet", "error"); return; }
+  if (!el.innerHTML.trim() || !(el.querySelector(".area-sec") || el.querySelector(".sum-card"))) { toast("Nothing to download yet", "error"); return; }
   if (typeof html2canvas === "undefined") { toast("Image library could not load", "error"); return; }
+  const sumEl = el.querySelector(".sum-card");
+  if (sumEl) {                                           // Summary tab -> image of the Pending Rakes table only
+    try {
+      const canvas = await html2canvas(sumEl, { backgroundColor: "#ffffff", scale: 3, useCORS: true });
+      const a = document.createElement("a");
+      a.download = `NALCO_Pending_Rakes_${yesterdayStr().replace(/\//g, "-")}.png`;
+      a.href = canvas.toDataURL("image/png"); a.click(); toast("Image downloaded");
+    } catch (e) { console.error(e); toast("Could not create image", "error"); }
+    return;
+  }
   const row = el.querySelector(".all-row");
   if (row) row.style.overflow = "visible";
   try {
@@ -378,6 +482,7 @@ function renderDashboard() {
   const out = []; let nAreas = 0, nStn = 0, nLines = 0, nInd = 0;
 
   for (const area of visibleAreas()) {
+    const ind0 = nInd;
     // rejected stations / destinations are removed BEFORE counting indents
     const byStn = new Map();
     for (const r of allData) {
@@ -395,9 +500,9 @@ function renderDashboard() {
       nStn++; nLines += shown.length; nInd += shown.reduce((s, r) => s + r.n, 0);
       panels.push(`
         <div class="stn">
-          <div class="stn-head"><span>${esc(stn)}</span><small>${shown.length} lines</small></div>
+          <div class="stn-head"><span>${esc(stn)}</span><small class="tot-chip">${shown.reduce((t, r) => t + r.n, 0)} ${shown.reduce((t, r) => t + r.n, 0) === 1 ? "indent" : "indents"}</small></div>
           <table><thead><tr><th>Destination</th><th class="num">Indents</th></tr></thead>
-          <tbody>${shown.map(r => `<tr><td>${isNlod(r.d) ? `<span class="nlod">${esc(r.d)}</span>` : esc(r.d)}</td><td class="num"><span class="pill">${r.n}</span></td></tr>`).join("")}</tbody></table>
+          <tbody>${shown.map(r => `<tr><td>${isNlod(r.d) ? `<span class="nlod">${esc(r.d)}</span>` : esc(r.d)}</td><td class="num"><span class="pill">${r.n}</span></td></tr>`).join("")}</tbody><tfoot><tr><td>Total</td><td class="num"><span class="pill">${shown.reduce((t, r) => t + r.n, 0)}</span></td></tr></tfoot></table>
         </div>`);
     }
     if (!panels.length) continue;
@@ -405,14 +510,70 @@ function renderDashboard() {
     const all = selArea === "ALL", n = panels.length;
     out.push(`
       <section class="area-sec" data-area="${esc(area)}" ${all ? `style="flex:${n} 1 ${n * 130}px;min-width:${n * 130}px"` : ""}>
-        <div class="area-title"><h2>${esc(area)}</h2><span>${n} station${n > 1 ? "s" : ""}</span></div>
+        <div class="area-title"><h2>${esc(area)}</h2><span>${n} station${n > 1 ? "s" : ""} · ${nInd - ind0} ${nInd - ind0 === 1 ? "indent" : "indents"}</span></div>
         <div class="stn-grid ${all ? "compact" : ""}" style="--cols:${all ? n : Math.min(n, 5)}">${panels.join("")}</div>
       </section>`);
   }
-  $("stats").innerHTML = `<b>${nAreas}</b> areas · <b>${nStn}</b> stations · <b>${nLines}</b> lines · <b>${nInd}</b> indents`;
+  $("stats").innerHTML = `<b>${nAreas}</b> areas · <b>${nStn}</b> stations · <b>${nInd}</b> total indents`;
   const body = out.join("");
   $("dash").innerHTML = body ? (selArea === "ALL" ? `<div class="all-row">${body}</div>` : body) : `<div class="empty dash-empty"><h3>No matching records</h3><p>Check Settings, the search box, or upload an Excel file.</p></div>`;
 }
+
+/* ---------- Summary (Pending Rakes) ---------- */
+function yesterdayStr() {                               // date = today - 1, DD/Mon/YYYY (e.g. 14/Oct/2026)
+  const d = new Date(); d.setDate(d.getDate() - 1);
+  const M = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return `${String(d.getDate()).padStart(2, "0")}/${M[d.getMonth()]}/${d.getFullYear()}`;
+}
+const dvsRow = (area, siding) => allFilters.find(f => f.area === area && f.filter_type === DVS_TYPE(siding));
+
+function renderSummary() {
+  const cnt = new Map();                                // area|siding -> indents (rejected items already excluded)
+  for (const r of allData) {
+    if (!isSumDest(r.dstn) || !isOn(r.area, "sttn_from", r.sttn_from) || !isOn(r.area, "dstn", r.dstn)) continue;
+    const k = r.area + "|" + r.sttn_from; cnt.set(k, (cnt.get(k) || 0) + 1);
+  }
+  const rows = []; let total = 0;
+  for (const area of areas()) {
+    const sidings = uniqueOrdered(allData.filter(r => r.area === area).map(r => r.sttn_from)).filter(s => isOn(area, "sttn_from", s));
+    for (const s of sidings) {
+      const n = cnt.get(area + "|" + s) || 0; total += n;
+      rows.push({ area, s, n, dvs: dvsRow(area, s)?.value || "" });
+    }
+  }
+  $("stats").innerHTML = `<b>${rows.length}</b> sidings · <b>${total}</b> indents`;
+  if (!rows.length) { $("dash").innerHTML = `<div class="empty dash-empty"><h3>No matching records</h3><p>Check Settings or upload an Excel file.</p></div>`; return; }
+  let prev = null;
+  $("dash").innerHTML = `
+    <div class="sum-card" id="sumwrap">
+      <div class="sum-top"><div class="sum-co">${esc(COMPANY)}</div><div class="sum-sub">Railway Operations</div></div>
+      <div class="sum-meta"><span class="t">Pending Rakes</span><span class="chip">${yesterdayStr()}</span></div>
+      <table>
+        <thead><tr><th>DVS</th><th>Area</th><th>Siding</th><th>Destin</th><th>Indents</th></tr></thead>
+        <tbody>${rows.map(r => { const first = r.area !== prev; prev = r.area; return `<tr data-area="${esc(r.area)}" class="${first ? "first" : ""}">
+          <td><input class="dvs-in" maxlength="12" placeholder="DVS" value="${esc(r.dvs)}" data-area="${esc(r.area)}" data-siding="${esc(r.s)}" aria-label="DVS for ${esc(r.s)}" /></td>
+          <td><span class="dest-badge">${esc(r.area)}</span></td><td class="sid">${esc(r.s)}</td><td>${esc(SUM_DEST)}</td><td><span class="pill">${r.n}</span></td></tr>`; }).join("")}</tbody>
+        <tfoot><tr><td colspan="4">Total Indents</td><td><span class="pill">${total}</span></td></tr></tfoot>
+      </table>
+    </div>
+    <p class="sum-hint">Type the DVS in the first column - it saves automatically. Use “Download Image” for the picture.</p>`;
+}
+async function saveDvs(area, siding, value) {
+  const ex = dvsRow(area, siding);
+  if (ex) {
+    const { error } = await db.from(FILTER_TABLE).update({ value }).eq("id", ex.id);
+    if (error) throw error; ex.value = value;
+  } else {
+    const { data, error } = await db.from(FILTER_TABLE).insert({ area, filter_type: DVS_TYPE(siding), value, accepted: true }).select();
+    if (error) throw error; allFilters.push(...data);
+  }
+}
+$("dash").addEventListener("change", async e => {
+  const i = e.target.closest(".dvs-in"); if (!i) return;
+  const v = i.value.trim().toUpperCase(); i.value = v;
+  try { await saveDvs(i.dataset.area, i.dataset.siding, v); toast("DVS saved"); }
+  catch (err) { console.error(err); toast(err.message, "error"); }
+});
 
 /* ---------- Settings (area-wise) ---------- */
 function renderSettings() {
@@ -420,7 +581,12 @@ function renderSettings() {
   const out = [];
   for (const area of visibleAreas()) {
     const rows = allData.filter(r => r.area === area);
-    const lists = [["sttn_from", "Station (Siding)", uniqueOrdered(rows.map(r => r.sttn_from))],
+    const cnt = { sttn_from: new Map(), dstn: new Map() };
+    rows.forEach(r => {
+      cnt.sttn_from.set(r.sttn_from, (cnt.sttn_from.get(r.sttn_from) || 0) + 1);
+      cnt.dstn.set(r.dstn, (cnt.dstn.get(r.dstn) || 0) + 1);
+    });
+    const lists = [["sttn_from", "Stations (Sidings)", uniqueOrdered(rows.map(r => r.sttn_from))],
                    ["dstn", "Destinations", uniqueOrdered(rows.map(r => r.dstn))]];
     const cols = lists.map(([type, title, vals]) => {
       const on = vals.filter(v => isOn(area, type, v)).length;
@@ -434,25 +600,32 @@ function renderSettings() {
             <button class="rej" data-bulk="1" data-area="${esc(area)}" data-type="${type}" data-val="0">Reject all</button>
           </div>
         </div>
-        <div class="checks">${shown.length ? shown.map(v => `
-          <div class="chk ${isOn(area, type, v) ? "" : "off"}">
+        <div class="prog"><i style="width:${vals.length ? (on / vals.length * 100) : 0}%"></i></div>
+        <div class="checks">${shown.length ? shown.map(v => {
+          const c = cnt[type].get(v) || 0, ok = isOn(area, type, v);
+          return `
+          <div class="chk ${ok ? "" : "off"}">
             <label>
-              <input type="checkbox" ${isOn(area, type, v) ? "checked" : ""} data-area="${esc(area)}" data-type="${type}" data-v="${esc(v)}" />
-              <span>${esc(v)}</span>
+              <span class="nm">${esc(v)}</span>
+              <em class="ct">${c} indent${c === 1 ? "" : "s"}</em>
+              <input type="checkbox" ${ok ? "checked" : ""} data-area="${esc(area)}" data-type="${type}" data-v="${esc(v)}" />
+              <span class="sw"></span>
             </label>
-          </div>`).join("") : `<div class="empty" style="padding:24px">Nothing found</div>`}
+          </div>`; }).join("") : `<div class="empty" style="padding:24px">Nothing found</div>`}
         </div>
       </div>`;
     }).join("");
     out.push(`
       <section class="area-sec" data-area="${esc(area)}">
-        <div class="area-title"><h2>${esc(area)}</h2><span>filters for this area</span></div>
+        <div class="area-title"><h2>${esc(area)}</h2><span>${rows.length} indents · filters for this area</span></div>
         <div class="set-grid">${cols}</div>
       </section>`);
   }
   const n = allData.length;
+  const nSid = new Set(allData.map(r => r.area + "|" + r.sttn_from)).size, nDst = new Set(allData.map(r => r.area + "|" + r.dstn)).size;
   $("stats").innerHTML = `<b>${n}</b> rows in database`;
-  $("set").innerHTML = out.join("") || `<div class="empty dash-empty"><h3>No data yet</h3><p>Upload an Excel file first.</p></div>`;
+  const strip = `<div class="set-strip"><div><b>${visibleAreas().length}</b>Areas</div><div><b>${nSid}</b>Sidings</div><div><b>${nDst}</b>Destinations</div><div><b>${n}</b>Total indents</div></div>`;
+  $("set").innerHTML = out.length ? strip + out.join("") : `<div class="empty dash-empty"><h3>No data yet</h3><p>Upload an Excel file first.</p></div>`;
 }
 $("set").addEventListener("change", async e => {
   const c = e.target; if (c.type !== "checkbox") return;
@@ -471,7 +644,9 @@ function renderSettingsCounts() {   // keep scroll position; just refresh counte
     const first = h.querySelector("[data-bulk]"); if (!first) return;
     const { area, type } = first.dataset;
     const vals = uniqueOrdered(allData.filter(r => r.area === area).map(r => type === "dstn" ? r.dstn : r.sttn_from));
-    h.querySelector("small").textContent = `${vals.filter(v => isOn(area, type, v)).length}/${vals.length} accepted`;
+    const on = vals.filter(v => isOn(area, type, v)).length;
+    h.querySelector("small").textContent = `${on}/${vals.length} accepted`;
+    const bar = h.parentElement.querySelector(".prog i"); if (bar) bar.style.width = (vals.length ? on / vals.length * 100 : 0) + "%";
   });
 }
 
