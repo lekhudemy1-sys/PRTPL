@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>AMM Daily Rake Loading Status</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<!--
+  ONE-TIME SUPABASE SETUP (SQL editor):
+
+  create table if not exists amm_daily_entries (
+    report_date date primary key,
+    days_in_month int not null,
+    entries jsonb not null default '{}'::jsonb,
+    updated_at timestamptz not null default now()
+  );
+  alter table amm_daily_entries enable row level security;
+  create policy "amm read"   on amm_daily_entries for select using (true);
+  create policy "amm insert" on amm_daily_entries for insert with check (true);
+  create policy "amm update" on amm_daily_entries for update using (true) with check (true);
+-->
+<style>
+  :root {
+    color-scheme: light;
+    --page:#f1f4f8; --panel:#fff; --ink:#16212c; --muted:#55636f; --rule:#e0e6ec; --rule-strong:#c2ccd6;
+    --navy:#17283a; --signal:#ffb400; --signal-deep:#e29f00; --field:#f4f6f8; --field-hover:#fff6d8; --focus:#1d6fd1;
+    --ok-bg:#e2f3e8; --ok-ink:#0d5a30; --ok-rule:#1d8f4e; --hl-bg:#ffeaa6; --hl-ink:#5a3600; --err:#b3261e; --err-bg:#fdeceb;
+    --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif; --text:"Barlow","Segoe UI",system-ui,Arial,sans-serif;
+    --gutter:clamp(1rem,2.2vw,3.5rem);
+  }
+  * { box-sizing:border-box; }
+  html { -webkit-text-size-adjust:100%; font-size:clamp(14px,calc(0.45vw + 9px),24px); scroll-behavior:smooth; scroll-padding-top:6rem; }
+  body { margin:0; background:var(--page); color:var(--ink); font:400 1rem/1.45 var(--text); font-variant-numeric:tabular-nums; min-height:100vh; }
+  :focus-visible { outline:2px solid var(--focus); outline-offset:2px; }
+
+  .top { position:sticky; top:0; z-index:30; background:rgba(255,255,255,.97); border-top:.25rem solid var(--signal); border-bottom:1px solid var(--rule-strong); box-shadow:0 2px 10px rgba(23,40,58,.06); }
+  .top-in { display:flex; flex-wrap:wrap; align-items:center; gap:.6rem 2rem; padding:.65rem var(--gutter); }
+  .brand h1 { margin:0; font:700 1.95rem/1 var(--display); color:var(--navy); }
+  .brand p { margin:.2rem 0 0; font-size:.86rem; color:var(--muted); }
+  .mini { display:flex; gap:1.6rem; flex:1 1 auto; justify-content:center; opacity:0; transform:translateY(-4px); pointer-events:none; transition:opacity .25s,transform .25s; }
+  body.scrolled .mini { opacity:1; transform:none; }
+  .mini div { display:flex; flex-direction:column; line-height:1; }
+  .mini span { font-size:.78rem; color:var(--muted); margin-bottom:.2rem; }
+  .mini b { font:700 1.55rem/1 var(--display); color:var(--navy); }
+  .mini div:last-child b { color:#9a6700; }
+  .controls { display:flex; flex-wrap:wrap; align-items:flex-end; gap:.7rem; margin-left:auto; }
+  .datebox { display:flex; align-items:flex-end; gap:.35rem; }
+  .step { width:2.4rem; height:2.4rem; border:1px solid var(--rule-strong); border-radius:.3rem; background:#fff; font:600 1.4rem/1 var(--text); color:var(--navy); cursor:pointer; }
+  .step:hover { background:var(--navy); color:#fff; border-color:var(--navy); }
+  .ctl { display:flex; flex-direction:column; gap:.2rem; font-size:.8rem; color:var(--muted); }
+  .ctl .box { position:relative; display:flex; align-items:center; height:2.4rem; min-width:7.6rem; padding:0 .8rem; border:1px solid var(--rule-strong); border-radius:.3rem; background:#fff; color:var(--navy); font:600 1.2rem/1 var(--display); letter-spacing:.02em; cursor:pointer; }
+  .ctl .box:hover { border-color:var(--signal-deep); background:var(--field-hover); }
+  .ctl .box:focus-within { outline:2px solid var(--focus); outline-offset:1px; }
+  #K5 input[type=date] { position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; }
+  #daysIn { width:100%; background:transparent; border:0; color:inherit; font:inherit; padding:0; outline:0; -moz-appearance:textfield; appearance:textfield; }
+  #daysIn::-webkit-outer-spin-button, #daysIn::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+  .left-days { height:2.4rem; display:flex; align-items:center; font-size:.9rem; color:var(--muted); }
+  .left-days b { color:var(--navy); font:700 1.5rem/1 var(--display); margin-right:.3rem; }
+  .btns { display:flex; gap:.5rem; }
+  .btn { height:2.4rem; padding:0 1.1rem; border-radius:.3rem; cursor:pointer; font:500 .92rem var(--text); border:1px solid var(--rule-strong); background:#fff; color:var(--navy); }
+  .btn:hover { border-color:var(--navy); background:#f4f7fa; }
+  .btn:disabled { opacity:.55; cursor:wait; }
+  .btn.primary { background:var(--signal); border-color:var(--signal-deep); color:#1b2633; font-weight:600; padding:0 1.5rem; }
+  .btn.primary:hover { background:#ffc52e; }
+
+  .page { width:100%; padding:0 var(--gutter) 2.5rem; }
+  .statusbar { padding:1rem 0 0; display:flex; flex-wrap:wrap; gap:.6rem 1rem; align-items:center; }
+  #status { display:inline-flex; align-items:center; gap:.5rem; padding:.3rem .85rem; border-radius:999px; background:#e6ebf0; color:var(--muted); font-size:.9rem; }
+  #status::before { content:""; width:.5rem; height:.5rem; border-radius:50%; background:currentColor; }
+  #status.ok { background:var(--ok-bg); color:var(--ok-ink); } #status.warn { background:var(--hl-bg); color:var(--hl-ink); font-weight:600; } #status.bad { background:var(--err-bg); color:var(--err); font-weight:600; }
+  .saved { display:flex; flex-wrap:wrap; gap:.4rem; }
+  .saved button { height:1.8rem; padding:0 .7rem; border:1px solid var(--rule-strong); border-radius:1rem; background:#fff; font:500 .85rem var(--text); cursor:pointer; color:var(--ink); }
+  .saved button:hover { border-color:var(--navy); }
+  .saved button.on { background:var(--navy); color:#fff; border-color:var(--navy); }
+
+  .hero { display:grid; grid-template-columns:minmax(20rem,.8fr) minmax(0,1.6fr); gap:1.5rem 3rem; align-items:center; padding:1.4rem 0 1.4rem; }
+  .readout h2 { margin:0; font:700 clamp(2.6rem,4.4vw,5.2rem)/.98 var(--display); color:var(--navy); }
+  .readout p { margin:.8rem 0 0; max-width:34rem; font-size:1.08rem; color:var(--muted); }
+  .readout p b { color:var(--ink); font-weight:600; }
+  .err { color:var(--err); }
+  .key { display:flex; flex-wrap:wrap; gap:.4rem 1.2rem; margin:1rem 0 0; padding:0; list-style:none; font-size:.88rem; color:var(--muted); }
+  .key li { display:flex; align-items:center; gap:.45rem; }
+  .key i { display:inline-block; width:1.9rem; height:1.2rem; border-radius:.2rem; }
+  .k-in { background:var(--field); border:1px solid var(--rule-strong); } .k-over { background:var(--err-bg); border:1px solid var(--err); } .k-calc { background:var(--ok-bg); border:1px solid var(--ok-rule); }
+
+  .train { display:flex; gap:.6rem; }
+  .wagon { flex:1 1 6rem; min-width:5.5rem; display:block; color:inherit; text-decoration:none; border-radius:.4rem; }
+  .wagon:hover .body { transform:translateY(-3px); box-shadow:0 6px 12px rgba(23,40,58,.15); }
+  .wagon .body { position:relative; height:6.4rem; overflow:hidden; transition:transform .2s,box-shadow .2s; border:.14rem solid var(--c); border-radius:.4rem .4rem .2rem .2rem; background:var(--tint); }
+  .wagon .fill { position:absolute; left:0; right:0; bottom:0; height:0; background:var(--c); transition:height .6s cubic-bezier(.2,.7,.2,1); }
+  .wagon .wheels { position:relative; height:1rem; }
+  .wagon .wheels::after { content:""; position:absolute; left:-.35rem; right:-.35rem; bottom:-1px; height:.2rem; background:var(--navy); }
+  .wagon .wheels i { position:absolute; bottom:.06rem; width:1rem; height:1rem; border-radius:50%; background:var(--navy); z-index:1; border:.14rem solid var(--page); }
+  .wagon .wheels i:first-child { left:14%; } .wagon .wheels i:last-child { right:14%; }
+  .wagon .lbl { margin-top:.8rem; display:grid; grid-template-columns:1fr auto; align-items:baseline; gap:0 .5rem; }
+  .wagon .lbl b { font:700 1.5rem/1.1 var(--display); color:var(--c); }
+  .wagon .lbl em { font:600 1.35rem/1.1 var(--display); font-style:normal; color:var(--navy); }
+  .wagon .lbl .of { grid-column:1/-1; font-size:.9rem; color:var(--muted); }
+
+  .boards { display:grid; grid-template-columns:minmax(0,1.08fr) minmax(0,1fr); gap:1.4rem; align-items:start; }
+  .panel { background:var(--panel); border:1px solid var(--rule-strong); border-radius:.5rem; overflow:hidden; box-shadow:0 1px 3px rgba(23,40,58,.05); }
+  .panel > h3 { margin:0; padding:.9rem 1.1rem .75rem; font:700 1.6rem/1 var(--display); color:var(--navy); border-bottom:1px solid var(--rule); }
+  .panel > h3 small { font:400 .9rem var(--text); color:var(--muted); margin-left:.7rem; }
+  .scroll { overflow-x:auto; }
+  table.grid { width:100%; border-collapse:separate; border-spacing:0; min-width:34rem; }
+  .grid thead th { padding:.6rem .7rem; text-align:right; font:500 .82rem/1.2 var(--text); color:var(--muted); border-bottom:2px solid var(--navy); background:#fafbfd; }
+  .grid thead th:first-child { text-align:left; }
+  .grid th[scope=row], .grid td { padding:0 .7rem; height:2.45rem; border-bottom:1px solid var(--rule); }
+  .grid th[scope=row] { text-align:left; font-weight:400; white-space:nowrap; }
+  .grid td.num { text-align:right; font:500 1.15rem/1 var(--display); white-space:nowrap; width:1%; }
+  .grid td.ask { font-weight:600; }
+  .grid td.hl { background:var(--hl-bg); color:var(--hl-ink); font-weight:700; }
+  .grid td.neg { color:var(--err) !important; } .grid tr.grand td.neg { color:#ff9a90 !important; }
+  .grid tbody tr:not(.sec):not(.tot):hover > * { background:#f4f8fc; }
+  .sec th { text-align:left; height:2.6rem; padding:0 .75rem; border-bottom:1px solid var(--rule); border-left:.32rem solid var(--c); background:var(--tint); }
+  .chip { display:inline-block; padding:.12rem .6rem .06rem; border-radius:.22rem; background:var(--c); color:#fff; font:700 1.2rem/1.25 var(--display); letter-spacing:.03em; }
+  .chip.sm { font-size:1rem; padding:.06rem .5rem 0; }
+  .sec .full { margin-left:.7rem; font-size:.9rem; font-weight:400; color:var(--muted); }
+  .sub tr:not(.sec) > :first-child { border-left:.32rem solid var(--edge); }
+  .party { padding-left:1.4rem !important; }
+  tbody:target .sec th { animation:flash 1.8s ease-out; }
+  @keyframes flash { 0%,35% { background:var(--signal); } 100% { background:var(--tint); } }
+  .grid tr.tot th, .grid tr.tot td { background:var(--ok-bg); color:var(--ok-ink); font-weight:600; border-bottom:1px solid var(--ok-rule); }
+  .grid tr.tot td.hl { background:var(--hl-bg); color:var(--hl-ink); }
+  .grid tr.grand th, .grid tr.grand td { height:3.2rem; background:var(--navy); color:#fff; border:0; }
+  .grid tr.grand th { font:700 1.6rem var(--display); letter-spacing:.02em; }
+  .grid tr.grand td.num { font:700 1.75rem/1 var(--display); } .grid tr.grand td.ask { color:var(--signal); }
+  .summary { min-width:28rem; }
+  .summary thead th:nth-child(2) { text-align:left; }
+  .summary th[scope=row], .summary td { padding:0 .55rem; }
+  .summary td.num { padding-right:.8rem; }
+  .summary tbody tr.gap > * { border-top:.75rem solid var(--panel); }
+  .summary td.who { width:1%; white-space:nowrap; }
+  .summary th.party { padding-left:.6rem !important; }
+  td.prog { width:8rem; white-space:nowrap; padding-right:.6rem !important; }
+  td.prog .bar { display:inline-block; vertical-align:middle; width:3.6rem; height:.55rem; border-radius:.3rem; background:#e4e7e2; overflow:hidden; }
+  td.prog .bar i { display:block; height:100%; width:0; background:var(--ok-ink); transition:width .5s ease; }
+  .sub tr:not(.tot) td.prog[data-s=lo] .bar i { background:#d64545; } .sub tr:not(.tot) td.prog[data-s=mid] .bar i { background:#e8a200; } .sub tr:not(.tot) td.prog[data-s=hi] .bar i { background:#1e9a57; }
+  td.prog b { display:inline-block; width:2.6rem; margin-left:.4rem; text-align:right; font:500 1.05rem var(--display); vertical-align:middle; }
+  .grid tr.grand td.prog .bar { background:rgba(255,255,255,.22); } .grid tr.grand td.prog .bar i { background:var(--signal); }
+  .grid tr.tot td.prog .bar { background:rgba(13,90,48,.18); } .grid tr.tot td.prog .bar i { background:var(--ok-rule); }
+  input.in { width:4rem; height:1.95rem; padding:0 .5rem; text-align:right; color:var(--ink); font:600 1.15rem var(--display); background:var(--field); border:1px solid transparent; border-radius:.3rem; -moz-appearance:textfield; appearance:textfield; transition:background .15s,border-color .15s; }
+  input.in::placeholder { color:#b3bbc3; }
+  input.in::-webkit-outer-spin-button, input.in::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+  input.in:hover { background:var(--field-hover); border-color:var(--signal-deep); }
+  input.in:focus { outline:2px solid var(--focus); outline-offset:0; background:#fff; }
+  input.in.over { background:var(--err-bg); border-color:var(--err); color:var(--err); }
+  .foot { padding:1.2rem 0 0; color:var(--muted); font-size:.92rem; max-width:70rem; } .foot b { color:var(--ink); font-weight:600; }
+  .toast { position:fixed; left:50%; bottom:1.6rem; transform:translate(-50%,1rem); opacity:0; pointer-events:none; background:var(--navy); color:#fff; padding:.7rem 1.2rem; border-radius:.4rem; font-size:.95rem; transition:opacity .2s,transform .2s; z-index:50; box-shadow:0 6px 20px rgba(23,40,58,.3); }
+  .toast.show { opacity:1; transform:translate(-50%,0); }
+
+  @media (max-width:1500px) { .brand p, .mini { display:none; } .brand h1 { font-size:1.7rem; } }
+  @media (max-width:1180px) { .hero { grid-template-columns:minmax(0,1fr); } .boards { grid-template-columns:minmax(0,1fr); } }
+  @media (max-width:900px) { .top { position:static; } .controls { margin-left:0; width:100%; } }
+  @media (max-width:640px) {
+    body { padding-bottom:4.5rem; }
+    .readout h2 { font-size:2.7rem; }
+    .btns { position:fixed; left:0; right:0; bottom:0; z-index:40; padding:.6rem .8rem; background:#fff; border-top:1px solid var(--rule-strong); } .btns .btn { flex:1; }
+    .train { flex-wrap:wrap; gap:1rem .5rem; } .wagon { flex:1 1 28%; min-width:0; } .wagon .body { height:4.2rem; }
+    .wagon .lbl b { font-size:1.3rem; } .wagon .lbl .of { font-size:.82rem; }
+    .boards { gap:1rem; } .panel > h3 { font-size:1.45rem; } .panel > h3 small { display:block; margin:.3rem 0 0; }
+    table.grid, .summary { min-width:0; }
+    #mainGrid thead th:nth-child(6), td.prog { display:none; }
+    .sec .full { display:none; }
+    .grid thead th { padding:.5rem .25rem; font-size:.75rem; }
+    .grid th[scope=row], .grid td, .summary th[scope=row], .summary td { padding:0 .25rem; }
+    .party { padding-left:.8rem !important; white-space:normal !important; line-height:1.15; }
+    .grid td.num { font-size:1rem; }
+    input.in { width:3.1rem; height:1.75rem; padding:0 .3rem; font-size:1rem; }
+    .grid tr.grand th { font-size:1.25rem; } .grid tr.grand td.num { font-size:1.25rem; }
+    .chip.sm { font-size:.8rem; padding:.06rem .3rem 0; }
+  }
+  @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } .wagon .fill, td.prog .bar i, .toast, .mini { transition:none; } tbody:target .sec th { animation:none; } }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand"><h1>AMM daily rake loading status</h1><p>Coal India subsidiaries: target, loaded and asking rakes</p></div>
+    <div class="mini" aria-hidden="true">
+      <div><span>Target</span><b id="mT">0</b></div><div><span>Loaded</span><b id="mL">0</b></div>
+      <div><span>Balance</span><b id="mB">0</b></div><div><span>Asking per day</span><b id="mA">–</b></div>
+    </div>
+    <div class="controls">
+      <div class="datebox">
+        <button type="button" class="step" id="prevDay" aria-label="Previous day">&#8249;</button>
+        <label class="ctl"><span>Report date</span><div class="box" id="K5"><span id="dateText"></span><input type="date" id="dateIn" aria-label="Report date"></div></label>
+        <button type="button" class="step" id="nextDay" aria-label="Next day">&#8250;</button>
+      </div>
+      <label class="ctl"><span>Days in month</span><div class="box"><input type="number" id="daysIn" min="1" max="31" aria-label="Days in month"></div></label>
+      <div class="left-days" title="Days in month minus the day of the report date"><b id="daysLeft">0</b> days left</div>
+      <div class="btns">
+        <button type="button" class="btn" id="btnImg">Download image</button>
+        <button type="button" class="btn primary" id="btnSave">Save entry</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="page">
+  <div class="statusbar"><span id="status">Connecting…</span><span class="saved" id="saved" aria-label="Saved dates"></span></div>
+  <section class="hero">
+    <div class="readout" aria-live="polite">
+      <h2><span id="hLoaded">0</span> of <span id="hTarget">0</span> rakes loaded</h2>
+      <p id="readoutText"></p>
+      <ul class="key" aria-label="How to read the tables">
+        <li><i class="k-in"></i>Type in the boxes</li><li><i class="k-over"></i>Loaded is above target</li><li><i class="k-calc"></i>Calculated totals</li>
+      </ul>
+    </div>
+    <nav class="train" id="train" aria-label="Loading progress by subsidiary. Select a wagon to jump to its rows."></nav>
+  </section>
+  <div class="boards">
+    <section class="panel"><h3>Subsidiary-wise loading <small>Type in the Target and Loaded boxes. Enter moves down.</small></h3><div class="scroll"><table class="grid" id="mainGrid"></table></div></section>
+    <section class="panel"><h3>Party-wise summary <small>Updates automatically</small></h3><div class="scroll"><table class="grid summary" id="sumGrid"></table></div></section>
+  </div>
+  <p class="foot"><b>How the numbers work.</b> Balance = Target − Loaded. Asking rakes per day (P/D) = Balance ÷ (Days in month − day of the report date). Pick a date to open that day's entry. A new date starts with the targets from the latest earlier entry of the same month, so only the loaded rakes need typing. Save entry stores the day in Supabase; saving the same date again updates it. Ctrl+S also saves.</p>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  'use strict';
+  var SB_URL = 'https://jzkrywwrsewchtiqsczk.supabase.co';
+  var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6a3J5d3dyc2V3Y2h0aXFzY3prIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1NDU0MzQsImV4cCI6MjEwNzEyMTQzNH0.IDwfVhqDI9uXfAALCVKBD0pNjsNVu38fW4eEueaKDSs';
+  var TABLE = 'amm_daily_entries';
+
+  /* ---- structure (party names only; no numbers live in the page) ---- */
+  var SUBS = [
+    { k:'SECL', n:'South Eastern Coalfields', c:'#2f6fb5', t:'#e8f0f9', p:['Balco (CPP)','Balco (IPP)','Balco (E/A)','NTPC Jhabua','Gujrat (GETS)','Gujrat (TPHS)','HZL'] },
+    { k:'MCL',  n:'Mahanadi Coalfields',     c:'#1b8a7f', t:'#e5f3f1', p:['NTPC (IB)','NTPC (CKP)','HZL','NGPM (Talchar)','NLOD (Talchar)','NLOD (IB)','NLOD (CKP)'] },
+    { k:'WCL',  n:'Western Coalfields',      c:'#7656a8', t:'#efeaf6', p:['Gujrat (GETS)','Gujrat (TPHS)'] },
+    { k:'CCL',  n:'Central Coalfields',      c:'#c4532a', t:'#f9ebe5', p:['HZL','NTPC Jhabua'] },
+    { k:'NCL',  n:'Northern Coalfields',     c:'#5b6a78', t:'#eceff1', p:['NTPC Jhabua'] }
+  ];
+  var ALL = [];                                   // every party row id
+  SUBS.forEach(function (s) { s.p.forEach(function (_, i) { ALL.push(s.k + '-' + i); }); });
+  function ids(sub, idx) { return idx.map(function (i) { return sub + '-' + i; }); }
+  var GROUPS = [
+    { name:'Balco',       rows:[['SECL',[0,1,2]]] },
+    { name:'HZL',         rows:[['SECL',[6]],['MCL',[2]],['CCL',[0]]] },
+    { name:'Jhabua',      rows:[['SECL',[3]],['MCL',[0,1]],['CCL',[1]],['NCL',[0]]] },
+    { name:'Gujrat TPHS', rows:[['SECL',[5]],['WCL',[1]]] },
+    { name:'Gujrat GETS', rows:[['SECL',[4]],['WCL',[0]]] },
+    { name:'Gujrat Total',rows:[['',[4,5],'x']] },
+    { name:'NGPM',        rows:[['MCL',[3]]] },
+    { name:'NLOD',        rows:[['MCL',[4,5,6]]] }
+  ];
+  var subOf = {}; SUBS.forEach(function (s) { subOf[s.k] = s; });
+
+  var $ = function (id) { return document.getElementById(id); };
+  var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function toISO(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function parseISO(s) { var p = s.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
+  function nice(d) { return d.getDate() + '-' + MONTHS[d.getMonth()] + '-' + String(d.getFullYear()).slice(-2); }
+  function dim(d) { return new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate(); }
+  function yesterday() { var d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate() - 1); return d; }
+  function num(v) { var n = parseFloat(v); return isNaN(n) ? 0 : n; }
+  function g(n) { return String(parseFloat(n.toPrecision(10))); }
+  function ask(a, d) { return isFinite(a) ? a.toFixed(d) : '–'; }
+
+  /* ---- build tables ---- */
+  var inp = {};                                    // id-t / id-l -> input
+  function inputCell(id, f, label) { return '<td class="num"><input class="in" type="number" step="any" min="0" inputmode="decimal" data-c="' + f + '" id="' + id + '-' + f + '" aria-label="' + label + '"></td>'; }
+  function cells(p, extra) { return '<td class="num" id="' + p + '-b"></td><td class="num ask' + (extra || '') + '" id="' + p + '-a"></td>'; }
+  function prog(p) { return '<td class="prog" id="' + p + '-p"><span class="bar"><i></i></span><b></b></td>'; }
+
+  var h = '<thead><tr><th scope="col">Party name</th><th scope="col">Target rakes</th><th scope="col">Loaded rakes</th><th scope="col">Balance rakes</th><th scope="col">Asking rakes (P/D)</th><th scope="col">Loaded %</th></tr></thead>';
+  SUBS.forEach(function (s) {
+    h += '<tbody class="sub" id="sub-' + s.k + '" style="--c:' + s.c + ';--tint:' + s.t + ';--edge:' + s.c + '66">';
+    h += '<tr class="sec"><th colspan="6" scope="colgroup"><span class="chip">' + s.k + '</span><span class="full">' + s.n + '</span></th></tr>';
+    s.p.forEach(function (name, i) {
+      var id = s.k + '-' + i, lb = s.k + ' ' + name;
+      h += '<tr><th scope="row" class="party">' + name + '</th>' + inputCell(id, 't', 'Target rakes, ' + lb) + inputCell(id, 'l', 'Loaded rakes, ' + lb) + cells(id) + prog(id) + '</tr>';
+    });
+    h += '<tr class="tot"><th scope="row">' + s.k + ' total</th><td class="num" id="' + s.k + '-t"></td><td class="num" id="' + s.k + '-l"></td>' + cells(s.k) + prog(s.k) + '</tr></tbody>';
+  });
+  h += '<tfoot><tr class="grand"><th scope="row">Total</th><td class="num" id="ALL-t"></td><td class="num" id="ALL-l"></td>' + cells('ALL') + prog('ALL') + '</tr></tfoot>';
+  $('mainGrid').innerHTML = h;
+
+  var sh = '<thead><tr><th scope="col">Subsidiary</th><th scope="col">Party</th><th scope="col">Target</th><th scope="col">Loaded</th><th scope="col">Balance</th><th scope="col">Asking</th></tr></thead>';
+  var sumRows = [];                                // {p, ids}
+  GROUPS.forEach(function (gr, gi) {
+    sh += '<tbody>';
+    var many = gr.rows.length > 1;
+    gr.rows.forEach(function (r, ri) {
+      var p = 'S' + gi + '_' + ri, list = r[2] ? ids('SECL', [4,5]).concat(ids('WCL', [0,1])) : ids(r[0], r[1]);
+      sumRows.push({ p:p, ids:list });
+      var chip = r[0] ? '<span class="chip sm" style="--c:' + subOf[r[0]].c + '">' + r[0] + '</span>' : '';
+      var single = !many;
+      sh += '<tr class="' + (single ? 'tot ' : '') + (ri === 0 && gi ? 'gap' : '') + '"><td class="who">' + chip + '</td><th scope="row" class="party">' + gr.name + '</th><td class="num" id="' + p + '-t"></td><td class="num" id="' + p + '-l"></td>' + cells(p, single ? ' hl' : '') + '</tr>';
+    });
+    if (many) {
+      var p2 = 'S' + gi + '_T', all = []; gr.rows.forEach(function (r) { all = all.concat(ids(r[0], r[1])); });
+      sumRows.push({ p:p2, ids:all });
+      sh += '<tr class="tot"><td class="who"></td><th scope="row" class="party">Total</th><td class="num" id="' + p2 + '-t"></td><td class="num" id="' + p2 + '-l"></td>' + cells(p2, ' hl') + '</tr>';
+    }
+    sh += '</tbody>';
+  });
+  sh += '<tfoot><tr class="grand"><td></td><th scope="row">Total</th><td class="num" id="SALL-t"></td><td class="num" id="SALL-l"></td>' + cells('SALL') + '</tr></tfoot>';
+  $('sumGrid').innerHTML = sh;
+
+  $('train').innerHTML = SUBS.map(function (s) {
+    return '<a class="wagon" href="#sub-' + s.k + '" id="W-' + s.k + '" style="--c:' + s.c + ';--tint:' + s.t + '"><div class="body"><i class="fill"></i></div><div class="wheels"><i></i><i></i></div><div class="lbl"><b>' + s.k + '</b><span class="of"></span><em></em></div></a>';
+  }).join('');
+
+  document.querySelectorAll('input.in').forEach(function (el) {
+    inp[el.id] = el;
+    el.addEventListener('input', function () { dirty = true; recalc(); status('Unsaved changes', 'warn'); });
+    el.addEventListener('focus', function () { el.select(); });
+  });
+  document.addEventListener('keydown', function (e) {
+    var t = e.target; if (!t || !t.classList || !t.classList.contains('in')) return;
+    var d = (e.key === 'Enter' || e.key === 'ArrowDown') ? 1 : (e.key === 'ArrowUp' ? -1 : 0); if (!d) return;
+    var list = Array.prototype.slice.call(document.querySelectorAll('input.in[data-c="' + t.getAttribute('data-c') + '"]'));
+    var n = list[list.indexOf(t) + d]; if (n) { e.preventDefault(); n.focus(); }
+  });
+
+  /* ---- calculation ---- */
+  var reportDate = null, dirty = false, daysLeftN = 0;
+  function agg(list) {
+    var t = 0, l = 0; list.forEach(function (id) { t += num(inp[id + '-t'].value); l += num(inp[id + '-l'].value); });
+    var b = t - l; return { t:t, l:l, b:b, a: daysLeftN > 0 ? b / daysLeftN : NaN };
+  }
+  function put(p, a, askDec) {
+    var set = function (s, v) { var el = $(p + s); if (el) el.textContent = v; };
+    set('-t', g(a.t)); set('-l', g(a.l)); set('-b', g(a.b)); set('-a', ask(a.a, askDec)); var be = $(p + '-b'); if (be) be.classList.toggle('neg', a.b < 0);
+    var pc = $(p + '-p');
+    if (pc) {
+      var q = a.t > 0 ? a.l / a.t : -1; pc.setAttribute('data-s', q < 0 ? 'none' : q >= 1 ? 'hi' : q >= 0.5 ? 'mid' : 'lo');
+      pc.querySelector('i').style.width = (a.t > 0 ? Math.max(0, Math.min(100, a.l / a.t * 100)) : 0) + '%';
+      pc.querySelector('b').textContent = a.t > 0 ? Math.round(a.l / a.t * 100) + '%' : '–';
+    }
+  }
+  function recalc() {
+    daysLeftN = num($('daysIn').value) - reportDate.getDate();
+    $('daysLeft').textContent = daysLeftN;
+    ALL.forEach(function (id) { var a = agg([id]); put(id, a, 2); inp[id + '-l'].classList.toggle('over', num(inp[id + '-l'].value) > num(inp[id + '-t'].value)); });
+    SUBS.forEach(function (s) {
+      var a = agg(ids(s.k, s.p.map(function (_, i) { return i; }))); put(s.k, a, 2);
+      var w = $('W-' + s.k); w.style.flexGrow = Math.max(a.t, 1);
+      w.querySelector('.fill').style.height = (a.t > 0 ? Math.min(100, a.l / a.t * 100) : 0) + '%';
+      w.querySelector('.of').textContent = g(a.l) + ' of ' + g(a.t) + ' rakes';
+      w.querySelector('em').textContent = a.t > 0 ? Math.round(a.l / a.t * 100) + '%' : '–';
+    });
+    var tot = agg(ALL); put('ALL', tot, 0); put('SALL', tot, 0);
+    sumRows.forEach(function (r) { put(r.p, agg(r.ids), 1); });
+    $('hLoaded').textContent = g(tot.l); $('hTarget').textContent = g(tot.t);
+    $('mT').textContent = g(tot.t); $('mL').textContent = g(tot.l); $('mB').textContent = g(tot.b); $('mA').textContent = ask(tot.a, 2);
+    var pct = tot.t > 0 ? ' (' + Math.round(tot.l / tot.t * 100) + '% of target)' : '';
+    $('readoutText').innerHTML = isFinite(tot.a)
+      ? '<b>' + g(tot.b) + '</b> rakes still to load' + pct + '. The asking rate is <b>' + tot.a.toFixed(2) + '</b> rakes a day for the <b>' + daysLeftN + '</b> days left in the month.'
+      : '<b>' + g(tot.b) + '</b> rakes still to load' + pct + '. <span class="err">No days are left, so the asking rate cannot be worked out. Change the report date or the days in the month.</span>';
+  }
+
+  /* ---- status ---- */
+  function status(msg, cls) { var s = $('status'); s.textContent = msg; s.className = cls || ''; }
+  function say(m) { var t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(say.t); say.t = setTimeout(function () { t.classList.remove('show'); }, 2200); }
+
+  /* ---- Supabase (REST) ---- */
+  function api(path, opts) {
+    opts = opts || {}; opts.headers = Object.assign({ apikey:SB_KEY, Authorization:'Bearer ' + SB_KEY, 'Content-Type':'application/json' }, opts.headers || {});
+    return fetch(SB_URL + '/rest/v1/' + path, opts).then(function (r) {
+      return r.text().then(function (t) {
+        var j = t ? JSON.parse(t) : null;
+        if (!r.ok) { var e = new Error((j && j.message) || r.statusText); e.code = j && j.code; throw e; }
+        return j;
+      });
+    });
+  }
+  function dbError(e) {
+    if (e.code === 'PGRST205' || e.code === '42P01') return 'Table "' + TABLE + '" is missing. Run the setup SQL from the top of this file in Supabase.';
+    if (e.code === '42501') return 'Supabase blocked this action. Add the read, insert and update policies from the setup SQL.';
+    return 'Could not reach Supabase: ' + e.message;
+  }
+
+  function fill(entries) {
+    Object.keys(inp).forEach(function (k) {
+      var parts = k.split('-'), f = parts.pop(), id = parts.join('-'), e = entries && entries[id];
+      inp[k].value = e && e[f] !== undefined && e[f] !== null && e[f] !== '' ? e[f] : '';
+    });
+  }
+  function collect() {
+    var out = {};
+    ALL.forEach(function (id) {
+      var t = inp[id + '-t'].value, l = inp[id + '-l'].value;
+      if (t !== '' || l !== '') out[id] = { t: t === '' ? null : num(t), l: l === '' ? null : num(l) };
+    });
+    return out;
+  }
+
+  function openDate(d) {
+    reportDate = d; $('dateIn').value = toISO(d); $('dateText').textContent = nice(d);
+    var iso = toISO(d);
+    status('Loading ' + nice(d) + '…');
+    return api(TABLE + '?report_date=eq.' + iso + '&select=*').then(function (rows) {
+      if (rows.length) {
+        fill(rows[0].entries); $('daysIn').value = rows[0].days_in_month; recalc(); dirty = false;
+        status('Loaded saved entry for ' + nice(d), 'ok'); markSaved(iso); return;
+      }
+      var first = iso.slice(0, 8) + '01';
+      return api(TABLE + '?report_date=lt.' + iso + '&report_date=gte.' + first + '&order=report_date.desc&limit=1&select=*').then(function (prev) {
+        var carry = {};
+        if (prev.length) Object.keys(prev[0].entries).forEach(function (k) { carry[k] = { t: prev[0].entries[k].t, l: null }; });
+        fill(carry); $('daysIn').value = dim(d); recalc(); dirty = false;
+        status(prev.length ? 'New entry. Targets copied from ' + nice(parseISO(prev[0].report_date)) + '. Type the loaded rakes and save.' : 'No entry for this date yet. Type the targets and loaded rakes, then save.', 'warn');
+        markSaved(null);
+      });
+    }).catch(function (e) { fill(null); $('daysIn').value = dim(d); recalc(); status(dbError(e), 'bad'); });
+  }
+
+  var savedDates = [];
+  function loadSaved() {
+    return api(TABLE + '?select=report_date&order=report_date.desc&limit=31').then(function (rows) {
+      savedDates = rows.map(function (r) { return r.report_date; }); drawSaved();
+    }).catch(function () {});
+  }
+  function drawSaved() {
+    var cur = toISO(reportDate);
+    $('saved').innerHTML = savedDates.map(function (s) {
+      var d = parseISO(s); return '<button type="button" data-d="' + s + '"' + (s === cur ? ' class="on"' : '') + '>' + d.getDate() + ' ' + MONTHS[d.getMonth()] + '</button>';
+    }).join('');
+  }
+  function markSaved(iso) { if (iso && savedDates.indexOf(iso) < 0) savedDates.unshift(iso); drawSaved(); }
+  $('saved').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) go(parseISO(b.getAttribute('data-d'))); });
+
+  function go(d) {
+    if (dirty && !confirm('You have unsaved changes. Open another date without saving?')) { $('dateIn').value = toISO(reportDate); return; }
+    openDate(d);
+  }
+
+  /* ---- actions ---- */
+  $('dateIn').addEventListener('change', function () { if ($('dateIn').value) go(parseISO($('dateIn').value)); });
+  $('daysIn').addEventListener('input', function () { dirty = true; recalc(); status('Unsaved changes', 'warn'); });
+
+  $('btnSave').addEventListener('click', function () {
+    var b = $('btnSave'), iso = toISO(reportDate), entries = collect();
+    if (!Object.keys(entries).length) { status('Nothing to save. Enter at least one target or loaded value.', 'bad'); return; }
+    b.disabled = true; status('Saving…');
+    api(TABLE + '?on_conflict=report_date', {
+      method:'POST', headers:{ Prefer:'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify({ report_date: iso, days_in_month: num($('daysIn').value), entries: entries, updated_at: new Date().toISOString() })
+    }).then(function () { dirty = false; status('Saved entry for ' + nice(reportDate), 'ok'); say('Saved ' + nice(reportDate)); markSaved(iso); })
+      .catch(function (e) { status(dbError(e), 'bad'); })
+      .then(function () { b.disabled = false; });
+  });
+
+var COL = { SECL:['#2f6fb5','#e5edf7'], MCL:['#1b8a7f','#e3f1ef'], WCL:['#7656a8','#ece8f3'], CCL:['#c4532a','#f7e9e3'], NCL:['#5b6a78','#eaedf0'] };
+  var CD = '"Barlow Condensed","Arial Narrow",sans-serif', BT = 'Barlow,"Segoe UI",Arial,sans-serif';
+  function cellText(c) { var i = c.querySelector('input'); if (i) return i.value === '' ? '0' : i.value; var b = c.classList.contains('prog') && c.querySelector('b'); return (b ? b.textContent : c.textContent).trim(); }
+  function readTable(tbl) {
+    var rows = [], key = '';
+    tbl.querySelectorAll('tr').forEach(function (tr) {
+      var r = { cells:[], hl:[], gap:tr.classList.contains('gap'), key:key };
+      if (tr.parentNode.tagName === 'THEAD') r.t = 'head';
+      else if (tr.classList.contains('sec')) { r.t = 'sec'; key = r.key = tr.querySelector('.chip').textContent; r.cells = [key, tr.querySelector('.full').textContent]; }
+      else r.t = tr.classList.contains('grand') ? 'grand' : tr.classList.contains('tot') ? 'tot' : 'row';
+      if (r.t !== 'sec') Array.prototype.forEach.call(tr.children, function (c) { r.cells.push(cellText(c)); r.hl.push(c.classList.contains('hl')); });
+      rows.push(r);
+    });
+    return rows;
+  }
+  function rowH(r) { return r.t === 'sec' ? 38 : r.t === 'grand' ? 46 : r.t === 'head' ? 34 : 36; }
+  function tblH(rows) { var h = 0; rows.forEach(function (r) { h += rowH(r) + (r.gap ? 10 : 0); }); return h; }
+
+  function drawImage() {
+    var W = 1700, P = 40, S = 2, mainRows = readTable($('mainGrid')), sumRows = readTable($('sumGrid'));
+    var TY = 420, H = TY + Math.max(tblH(mainRows), tblH(sumRows)) + 74;
+    var cv = document.createElement('canvas'); cv.width = W * S; cv.height = H * S;
+    var c = cv.getContext('2d'); c.scale(S, S);
+    function path(x, y, w, h, r) { c.beginPath(); if (r && c.roundRect) c.roundRect(x, y, w, h, r); else c.rect(x, y, w, h); }
+    function rect(x, y, w, h, f, r) { path(x, y, w, h, r); c.fillStyle = f; c.fill(); }
+    function txt(s, x, y, font, col, al) { c.font = font; c.fillStyle = col; c.textAlign = al || 'left'; c.fillText(s, x, y); }
+    function chip(s, x, y, h, col, fs) { c.font = '700 ' + fs + 'px ' + CD; var w = c.measureText(s).width + 16; rect(x, y, w, h, col, 4); txt(s, x + 8, y + h / 2 + fs * 0.32, '700 ' + fs + 'px ' + CD, '#fff'); return w; }
+
+    function table(x, y, w, fr, rows, sum) {
+      var t = fr.reduce(function (a, b) { return a + b; }, 0), xs = [x], nl = sum ? 2 : 1, last = fr.length - 1, yy = y;
+      fr.forEach(function (f) { xs.push(xs[xs.length - 1] + w * f / t); });
+      c.save(); path(x, y, w, tblH(rows), 8); c.clip();
+      rows.forEach(function (r) {
+        if (r.gap) { rect(x, yy, w, 10, '#fff'); yy += 10; }
+        var h = rowH(r), col = COL[r.key] || ['#17283a', '#e8ecf0'], base = yy + h / 2 + 6;
+        rect(x, yy, w, h, r.t === 'head' ? '#fafbfd' : r.t === 'tot' ? '#e2f3e8' : r.t === 'grand' ? '#17283a' : r.t === 'sec' ? col[1] : '#fff');
+        if (r.t === 'sec') {
+          rect(x, yy, 6, h, col[0]); var cw = chip(r.cells[0], x + 18, yy + 7, h - 14, col[0], 20);
+          txt(r.cells[1], x + 18 + cw + 10, base, '400 15px ' + BT, '#55636f');
+        } else {
+          if (!sum && r.t === 'row') { c.globalAlpha = 0.45; rect(x, yy, 6, h, col[0]); c.globalAlpha = 1; }
+          r.cells.forEach(function (s, j) {
+            if (r.t === 'head') { txt(s, j < nl ? xs[j] + (j ? 8 : 18) : xs[j + 1] - 14, base - 2, '500 14px ' + BT, '#55636f', j < nl ? 'left' : 'right'); return; }
+            if (j < nl) {
+              if (sum && j === 0) { if (COL[s]) chip(s, xs[0] + 18, yy + 8, h - 16, COL[s][0], 16); return; }
+              txt(s, xs[j] + (sum ? 8 : r.t === 'row' ? 24 : 18), base, r.t === 'grand' ? '700 24px ' + CD : (r.t === 'row' ? '400 17px ' : '600 17px ') + BT, r.t === 'grand' ? '#fff' : r.t === 'tot' ? '#0d5a30' : '#16212c');
+              return;
+            }
+            var ask = j === (sum ? last : last - 1), pc = !sum && j === last, hl = r.hl[j];
+            if (hl) rect(xs[j], yy, xs[j + 1] - xs[j], h, '#ffeaa6');
+            var colr = hl ? '#5a3600' : r.t === 'grand' ? (ask ? '#ffb400' : '#fff') : r.t === 'tot' ? '#0d5a30' : (s.charAt(0) === '-' ? '#b3261e' : '#16212c');
+            var fnt = (r.t === 'grand' ? '700 26px ' : (r.t === 'tot' || ask || hl) ? '700 20px ' : '500 20px ') + CD;
+            if (pc) {
+              var p = Math.max(0, Math.min(100, parseInt(s, 10) || 0));
+              rect(xs[j] + 14, base - 14, 54, 9, r.t === 'grand' ? 'rgba(255,255,255,.22)' : r.t === 'tot' ? 'rgba(13,90,48,.18)' : '#e4e7e2', 4);
+              if (p) rect(xs[j] + 14, base - 14, Math.max(8, 54 * p / 100), 9, r.t === 'grand' ? '#ffb400' : r.t === 'tot' ? '#1d8f4e' : col[0], 4);
+              fnt = '500 18px ' + CD;
+            }
+            txt(s, xs[j + 1] - 14, base + 1, fnt, colr, 'right');
+          });
+        }
+        rect(x, yy + h - (r.t === 'head' ? 2 : 1), w, r.t === 'head' ? 2 : 1, r.t === 'head' ? '#17283a' : '#e0e6ec');
+        yy += h;
+      });
+      c.restore(); path(x, y, w, tblH(rows), 8); c.strokeStyle = '#c2ccd6'; c.lineWidth = 1; c.stroke();
+    }
+
+    rect(0, 0, W, H, '#f1f4f8'); rect(0, 0, W, 8, '#ffb400');
+    txt('AMM daily rake loading status', P, 76, '700 48px ' + CD, '#17283a');
+    txt('Coal India subsidiaries: target, loaded and asking rakes', P, 106, '400 18px ' + BT, '#55636f');
+    txt('Report date', W - P, 52, '400 15px ' + BT, '#55636f', 'right');
+    txt($('dateText').textContent, W - P, 100, '700 44px ' + CD, '#17283a', 'right');
+    var tg = num($('hTarget').textContent), ld = num($('hLoaded').textContent), pc = tg > 0 ? Math.min(100, ld / tg * 100) : 0;
+    txt($('hLoaded').textContent + ' of ' + $('hTarget').textContent + ' rakes loaded', P, 190, '700 64px ' + CD, '#17283a');
+    txt($('readoutText').textContent, P, 226, '400 20px ' + BT, '#55636f');
+    rect(P, 244, W - 2 * P, 10, '#dfe5ea', 5); if (pc > 0) rect(P, 244, Math.max(10, (W - 2 * P) * pc / 100), 10, '#1d8f4e', 5);
+    var kp = [['Target rakes', 'mT'], ['Loaded rakes', 'mL'], ['Balance rakes', 'mB'], ['Asking rakes per day', 'mA']], kw = (W - 2 * P - 48) / 4;
+    kp.forEach(function (k, i) {
+      var x = P + i * (kw + 16), key = i === 3;
+      rect(x, 278, kw, 96, key ? '#17283a' : '#fff', 10); if (!key) { path(x, 278, kw, 96, 10); c.strokeStyle = '#c2ccd6'; c.stroke(); }
+      txt(k[0], x + 20, 308, '400 16px ' + BT, key ? '#a9b6c3' : '#55636f');
+      txt($(k[1]).textContent, x + 20, 355, '700 50px ' + CD, key ? '#ffb400' : '#17283a');
+    });
+    txt('Subsidiary-wise loading', P, 408, '700 26px ' + CD, '#17283a'); txt('Party-wise summary', P + 984, 408, '700 26px ' + CD, '#17283a');
+    table(P, TY, 960, [27, 13, 13, 15, 17, 15], mainRows, false);
+    table(P + 984, TY, 636, [15, 26, 13, 13, 15, 17], sumRows, true);
+    txt('Balance = Target - Loaded. Asking rakes per day = Balance / (days in month - day of the report date).', P, H - 30, '400 15px ' + BT, '#55636f');
+    return new Promise(function (res) {
+      cv.toBlob(function (bl) {
+        var a = document.createElement('a'); a.href = URL.createObjectURL(bl); a.download = 'AMM-rake-status-' + toISO(reportDate) + '.png';
+        document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 3000); res();
+      }, 'image/png');
+    });
+  }
+
+  $('btnImg').addEventListener('click', function () {
+    var b = $('btnImg'); b.disabled = true;
+    var fl = ['700 20px "Barlow Condensed"', '500 20px "Barlow Condensed"', '400 16px Barlow', '600 16px Barlow'].map(function (f) { return document.fonts ? document.fonts.load(f) : 0; });
+    Promise.all(fl).catch(function () {}).then(drawImage).then(function () { say('Image downloaded'); })
+      .catch(function () { say('Could not create the image'); }).then(function () { b.disabled = false; });
+  });
+
+  function stepDay(n) { var d = new Date(reportDate); d.setDate(d.getDate() + n); go(d); }
+  $('prevDay').addEventListener('click', function () { stepDay(-1); });
+  $('nextDay').addEventListener('click', function () { stepDay(1); });
+  document.addEventListener('keydown', function (e) {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); $('btnSave').click(); }
+  });
+  window.addEventListener('beforeunload', function (e) { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+
+  window.addEventListener('scroll', function () { document.body.classList.toggle('scrolled', window.scrollY > 180); }, { passive: true });
+  $('dateIn').addEventListener('click', function () { try { $('dateIn').showPicker(); } catch (e) {} });
+
+  /* ---- start ---- */
+  reportDate = yesterday(); $('dateText').textContent = nice(reportDate); $('dateIn').value = toISO(reportDate); $('daysIn').value = dim(reportDate); recalc();
+  loadSaved().then(function () { openDate(reportDate); });
+})();
+</script>
+</body>
+</html>
