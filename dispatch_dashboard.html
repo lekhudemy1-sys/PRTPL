@@ -396,7 +396,7 @@
       <div>
         <div class="eyebrow">Classification</div>
         <h2>Destination type</h2>
-        <p>Choose Power or Non-power for each destination, then press Update. Only rows with no type are filled; later entries and uploads for that destination get the same type automatically.</p>
+        <p>Choose Power or Non-power for each destination, then press Update. Update changes every row for that destination to the chosen type, including rows that already have a type. Later entries and uploads for that destination get the same type automatically.</p>
       </div>
     </div>
     <div class="filters f3">
@@ -954,15 +954,17 @@ async function loadCatalog() {
   setSync(true, "Live");
 }
 
-/* destination groups: one per subsidiary + destination */
+/* destination groups: one per subsidiary + destination.
+   ids = every row for the destination (used by Update), emptyIds = rows with no type (used for the "rows without a type" count) */
 function buildGroups() {
   const g = new Map();
   CAT.forEach(r => {
     if (!r.dest) return;
     const key = r.sub + "|" + nk(r.dest);
     let x = g.get(key);
-    if (!x) { x = { key, sub:r.sub, dest:r.dest, rows:0, emptyIds:[], types:{} }; g.set(key, x); }
+    if (!x) { x = { key, sub:r.sub, dest:r.dest, rows:0, ids:[], emptyIds:[], types:{} }; g.set(key, x); }
     x.rows++;
+    x.ids.push(r.id);
     if (r.type) x.types[r.type] = (x.types[r.type] || 0) + 1; else x.emptyIds.push(r.id);
   });
   g.forEach(x => {
@@ -1117,10 +1119,10 @@ function renderTypeTab() {
     list.map(x => {
       const cur = x.key in TYPE_SEL ? TYPE_SEL[x.key] : x.type;
       const options = `<option value="">Not set</option>` + opts.map(o => `<option value="${esc(o)}" ${nk(o) === nk(cur) ? "selected" : ""}>${esc(o)}</option>`).join("");
-      const can = cur && x.emptyIds.length;
+      const can = !!cur;
       return `<tr><td>${esc(x.sub)}</td><td><b>${esc(x.dest)}</b></td><td>${fmt(x.rows)}</td><td>${fmt(x.emptyIds.length)}</td>` +
         `<td><select class="tsel" data-k="${esc(x.key)}">${options}</select></td>` +
-        `<td><button class="btn sm primary" data-up="${esc(x.key)}" ${can ? "" : "disabled"}>${x.emptyIds.length ? "Update " + fmt(x.emptyIds.length) : "Up to date"}</button></td></tr>`;
+        `<td><button class="btn sm primary" data-up="${esc(x.key)}" ${can ? "" : "disabled"}>Update ${fmt(x.rows)}</button></td></tr>`;
     }).join("") + `</tbody>`;
 }
 ["t-sub","t-status"].forEach(id => $(id).onchange = renderTypeTab);
@@ -1128,8 +1130,8 @@ $("t-q").oninput = renderTypeTab;
 $("t-table").addEventListener("change", e => {
   const s = e.target.closest(".tsel"); if (!s) return;
   TYPE_SEL[s.dataset.k] = s.value;
-  const g = TYPE_GROUPS.get(s.dataset.k), btn = s.closest("tr").querySelector("[data-up]");
-  btn.disabled = !(s.value && g && g.emptyIds.length);
+  const btn = s.closest("tr").querySelector("[data-up]");
+  btn.disabled = !s.value;
 });
 $("t-table").addEventListener("click", e => {
   const b = e.target.closest("[data-up]");
@@ -1139,17 +1141,18 @@ $("t-table").addEventListener("click", e => {
 async function applyType(key, btn) {
   const g = TYPE_GROUPS.get(key); if (!g) return;
   const val = canon(typeOpts(), TYPE_SEL[key] ?? g.type);
-  if (!val || !g.emptyIds.length) return;
+  if (!val || !g.ids.length) return;
+  if (!confirm(`Set all ${fmt(g.ids.length)} rows for ${g.dest} (${g.sub}) to ${val}? Rows that already have another type will change.`)) return;
   btn.disabled = true; btn.textContent = "Updating…";
   let done = 0;
   try {
-    for (let i = 0; i < g.emptyIds.length; i += 200) {
-      const chunk = g.emptyIds.slice(i, i + 200);
+    for (let i = 0; i < g.ids.length; i += 200) {
+      const chunk = g.ids.slice(i, i + 200);
       const { data, error } = await sb.from(TABLE).update({ type: val }).in("id", chunk).select("id");
       if (error) throw error;
       done += data.length;
     }
-    if (!done) { toast("No rows changed. Check that Supabase allows updates on this table.", "err"); }
+    if (!done) toast("No rows changed. Check that Supabase allows updates on this table.", "err");
     else toast(`${g.dest}: ${fmt(done)} row${done === 1 ? "" : "s"} set to ${val}`);
   } catch (e) { toast("Update failed: " + e.message, "err"); }
   delete TYPE_SEL[key];
