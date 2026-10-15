@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Dispatch Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -239,6 +242,110 @@
     .sgrid{grid-template-columns:1fr}
     .kpi .v{font-size:22px}
   }
+  /* ================= PURPLE REFRESH (layout and table data unchanged) ================= */
+  :root{ --bg:#f7f5fb; --line:#e8e2f2; --brand:#6a2fa0; --brand-deep:#4a1d7a; --brand2:#f3edfb; --danger:#b3261e;
+         --shadow:0 2px 6px rgba(56,24,92,.06),0 14px 30px -16px rgba(56,24,92,.28);
+         --shadow-hover:0 4px 10px rgba(56,24,92,.08),0 24px 44px -18px rgba(56,24,92,.42);
+         --r:20px; }
+  body{font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg)}
+  .eyebrow{color:var(--brand);letter-spacing:.12em}
+  .card-h h2,.kpi .v{font-family:"Inter",system-ui,sans-serif}
+
+  /* header: purple gradient with a slow flow and small animations */
+  header{background:linear-gradient(115deg,#3b1665 0%,#6a2fa0 45%,#9b59d6 100%);background-size:220% 220%;animation:hdrFlow 16s ease infinite;box-shadow:0 10px 28px -12px rgba(59,22,101,.6)}
+  @keyframes hdrFlow{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+  .brand-mark{background:rgba(255,255,255,.18);box-shadow:inset 0 0 0 1px rgba(255,255,255,.28);transition:transform .3s}
+  .brand:hover .brand-mark{transform:rotate(-8deg) scale(1.06)}
+  .brand h1{font-weight:800}
+  .dback{border-radius:999px;transition:background .2s,transform .2s}
+  .dback:hover{background:rgba(255,255,255,.16);transform:translateX(-2px)}
+  nav.tabs button{border-radius:10px 10px 0 0;transition:color .2s,background .2s}
+  nav.tabs button:hover{background:rgba(255,255,255,.08)}
+  nav.tabs button svg{transition:transform .25s ease}
+  nav.tabs button:hover svg{transform:translateY(-2px)}
+  nav.tabs button::after{content:"";position:absolute;left:10px;right:10px;bottom:0;height:3px;border-radius:3px 3px 0 0;background:#fff;transform:scaleX(0);transform-origin:center;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+  nav.tabs button.active::after{transform:scaleX(1)}
+  .hseg{background:rgba(255,255,255,.14);border-radius:12px}
+  .hseg button{border-radius:9px}
+  .hseg button.active{color:var(--brand-deep);box-shadow:0 2px 8px rgba(0,0,0,.18)}
+  .hbtn{border-radius:10px}
+  .hmonth{border-radius:10px}
+  .sync .dot{animation:dotPulse 2.2s ease-out infinite}
+  @keyframes dotPulse{0%{box-shadow:0 0 0 0 rgba(159,224,204,.55)}70%{box-shadow:0 0 0 9px rgba(159,224,204,0)}100%{box-shadow:0 0 0 0 rgba(159,224,204,0)}}
+
+  /* section and mode switch animation */
+  @keyframes sectionIn{from{opacity:0;transform:translateY(16px) scale(.985);filter:blur(2px)}to{opacity:1;transform:none;filter:none}}
+  .reveal{animation:sectionIn .5s cubic-bezier(.2,.8,.2,1) both}
+
+  /* rounded, pop-up cards */
+  .card{border-radius:var(--r);border-color:#e6def2;box-shadow:var(--shadow)}
+  .kpi{border-radius:18px;border-color:#e6def2}
+  .kpi::before{height:4px;left:22px;right:22px;border-radius:0 0 6px 6px}
+  .kpi:hover{box-shadow:var(--shadow-hover)}
+  .kpi .v{font-weight:800}
+  .tbl-wrap{border-radius:16px;border-color:#c9bcd9;overflow:hidden}
+  .drop{border-radius:20px;border-color:#c9b5e6;background:var(--brand2)}
+  .drop:hover,.drop.over{background:#ebdff9;border-color:var(--brand)}
+  .drop .ico{border-radius:16px;background:var(--brand)}
+  .logwrap,.recent-wrap{border-radius:0}
+
+  /* remove extra white around the summary and average boxes: each box fits its table */
+  /* area blocks for a selected mine: each area gets its own colour theme (tm0..tm4) */
+  /* mine view: area blocks side by side, scrolling sideways when they run past the screen */
+  .arearow{display:flex;gap:20px;overflow-x:auto;align-items:flex-start;padding:4px 4px 18px}
+  .areablock{flex:0 0 auto;padding:14px;border-radius:20px;border:1px solid #e6def2;background:#fff;box-shadow:var(--shadow)}
+  .areablock .chips{margin-bottom:10px;white-space:nowrap}
+  .areablock .avgrid{grid-template-columns:repeat(2,max-content);gap:14px;justify-content:start}
+  .tm0 table.av th.h1{background:#1f4e79} .tm0 table.av th.h2{background:#2e75b6} .tm0 table.av th.h3{background:#5b9bd5} .tm0 table.av th.h4{background:#9dc3e6}
+  .tm0 table.av td.c1{background:#deebf7} .tm0 table.av td.c2{background:#f2f7fc} .tm0 table.av td.c3{background:#dae3f3} .tm0 table.av td.c4{background:#eef4fb}
+  .tm0 table.av tr.tot td{background:#dae3f3}
+  .tm1 table.av th.h1{background:#375623} .tm1 table.av th.h2{background:#548235} .tm1 table.av th.h3{background:#70ad47} .tm1 table.av th.h4{background:#a9d18e}
+  .tm1 table.av td.c1{background:#e2efda} .tm1 table.av td.c2{background:#f0f8ec} .tm1 table.av td.c3{background:#d9edc9} .tm1 table.av td.c4{background:#f3faf0}
+  .tm1 table.av tr.tot td{background:#d9edc9}
+  .tm2 table.av th.h1{background:#843c0c} .tm2 table.av th.h2{background:#c55a11} .tm2 table.av th.h3{background:#ed7d31} .tm2 table.av th.h4{background:#f4b183}
+  .tm2 table.av td.c1{background:#fbe5d6} .tm2 table.av td.c2{background:#fdf1ea} .tm2 table.av td.c3{background:#fce4d6} .tm2 table.av td.c4{background:#fef5ef}
+  .tm2 table.av tr.tot td{background:#fce4d6}
+  .tm3 table.av th.h1{background:#4a1d7a} .tm3 table.av th.h2{background:#6a2fa0} .tm3 table.av th.h3{background:#8e5cc0} .tm3 table.av th.h4{background:#b48ae0}
+  .tm3 table.av td.c1{background:#ead8fb} .tm3 table.av td.c2{background:#f6effd} .tm3 table.av td.c3{background:#e4d1f6} .tm3 table.av td.c4{background:#f9f4fe}
+  .tm3 table.av tr.tot td{background:#e4d1f6}
+  .tm4 table.av th.h1{background:#0f5c4d} .tm4 table.av th.h2{background:#1f7a6d} .tm4 table.av th.h3{background:#3aa595} .tm4 table.av th.h4{background:#6cc3b3}
+  .tm4 table.av td.c1{background:#cfe8e4} .tm4 table.av td.c2{background:#e9f5f2} .tm4 table.av td.c3{background:#d6efe9} .tm4 table.av td.c4{background:#f0faf7}
+  .tm4 table.av tr.tot td{background:#d6efe9}
+  .avcard{width:fit-content;max-width:100%;margin:0 auto;padding:10px;border-radius:16px;border-color:#e6def2;box-shadow:var(--shadow)}
+  .avcard:hover{box-shadow:var(--shadow-hover)}
+  .avtitle{border-radius:18px;border-color:var(--brand);background:linear-gradient(135deg,#f3edfb,#e2d3f5);color:var(--brand-deep);font-family:"Inter",system-ui,sans-serif;font-weight:800;letter-spacing:.04em;font-size:20px;text-transform:uppercase;box-shadow:var(--shadow)}
+  .chip{border-radius:999px;border-color:transparent}
+  .chipset button{border-radius:999px}
+  .chipset button.active{background:var(--brand2);color:var(--brand);border-color:#cdb6ec}
+
+  /* buttons */
+  .btn{border-radius:12px;font-weight:700;transition:transform .18s ease,box-shadow .25s ease,background .2s,border-color .2s,color .2s}
+  .btn:hover{transform:translateY(-2px);box-shadow:0 10px 22px -12px rgba(74,29,122,.5)}
+  .btn:active{transform:translateY(0) scale(.98)}
+  .btn.sm{border-radius:10px}
+  .btn.primary{background:linear-gradient(135deg,#7f45c4,#5a25a0);border-color:transparent;box-shadow:0 8px 18px -10px rgba(90,37,160,.75)}
+  .btn.primary:hover{background:linear-gradient(135deg,#8f56d4,#6a2fb5);border-color:transparent}
+  .btn.primary:disabled:hover{transform:none;box-shadow:none}
+  .btn.danger{border-radius:10px}
+  .btn:disabled:hover{transform:none}
+  .dchip{border-radius:999px}
+  .dchip.on{background:var(--brand2);border-color:#cdb6ec;color:var(--brand)}
+  .pill{border-radius:999px}
+  .pill{background:var(--brand2);color:var(--brand)}
+
+  /* inputs */
+  input,select{border-radius:12px;border-color:#dcd3ea}
+  input:focus,select:focus{border-color:var(--brand);box-shadow:0 0 0 4px rgba(106,47,160,.14)}
+  .destbox{border-radius:14px;border-color:#dcd3ea;background:#fcfbfe}
+  .msg{border-radius:12px}
+  .toast{border-radius:999px;background:var(--brand-deep)}
+  table.recent th{background:#faf7fe}
+  table.logt th{background:#faf7fe}
+  table.recent th,table.recent td{border-bottom-color:#efe9f7}
+  table.logt th,table.logt td{border-bottom-color:#efe9f7}
+  table.logt tr:hover td{background:#faf7fe}
+  table.logt tr.dirty td{background:#f3e9ff}
+  table.logt tr.dirty:hover td{background:#ead8fb}
 </style>
 </head>
 <body>
@@ -508,6 +615,8 @@ function toast(text, kind="ok"){
   $("toasts").appendChild(t);
   setTimeout(() => { t.classList.add("out"); setTimeout(() => t.remove(), 300); }, 3200);
 }
+/* replay the entrance animation on a section or mode panel when it is shown */
+function reveal(el){ if (!el) return; el.classList.remove("reveal"); void el.offsetWidth; el.classList.add("reveal"); }
 function setSync(ok, text){ $("sync").classList.toggle("bad", !ok); $("sync-text").textContent = text; }
 const loadingRow = () => `<div style="padding:10px 0"><div class="skel"></div><div class="skel" style="width:80%"></div><div class="skel" style="width:60%"></div></div>`;
 
@@ -524,6 +633,7 @@ const NAVTABS = ["dashboard","entry","type","log","upload"];
 document.querySelectorAll("nav.tabs button").forEach(b => b.onclick = () => {
   document.querySelectorAll("nav.tabs button").forEach(x => x.classList.toggle("active", x === b));
   NAVTABS.forEach(t => $("tab-"+t).classList.toggle("hidden", t !== b.dataset.tab));
+  reveal($("tab-"+b.dataset.tab));
   if (b.dataset.tab === "entry") loadRecent();
   if (b.dataset.tab === "type") renderTypeTab();
   if (b.dataset.tab === "log" && !LOG_LOADED) loadLog(0);
@@ -533,6 +643,7 @@ document.querySelectorAll("#modes button").forEach(b => b.onclick = () => {
   CUR_MODE = b.dataset.mode;
   document.querySelectorAll("#modes button").forEach(x => x.classList.toggle("active", x === b));
   ["monthly","average"].forEach(m => $("mode-"+m).classList.toggle("hidden", m !== CUR_MODE));
+  reveal($("mode-"+CUR_MODE));
   syncHeader();
 });
 
@@ -625,7 +736,7 @@ async function fetchRows(from, to, cols) {
 }
 
 /* ======== KPI helpers ======== */
-const TINTS = ["#0f5c4d","#9dc3e6","#f4b183","#c6e0b4"];
+const TINTS = ["#6a2fa0","#b48ae0","#8e5cc0","#d2b8f0"];
 function setKpis(el, items){
   $(el).innerHTML = items.map((k,i) =>
     `<div class="kpi lift pop pop-d${i}" style="--tint:${TINTS[i%TINTS.length]}"><div class="l">${esc(k.l)}</div><div class="v" title="${esc(k.v)}">${esc(k.v)}</div><div class="s">${esc(k.s||"")}</div></div>`
@@ -786,14 +897,8 @@ async function downloadAverageImage() {
       stage.appendChild(grid);
       await saveStageAsPng(stage, "1400px", `OVERALL_${from}_to_${to}.png`);
     } else {
-      const dates = `<span class="chip" style="background:#fbe5d6">${dmy(from)}</span><span class="chip" style="background:#ddebf7">${dmy(to)}</span>`;
-      const who = `<span class="chip" style="background:#806000;color:#fff">${esc(mine)}</span><span class="chip" style="background:#843c0c;color:#fff">${esc(area || "ALL AREAS")}</span>`;
-      stage.innerHTML = `<div class="avtitle">Average Rakes Per Day By Siding And Destination</div>` +
-        `<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start">` +
-          `<div class="avcard"><div class="chips">${dates}</div>${avTable(rows, "siding", "Siding", days)}</div>` +
-          `<div class="avcard"><div class="chips">${who}</div>${avTable(rows, "destination", "Destination", days)}</div>` +
-        `</div>`;
-      await saveStageAsPng(stage, "1200px", `AVERAGE_${mine}${area ? "_" + nk(area) : ""}_${from}_to_${to}.png`);
+      stage.innerHTML = `<div class="avtitle">Average Rakes Per Day By Siding And Destination</div>` + mineBlocks(rows, days, mine);
+      await saveStageAsPng(stage, "max-content",`AVERAGE_${mine}${area ? "_" + nk(area) : ""}_${from}_to_${to}.png`);
     }
   } catch (e) { $("a-note").textContent = "Could not create image: " + e.message; }
   finally { btn.disabled = false; }
@@ -810,6 +915,9 @@ let AV = [], aToken = 0;
   $("a-from").onchange = $("a-to").onchange = $("a-refresh").onclick = loadAverage;
   $("a-mine").onchange = () => { fillAreas(); renderAverage(); };
   $("a-area").onchange = renderAverage;
+  /* the Area option is removed: a selected mine shows all its areas */
+  $("a-area").value = "";
+  $("a-area").closest("div").classList.add("hidden");
   $("a-img").onclick = downloadAverageImage;
   loadAverage();
 })();
@@ -849,8 +957,26 @@ function avTable(rows, key, head, days) {
   return h + `<tr class="tot"><td colspan="2">TOTAL</td><td>${total}</td><td>${(total / days).toFixed(2)}</td></tr></table>`;
 }
 
+const AREA_HEAD = ["#1f4e79","#375623","#843c0c","#4a1d7a","#0f5c4d"];
+/* one block per area of the selected mine: its siding and destination tables, in that area's colour theme */
+function mineBlocks(scope, days, mine) {
+  const key = r => (r.area || "").trim() || "(blank)";
+  /* CIC (PS) and CIC (GS) are not shown as area blocks in the Average view */
+  const HIDE_AREAS = ["CICPS", "CICGS"];
+  const areas = [...new Set(scope.map(key))].filter(a => !HIDE_AREAS.includes(nk(a))).sort();
+  return `<div class="arearow">` + areas.map((a, i) => {
+    const rows = scope.filter(r => key(r) === a), t = i % AREA_HEAD.length;
+    return `<div class="areablock tm${t}">` +
+      `<div class="chips"><span class="chip" style="background:${AREA_HEAD[t]};color:#fff">${esc(mine)} · ${esc(a)}</span><span class="chip" style="background:#fff">${fmt(rows.length)} rakes</span></div>` +
+      `<div class="avgrid">` +
+        `<div class="avcard">${avTable(rows, "siding", "Siding", days)}</div>` +
+        `<div class="avcard">${avTable(rows, "destination", "Destination", days)}</div>` +
+      `</div></div>`;
+  }).join("") + `</div>`;
+}
+
 function renderAverage() {
-  const from = $("a-from").value, to = $("a-to").value, mine = $("a-mine").value, area = $("a-area").value;
+  const from = $("a-from").value, to = $("a-to").value, mine = $("a-mine").value, area = "";
   if (!from || !to || from > to) return;
   const u = s => { const [y, m, d] = s.split("-").map(Number); return Date.UTC(y, m - 1, d); };
   const days = Math.round((u(to) - u(from)) / 864e5) + 1;
@@ -875,13 +1001,9 @@ function renderAverage() {
     return;
   }
   $("a-sum").innerHTML = "";
-  const chips = `<span class="chip" style="background:#fbe5d6">${dmy(from)}</span><span class="chip" style="background:#ddebf7">${dmy(to)}</span>`;
   $("a-out").innerHTML =
     `<div class="avtitle pop">Average Rakes Per Day By Siding And Destination</div>` +
-    `<div class="avgrid">` +
-      `<div class="avcard lift pop pop-d1"><div class="chips">${chips}</div>${avTable(scope, "siding", "Siding", days)}</div>` +
-      `<div class="avcard lift pop pop-d2"><div class="chips"><span class="chip" style="background:#806000;color:#fff">${esc(mine)}</span><span class="chip" style="background:#843c0c;color:#fff">${esc(area || "ALL AREAS")}</span></div>${avTable(scope, "destination", "Destination", days)}</div>` +
-    `</div>`;
+    mineBlocks(scope, days, mine);
   $("a-note").textContent = `${fmt(scope.length)} rakes between ${dmy(from)} and ${dmy(to)} (${days} days). Average = total rakes ÷ ${days}.`;
 }
 
