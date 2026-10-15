@@ -543,7 +543,7 @@ const catOf = t => t.includes("WASH") ? "p_wc" : t.includes("NON") ? "np" : t.in
 const catKey = t => { const c = catOf(t); return c === "p_wc" ? "wc" : c; };
 const isNonPower = r => catOf(nk(r.type)) === "np";
 /* Rows entered under SECL whose area is one of these are counted under MCFL (IB and CKP belong to MCFL) */
-const MCFL_AREAS = ["IB","CKP"];
+const MCFL_AREAS = ["KUR","CKP"];
 const effSub = r => { const s = normSub(r.subsidiary); return (s === "SECL" && MCFL_AREAS.includes(nk(r.area))) ? "MCFL" : s; };
 
 /* ======== MONTHLY TABLE DEFINITIONS (original colours) ======== */
@@ -567,8 +567,8 @@ const TABS = {
     { id:"ps",    title:"CIC (PS)", head:"#f8cbad", body:"#fdeee6", single:true, cols:[{k:"total",l:"TOTAL",kind:"data"}] },
     { id:"gs",    title:"CIC (GS)", head:"#a9d18e", body:"#e2efda", single:true, cols:[{k:"total",l:"TOTAL",kind:"data"}] } ] },
   MCFL: { title:"AMM MCFL DISPATCH", groups:[
-    { id:"ib",  title:"IB DISPATCH",  head:"#9dc3e6", body:"#ddebf7", cols:dc(["cpp","ipp","wc"],["CPP","IPP","WC"]) },
-    { id:"ckp", title:"CKP DISPATCH", head:"#b4c6e7", body:"#dae3f3", cols:dc(["cpp","ipp"],["CPP","IPP"]) } ] },
+    { id:"kur", title:"KUR DISPATCH",  head:"#9dc3e6", body:"#ddebf7", cols:dc(["cpp","ipp","wc"],["NON-POWER","POWER","WC"]) },
+    { id:"ckp", title:"CKP DISPATCH", head:"#b4c6e7", body:"#dae3f3", cols:dc(["cpp","ipp"],["NON-POWER","POWER"]) } ] },
   CCL: { title:"AMM CCL DISPATCH", groups:[{ id:"d", title:"CCL DISPATCH", head:"#f4b183", body:"#fce4d6", cols:sc(PN) }] },
   NCL: { title:"AMM NCL DISPATCH", groups:[{ id:"d", title:"NCL DISPATCH", head:"#c6e0b4", body:"#e2efda", cols:sc(PN) }] },
   WCF: { title:"AMM WCF DISPATCH", groups:[{ id:"d", title:"WCF DISPATCH", head:"#d9d9d9", body:"#f2f2f2", cols:sc(PN) }] }
@@ -586,7 +586,7 @@ function keysFor(tab, r) {
     if (a === "CICPS") k.push("ps.total");
     if (a === "CICGS") k.push("gs.total");
   } else if (tab === "MCFL") {
-    if (a === "IB" && ["cpp","ipp","wc"].includes(tk)) k.push("ib." + tk);
+    if (a === "KUR" && ["cpp","ipp","wc"].includes(tk)) k.push("kur." + tk);
     if (a === "CKP" && ["cpp","ipp"].includes(tk)) k.push("ckp." + tk);
   } else if (ck) k.push("d." + ck);
   const valid = new Set(TABS[tab].groups.flatMap(g => g.cols.map(c => g.id + "." + c.k)));
@@ -803,7 +803,8 @@ let AV = [], aToken = 0;
 (function initAverage() {
   const now = new Date();
   $("a-from").value = `${now.getFullYear()}-${p2(now.getMonth()+1)}-01`;
-  $("a-to").value = `${now.getFullYear()}-${p2(now.getMonth()+1)}-${p2(now.getDate())}`;
+  const yest = new Date(); yest.setDate(yest.getDate() - 1);
+  $("a-to").value = `${yest.getFullYear()}-${p2(yest.getMonth()+1)}-${p2(yest.getDate())}`;
   $("a-from").onchange = $("a-to").onchange = $("a-refresh").onclick = loadAverage;
   $("a-mine").onchange = () => { fillAreas(); renderAverage(); };
   $("a-area").onchange = renderAverage;
@@ -868,7 +869,7 @@ function renderAverage() {
 
   if (mine === "ALL") {
     renderOverall(days);
-    $("a-note").textContent = `Overall · ${dmy(from)} to ${dmy(to)} (${days} days). Average = total rakes ÷ ${days}.`;
+    $("a-note").textContent = "";
     return;
   }
   $("a-sum").innerHTML = "";
@@ -902,7 +903,7 @@ function sumBox(t, rows, days) {
     h += `<tr><td class="sr" style="background:${hb};color:${hc}">${i+1}</td><td class="lbl" style="background:${hb};color:${hc}">${esc(n)}</td>` +
          `<td class="val"><div class="fill" style="width:${pct}%;background:${bar}"></div><span>${vals[i].toFixed(2)}</span></td></tr>`;
   });
-  return h + `<tr class="tot"><td colspan="2" style="background:${tot};color:#fff">TOTAL RAKES</td><td style="background:${tot};color:#fff">${total.toFixed(2)}</td></tr></table>`;
+  return h + `<tr class="tot"><td colspan="2" style="background:${tot};color:#fff">TOTAL RAKES</td><td style="background:${tot};color:#fff">${Math.round(total)}</td></tr></table>`;
 }
 
 /* ======== OVERALL (front page boxes, original colours) ======== */
