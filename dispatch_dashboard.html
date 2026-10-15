@@ -396,7 +396,7 @@
       <div>
         <div class="eyebrow">Classification</div>
         <h2>Destination type</h2>
-        <p>Choose Power or Non-power for each destination, then press Update. Update changes every row for that destination to the chosen type, including rows that already have a type. Later entries and uploads for that destination get the same type automatically.</p>
+        <p>Choose Power or Non-power for each destination, then press Update. Only rows with no type are filled; later entries and uploads for that destination get the same type automatically.</p>
       </div>
     </div>
     <div class="filters f3">
@@ -884,7 +884,7 @@ function renderAverage() {
 
 /* ======== SUMMARY BOXES (original colours) ======== */
 const SUMBOX = [
-  { key:"sub", title:"PER DAY AVERAGE - MINES / SUBSIDIARY WISE", lh:"MINE", cols:["#d9d2e9","#7030a0","#fff","#8e5cc0","#4a1f70"] },
+  { key:"sub", title:"PER DAY AVERAGE COAL LOADING", lh:"MINE", cols:["#d9d2e9","#7030a0","#fff","#8e5cc0","#4a1f70"] },
   { key:"area", title:"PER DAY AVERAGE - AREA WISE", lh:"AREA", cols:["#a9d18e","#a9d18e","#000","#70ad47","#548235"] },
   { key:"siding", title:"PER DAY AVERAGE - SIDING WISE", lh:"SIDING", cols:["#ffc000","#ffc000","#000","#ffc000","#bf8f00"] },
   { key:"destination", title:"PER DAY AVERAGE - DESTINATION WISE", lh:"DEST.", cols:["#b4c6e7","#4472c4","#fff","#4472c4","#2f5597"] }
@@ -896,7 +896,7 @@ function sumBox(t, rows, days) {
   const vals = list.map(x => x[1] / days), max = Math.max(...vals, 0), total = vals.reduce((a, b) => a + b, 0);
   const [tb, hb, hc, bar, tot] = t.cols;
   let h = `<table class="sum"><tr><th class="ttl" colspan="3" style="background:${tb}">${t.title}</th></tr>` +
-    `<tr>${["Sr.no.", t.lh, "AVERAGE/DAY"].map(x => `<th style="background:${hb};color:${hc}">${x}</th>`).join("")}</tr>`;
+    `<tr>${["Sr.no.", t.lh, t.valHead || "PER DAY"].map(x => `<th style="background:${hb};color:${hc}">${x}</th>`).join("")}</tr>`;
   list.forEach(([n], i) => {
     const pct = max ? vals[i] / max * 100 : 0;
     h += `<tr><td class="sr" style="background:${hb};color:${hc}">${i+1}</td><td class="lbl" style="background:${hb};color:${hc}">${esc(n)}</td>` +
@@ -907,18 +907,33 @@ function sumBox(t, rows, days) {
 
 /* ======== OVERALL (front page boxes, original colours) ======== */
 const OV_MINES = ["SECL","MCFL","CCL","NCL","WCF"];
-const OV_AREAS = ["KORBA","CKP","IB","CIC"];
 const OV_DESTS = ["NBSK","SEBD","HZL","MVAA","MVAB"];
-const CPP_EAC  = ["NONPOWERCPP","NONPOWEREAC"];
+const CPP_EAC  = ["NONPOWERCPP","NONPOWEREAC","NONPOWER"];
 const destName = r => { const d = nk(r.destination); return d === "MAVB" ? "MVAB" : d; };
+
+/* area rows shown in the area boxes, each with the subsidiary it belongs to */
+const OV_AREA_ROWS = [
+  { label:"KORBA (SECL)", area:"KORBA", sub:"SECL" },
+  { label:"CIC (SECL)",   area:"CIC",   sub:"SECL" },
+  { label:"CKP (MCFL)", area:"CKP", sub:"MCFL" },
+  { label:"KUR (MCFL)", area:"KUR", sub:"MCFL" },
+  { label:"NAG (WCF)",  area:"NAG", sub:"WCF" },
+  { label:"NGP (WCF)",  area:"NGP", sub:"WCF" },
+  { label:"DHN (CCL)",  area:"DHN", sub:"CCL" },
+  { label:"DHN (NCL)",  area:"DHN", sub:"NCL" }
+];
+const areaRowKey = r => { const a = nk(r.area); const hit = OV_AREA_ROWS.find(x => x.area === a && (!x.sub || x.sub === r.sub)); return hit ? hit.label : null; };
+
 function renderOverall(days) {
+  const areaCols = ["#cfe8e4","#1f7a6d","#fff","#3aa595","#14524a"];
+  const npCols   = ["#c6e0b4","#70ad47","#000","#70ad47","#548235"];
   const boxes = [
     [{ ...SUMBOX[0], key:"name", order:OV_MINES }, AV.map(r => ({ name:r.sub }))],
-    [{ key:"name", order:OV_AREAS, lh:"AREA", title:"PER DAY AVERAGE - AREA WISE (ALL EXCEPT WASH COAL)", cols:["#cfe8e4","#1f7a6d","#fff","#3aa595","#14524a"] },
-      AV.filter(r => !nk(r.type).includes("WASH") && OV_AREAS.includes(nk(r.area))).map(r => ({ name:nk(r.area) }))],
-    [{ ...SUMBOX[1], key:"name", order:OV_AREAS, title:"PER DAY AVERAGE - AREA WISE (NON POWER CPP + EAC)" },
-      AV.filter(r => CPP_EAC.includes(nk(r.type)) && OV_AREAS.includes(nk(r.area))).map(r => ({ name:nk(r.area) }))],
-    [{ ...SUMBOX[3], key:"name", order:OV_DESTS, title:"PER DAY AVERAGE - DESTINATION WISE (NON POWER CPP + EAC)" },
+    [{ key:"name", order:OV_AREA_ROWS.map(x => x.label), lh:"AREA", title:"PER DAY AVG COAL LOADING", valHead:"PER DAY", cols:areaCols },
+      AV.filter(r => !nk(r.type).includes("WASH")).map(r => { const n = areaRowKey(r); return n ? { name:n } : null; }).filter(Boolean)],
+    [{ key:"name", order:OV_AREA_ROWS.map(x => x.label), lh:"AREA", title:"PER DAY NON-POWER COAL LOADING", valHead:"PER DAY", cols:npCols },
+      AV.filter(r => CPP_EAC.includes(nk(r.type))).map(r => { const n = areaRowKey(r); return n ? { name:n } : null; }).filter(Boolean)],
+    [{ ...SUMBOX[3], key:"name", order:OV_DESTS, title:"PER DAY NON-POWER COAL LOADING", valHead:"PER DAY" },
       AV.filter(r => CPP_EAC.includes(nk(r.type)) && OV_DESTS.includes(destName(r))).map(r => ({ name:destName(r) }))]
   ];
   $("a-sum").innerHTML = boxes.map(([t, r], i) => `<div class="sbox lift pop pop-d${i}">${sumBox(t, r, days)}</div>`).join("");
@@ -954,17 +969,15 @@ async function loadCatalog() {
   setSync(true, "Live");
 }
 
-/* destination groups: one per subsidiary + destination.
-   ids = every row for the destination (used by Update), emptyIds = rows with no type (used for the "rows without a type" count) */
+/* destination groups: one per subsidiary + destination */
 function buildGroups() {
   const g = new Map();
   CAT.forEach(r => {
     if (!r.dest) return;
     const key = r.sub + "|" + nk(r.dest);
     let x = g.get(key);
-    if (!x) { x = { key, sub:r.sub, dest:r.dest, rows:0, ids:[], emptyIds:[], types:{} }; g.set(key, x); }
+    if (!x) { x = { key, sub:r.sub, dest:r.dest, rows:0, emptyIds:[], types:{} }; g.set(key, x); }
     x.rows++;
-    x.ids.push(r.id);
     if (r.type) x.types[r.type] = (x.types[r.type] || 0) + 1; else x.emptyIds.push(r.id);
   });
   g.forEach(x => {
@@ -1119,10 +1132,10 @@ function renderTypeTab() {
     list.map(x => {
       const cur = x.key in TYPE_SEL ? TYPE_SEL[x.key] : x.type;
       const options = `<option value="">Not set</option>` + opts.map(o => `<option value="${esc(o)}" ${nk(o) === nk(cur) ? "selected" : ""}>${esc(o)}</option>`).join("");
-      const can = !!cur;
+      const can = cur && x.emptyIds.length;
       return `<tr><td>${esc(x.sub)}</td><td><b>${esc(x.dest)}</b></td><td>${fmt(x.rows)}</td><td>${fmt(x.emptyIds.length)}</td>` +
         `<td><select class="tsel" data-k="${esc(x.key)}">${options}</select></td>` +
-        `<td><button class="btn sm primary" data-up="${esc(x.key)}" ${can ? "" : "disabled"}>Update ${fmt(x.rows)}</button></td></tr>`;
+        `<td><button class="btn sm primary" data-up="${esc(x.key)}" ${can ? "" : "disabled"}>${x.emptyIds.length ? "Update " + fmt(x.emptyIds.length) : "Up to date"}</button></td></tr>`;
     }).join("") + `</tbody>`;
 }
 ["t-sub","t-status"].forEach(id => $(id).onchange = renderTypeTab);
@@ -1130,8 +1143,8 @@ $("t-q").oninput = renderTypeTab;
 $("t-table").addEventListener("change", e => {
   const s = e.target.closest(".tsel"); if (!s) return;
   TYPE_SEL[s.dataset.k] = s.value;
-  const btn = s.closest("tr").querySelector("[data-up]");
-  btn.disabled = !s.value;
+  const g = TYPE_GROUPS.get(s.dataset.k), btn = s.closest("tr").querySelector("[data-up]");
+  btn.disabled = !(s.value && g && g.emptyIds.length);
 });
 $("t-table").addEventListener("click", e => {
   const b = e.target.closest("[data-up]");
@@ -1141,18 +1154,17 @@ $("t-table").addEventListener("click", e => {
 async function applyType(key, btn) {
   const g = TYPE_GROUPS.get(key); if (!g) return;
   const val = canon(typeOpts(), TYPE_SEL[key] ?? g.type);
-  if (!val || !g.ids.length) return;
-  if (!confirm(`Set all ${fmt(g.ids.length)} rows for ${g.dest} (${g.sub}) to ${val}? Rows that already have another type will change.`)) return;
+  if (!val || !g.emptyIds.length) return;
   btn.disabled = true; btn.textContent = "Updating…";
   let done = 0;
   try {
-    for (let i = 0; i < g.ids.length; i += 200) {
-      const chunk = g.ids.slice(i, i + 200);
+    for (let i = 0; i < g.emptyIds.length; i += 200) {
+      const chunk = g.emptyIds.slice(i, i + 200);
       const { data, error } = await sb.from(TABLE).update({ type: val }).in("id", chunk).select("id");
       if (error) throw error;
       done += data.length;
     }
-    if (!done) toast("No rows changed. Check that Supabase allows updates on this table.", "err");
+    if (!done) { toast("No rows changed. Check that Supabase allows updates on this table.", "err"); }
     else toast(`${g.dest}: ${fmt(done)} row${done === 1 ? "" : "s"} set to ${val}`);
   } catch (e) { toast("Update failed: " + e.message, "err"); }
   delete TYPE_SEL[key];
