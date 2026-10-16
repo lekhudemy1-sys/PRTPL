@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Performance Meter | AMM HZL</title>
+<title>HZL Dashboard | AMM HZL</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
 @import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Instrument+Sans:wght@400;500;600;700&display=swap");
 :root{
-  --bg:#e9eff8; --card:#fff; --line:#e1e8f3; --ink:#12213f; --mute:#6b7a96; --navy:#0f2142; --navy2:#1b3a6b;
-  --teal:#0f9d7a; --blue:#2f6fd0; --amber:#f0a020; --violet:#7c5cf0; --rose:#e5484d; --sky:#12a4d9; --lime:#5cb85c;
+  --bg:#e9eff8; --card:#fff; --line:#e1e8f3; --ink:#0a1530; --mute:#0a1530; --navy:#0f2142; --navy2:#1b3a6b;
+  --teal:#0f9d7a; --blue:#2f6fd0; --amber:#f0a020; --violet:#7c5cf0; --rose:#e5484d; --sky:#12a4d9;
   --head:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
   --body:"Instrument Sans","Segoe UI",system-ui,sans-serif;
   --ease:cubic-bezier(.2,.8,.2,1);
@@ -20,28 +20,26 @@
 html{font-size:clamp(12px,.55vw + 8px,15px)}
 body{font-family:var(--body);color:var(--ink);min-height:100vh;line-height:1.4;overflow-x:hidden;transition:opacity .18s;
   background:radial-gradient(900px 480px at 95% -8%,#cfe0ff 0,transparent 70%),radial-gradient(800px 460px at -5% 105%,#d2efe6 0,transparent 70%),var(--bg);background-attachment:fixed}
-body.leaving{opacity:0}
 a{text-decoration:none;color:inherit}
-input,select{font-family:inherit;color-scheme:light;outline:none}
-input:focus,select:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35)!important;position:relative;z-index:2}
+input,select,textarea{font-family:inherit;color-scheme:light;outline:none}
+input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35)!important}
 
 /* Floating nav */
 .sidebar{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:100;display:flex;align-items:center;gap:1rem;
   background:rgba(15,33,66,.94);backdrop-filter:blur(12px);color:#e8eefc;border-radius:999px;padding:.35rem .5rem .35rem 1rem;
   box-shadow:0 12px 32px -10px rgba(15,33,66,.55),0 0 0 1px rgba(255,255,255,.08);max-width:calc(100% - 1.5rem)}
-.party-name{font:700 1.05rem var(--head);display:flex;align-items:center;gap:.45rem;color:#fff}
+.party-name{font:700 1.05rem var(--head);display:flex;align-items:center;gap:.45rem;color:#fff;white-space:nowrap}
 .party-name .dot{width:8px;height:8px;border-radius:50%;background:#34d3a6;box-shadow:0 0 0 3px rgba(52,211,166,.25)}
-.subtitle{display:none}
-.sidebar-nav{display:flex;gap:.2rem}
-.nav-item{display:flex;align-items:center;gap:.4rem;padding:.45rem .85rem;border-radius:999px;color:#b9c6e0;font-weight:500;font-size:.85rem;white-space:nowrap;transition:.2s}
+.sidebar-nav{display:flex;gap:.2rem;flex-wrap:wrap}
+.nav-item{display:flex;align-items:center;gap:.4rem;padding:.45rem .85rem;border-radius:999px;color:#b9c6e0;font-weight:500;font-size:.85rem;white-space:nowrap;transition:.2s;cursor:pointer;background:none;border:0;font-family:inherit}
 .nav-item:hover{background:rgba(255,255,255,.12);color:#fff}
 .nav-item.active{background:rgba(52,211,166,.25);color:#fff;box-shadow:inset 0 0 0 1px rgba(52,211,166,.4)}
-.back-home{display:inline-flex;align-items:center;gap:.4rem;color:#cfd9ee;padding:.4rem .8rem;border-radius:999px;font-size:.8rem;transition:.2s}
-.back-home:hover{color:#fff;background:rgba(255,255,255,.1)}
+.user-chip{display:flex;align-items:center;gap:.5rem;color:#cfd9ee;font-size:.8rem;font-weight:600;padding:.3rem .6rem}
+.user-chip button{border:0;background:rgba(255,255,255,.14);color:#fff;border-radius:999px;padding:.3rem .75rem;cursor:pointer;font:inherit}
 
 .main{max-width:1600px;margin:0 auto;padding:4.8rem 1.4rem 1.4rem}
-.main>*{animation:rise .55s var(--ease) backwards}
-.main>:nth-child(2){animation-delay:.07s}.main>:nth-child(3){animation-delay:.14s}.main>:nth-child(4){animation-delay:.21s}.main>:nth-child(5){animation-delay:.28s}
+.view{display:none}
+.view.active{display:block;animation:rise .55s var(--ease) backwards}
 @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 
 /* Hero title bar */
@@ -63,13 +61,12 @@ input:focus,select:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35)!important;pos
 
 /* Grid + cards */
 .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.2rem;margin-bottom:1.2rem;align-items:stretch}
-.card{--c:var(--blue);--t:#e8f0fd;--l:#acc5ec;--d:#1c437d;--h:#f0f5fe;--b:#d9e5f6;position:relative;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:1.1rem 1.15rem 1rem;box-shadow:var(--sh);overflow:hidden;transition:transform .25s var(--ease),box-shadow .25s}
+.card{--c:var(--blue);--t:#e8f0fd;--l:#acc5ec;--d:#1c437d;--h:#f0f5fe;--b:#d9e5f6;position:relative;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:1.1rem 1.15rem 1rem;box-shadow:var(--sh);overflow:hidden;transition:transform .25s var(--ease),box-shadow .25s;margin-bottom:1.2rem}
 .card::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,var(--c),var(--l))}
 .card:hover{transform:translateY(-3px);box-shadow:var(--sh-hi)}
-.card-header{display:flex;align-items:center;margin-bottom:.7rem}
+.card-header{display:flex;align-items:center;justify-content:space-between;gap:.6rem;margin-bottom:.7rem;flex-wrap:wrap}
 .card-header h3{font:700 1rem var(--head);letter-spacing:-.01em;display:flex;align-items:center;gap:.6rem}
 .card-header h3 i{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-size:.9rem;color:#fff;background:linear-gradient(135deg,var(--c),var(--d));box-shadow:0 8px 14px -6px var(--c)}
-
 .c-key{--c:var(--violet);--t:#efeafe;--l:#cbbef9;--d:#4a3790;--h:#f4f1fe;--b:#e7e2fc}
 .c-area{--c:var(--sky);--t:#e1f4fb;--l:#a0dbf0;--d:#0b6282;--h:#ebf8fc;--b:#d4eff8}
 .c-short{--c:var(--teal);--t:#e0f5ef;--l:#9fd8ca;--d:#095e49;--h:#eaf8f4;--b:#d4ede7}
@@ -77,984 +74,1339 @@ input:focus,select:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35)!important;pos
 .c-rake{--c:var(--amber);--t:#fdf1da;--l:#f9d9a6;--d:#906013;--h:#fef6e6;--b:#fceed7}
 .c-pen{--c:var(--rose);--t:#fdebec;--l:#f5b6b8;--d:#892b2e;--h:#fef0f1;--b:#fadedf}
 .mines-card{--c:var(--navy2);--t:#e8edf7;--l:#a4b0c4;--d:#102340;--h:#eff2f9;--b:#d6dbe4}
+.trend-card{--c:var(--teal);--t:#e0f5ef;--l:#9fd8ca;--d:#095e49}
+.grid-3 .card{margin-bottom:0}
 
-/* Rows */
 .metric-row{display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.42rem .25rem;border-bottom:1px dashed var(--line);border-radius:10px;transition:background .2s}
 .metric-row:last-child{border-bottom:0}
 .metric-row:hover{background:var(--h)}
-.metric-label{flex:1;font-size:.8rem;font-weight:600;color:var(--mute);text-align:left}
+.metric-label{flex:1;font-size:.8rem;font-weight:700;color:var(--ink);text-align:left}
 .metric-value{width:7.8rem;min-width:0;border:1px solid transparent;border-radius:11px;background:var(--t);color:var(--ink);font:700 .95rem var(--body);font-variant-numeric:tabular-nums;text-align:right;padding:.4rem .7rem;transition:.2s}
 .metric-value:hover{border-color:var(--c)}
-.metric-value.neg{color:#d1344a;background:#fdeaec}
+.metric-value.neg{color:#b3162b;background:#fdeaec}
 .metric-value.pos{color:#0c7a55}
-.metric-value:not(.neg).accent{color:var(--c)}
 .pair{display:flex;gap:.35rem}
 .pair input:first-child{width:7.8rem}.pair input:last-child{width:5.6rem}
 .wide{width:9.5rem!important}
 .dual-head{display:flex;justify-content:flex-end;gap:.35rem;padding:0 .25rem .25rem;margin-bottom:.15rem}
-.dual-head span{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--mute);text-align:center}
+.dual-head span{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink);text-align:center}
 .dual-head span:first-child{width:7.8rem}.dual-head span:last-child{width:5.6rem}
 .sub-title{margin:.7rem 0 .35rem;padding:.35rem .7rem;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--c);background:var(--t);border-radius:999px;display:inline-block}
 .total-row{margin-top:.4rem;padding:.55rem .7rem;border:0;border-radius:14px;background:linear-gradient(120deg,var(--navy),var(--navy2));box-shadow:0 10px 18px -10px rgba(15,33,66,.6)}
-.total-row:hover{background:linear-gradient(120deg,var(--navy),var(--navy2))}
 .total-row .metric-label{color:#fff;font-weight:700}
-.total-row .metric-value{background:rgba(255,255,255,.14);color:#fff;border:0}
-.c-bill #expBill{background:#fff;border:1px solid var(--line);color:var(--blue);font-size:1.05rem}
+.total-row .metric-value{background:rgba(154,212,255,.14);color:#9ad4ff;border:0}
+.total-row .metric-value.neg{color:#ffb3bd}
+#olChg{background:#fff;border:1px solid var(--line);color:var(--blue)}
 
-/* Tables (area + rake) */
 .area-table{width:100%;border-collapse:separate;border-spacing:6px}
-.area-table th{font:700 .72rem var(--body);text-transform:uppercase;letter-spacing:.5px;color:#fff;background:linear-gradient(135deg,var(--c),var(--d));border-radius:10px;padding:.5rem;text-align:center}
+.area-table th{font:700 .72rem var(--body);text-transform:uppercase;letter-spacing:.5px;color:#fff;background:var(--d);border-radius:10px;padding:.5rem;text-align:center}
 .area-table th:first-child{background:none}
-.area-table .row-label{font-size:.76rem;font-weight:600;color:var(--mute);text-align:left;padding:0 .3rem}
+.area-table .row-label{font-size:.78rem;font-weight:700;color:var(--ink);text-align:left;padding:0 .3rem}
 .area-table td{padding:0}
-.area-table input{width:100%;border:1px solid transparent;border-radius:12px;background:var(--t);color:var(--ink);font:700 1.1rem var(--head);font-variant-numeric:tabular-nums;text-align:center;padding:.65rem .2rem;transition:.2s}
-.area-table input:hover{border-color:var(--c);transform:translateY(-1px)}
-.area-table input.neg{color:#d1344a;background:#fdeaec}
+.area-table input{width:100%;border:1px solid transparent;border-radius:12px;background:var(--t);color:var(--ink);font:700 1.15rem var(--head);font-variant-numeric:tabular-nums;text-align:center;padding:.65rem .2rem;transition:.2s}
+.area-table input:hover{border-color:var(--c)}
+.area-table input.neg{color:#b3162b;background:#fdeaec}
 .c-rake .area-table td:nth-child(3) input{background:#fff;border:1px solid var(--line)}
-.c-rake #pdGcvAch{color:#0c7a55;font-size:1.25rem}
 .avg-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:.7rem}
 .highlight-box{background:var(--t);border-radius:14px;padding:.55rem .6rem;text-align:center;border:1px solid var(--b);transition:transform .2s,box-shadow .2s}
 .highlight-box:hover{transform:translateY(-2px);box-shadow:0 10px 18px -12px var(--c)}
-.highlight-box .label{font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--mute);margin-bottom:.2rem}
-.highlight-box .metric-value{width:100%;background:transparent;border:0;text-align:center;font:700 1.2rem var(--head);color:var(--ink);padding:.1rem}
+.highlight-box .label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--ink);margin-bottom:.2rem}
+.highlight-box .metric-value{width:100%;background:transparent;border:0;text-align:center;font:700 1.25rem var(--head);color:var(--ink);padding:.1rem}
 .hb-steel{background:#e8f0fd}.hb-lav{background:#efeafe}
 
-/* Mines */
-.mines-card:hover{transform:none;box-shadow:var(--sh)}
 .mines-wrap{overflow-x:auto;border-radius:14px;border:1px solid var(--line)}
 .mines-table{width:100%;border-collapse:separate;border-spacing:0;min-width:780px}
-.mines-table th{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;font-size:.72rem;letter-spacing:.5px;text-transform:uppercase;padding:.6rem .5rem;white-space:nowrap;position:sticky;top:0}
+.mines-table th{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;font-size:.72rem;letter-spacing:.5px;text-transform:uppercase;font-weight:700;padding:.6rem .5rem;white-space:nowrap;position:sticky;top:0}
 .mines-table td{border-bottom:1px solid var(--line);padding:0;text-align:center}
 .mines-table tbody tr:nth-child(even) td{background:#f6f9fe}
 .mines-table tbody tr:last-child td{border-bottom:0}
-.mines-table tbody tr:hover td{background:#e8f0fd}
-.mines-table .row-label{text-align:left;font:600 .76rem var(--body);color:var(--mute);padding:.5rem .8rem;min-width:11.5rem;white-space:nowrap;position:sticky;left:0;z-index:1;background:inherit}
-.mines-table input{width:100%;min-width:4.8rem;border:0;background:transparent;color:var(--ink);font:600 .85rem var(--body);font-variant-numeric:tabular-nums;text-align:center;padding:.55rem .3rem}
-.mines-table input.neg{color:#d1344a;font-weight:700}
+.mines-table .row-label{text-align:left;font-size:.78rem;font-weight:700;color:var(--ink);padding:.5rem .8rem;min-width:11.5rem;white-space:nowrap;position:sticky;left:0;z-index:1;background:#f6f9fe;border-right:1px solid var(--line)}
+.mines-table input{width:100%;min-width:4.8rem;border:0;background:transparent;color:var(--ink);font:700 .85rem var(--body);font-variant-numeric:tabular-nums;text-align:center;padding:.55rem .3rem}
+.mines-table input.neg{color:#b3162b}
 .mines-table input.pos{color:#0c7a55}
-.mines-table input:focus{background:#fff}
 
-.report-footer{display:flex;align-items:center;justify-content:center;gap:.5rem;width:max-content;max-width:100%;margin:0 auto;padding:.5rem 1.2rem;font-size:.85rem;font-weight:600;color:var(--mute);background:var(--card);border:1px solid var(--line);border-radius:999px;box-shadow:var(--sh)}
-.report-footer::before{content:"";width:8px;height:8px;border-radius:50%;background:#16a870;box-shadow:0 0 0 3px rgba(22,168,112,.25)}
-.report-footer strong{color:var(--ink)}
-
-/* Toast */
-.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--navy);color:#fff;border-left:4px solid #34d3a6;padding:.8rem 1.3rem;border-radius:12px;box-shadow:0 18px 34px -12px rgba(15,33,66,.5);z-index:1000;transform:translateY(100px);opacity:0;transition:.25s}
-.toast.show{transform:none;opacity:1}.toast.error{border-left-color:#ff7a8c}
-
-/* Fit the screen */
-@media (max-width:1150px){.grid-3{grid-template-columns:1fr 1fr}.grid-3>.card:nth-child(3){grid-column:1/-1}}
-@media (max-width:800px){
-  .grid-3{grid-template-columns:1fr}.grid-3>.card:nth-child(3){grid-column:auto}
-  .sidebar{left:.5rem;right:.5rem;transform:none;flex-wrap:wrap;justify-content:center;border-radius:18px;max-width:none}
-  .main{padding:7rem .8rem 1rem}.topbar{justify-content:center;text-align:center}
-}
-@media (min-width:1151px) and (max-height:900px){.metric-row{padding:.3rem .25rem}.area-table input{padding:.5rem .2rem}}
-/* ===== Text contrast pass: black bold on light backgrounds, light text on dark ===== */
-:root{--ink:#0a1530;--mute:#0a1530}
-.metric-label,.area-table .row-label,.mines-table .row-label,.highlight-box .label,.dual-head span,.sub-title,.report-footer,.period-dark{color:var(--ink);font-weight:700}
-.metric-value,.area-table input,.mines-table input,.highlight-box .metric-value,.c-bill #expBill,.c-rake #pdGcvAch,.c-rake #pdRakeAch{color:var(--ink);font-weight:700}
-.metric-value:not(.neg).accent,.metric-value.pos,.mines-table input.pos,.area-table input.accent{color:var(--ink)}
-.metric-value.neg,.area-table input.neg,.mines-table input.neg{color:#b3162b;font-weight:700}
-/* dark backgrounds: light text */
-.area-table th{background:var(--d);color:#fff;font-weight:700}
-.area-table th:first-child{background:none}
-.mines-table th{color:#fff;font-weight:700}
-.total-row .metric-label,.total-row .metric-value,.total-row .metric-value.pos,.total-row .metric-value.accent{color:#9ad4ff;font-weight:700}
-.total-row .metric-value.neg{color:#ffb3bd}
-.total-row .metric-value{background:rgba(154,212,255,.14)}
-/* Rake Performance tidy-up */
-.c-rake .area-table .row-label{font-size:.78rem}
-.c-rake .area-table input{font-size:1.15rem}
-.c-rake #pdGcvAch{font-size:1.3rem}
-.highlight-box .metric-value{font-size:1.25rem}
-.highlight-box .label{font-size:.68rem}
-/* Mines table */
-.mines-table td{font-weight:700}
-.mines-table .row-label{font-size:.78rem;border-right:1px solid var(--line)}
-.mines-table tbody tr:hover .row-label{background:#e8f0fd}
-.pdf-mode .topbar-actions{display:none}
-.pdf-mode *{animation:none!important;transition:none!important}
-.pdf-mode .card:hover{transform:none;box-shadow:var(--sh)}
-@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
-
-/* Monthly & quarterly trend table */
-.trend-card:hover{transform:none;box-shadow:var(--sh)}
 .trend-wrap{overflow-x:auto;border-radius:14px;border:1px solid #3b5d2a}
 .trend-table{width:100%;min-width:920px;border-collapse:collapse;font-variant-numeric:tabular-nums}
 .trend-table th{background:#92d050;color:var(--ink);font-weight:700;font-size:.78rem;padding:.6rem .5rem;text-align:center;border:1px solid #3b5d2a}
 .trend-table td{background:#c6efb0;color:var(--ink);font-weight:700;font-size:.85rem;padding:.5rem .5rem;text-align:center;border:1px solid #3b5d2a}
 .trend-table td.qtr{background:#b5e79c}
 .trend-table td.low{background:#ffc7ce;color:#b3162b}
+
+.report-footer{display:flex;align-items:center;justify-content:center;gap:.5rem;width:max-content;max-width:100%;margin:0 auto;padding:.5rem 1.2rem;font-size:.85rem;font-weight:600;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:999px;box-shadow:var(--sh)}
+.report-footer::before{content:"";width:8px;height:8px;border-radius:50%;background:#16a870;box-shadow:0 0 0 3px rgba(22,168,112,.25)}
+.report-footer strong{color:var(--ink)}
+
+/* Panels, forms, tables */
+.panel{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:1.2rem 1.3rem;box-shadow:var(--sh);margin-bottom:1.2rem}
+.panel h2{font:700 1.15rem var(--head);margin-bottom:.8rem;display:flex;align-items:center;gap:.6rem}
+.panel h2 i{color:#0f9d7a}
+.muted{color:var(--mute);font-size:.85rem;font-weight:500}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1rem}
+.form-group{display:flex;flex-direction:column;gap:.35rem;min-width:0}
+.form-group label{font-size:.8rem;font-weight:700;color:var(--ink)}
+.form-group input,.form-group select,.form-group textarea,.field{padding:.6rem .8rem;font-size:.92rem;border:1px solid var(--line);border-radius:11px;background:#f4f7fd;color:var(--ink);width:100%}
+.form-group input[readonly]{background:#eef6f3}
+.form-actions{margin-top:1rem;display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
+.btn-go{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;border:0;padding:.6rem 1.1rem;border-radius:12px;font:700 .85rem var(--body);cursor:pointer;display:inline-flex;align-items:center;gap:.45rem;transition:.2s}
+.btn-go:hover{transform:translateY(-2px);box-shadow:0 10px 18px -10px rgba(15,33,66,.6)}
+.btn-go:disabled{opacity:.55;cursor:not-allowed;transform:none}
+.btn-soft{background:#fbfcfe;color:var(--navy);border:1px solid #d3ddee;padding:.55rem .95rem;border-radius:12px;font:600 .82rem var(--body);cursor:pointer;display:inline-flex;align-items:center;gap:.4rem}
+.btn-soft:hover{border-color:#34d3a6}
+.btn-soft.btn-danger{background:#fbe6e9;color:#b3162b;border-color:#f2c4cb}
+.drop{border:2px dashed #9fb4d6;border-radius:16px;padding:1.6rem;text-align:center;background:#f5f8fd;cursor:pointer;transition:.2s}
+.drop:hover,.drop.over{border-color:#0f9d7a;background:#eefaf5}
+.drop i{font-size:1.8rem;color:#0f9d7a}
+.drop p{margin-top:.4rem;font-weight:600}
+.status{font-size:.85rem;font-weight:600;margin-top:.7rem;min-height:1.2em}
+.status.err{color:#b3162b}
+.status.ok{color:#0c7a55}
+.tbl-wrap{overflow:auto;max-height:520px;border:1px solid var(--line);border-radius:14px}
+.tbl{width:100%;border-collapse:collapse;font-size:.82rem}
+.tbl th{position:sticky;top:0;z-index:1;background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;padding:.5rem .6rem;font-size:.7rem;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;text-align:center}
+.tbl td{padding:.4rem .5rem;border-bottom:1px solid var(--line);white-space:nowrap;text-align:center;font-weight:600;color:var(--ink)}
+.tbl tbody tr:nth-child(even) td{background:#f6f9fe}
+.tbl td input{width:100%;min-width:7rem;border:1px solid var(--line);border-radius:8px;padding:.3rem .4rem;font:600 .8rem var(--body);background:#fff;text-align:center}
+.tbl td.act{white-space:nowrap}
+.tbl .empty{padding:1.5rem;color:var(--mute)}
+.mapping{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.6rem}
+.chip{font-size:.72rem;font-weight:700;padding:.25rem .6rem;border-radius:999px;background:#e8f0fd;color:#1c437d}
+.chip.skip{background:#fdeaec;color:#b3162b}
+.toolbar{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.8rem}
+.toolbar input.search{flex:1;min-width:200px;border:1px solid var(--line);border-radius:11px;padding:.5rem .8rem;background:#f4f7fd}
+.hidden{display:none!important}
+.formula-list{margin-top:.5rem;padding-left:1.1rem;font-size:.88rem;font-weight:600;line-height:1.7;color:var(--ink)}
+
+/* Password page: back button on the left, password sheet on the right, both centred */
+.lock-row{display:flex;align-items:center;justify-content:center;gap:1.5rem;flex-wrap:wrap;min-height:70vh;padding:1rem}
+.lock-back{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;border:0;padding:.75rem 1.2rem;border-radius:14px;font:700 .9rem var(--body);cursor:pointer;display:inline-flex;align-items:center;gap:.5rem;box-shadow:0 12px 22px -12px rgba(15,33,66,.7);transition:.2s}
+.lock-back:hover{transform:translateY(-2px)}
+.lock-card{width:min(380px,92vw);text-align:center;margin:0}
+.lock-card input{margin:.8rem 0;width:100%;border:1px solid var(--line);border-radius:11px;padding:.6rem .8rem;font-size:1rem;text-align:center;letter-spacing:.3em;background:#f4f7fd}
+.lock-card .btn-go{justify-content:center;width:100%}
+
+/* Alerts & reports (static views) */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:1.2rem}
+.stat-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:1rem 1.2rem;box-shadow:var(--sh);border-top:4px solid var(--line);text-align:center}
+.stat-card .label{font-size:.8rem;font-weight:700;color:var(--ink)}
+.stat-card .value{font:700 1.9rem var(--head);line-height:1.2;margin-top:.2rem}
+.alert-item{display:flex;gap:1rem;align-items:center;padding:.9rem 1rem;margin-bottom:.7rem;border-radius:14px;background:#e6eefc;border:1px solid var(--line);border-left:5px solid #2f6fd0}
+.alert-item.critical{border-left-color:#d1344a;background:#fbebee}
+.alert-item.warning{border-left-color:#c27a0a;background:#fcf3e0}
+.alert-item.success{border-left-color:#16875f;background:#e1f3ec}
+.alert-item h4{font-size:.95rem}
+.alert-item p{font-size:.85rem;color:#4a5a78}
+.alert-item .alert-time{font-size:.75rem;color:#7685a0}
+.rep-table{width:100%;border-collapse:collapse;font-size:.88rem}
+.rep-table th,.rep-table td{padding:.6rem .7rem;border-bottom:1px solid var(--line);text-align:left;font-weight:600}
+.rep-table th{background:#eaf0fa;font-size:.72rem;text-transform:uppercase}
+.badge{display:inline-block;padding:.2rem .65rem;border-radius:50px;font-size:.72rem;font-weight:700}
+.badge-success{background:#d7efe6;color:#16875f}
+.badge-warning{background:#fbecd0;color:#a8680a}
+.badge-info{background:#e0e9fb;color:#2f6fd0}
+
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--navy);color:#fff;border-left:4px solid #34d3a6;padding:.8rem 1.3rem;border-radius:12px;box-shadow:0 18px 34px -12px rgba(15,33,66,.5);z-index:1000;transform:translateY(100px);opacity:0;transition:.25s}
+.toast.show{transform:none;opacity:1}.toast.error{border-left-color:#ff7a8c}
+
+@media (max-width:1150px){.grid-3{grid-template-columns:1fr 1fr}.grid-3>.card:nth-child(3){grid-column:1/-1}}
+@media (max-width:800px){
+  .grid-3{grid-template-columns:1fr}.grid-3>.card:nth-child(3){grid-column:auto}
+  .sidebar{left:.5rem;right:.5rem;transform:none;flex-wrap:wrap;justify-content:center;border-radius:18px;max-width:none}
+  .main{padding:7rem .8rem 1rem}.topbar{justify-content:center;text-align:center}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
-<script>
-/* ===== Login guard: admin = all pages, user = dashboard + report (+ home) only ===== */
-(function(){
-  var LOGIN='index.html', HOME='amm_home.html';
-  var USER_PAGES=['dashboard','report','amm_home'];
-  var s; try{ s=JSON.parse(sessionStorage.getItem('amm-auth')); }catch(e){}
-  var page=(location.pathname.split('/').pop()||'').replace(/\.html$/,'');
-  if(!s){ location.replace(LOGIN); return; }
-  if(s.role!=='admin' && USER_PAGES.indexOf(page)===-1){ location.replace(HOME); return; }
-  function logout(){ sessionStorage.removeItem('amm-auth'); location.replace(LOGIN); }
-  document.addEventListener('DOMContentLoaded',function(){
-    if(s.role!=='admin'){
-      document.querySelectorAll('a[href$="hzl_data-entry.html"], a[href$="hzl_alert.html"]').forEach(function(a){a.remove();});
-    }
-    var bar=document.createElement('div');
-    bar.style.cssText='position:fixed;top:12px;right:16px;z-index:999;display:flex;gap:.6rem;align-items:center;background:#fff;border:1px solid #d3ddee;border-radius:999px;padding:.3rem .4rem .3rem .9rem;font:600 .8rem system-ui,sans-serif;color:#0f2142;box-shadow:0 6px 16px -8px rgba(15,33,66,.3)';
-    bar.innerHTML='<span>'+s.name+' · '+s.role.toUpperCase()+'</span><button style="border:0;background:#0f2142;color:#fff;border-radius:999px;padding:.35rem .8rem;cursor:pointer;font:inherit">Logout</button>';
-    bar.querySelector('button').onclick=logout;
-    document.body.appendChild(bar);
-  });
-})();
-</script>
 </head>
 <body>
-<div class="app-layout">
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <div class="party-name"><span class="dot"></span> HZL</div>
-      <div class="subtitle">Hindustan Zinc Limited</div>
+
+<!-- Floating nav -->
+<aside class="sidebar">
+  <div class="party-name"><span class="dot"></span> HZL</div>
+  <nav class="sidebar-nav">
+    <button class="nav-item active" data-view="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</button>
+    <button class="nav-item" data-view="reports"><i class="fas fa-file-alt"></i> Reports</button>
+    <button class="nav-item" data-view="alerts"><i class="fas fa-bell"></i> Alerts</button>
+    <button class="nav-item" data-view="upload"><i class="fas fa-file-excel"></i> Upload Excel</button>
+    <button class="nav-item" data-view="log"><i class="fas fa-list"></i> Records Log</button>
+    <button class="nav-item" data-view="entry"><i class="fas fa-keyboard"></i> Data Entry</button>
+    <button class="nav-item" data-view="formulas"><i class="fas fa-calculator"></i> Formulas</button>
+  </nav>
+  <div class="user-chip"><span id="userLabel">Locked</span><button id="lockBtn"><i class="fas fa-lock"></i></button></div>
+</aside>
+
+<main class="main">
+
+<!-- ============ DASHBOARD VIEW ============ -->
+<section class="view active" id="view-dashboard">
+  <div class="topbar">
+    <div>
+      <h1>Performance Meter</h1>
+      <div class="period" id="periodLabel">AMM HZL</div>
     </div>
-    <nav class="sidebar-nav">
-      <a href="hzl_dashboard.html" class="nav-item active"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-      <a href="hzl_data-entry.html" class="nav-item"><i class="fas fa-keyboard"></i> Data Entry</a>
-      <a href="hzl_report.html" class="nav-item"><i class="fas fa-file-alt"></i> Reports</a>
-      <a href="hzl_alert.html" class="nav-item"><i class="fas fa-bell"></i> Alerts</a>
-    </nav>
-    <div class="sidebar-footer"><a href="amm_home.html" class="back-home"><i class="fas fa-arrow-left"></i> Back to Parties</a></div>
-  </aside>
+    <div class="topbar-actions">
+      <select id="periodPick" class="month-pick" aria-label="Period"></select>
+      <button class="btn btn-secondary" id="resetDemo"><i class="fas fa-rotate"></i> Reload from Database</button>
+      <button class="btn btn-primary" id="saveDemo"><i class="fas fa-save"></i> Save Overload</button>
+    </div>
+  </div>
 
-  <main class="main">
-    <div class="topbar">
-      <div>
-        <h1>Performance Meter</h1>
-        <div class="period" id="periodLabel">AMM HZL</div>
-      </div>
-      <div class="topbar-actions">
-        <select id="periodPick" class="month-pick" aria-label="Period"></select>
-        <button class="btn btn-secondary" id="resetDemo"><i class="fas fa-rotate"></i> Reload from Database</button>
-        <button class="btn btn-primary" id="saveDemo"><i class="fas fa-save"></i> Save Overload</button>
-      </div>
+  <div class="grid-3">
+    <div class="card c-key">
+      <div class="card-header"><h3><i class="fas fa-chart-line"></i> Key Performance</h3></div>
+      <div class="metric-row"><span class="metric-label">Per Day Required Rake for Target</span><input class="metric-value neg" id="perDayReqRake" readonly></div>
+      <div class="metric-row"><span class="metric-label">Performance on Rake Materialization</span><input class="metric-value" id="rakeMat" readonly></div>
+      <div class="metric-row"><span class="metric-label">Performance on GCV (SECL/CCL/MCL)</span><input class="metric-value" id="gcvPerf" readonly></div>
+      <div class="metric-row"><span class="metric-label">Position of GCV for Achieve Target</span><input class="metric-value" id="gcvPosTarget" readonly></div>
+      <div class="metric-row"><span class="metric-label">Position of GCV for SECL Rakes</span><input class="metric-value" id="gcvPosSecl" readonly></div>
+      <div class="metric-row"><span class="metric-label">Position of GCV for CCL Rakes</span><input class="metric-value" id="gcvPosCcl" readonly></div>
+      <div class="metric-row"><span class="metric-label">Position of GCV for MCL Rakes</span><input class="metric-value" id="gcvPosMcl" readonly></div>
     </div>
 
-    <!-- ===================== TOP ROW ===================== -->
-    <div class="grid-3">
-      <div class="card c-key">
-        <div class="card-header"><h3><i class="fas fa-chart-line"></i> Key Performance</h3></div>
-        <div class="metric-row">
-          <span class="metric-label">Per Day Required Rake for Target</span>
-          <input class="metric-value neg" id="perDayReqRake" value="-23">
-        </div>
-        <div class="metric-row">
-          <span class="metric-label">Performance on Rake Materialization</span>
-          <input class="metric-value accent" id="rakeMat" value="21%">
-        </div>
-        <div class="metric-row">
-          <span class="metric-label">Performance on GCV (SECL/CCL/MCL)</span>
-          <input class="metric-value accent" id="gcvPerf" value="3824">
-        </div>
-        <div class="metric-row">
-          <span class="metric-label">Position of GCV for Achieve Target</span>
-          <input class="metric-value" id="gcvPosTarget" value="362">
-        </div>
-        <div class="metric-row">
-          <span class="metric-label">Position of GCV for SECL Rakes</span>
-          <input class="metric-value" id="gcvPosSecl" value="361">
-        </div>
-        <div class="metric-row">
-          <span class="metric-label">Position of GCV for CCL Rakes</span>
-          <input class="metric-value" id="gcvPosCcl" value="0">
-        </div>
-        <div class="metric-row">
-          <span class="metric-label">Position of GCV for MCL Rakes</span>
-          <input class="metric-value" id="gcvPosMcl" value="0">
-        </div>
-      </div>
+    <div class="card c-area">
+      <div class="card-header"><h3><i class="fas fa-map-marker-alt"></i> Area Targets (Qtr)</h3></div>
+      <table class="area-table">
+        <thead><tr><th></th><th>SECL</th><th>CCL</th><th>MCL</th></tr></thead>
+        <tbody>
+          <tr><td class="row-label">Target of Qtr</td><td><input id="tgtSecl" readonly></td><td><input id="tgtCcl" readonly></td><td><input id="tgtMcl" readonly></td></tr>
+          <tr><td class="row-label">Rake Loaded Till</td><td><input id="loadSecl" readonly></td><td><input id="loadCcl" readonly></td><td><input id="loadMcl" readonly></td></tr>
+          <tr><td class="row-label">Balance Rake</td><td><input id="balSecl" readonly></td><td><input id="balCcl" readonly></td><td><input id="balMcl" readonly></td></tr>
+          <tr><td class="row-label">Asking Per Day</td><td><input id="askSecl" readonly></td><td><input id="askCcl" readonly></td><td><input id="askMcl" readonly></td></tr>
+        </tbody>
+      </table>
+    </div>
 
-      <div class="card c-area">
-        <div class="card-header"><h3><i class="fas fa-map-marker-alt"></i> Area Targets (Qtr)</h3></div>
-        <table class="area-table">
-          <thead>
-            <tr><th></th><th>SECL</th><th>CCL</th><th>MCL</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="row-label">Target of Qtr</td>
-              <td><input id="tgtSecl" value="44"></td>
-              <td><input id="tgtCcl" value="4"></td>
-              <td><input id="tgtMcl" value="10"></td>
-            </tr>
-            <tr>
-              <td class="row-label">Rake Loaded Till</td>
-              <td><input id="loadSecl" value="11"></td>
-              <td><input id="loadCcl" value="0"></td>
-              <td><input id="loadMcl" value="1"></td>
-            </tr>
-            <tr>
-              <td class="row-label">Balance Rake</td>
-              <td><input id="balSecl" value="33"></td>
-              <td><input id="balCcl" value="4"></td>
-              <td><input id="balMcl" value="9"></td>
-            </tr>
-            <tr>
-              <td class="row-label">Asking Per Day</td>
-              <td><input class="neg" id="askSecl" value="-16.50"></td>
-              <td><input class="neg" id="askCcl" value="-2.00"></td>
-              <td><input class="neg" id="askMcl" value="-4.50"></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+    <div class="card c-short">
+      <div class="card-header"><h3><i class="fas fa-balance-scale"></i> Shortage / Excess Coal</h3></div>
+      <div class="metric-row"><span class="metric-label">Avg Shrt / Excess (%)</span><input class="metric-value" id="avgShrt" readonly></div>
+      <div class="metric-row"><span class="metric-label">Shortage / Excess MT per rake</span><input class="metric-value" id="normQty" readonly></div>
+      <div class="sub-title">Avg. Wt. GCV &amp; Per GCV Cost</div>
+      <div class="dual-head"><span>Avg. Wt. GCV</span><span>Per GCV Cost</span></div>
+      <div class="metric-row"><span class="metric-label">(SECL)</span><div class="pair"><input class="metric-value" id="seclGcv" readonly><input class="metric-value" id="seclGcvCost" readonly></div></div>
+      <div class="metric-row"><span class="metric-label">(CCL)</span><div class="pair"><input class="metric-value" id="cclGcv" readonly><input class="metric-value" id="cclGcvCost" readonly></div></div>
+      <div class="metric-row"><span class="metric-label">(MCL)</span><div class="pair"><input class="metric-value" id="mclGcv" readonly><input class="metric-value" id="mclGcvCost" readonly></div></div>
+    </div>
+  </div>
 
-      <div class="card c-short">
-        <div class="card-header"><h3><i class="fas fa-balance-scale"></i> Shortage / Excess Coal</h3></div>
-        <div class="metric-row">
-          <span class="metric-label">Avg Shrt / Excess (%)</span>
-          <input class="metric-value neg" id="avgShrt" value="-3.71">
-        </div>
-        <div class="metric-row">
-          <span class="metric-label">Shortage / Excess MT per rake</span>
-          <input class="metric-value" id="normQty" value="-4.32">
-        </div>
-        <div class="sub-title">Avg. Wt. GCV &amp; Per GCV Cost</div>
-        <div class="dual-head gcv">
-          <span>Avg. Wt. GCV</span>
-          <span>Per GCV Cost</span>
-        </div>
-        <div class="metric-row">
-          <span class="metric-label">(SECL)</span>
-          <div class="pair">
-            <input class="metric-value" id="seclGcv" value="3822">
-            <input class="metric-value" id="seclGcvCost" value="₹ 0.381">
-          </div>
-        </div>
-        <div class="metric-row">
-          <span class="metric-label">(CCL)</span>
-          <div class="pair">
-            <input class="metric-value" id="cclGcv" value="0">
-            <input class="metric-value" id="cclGcvCost" value="₹ 0.000">
-          </div>
-        </div>
-        <div class="metric-row">
-          <span class="metric-label">(MCL)</span>
-          <div class="pair">
-            <input class="metric-value" id="mclGcv" value="0">
-            <input class="metric-value" id="mclGcvCost" value="₹ 0.000">
-          </div>
-        </div>
+  <div class="grid-3">
+    <div class="card c-bill">
+      <div class="card-header"><h3><i class="fas fa-rupee-sign"></i> Billing Performance</h3></div>
+      <div class="dual-head"><span>Billing</span><span>Per MT</span></div>
+      <div class="metric-row"><span class="metric-label">Performance on Quantity Reco</span><div class="pair"><input class="metric-value" id="billQty" readonly><input class="metric-value" id="billQtyMt" readonly></div></div>
+      <div class="metric-row"><span class="metric-label">Performance on GCV Reco</span><div class="pair"><input class="metric-value" id="billGcv" readonly><input class="metric-value" id="billGcvMt" readonly></div></div>
+      <div class="metric-row"><span class="metric-label">Service Charge SECL</span><div class="pair"><input class="metric-value" id="svcSecl" readonly><input class="metric-value" id="svcSeclMt" readonly></div></div>
+      <div class="metric-row"><span class="metric-label">Service Charge CCL</span><div class="pair"><input class="metric-value" id="svcCcl" readonly><input class="metric-value" id="svcCclMt" readonly></div></div>
+      <div class="metric-row"><span class="metric-label">Service Charge MCL</span><div class="pair"><input class="metric-value" id="svcMcl" readonly><input class="metric-value" id="svcMclMt" readonly></div></div>
+      <div class="metric-row"><span class="metric-label"><span class="pctTxt">5</span>% of Total Railway Penalty</span><div class="pair"><input class="metric-value" id="pen5" readonly><input class="metric-value" id="pen5Mt" readonly></div></div>
+      <div class="metric-row total-row"><span class="metric-label">TOTAL BILLING</span><div class="pair"><input class="metric-value" id="totalBill" readonly><input class="metric-value" id="totalBillMt" readonly></div></div>
+      <div class="metric-row"><span class="metric-label">Expected Billing of the Qtr</span><input class="metric-value wide" id="expBill" readonly></div>
+    </div>
+
+    <div class="card c-rake">
+      <div class="card-header"><h3><i class="fas fa-train"></i> Rake Performance</h3></div>
+      <table class="area-table">
+        <thead><tr><th></th><th>Achieve</th><th>Target</th></tr></thead>
+        <tbody>
+          <tr><td class="row-label">Per Day Rakes</td><td><input id="pdRakeAch" readonly></td><td><input id="pdRakeTgt" readonly></td></tr>
+          <tr><td class="row-label">Per Day Quantity</td><td><input id="pdQtyAch" readonly></td><td><input id="pdQtyTgt" readonly></td></tr>
+          <tr><td class="row-label">Per GCV Cost</td><td><input id="pdGcvAch" readonly></td><td><input id="pdGcvTgt" readonly></td></tr>
+        </tbody>
+      </table>
+      <div class="avg-grid">
+        <div class="highlight-box"><div class="label">Avg. CH.Wt.</div><input class="metric-value" id="avgChWt" readonly></div>
+        <div class="highlight-box"><div class="label">Avg. RR.Wt.</div><input class="metric-value" id="avgRrWt" readonly></div>
+        <div class="highlight-box"><div class="label">Avg. Plant Rec. Wt.</div><input class="metric-value" id="avgPlantWt" readonly></div>
+        <div class="highlight-box"><div class="label">Average GCV</div><input class="metric-value" id="avgGcv" readonly></div>
+        <div class="highlight-box hb-steel"><div class="label">Total RR Weight</div><input class="metric-value" id="totalRrWt" readonly></div>
+        <div class="highlight-box hb-lav"><div class="label">Total Plant Receive</div><input class="metric-value" id="totalPlantRec" readonly></div>
       </div>
     </div>
 
-    <!-- ===================== BILLING + RAKE PERF + PENALTIES ===================== -->
-    <div class="grid-3">
-      <div class="card c-bill">
-        <div class="card-header"><h3><i class="fas fa-rupee-sign"></i> Billing Performance</h3></div>
-        <div class="dual-head bill">
-          <span>Billing</span>
-          <span>Per MT</span>
-        </div>
-        <div class="metric-row">
-          <span class="metric-label">Performance on Quantity Reco</span>
-          <div class="pair">
-            <input class="metric-value" id="billQty" value="₹ 539,365">
-            <input class="metric-value" id="billQtyMt" value="₹ 5.00">
-          </div>
-        </div>
-        <div class="metric-row">
-          <span class="metric-label">Performance on GCV Reco</span>
-          <div class="pair">
-            <input class="metric-value" id="billGcv" value="₹ 1,090,233">
-            <input class="metric-value" id="billGcvMt" value="₹ 22.55">
-          </div>
-        </div>
-        <div class="metric-row">
-          <span class="metric-label">Service Charge SECL</span>
-          <div class="pair">
-            <input class="metric-value" id="svcSecl" value="₹ 1,063,507">
-            <input class="metric-value" id="svcSeclMt" value="₹ 24.00">
-          </div>
-        </div>
-        <div class="metric-row">
-          <span class="metric-label">Service Charge CCL</span>
-          <div class="pair">
-            <input class="metric-value" id="svcCcl" value="₹ 0">
-            <input class="metric-value" id="svcCclMt" value="">
-          </div>
-        </div>
-        <div class="metric-row">
-          <span class="metric-label">Service Charge MCL</span>
-          <div class="pair">
-            <input class="metric-value" id="svcMcl" value="₹ 96,869">
-            <input class="metric-value" id="svcMclMt" value="₹ 24.00">
-          </div>
-        </div>
-        <div class="metric-row">
-          <span class="metric-label">5% of Total Railway Penalty</span>
-          <div class="pair">
-            <input class="metric-value neg" id="pen5" value="-₹ 7,624">
-            <input class="metric-value neg" id="pen5Mt" value="-₹ 0.17">
-          </div>
-        </div>
-        <div class="metric-row total-row">
-          <span class="metric-label">TOTAL BILLING</span>
-          <div class="pair">
-            <input class="metric-value accent" id="totalBill" value="₹ 2,782,350">
-            <input class="metric-value accent" id="totalBillMt" value="₹ 51.38">
-          </div>
-        </div>
-        <div class="metric-row">
-          <span class="metric-label">Expected Billing of the Qtr</span>
-          <input class="metric-value wide" id="expBill" value="₹ 4,018,950">
-        </div>
-      </div>
-
-      <div class="card c-rake">
-        <div class="card-header"><h3><i class="fas fa-train"></i> Rake Performance</h3></div>
-        <table class="area-table">
-          <thead>
-            <tr><th></th><th>Achieve</th><th>Target</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="row-label">Per Day Rakes</td>
-              <td><input id="pdRakeAch" value="0"></td>
-              <td><input class="neg" id="pdRakeTgt" value="-23"></td>
-            </tr>
-            <tr>
-              <td class="row-label">Per Day Quantity</td>
-              <td><input class="accent" id="pdQtyAch" value="2026"></td>
-              <td><input id="pdQtyTgt" value="4000"></td>
-            </tr>
-            <tr>
-              <td class="row-label">Per GCV Cost</td>
-              <td><input class="accent" id="pdGcvAch" value="₹ 0.381"></td>
-              <td><input id="pdGcvTgt" value="₹ 0.00"></td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div class="avg-grid">
-          <div class="highlight-box">
-            <div class="label">Avg. CH.Wt.</div>
-            <input class="metric-value accent" id="avgChWt" value="4053">
-          </div>
-          <div class="highlight-box">
-            <div class="label">Avg. RR.Wt.</div>
-            <input class="metric-value accent" id="avgRrWt" value="4052">
-          </div>
-          <div class="highlight-box">
-            <div class="label">Avg. Plant Rec. Wt.</div>
-            <input class="metric-value accent" id="avgPlantWt" value="4050">
-          </div>
-          <div class="highlight-box">
-            <div class="label">Average GCV</div>
-            <input class="metric-value accent" id="avgGcv" value="3824">
-          </div>
-          <div class="highlight-box hb-steel">
-            <div class="label">Total RR Weight</div>
-            <input class="metric-value" id="totalRrWt" value="48,349">
-          </div>
-          <div class="highlight-box hb-lav">
-            <div class="label">Total Plant Receive</div>
-            <input class="metric-value" id="totalPlantRec" value="48,300">
-          </div>
-        </div>
-      </div>
-
-      <div class="card c-pen">
-        <div class="card-header"><h3><i class="fas fa-exclamation-triangle"></i> Railway Freight Penalties</h3></div>
-        <div class="dual-head pen">
-          <span>Amount</span>
-          <span>Per MT</span>
-        </div>
-        <div class="metric-row">
-          <span class="metric-label">Underload Charge</span>
-          <div class="pair">
-            <input class="metric-value" id="ulChg" value="₹ 2,100">
-            <input class="metric-value" id="ulChgMt" value="0.05">
-          </div>
-        </div>
-        <div class="metric-row">
-          <span class="metric-label">Overload Charge</span>
-          <div class="pair">
-            <input class="metric-value" id="olChg" value="₹ 0">
-            <input class="metric-value" id="olChgMt" value="0.00">
-          </div>
-        </div>
-        <div class="metric-row">
-          <span class="metric-label">Punitive Sum</span>
-          <div class="pair">
-            <input class="metric-value" id="punSum" value="₹ 57,732">
-            <input class="metric-value" id="punSumMt" value="1.31">
-          </div>
-        </div>
-        <div class="metric-row">
-          <span class="metric-label">EHBC / FAUC / TC</span>
-          <div class="pair">
-            <input class="metric-value" id="ehbc" value="₹ 0">
-            <input class="metric-value" id="ehbcMt" value="0.00">
-          </div>
-        </div>
-        <div class="metric-row">
-          <span class="metric-label">ENHC Charges</span>
-          <div class="pair">
-            <input class="metric-value" id="enhc" value="₹ 92,640">
-            <input class="metric-value" id="enhcMt" value="2.10">
-          </div>
-        </div>
-        <div class="metric-row">
-          <span class="metric-label">Dead Freight</span>
-          <div class="pair">
-            <input class="metric-value" id="deadFr" value="₹ 0">
-            <input class="metric-value" id="deadFrMt" value="0.00">
-          </div>
-        </div>
-        <div class="metric-row total-row">
-          <span class="metric-label">TOTAL PENALTY</span>
-          <div class="pair">
-            <input class="metric-value accent" id="totalPen" value="₹ 152,472">
-            <input class="metric-value accent" id="totalPenMt" value="₹ 3.45">
-          </div>
-        </div>
-        <div class="metric-row">
-          <span class="metric-label">5% of Total Penalty</span>
-          <div class="pair">
-            <input class="metric-value" id="pen5b" value="₹ 7,623.59">
-            <input class="metric-value" id="pen5bMt" value="₹ 0.17">
-          </div>
-        </div>
-      </div>
+    <div class="card c-pen">
+      <div class="card-header"><h3><i class="fas fa-exclamation-triangle"></i> Railway Freight Penalties</h3></div>
+      <div class="dual-head"><span>Amount</span><span>Per MT</span></div>
+      <div class="metric-row"><span class="metric-label">Underload Charge</span><div class="pair"><input class="metric-value" id="ulChg" readonly><input class="metric-value" id="ulChgMt" readonly></div></div>
+      <div class="metric-row"><span class="metric-label">Overload Charge</span><div class="pair"><input class="metric-value" id="olChg"><input class="metric-value" id="olChgMt" readonly></div></div>
+      <div class="metric-row"><span class="metric-label">Punitive Sum</span><div class="pair"><input class="metric-value" id="punSum" readonly><input class="metric-value" id="punSumMt" readonly></div></div>
+      <div class="metric-row"><span class="metric-label">EHBC / FAUC / TC</span><div class="pair"><input class="metric-value" id="ehbc" readonly><input class="metric-value" id="ehbcMt" readonly></div></div>
+      <div class="metric-row"><span class="metric-label">ENHC Charges</span><div class="pair"><input class="metric-value" id="enhc" readonly><input class="metric-value" id="enhcMt" readonly></div></div>
+      <div class="metric-row"><span class="metric-label">Dead Freight</span><div class="pair"><input class="metric-value" id="deadFr" readonly><input class="metric-value" id="deadFrMt" readonly></div></div>
+      <div class="metric-row total-row"><span class="metric-label">TOTAL PENALTY</span><div class="pair"><input class="metric-value" id="totalPen" readonly><input class="metric-value" id="totalPenMt" readonly></div></div>
+      <div class="metric-row"><span class="metric-label"><span class="pctTxt">5</span>% of Total Penalty</span><div class="pair"><input class="metric-value" id="pen5b" readonly><input class="metric-value" id="pen5bMt" readonly></div></div>
     </div>
+  </div>
 
-    <!-- ===================== MINES TABLE ===================== -->
-    <div class="card mines-card" style="margin-bottom:1rem">
-      <div class="card-header">
-        <h3><i class="fas fa-industry"></i> Mines Wise Performance</h3>
-      </div>
-      <div class="mines-wrap">
-        <table class="mines-table">
-          <thead>
-            <tr>
-              <th>MINES</th><th>Govinda</th><th>KMKA</th><th>NKCR</th><th>OKSR</th><th>GPCK</th><th>JRGR</th><th>DIPKA</th><th>SLOG</th><th>CCL</th><th>MCL</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="row-label">GCV (ARB)</td>
-              <td><input id="m_gcv_gov" value="0"></td>
-              <td><input id="m_gcv_kmka" value="0"></td>
-              <td><input id="m_gcv_nkcr" value="0"></td>
-              <td><input id="m_gcv_oksr" value="0"></td>
-              <td><input id="m_gcv_gpck" value="0"></td>
-              <td><input id="m_gcv_jrgr" value="3947" class="pos"></td>
-              <td><input id="m_gcv_dipka" value="0"></td>
-              <td><input id="m_gcv_slog" value="0"></td>
-              <td><input id="m_gcv_ccl" value="0"></td>
-              <td><input id="m_gcv_mcl" value="#DIV/0!"></td>
-            </tr>
-            <tr>
-              <td class="row-label">Quality Diff. ADB/ARB</td>
-              <td><input id="m_diff_gov" value="0"></td>
-              <td><input id="m_diff_kmka" value="0"></td>
-              <td><input id="m_diff_nkcr" value="0"></td>
-              <td><input id="m_diff_oksr" value="0"></td>
-              <td><input id="m_diff_gpck" value="0"></td>
-              <td><input id="m_diff_jrgr" value="392"></td>
-              <td><input id="m_diff_dipka" value="0"></td>
-              <td><input id="m_diff_slog" value="0"></td>
-              <td><input id="m_diff_ccl" value="0"></td>
-              <td><input id="m_diff_mcl" value="#DIV/0!"></td>
-            </tr>
-            <tr>
-              <td class="row-label">Performance on GCV Mines Wise</td>
-              <td><input id="m_perf_gov" value="₹ 0"></td>
-              <td><input id="m_perf_kmka" value="-₹ 73,856" class="neg"></td>
-              <td><input id="m_perf_nkcr" value="₹ 0"></td>
-              <td><input id="m_perf_oksr" value="₹ 0"></td>
-              <td><input id="m_perf_gpck" value="₹ 0"></td>
-              <td><input id="m_perf_jrgr" value="₹ 1,164,089" class="pos"></td>
-              <td><input id="m_perf_dipka" value="₹ 0"></td>
-              <td><input id="m_perf_slog" value="₹ 0"></td>
-              <td><input id="m_perf_ccl" value="₹ 0"></td>
-              <td><input id="m_perf_mcl" value="₹ 0"></td>
-            </tr>
-            <tr>
-              <td class="row-label">Cost Rs. GCV Per Paisa</td>
-              <td><input id="m_cost_gov" value="₹ 0.00"></td>
-              <td><input id="m_cost_kmka" value="₹ 0.00"></td>
-              <td><input id="m_cost_nkcr" value="₹ 0.00"></td>
-              <td><input id="m_cost_oksr" value="₹ 0.00"></td>
-              <td><input id="m_cost_gpck" value="₹ 0.00"></td>
-              <td><input id="m_cost_jrgr" value="₹ 0.52"></td>
-              <td><input id="m_cost_dipka" value="₹ 0.00"></td>
-              <td><input id="m_cost_slog" value="₹ 0.00"></td>
-              <td><input id="m_cost_ccl" value="₹ 0.00"></td>
-              <td><input id="m_cost_mcl" value="₹ 0.00"></td>
-            </tr>
-            <tr>
-              <td class="row-label">Shortage</td>
-              <td><input id="m_shrt_gov" value="0"></td>
-              <td><input id="m_shrt_kmka" value="0"></td>
-              <td><input id="m_shrt_nkcr" value="0"></td>
-              <td><input id="m_shrt_oksr" value="0"></td>
-              <td><input id="m_shrt_gpck" value="0"></td>
-              <td><input id="m_shrt_jrgr" value="-1" class="neg"></td>
-              <td><input id="m_shrt_dipka" value="0"></td>
-              <td><input id="m_shrt_slog" value="0"></td>
-              <td><input id="m_shrt_ccl" value="0"></td>
-              <td><input id="m_shrt_mcl" value="0"></td>
-            </tr>
-            <tr>
-              <td class="row-label">Punitive Sum (POL1/POL2/POLA..)</td>
-              <td><input id="m_pun_gov" value="₹ 0.00"></td>
-              <td><input id="m_pun_kmka" value="₹ 16,850.34" class="neg"></td>
-              <td><input id="m_pun_nkcr" value="₹ 0.00"></td>
-              <td><input id="m_pun_oksr" value="₹ 0"></td>
-              <td><input id="m_pun_gpck" value="₹ 0.00"></td>
-              <td><input id="m_pun_jrgr" value="₹ 32,181" class="neg"></td>
-              <td><input id="m_pun_dipka" value="₹ 0"></td>
-              <td><input id="m_pun_slog" value="₹ 0"></td>
-              <td><input id="m_pun_ccl" value="₹ 0.00"></td>
-              <td><input id="m_pun_mcl" value="₹ 0.00"></td>
-            </tr>
-            <tr>
-              <td class="row-label">EHBC / FAUC / SD / TC</td>
-              <td><input id="m_ehbc_gov" value="₹ 0.00"></td>
-              <td><input id="m_ehbc_kmka" value="₹ 0.00"></td>
-              <td><input id="m_ehbc_nkcr" value="₹ 0.00"></td>
-              <td><input id="m_ehbc_oksr" value="₹ 0"></td>
-              <td><input id="m_ehbc_gpck" value="₹ 0.00"></td>
-              <td><input id="m_ehbc_jrgr" value="₹ 0"></td>
-              <td><input id="m_ehbc_dipka" value="₹ 0.00"></td>
-              <td><input id="m_ehbc_slog" value="₹ 0"></td>
-              <td><input id="m_ehbc_ccl" value="₹ 0.00"></td>
-              <td><input id="m_ehbc_mcl" value="₹ 0.00"></td>
-            </tr>
-            <tr>
-              <td class="row-label">ENHC Charges</td>
-              <td><input id="m_enhc_gov" value="₹ 0.00"></td>
-              <td><input id="m_enhc_kmka" value="₹ 0.00"></td>
-              <td><input id="m_enhc_nkcr" value="₹ 0.00"></td>
-              <td><input id="m_enhc_oksr" value="₹ 0"></td>
-              <td><input id="m_enhc_gpck" value="₹ 0.00"></td>
-              <td><input id="m_enhc_jrgr" value="₹ 61,760" class="neg"></td>
-              <td><input id="m_enhc_dipka" value="₹ 0.00"></td>
-              <td><input id="m_enhc_slog" value="₹ 0"></td>
-              <td><input id="m_enhc_ccl" value="₹ 0.00"></td>
-              <td><input id="m_enhc_mcl" value="₹ 0.00"></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+  <div class="card mines-card">
+    <div class="card-header"><h3><i class="fas fa-industry"></i> Mines Wise Performance</h3></div>
+    <div class="mines-wrap">
+      <table class="mines-table">
+        <thead><tr><th>MINES</th><th>Govinda</th><th>KMKA</th><th>NKCR</th><th>OKSR</th><th>GPCK</th><th>JRGR</th><th>DIPKA</th><th>SLOG</th><th>CCL</th><th>MCL</th></tr></thead>
+        <tbody>
+          <tr><td class="row-label">GCV (ARB)</td><td><input id="m_gcv_gov" readonly></td><td><input id="m_gcv_kmka" readonly></td><td><input id="m_gcv_nkcr" readonly></td><td><input id="m_gcv_oksr" readonly></td><td><input id="m_gcv_gpck" readonly></td><td><input id="m_gcv_jrgr" readonly></td><td><input id="m_gcv_dipka" readonly></td><td><input id="m_gcv_slog" readonly></td><td><input id="m_gcv_ccl" readonly></td><td><input id="m_gcv_mcl" readonly></td></tr>
+          <tr><td class="row-label">Quality Diff. ADB/ARB</td><td><input id="m_diff_gov" readonly></td><td><input id="m_diff_kmka" readonly></td><td><input id="m_diff_nkcr" readonly></td><td><input id="m_diff_oksr" readonly></td><td><input id="m_diff_gpck" readonly></td><td><input id="m_diff_jrgr" readonly></td><td><input id="m_diff_dipka" readonly></td><td><input id="m_diff_slog" readonly></td><td><input id="m_diff_ccl" readonly></td><td><input id="m_diff_mcl" readonly></td></tr>
+          <tr><td class="row-label">Performance on GCV Mines Wise</td><td><input id="m_perf_gov" readonly></td><td><input id="m_perf_kmka" readonly></td><td><input id="m_perf_nkcr" readonly></td><td><input id="m_perf_oksr" readonly></td><td><input id="m_perf_gpck" readonly></td><td><input id="m_perf_jrgr" readonly></td><td><input id="m_perf_dipka" readonly></td><td><input id="m_perf_slog" readonly></td><td><input id="m_perf_ccl" readonly></td><td><input id="m_perf_mcl" readonly></td></tr>
+          <tr><td class="row-label">Cost Rs. GCV Per Paisa</td><td><input id="m_cost_gov" readonly></td><td><input id="m_cost_kmka" readonly></td><td><input id="m_cost_nkcr" readonly></td><td><input id="m_cost_oksr" readonly></td><td><input id="m_cost_gpck" readonly></td><td><input id="m_cost_jrgr" readonly></td><td><input id="m_cost_dipka" readonly></td><td><input id="m_cost_slog" readonly></td><td><input id="m_cost_ccl" readonly></td><td><input id="m_cost_mcl" readonly></td></tr>
+          <tr><td class="row-label">Shortage</td><td><input id="m_shrt_gov" readonly></td><td><input id="m_shrt_kmka" readonly></td><td><input id="m_shrt_nkcr" readonly></td><td><input id="m_shrt_oksr" readonly></td><td><input id="m_shrt_gpck" readonly></td><td><input id="m_shrt_jrgr" readonly></td><td><input id="m_shrt_dipka" readonly></td><td><input id="m_shrt_slog" readonly></td><td><input id="m_shrt_ccl" readonly></td><td><input id="m_shrt_mcl" readonly></td></tr>
+          <tr><td class="row-label">Punitive Sum (POL1/POL2/POLA..)</td><td><input id="m_pun_gov" readonly></td><td><input id="m_pun_kmka" readonly></td><td><input id="m_pun_nkcr" readonly></td><td><input id="m_pun_oksr" readonly></td><td><input id="m_pun_gpck" readonly></td><td><input id="m_pun_jrgr" readonly></td><td><input id="m_pun_dipka" readonly></td><td><input id="m_pun_slog" readonly></td><td><input id="m_pun_ccl" readonly></td><td><input id="m_pun_mcl" readonly></td></tr>
+          <tr><td class="row-label">EHBC / FAUC / SD / TC</td><td><input id="m_ehbc_gov" readonly></td><td><input id="m_ehbc_kmka" readonly></td><td><input id="m_ehbc_nkcr" readonly></td><td><input id="m_ehbc_oksr" readonly></td><td><input id="m_ehbc_gpck" readonly></td><td><input id="m_ehbc_jrgr" readonly></td><td><input id="m_ehbc_dipka" readonly></td><td><input id="m_ehbc_slog" readonly></td><td><input id="m_ehbc_ccl" readonly></td><td><input id="m_ehbc_mcl" readonly></td></tr>
+          <tr><td class="row-label">ENHC Charges</td><td><input id="m_enhc_gov" readonly></td><td><input id="m_enhc_kmka" readonly></td><td><input id="m_enhc_nkcr" readonly></td><td><input id="m_enhc_oksr" readonly></td><td><input id="m_enhc_gpck" readonly></td><td><input id="m_enhc_jrgr" readonly></td><td><input id="m_enhc_dipka" readonly></td><td><input id="m_enhc_slog" readonly></td><td><input id="m_enhc_ccl" readonly></td><td><input id="m_enhc_mcl" readonly></td></tr>
+        </tbody>
+      </table>
     </div>
+  </div>
 
-    <!-- ===================== MONTHLY & QUARTERLY TABLE ===================== -->
-    <div class="card c-short trend-card" style="margin-bottom:1.2rem">
-      <div class="card-header"><h3><i class="fas fa-calendar-alt"></i> Monthly &amp; Quarterly Performance</h3></div>
-      <div class="trend-wrap">
-        <table class="trend-table">
-          <thead>
-            <tr>
-              <th>Month</th><th>Rs. Per GCV Cost</th><th>Per Day Qty.</th><th>WT. GCV</th>
-              <th>Quarter</th><th>Quarterly Avg. Rs./- GCV</th><th>Quarterly Billing</th>
-              <th>Quarterly Avg. Qty.</th><th>AVG. WT. GCV</th><th>%</th>
-            </tr>
-          </thead>
-          <tbody id="trendBody"></tbody>
-        </table>
-      </div>
+  <div class="card trend-card">
+    <div class="card-header"><h3><i class="fas fa-calendar-alt"></i> Monthly &amp; Quarterly Performance</h3></div>
+    <div class="trend-wrap">
+      <table class="trend-table">
+        <thead><tr><th>Month</th><th>Rs. Per GCV Cost</th><th>Per Day Qty.</th><th>WT. GCV</th><th>Quarter</th><th>Quarterly Avg. Rs./- GCV</th><th>Quarterly Billing</th><th>Quarterly Avg. Qty.</th><th>AVG. WT. GCV</th><th>%</th></tr></thead>
+        <tbody id="trendBody"></tbody>
+      </table>
     </div>
+  </div>
 
-    <div class="report-footer">
-      Performance Report updated upto <strong id="reportUpdatedUpto">02 October 2026</strong>
+  <div class="report-footer">Performance Report updated upto <strong id="reportUpdatedUpto"></strong></div>
+</section>
+
+<!-- ============ REPORTS VIEW ============ -->
+<section class="view" id="view-reports">
+  <div class="topbar"><div><h1>Reports</h1><div class="period">Generate, view &amp; download operational reports</div></div></div>
+  <div class="panel">
+    <table class="rep-table">
+      <thead><tr><th>Report Name</th><th>Type</th><th>Period</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Monthly Production Summary</td><td>Production</td><td>Sep 2026</td><td><span class="badge badge-success">Ready</span></td></tr>
+        <tr><td>Zinc Grade Quality Report</td><td>Quality</td><td>Sep 2026</td><td><span class="badge badge-success">Ready</span></td></tr>
+        <tr><td>Energy Efficiency Analysis</td><td>Energy</td><td>Q3 2026</td><td><span class="badge badge-success">Ready</span></td></tr>
+        <tr><td>Weekly Compliance Check</td><td>Compliance</td><td>W39 2026</td><td><span class="badge badge-warning">Draft</span></td></tr>
+        <tr><td>Shift-wise Output Log</td><td>Production</td><td>02 Oct 2026</td><td><span class="badge badge-info">Processing</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ ALERTS VIEW ============ -->
+<section class="view" id="view-alerts">
+  <div class="topbar"><div><h1>Alerts</h1><div class="period">Real-time monitoring &amp; notifications</div></div></div>
+  <div class="stats-grid">
+    <div class="stat-card" style="border-top-color:#d1344a"><div class="label">Critical</div><div class="value" style="color:#d1344a">2</div></div>
+    <div class="stat-card" style="border-top-color:#c27a0a"><div class="label">Warning</div><div class="value" style="color:#c27a0a">3</div></div>
+    <div class="stat-card" style="border-top-color:#2f6fd0"><div class="label">Info</div><div class="value" style="color:#2f6fd0">2</div></div>
+    <div class="stat-card" style="border-top-color:#16875f"><div class="label">Resolved Today</div><div class="value" style="color:#16875f">5</div></div>
+  </div>
+  <div class="panel">
+    <h2>Active Alerts</h2>
+    <div class="alert-item critical"><div><h4>High Temperature in Roaster 3</h4><p>Temperature exceeded threshold (920°C). Immediate inspection required.</p><div class="alert-time">Today · 07:55 AM · Power Block</div></div></div>
+    <div class="alert-item critical"><div><h4>Energy Spike Detected</h4><p>Unexpected 18% increase in power draw at Smelter Unit A over last 30 mins.</p><div class="alert-time">Today · 07:55 AM · Smelter Unit A</div></div></div>
+    <div class="alert-item warning"><div><h4>Scheduled Maintenance Overdue</h4><p>Preventive maintenance for Conveyor Belt CB-12 was due yesterday.</p><div class="alert-time">Yesterday · 16:00 · Material Handling</div></div></div>
+    <div class="alert-item warning"><div><h4>Sample Pending Lab Analysis</h4><p>3 quality samples from Batch HZL-2839 awaiting results (SLA: 4 hrs remaining).</p><div class="alert-time">Today · 06:30 AM · Lab 2</div></div></div>
+    <div class="alert-item success"><div><h4>Batch #HZL-2841 Completed Successfully</h4><p>All quality parameters within specification. Output: 248.3 MT.</p><div class="alert-time">Today · 10:42 AM · Smelter Unit A</div></div></div>
+  </div>
+</section>
+
+<!-- ============ PASSWORD PAGE (shown before Upload, Log, Entry, Formulas) ============ -->
+<section class="view" id="view-lock">
+  <div class="lock-row">
+    <button class="lock-back" id="lockBack"><i class="fas fa-arrow-left"></i> Back to Dashboard</button>
+    <div class="panel lock-card">
+      <h2 style="justify-content:center"><i class="fas fa-lock"></i> <span id="lockTitle">Enter password</span></h2>
+      <p class="muted">Enter the password to continue.</p>
+      <input type="password" id="pwdInput" placeholder="••••" autocomplete="off">
+      <button class="btn-go" id="unlockBtn"><i class="fas fa-unlock"></i> Unlock</button>
+      <div class="status err" id="pwdErr"></div>
     </div>
-  </main>
-</div>
+  </div>
+</section>
+
+<!-- ============ UPLOAD EXCEL VIEW ============ -->
+<section class="view" id="view-upload">
+  <div class="topbar"><div><h1>Upload Excel</h1><div class="period">Import rake records into the database</div></div></div>
+  <div class="panel">
+    <h2><i class="fas fa-file-excel"></i> Choose workbook</h2>
+    <div class="drop" id="drop"><i class="fas fa-cloud-arrow-up"></i><p>Drop an .xlsx / .xls / .csv file here or click to browse</p><input type="file" id="fileInput" accept=".xlsx,.xls,.csv" hidden></div>
+    <div class="form-group" style="margin-top:.8rem;max-width:320px">
+      <label for="sheetPick">Sheet</label>
+      <select id="sheetPick" class="field"></select>
+    </div>
+    <div class="status" id="uploadStatus"></div>
+    <div class="mapping" id="mapping"></div>
+  </div>
+  <div class="panel hidden" id="previewPanel">
+    <h2><i class="fas fa-eye"></i> Preview (<span id="previewCount">0</span> rows)</h2>
+    <div class="tbl-wrap"><table class="tbl" id="previewTbl"></table></div>
+    <div class="form-actions">
+      <button class="btn-go" id="importBtn"><i class="fas fa-database"></i> Save to database</button>
+      <button class="btn-soft" id="cancelImport">Cancel</button>
+      <span class="muted" id="importNote"></span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ RECORDS LOG VIEW ============ -->
+<section class="view" id="view-log">
+  <div class="topbar"><div><h1>Records Log</h1><div class="period">Edit or delete saved rake records</div></div></div>
+  <div class="panel">
+    <div class="toolbar">
+      <input class="search" id="logSearch" placeholder="Search by RR no, siding, area, FSA...">
+      <button class="btn-soft" id="logReload"><i class="fas fa-rotate"></i> Reload</button>
+      <span class="muted" id="logCount"></span>
+    </div>
+    <div class="tbl-wrap"><table class="tbl" id="logTbl"></table></div>
+    <div class="status" id="logStatus"></div>
+  </div>
+</section>
+
+<!-- ============ DATA ENTRY VIEW ============ -->
+<section class="view" id="view-entry">
+  <div class="topbar"><div><h1>Data Entry</h1><div class="period">Record coal rake loading, receipt, freight &amp; cost data</div></div></div>
+  <div class="panel">
+    <h2><i class="fas fa-plus-circle"></i> New Rake Record</h2>
+    <form id="entryForm" novalidate>
+      <div id="formSections"></div>
+      <div class="form-actions">
+        <button type="submit" class="btn-go"><i class="fas fa-save"></i> Save Record</button>
+        <button type="button" class="btn-soft" id="clearForm">Clear Form</button>
+      </div>
+    </form>
+  </div>
+  <div class="panel">
+    <h2><i class="fas fa-bullseye"></i> <span id="rakeTitle">Target Rake</span></h2>
+    <div class="toolbar">
+      <select id="rakeQuarter" class="field" style="max-width:200px">
+        <option value="Q1">Q1 (Apr–Jun)</option><option value="Q2">Q2 (Jul–Sep)</option>
+        <option value="Q3">Q3 (Oct–Dec)</option><option value="Q4">Q4 (Jan–Mar)</option>
+      </select>
+      <input type="date" id="rakeReportDate" class="field" style="max-width:200px" aria-label="Report making date">
+      <button class="btn-soft" id="carryFwd"><i class="fas fa-forward"></i> Carry Forward</button>
+    </div>
+    <div class="tbl-wrap" style="max-height:none">
+      <table class="tbl">
+        <thead><tr><th>SL. No.</th><th>Area</th><th>Qtr Target</th><th>Loaded Till</th><th>Balance Rake</th><th>Asking Per Day</th><th>Asking (%)</th></tr></thead>
+        <tbody id="rakeBody"></tbody>
+        <tfoot><tr><td colspan="2">Total</td><td id="tTarget">0</td><td id="tLoaded">0</td><td id="tBalance">0</td><td id="tAskingDay">0</td><td id="tAskingPct">0</td></tr></tfoot>
+      </table>
+    </div>
+    <div class="form-grid" style="margin-top:1rem">
+      <div class="form-group"><label for="svcRate">Fixed Service Charge (₹ / MT)</label><input type="number" id="svcRate" min="0" step="0.01" placeholder="e.g. 24"></div>
+      <div class="form-group"><label for="gcvCostTarget">Per GCV Cost Target (₹)</label><input type="number" id="gcvCostTarget" min="0" step="0.001" placeholder="e.g. 0.400"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FORMULAS VIEW ============ -->
+<section class="view" id="view-formulas">
+  <div class="topbar">
+    <div><h1>Formulas</h1><div class="period">Change the calculation rules here. The dashboard uses the new values as soon as you save.</div></div>
+    <div class="topbar-actions"><button class="btn btn-secondary" id="saveFormulas"><i class="fas fa-save"></i> Save Formulas</button></div>
+  </div>
+  <div class="panel">
+    <h2><i class="fas fa-scale-balanced"></i> Shortage / Excess Rate</h2>
+    <p class="muted">Each row says: if the shortage / excess % is up to this limit, the rate per MT is applied. Rows are checked from top to bottom, so keep the limits in increasing order.</p>
+    <div class="tbl-wrap" style="max-height:none;margin-top:.8rem"><table class="tbl" id="bandTbl"></table></div>
+    <div class="form-grid" style="margin-top:1rem">
+      <div class="form-group"><label for="fAboveRate">Rate when above the last limit (₹ / MT)</label><input type="number" step="0.01" id="fAboveRate"></div>
+    </div>
+  </div>
+  <div class="panel">
+    <h2><i class="fas fa-calculator"></i> Other Rules</h2>
+    <div class="form-grid">
+      <div class="form-group"><label for="fQtyPerRake">Per Day Quantity target: MT per rake</label><input type="number" step="1" id="fQtyPerRake"><span class="muted">Target = rakes placed × this value</span></div>
+      <div class="form-group"><label for="fPenPct">Penalty share for billing (%)</label><input type="number" step="0.01" id="fPenPct"><span class="muted">Applied to Total Penalty for the "% of" lines on the dashboard</span></div>
+    </div>
+  </div>
+  <div class="panel">
+    <h2><i class="fas fa-info-circle"></i> How every dashboard value is calculated</h2>
+    <p class="muted">Use this list to trace a wrong value. RR = RR weight (rr_wt), Recv = received weight (recv_wt), Qtr = the selected quarter. "Sum" means the total for the quarter, unless a mine or area filter is named.</p>
+
+    <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Key Performance (top left card)</h4>
+    <ul class="formula-list">
+      <li>Per Day Required Rake for Target = sum of "Asking Per Day" from the Target Rake table (Data Entry)</li>
+      <li>Performance on Rake Materialization = sum of "Asking (%)" from the Target Rake table</li>
+      <li>Performance on GCV (SECL/CCL/MCL) = sum of (RR × GCV ARB) ÷ sum of RR</li>
+      <li>Position of GCV for Achieve Target = (sum of (RR × GCV ADB) ÷ sum of RR) − Performance on GCV</li>
+      <li>Position of GCV for SECL / CCL / MCL Rakes = that area's sum of GCV ADB − sum of GCV ARB</li>
+    </ul>
+
+    <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Area Targets (Qtr)</h4>
+    <ul class="formula-list">
+      <li>Target of Qtr = sum of Qtr Target for the area (Data Entry)</li>
+      <li>Rake Loaded Till = count of area rakes dated up to the report date (or quarter end if no report date)</li>
+      <li>Balance Rake = Target of Qtr − Rake Loaded Till</li>
+      <li>Asking Per Day = sum of "Asking Per Day" for the area from the Target Rake table</li>
+    </ul>
+
+    <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Shortage / Excess Coal</h4>
+    <ul class="formula-list">
+      <li>Avg Shrt / Excess (%) = (sum of Recv − sum of RR) ÷ number of rakes (the code gives MT per rake, not %)</li>
+      <li>Shortage / Excess MT per rake = (sum of Recv − sum of RR) ÷ sum of RR × 100 (the code gives %, not MT)</li>
+      <li>Avg. Wt. GCV (per area) = simple average of GCV ARB for the area's rakes</li>
+      <li>Per GCV Cost (per area) = sum of Landed Cost ÷ sum of GCV ARB for the area</li>
+    </ul>
+
+    <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Billing Performance</h4>
+    <ul class="formula-list">
+      <li>Rate per MT (used below) = band rate from the Formulas table, chosen by "Shortage / Excess MT per rake" value</li>
+      <li>Performance on Quantity Reco = rate per MT × sum of Recv; the per-MT box shows the rate</li>
+      <li>Performance on GCV Reco = sum of bonus_penalty from the database; per-MT box = that sum ÷ sum of RR</li>
+      <li>Service Charge SECL / CCL / MCL = area sum of RR × fixed service charge (Data Entry); per-MT box = charge ÷ area sum of RR</li>
+      <li>5% of Total Railway Penalty = Total Penalty × penalty share % (Formulas); per-MT box = ÷ sum of Recv</li>
+      <li>TOTAL BILLING = Quantity Reco + GCV Reco + Service SECL + Service CCL + Service MCL + 5% penalty; per-MT box = ÷ sum of Recv</li>
+      <li>Expected Billing of the Qtr = TOTAL BILLING ÷ days passed in the quarter × total days in the quarter</li>
+    </ul>
+
+    <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Rake Performance</h4>
+    <ul class="formula-list">
+      <li>Per Day Rakes – Achieve = number of rakes ÷ total days in the quarter; Target = Per Day Required Rake</li>
+      <li>Per Day Quantity – Achieve = sum of RR ÷ total days in the quarter; Target = number of rakes × MT per rake (Formulas)</li>
+      <li>Per GCV Cost – Achieve = SECL Per GCV Cost; Target = Per GCV Cost Target (Data Entry)</li>
+      <li>Avg. CH.Wt. = average Ch Weight; Avg. RR.Wt. = average RR Weight; Avg. Plant Rec. Wt. = average Recv</li>
+      <li>Average GCV = average GCV ADB of the rakes</li>
+      <li>Total RR Weight = sum of RR; Total Plant Receive = sum of Recv</li>
+    </ul>
+
+    <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Railway Freight Penalties</h4>
+    <ul class="formula-list">
+      <li>Underload Charge = 0 for now (formula not yet defined in the code)</li>
+      <li>Overload Charge = typed value on the dashboard; per-MT box = charge ÷ sum of Recv</li>
+      <li>Punitive Sum = sum of POL group charges; EHBC / FAUC / TC = sum of EHBC group; ENHC = sum of ENHC charge; Dead Freight = sum of dead freight charges</li>
+      <li>TOTAL PENALTY = Overload + Punitive + EHBC + ENHC + Dead Freight; per-MT box = ÷ sum of Recv</li>
+      <li>5% of Total Penalty = TOTAL PENALTY × penalty share % (Formulas)</li>
+    </ul>
+
+    <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Mines Wise Performance (one column per mine)</h4>
+    <ul class="formula-list">
+      <li>Mine rows are matched by siding name (for example, a siding containing KMKA counts for KMKA); CCL and MCL use the area field</li>
+      <li>GCV (ARB) = sum of (RR × GCV ARB) ÷ sum of RR for the mine</li>
+      <li>Quality Diff. ADB/ARB = sum of GCV ADB − sum of GCV ARB</li>
+      <li>Performance on GCV Mines Wise = sum of bonus_penalty for the mine</li>
+      <li>Cost Rs. GCV Per Paisa = sum of Landed Cost ÷ sum of GCV ARB</li>
+      <li>Shortage = sum of Recv − sum of RR</li>
+      <li>Punitive, EHBC and ENHC rows = sums of the matching freight columns</li>
+    </ul>
+
+    <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Monthly &amp; Quarterly Performance</h4>
+    <ul class="formula-list">
+      <li>Rs. Per GCV Cost (month) = sum of Landed Cost ÷ sum of GCV ARB for that month</li>
+      <li>Per Day Qty (month) = sum of RR for the month ÷ days elapsed in that month</li>
+      <li>WT. GCV (month) = sum of (RR × GCV ARB) ÷ sum of RR for the month</li>
+      <li>Quarterly values repeat the same formulas across the whole quarter; Quarterly Billing = that quarter's TOTAL BILLING</li>
+      <li>% = number of rakes ÷ quarter target × 100 (capped at 100%; shown red when below 100%)</li>
+    </ul>
+
+    <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Calculated in Data Entry and the database</h4>
+    <ul class="formula-list">
+      <li>Mines Loading Duration = P/T to C/T time difference, shown as HH:MM hrs</li>
+      <li>Sick Box = Supply Box − Load Box</li>
+      <li>Bonus penalty (bonus_penalty, gcv_bonus_penalty_per_mt) = calculated by the database trigger on insert/update of grade, GCV ARB or RR weight; the dashboard only reads it</li>
+    </ul>
+  </div>
+</section>
+
+</main>
+
+<div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
-/* ============ Supabase connection ============ */
+/* ==================== CONFIG ==================== */
 const SUPABASE_URL = 'https://pycmkjrmdieaqsbgrher.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5Y21ranJtZGllYXFzYmdyaGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwMjMxNzAsImV4cCI6MjEwNjU5OTE3MH0.9IE2c2FZ4BPv6Rvhfa_VniQ7LJvQ_c4EGDXFihYR4Lc';
+const APP_PASSWORD = '1234';   // password for Upload Excel, Records Log, Data Entry and Formulas
+
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-/* Only the overload charge is typed by hand here. Service charge rate and GCV cost target are typed on the Data Entry page. */
-const MANUAL_FIELDS = ['olChg'];
-const PERIOD_KEYS = ['2026-Q1', '2026-Q2', '2026-Q3', '2026-Q4'];
+const $ = id => document.getElementById(id);
+const pad2 = n => String(n).padStart(2, '0');
+const num = v => (v === '' || v == null || isNaN(+v)) ? 0 : +v;
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
-/* Fiscal year starts 1 April. Key "2026-Q3" = fiscal 2026, Q3 = Oct to Dec 2026.
-   Q4 runs Jan to Mar of the following calendar year (key "2026-Q4" = Jan to Mar 2027). */
-const FISCAL = {
-  1: { startMonth: 4,  label: 'Apr–Jun' },
-  2: { startMonth: 7,  label: 'Jul–Sep' },
-  3: { startMonth: 10, label: 'Oct–Dec' },
-  4: { startMonth: 1,  label: 'Jan–Mar' }
-};
-
-function periodInfo(key) {
-  const [fy, q] = key.split('-Q').map(Number);
-  const startYear = q === 4 ? fy + 1 : fy;
-  return { label: `Q${q} (${FISCAL[q].label} ${startYear})` };
-}
-
-function currentPeriodKey() {
-  const d = new Date();
-  const m = d.getMonth() + 1;
-  const y = d.getFullYear();
-  const fy = m >= 4 ? y : y - 1;
-  const q = m >= 4 && m <= 6 ? 1 : m >= 7 && m <= 9 ? 2 : m >= 10 ? 3 : 4;
-  return `${fy}-Q${q}`;
-}
-
-let PERIOD = new URLSearchParams(location.search).get('period');
-if (!PERIOD_KEYS.includes(PERIOD)) PERIOD = currentPeriodKey();
-if (!PERIOD_KEYS.includes(PERIOD)) PERIOD = PERIOD_KEYS[0];
-
-/* ============ Table and column names (match your Supabase schema) ============ */
-const REC = {
-  table: 'hzl_rake_records',
-  date: 'date',
-  area: 'area',
-  siding: 'siding',
-  rr_wt: 'rr_wt',
-  recv_wt: 'recv_wt',
-  landed_cost: 'landed_cost',
-  ch_wt: 'ch_wt',
-  pol_group: 'pol_group',
-  ehbc_group: 'ehbc_group',
-  enhc_charge: 'enhc_charge',
-  dead_fr_chg: 'dead_fr_chg',
-  gcv_arb: 'gcv_arb',
-  gcv_adb: 'gcv_adb'
-};
-const TGT = {
-  table: 'hzl_rake_targets',
-  quarter: 'quarter',            // stored as 'Q1'..'Q4'
-  month: 'month',                // stored as 'YYYY-MM'
-  area: 'box_type',              // ASSUMPTION: box_type holds SECL / CCL / MCL
-  qtr_target: 'qtr_target',
-  asking_per_day: 'asking_per_day',
-  asking_pct: 'asking_pct',
-  report_date: 'report_date'
-};
-
-/* "2026-Q3" -> { from: '2026-10-01', to: '2027-01-01' } (to is exclusive) */
-function quarterRange(key) {
-  const [fy, q] = key.split('-Q').map(Number);
-  const startYear = q === 4 ? fy + 1 : fy;
-  const startMonth = FISCAL[q].startMonth;
-  const endTotal = startMonth + 3;
-  const endYear = startYear + (endTotal > 12 ? 1 : 0);
-  const endMonth = endTotal > 12 ? endTotal - 12 : endTotal;
-  const pad = n => String(n).padStart(2, '0');
-  return {
-    from: `${startYear}-${pad(startMonth)}-01`,
-    to: `${endYear}-${pad(endMonth)}-01`
-  };
-}
-
-const num = v => Number(v) || 0;
-const sumOf = (arr, f) => arr.reduce((s, r) => s + num(f(r)), 0);
-const sumProd = (arr, a, b) => arr.reduce((s, r) => s + num(r[a]) * num(r[b]), 0);
-
-/* Rate per MT from the Shortage / Excess value, used as shown (no sign flip).
-   Up to 0.05 (negative values included): +5 bonus
-   0.05 to 0.3: 0 (no multiplication)
-   0.3 to 0.5: -1 | 0.5 to 1: -2 | 1 to 1.5: -3 | above 1.5: -4 */
-function shortageRate(s) {
-  if (s <= 0.05) return 5;
-  if (s <= 0.3) return 0;
-  if (s <= 0.5) return -1;
-  if (s <= 1) return -2;
-  if (s <= 1.5) return -3;
-  return -4;
-}
-
-/* Calculates every dashboard value for one quarter (defaults to the selected one) */
-async function computeDashboard(period = PERIOD) {
-  const { from, to } = quarterRange(period);
-
-  /* Quarter day counts: total days in the quarter, and days passed so far (today counts) */
-  const DAY = 86400000;
-  const qStart = new Date(from + 'T00:00:00');
-  const qEnd   = new Date(to + 'T00:00:00');            // exclusive
-  const totalDays = Math.round((qEnd - qStart) / DAY);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const daysPassed = Math.min(totalDays, Math.max(0, Math.floor((today - qStart) / DAY) + 1));
-
-  /* Saved values: overload charge (typed here), fixed service charge and per GCV cost target (typed on Data Entry) */
-  const saved = {};
-  try {
-    const { data } = await db.from('hzl_dashboard_values').select('field_key, field_value')
-      .eq('period_key', period).in('field_key', ['olChg', 'svcRate', 'gcvCostTarget']);
-    (data || []).forEach(r => { saved[r.field_key] = r.field_value; });
-  } catch (e) { /* table missing: values stay empty */ }
-  const SERVICE_RATE = parseAmount(saved.svcRate);      // fixed service charge, rupees per MT
-
-  const [recRes, tgtRes] = await Promise.all([
-    db.from(REC.table).select('*').gte(REC.date, from).lt(REC.date, to),
-    db.from(TGT.table).select('*')
-      .eq(TGT.quarter, `Q${period.split('-Q')[1]}`)
-      .gte(TGT.month, from.slice(0, 7))
-      .lt(TGT.month, to.slice(0, 7))
-  ]);
-  if (recRes.error) throw recRes.error;
-  if (tgtRes.error) throw tgtRes.error;
-
-  const recs = recRes.data || [];
-  const tgts = tgtRes.data || [];
-  const out = {};
-  out._lastRake = recs.map(r => String(r[REC.date] || '').slice(0, 10)).filter(Boolean).sort().pop() || '';
-
-  // Loaded Till cutoff: latest report_date for the quarter, else quarter end
-  const reportDates = tgts.map(t => t[TGT.report_date]).filter(Boolean).sort();
-  const cutoff = reportDates.length ? reportDates[reportDates.length - 1] : to;
-
-  /* Key performance */
-  const rrTotal = sumOf(recs, r => r[REC.rr_wt]);
-  const perfGcv = rrTotal ? sumProd(recs, REC.rr_wt, REC.gcv_arb) / rrTotal : 0;
-  const adbGcv  = rrTotal ? sumProd(recs, REC.rr_wt, REC.gcv_adb) / rrTotal : 0;
-
-  out.perDayReqRake = sumOf(tgts, t => t[TGT.asking_per_day]);
-  out.rakeMat       = sumOf(tgts, t => t[TGT.asking_pct]);
-  out.gcvPerf       = perfGcv;
-  out.gcvPosTarget  = adbGcv - perfGcv;
-
-  /* Shortage / excess: (total recv_wt - total rr_wt) / number of rakes placed in the quarter */
-  const recvTotal = sumOf(recs, r => r[REC.recv_wt]);
-  out.avgShrt = recs.length ? (recvTotal - rrTotal) / recs.length : 0;
-
-  /* Shortage / excess: ((total recv_wt - total rr_wt) / total rr_wt) * 100  (negative = shortage) */
-  out.normQty = rrTotal ? (recvTotal - rrTotal) / rrTotal * 100 : 0;
-
-  /* Performance on Quantity Reco: rate is looked up from the Shortage / Excess value as shown */
-  const shortRate = shortageRate(out.normQty);    // rate per MT from the Shortage / Excess value
-  out.billQty = shortRate * recvTotal;            // rate per MT x total recv_wt
-  out.billQtyMt = shortRate;                      // Per MT box = the rate itself
-
-  /* Performance on GCV Reco: sum of bonus_penalty; Per MT = that sum / total rr_wt */
-  out.billGcv = sumOf(recs, r => r.bonus_penalty);
-  out.billGcvMt = rrTotal ? out.billGcv / rrTotal : 0;
-
-  /* Area targets and GCV positions */
-  [['Secl', 'SECL'], ['Ccl', 'CCL'], ['Mcl', 'MCL']].forEach(([key, name]) => {
-    const aTgts = tgts.filter(t => t[TGT.area] === name);
-    const aRecs = recs.filter(r => r[REC.area] === name);
-    const loaded = aRecs.filter(r => r[REC.date] <= cutoff).length;
-    const target = sumOf(aTgts, t => t[TGT.qtr_target]);
-
-    out[`tgt${key}`]    = target;
-    out[`load${key}`]   = loaded;
-    out[`bal${key}`]    = target - loaded;
-    out[`ask${key}`]    = sumOf(aTgts, t => t[TGT.asking_per_day]);
-
-    /* Service Charge for the area: total rr_wt of that area x fixed service charge rate (Data Entry); Per MT = charge / that area's total rr_wt */
-    const areaRr = sumOf(aRecs, r => r[REC.rr_wt]);
-    out[`svc${key}`]   = areaRr * SERVICE_RATE;
-    out[`svc${key}Mt`] = areaRr ? out[`svc${key}`] / areaRr : 0;
-
-    /* Position of GCV for this area: gcv_adb - gcv_arb */
-    out[`gcvPos${key}`] = sumOf(aRecs, r => r[REC.gcv_adb]) - sumOf(aRecs, r => r[REC.gcv_arb]);
-
-    /* Avg. Wt. GCV for the area: average of gcv_arb for that area's records */
-    const arbVals = aRecs.filter(r => r[REC.gcv_arb] != null);
-    out[`${key.toLowerCase()}Gcv`] = arbVals.length ? sumOf(arbVals, r => r[REC.gcv_arb]) / arbVals.length : 0;
-
-    /* Per GCV Cost for the area: total landed_cost / total gcv_arb for that area */
-    const arbTotal = sumOf(aRecs, r => r[REC.gcv_arb]);
-    out[`${key.toLowerCase()}GcvCost`] = arbTotal ? sumOf(aRecs, r => r[REC.landed_cost]) / arbTotal : 0;
-  });
-
-  /* ---------- Railway freight penalties ---------- */
-  const perMt = v => (recvTotal ? v / recvTotal : 0);
-  const ulCharge = 0;                                   // PLACEHOLDER: underload formula not given yet
-  const olCharge = parseAmount(saved.olChg);            // typed overload charge (may contain ₹ or commas)
-  const punSum   = sumOf(recs, r => r[REC.pol_group]);
-  const ehbcSum  = sumOf(recs, r => r[REC.ehbc_group]);
-  const enhcSum  = sumOf(recs, r => r[REC.enhc_charge]);
-  const deadSum  = sumOf(recs, r => r[REC.dead_fr_chg]);
-  const totalPen = ulCharge + olCharge + punSum + ehbcSum + enhcSum + deadSum;
-  const pen5     = totalPen * 0.05;
-
-  out.ulChg = ulCharge;   out.ulChgMt = perMt(ulCharge);
-  out.olChg = olCharge;   out.olChgMt = perMt(olCharge);
-  out.punSum = punSum;    out.punSumMt = perMt(punSum);
-  out.ehbc = ehbcSum;     out.ehbcMt = perMt(ehbcSum);
-  out.enhc = enhcSum;     out.enhcMt = perMt(enhcSum);
-  out.deadFr = deadSum;   out.deadFrMt = perMt(deadSum);
-  out.totalPen = totalPen; out.totalPenMt = perMt(totalPen);
-  out.pen5b = pen5;       out.pen5bMt = perMt(pen5);
-
-  /* 5% of Total Railway Penalty (billing card) = 5% of total penalty */
-  out.pen5 = pen5;        out.pen5Mt = perMt(pen5);
-
-  /* TOTAL BILLING = Performance on Quantity Reco + Performance on GCV Reco
-     + Service Charge SECL + CCL + MCL + 5% of Total Railway Penalty */
-  out.totalBill = out.billQty + out.billGcv + out.svcSecl + out.svcCcl + out.svcMcl + pen5;
-  out.totalBillMt = perMt(out.totalBill);   // assumed: same rule as the other Per MT cells (÷ total recv_wt)
-
-  /* Expected Billing of the Qtr = (TOTAL BILLING / days passed in quarter) * total days in quarter */
-  out.expBill = daysPassed ? (out.totalBill / daysPassed) * totalDays : 0;
-
-  /* ---------- Rake performance ---------- */
-  const avgOf = f => {
-    const v = recs.map(f).filter(x => x != null && x !== '').map(Number);
-    return v.length ? v.reduce((s, x) => s + x, 0) / v.length : 0;
-  };
-  out.avgChWt      = avgOf(r => r[REC.ch_wt]);
-  out.avgRrWt      = avgOf(r => r[REC.rr_wt]);
-  out.avgPlantWt   = avgOf(r => r[REC.recv_wt]);
-  out.avgGcv       = avgOf(r => r[REC.gcv_adb]);     // formula said gcv_adv; read as gcv_adb
-  out.totalRrWt    = rrTotal;
-  out.totalPlantRec = recvTotal;
-
-  /* Per Day Rakes: Achieve = total rakes placed / total days in quarter; Target = Per Day Required Rake for Target */
-  out.pdRakeAch = totalDays ? recs.length / totalDays : 0;
-  out.pdRakeTgt = out.perDayReqRake;
-
-  /* Per Day Quantity: Achieve = total rr_wt / total days in quarter; Target = total rakes placed x 3900 */
-  out.pdQtyAch = totalDays ? rrTotal / totalDays : 0;
-  out.pdQtyTgt = recs.length * 3900;
-
-  /* Per GCV Cost: Achieve = SECL Per GCV Cost; Target = value typed on the Data Entry page */
-  out.pdGcvAch = out.seclGcvCost;
-  out.pdGcvTgt = parseAmount(saved.gcvCostTarget);
-
-  /* ---------- Mines wise performance ----------
-     Govinda..SLOG: records whose siding name contains the mine name (e.g. "KMKA-IV" -> KMKA).
-     CCL / MCL: records whose area is CCL / MCL. */
-  const sidingHas = (r, name) => String(r[REC.siding] || '').toUpperCase().includes(name);
-  const MINES = [
-    ['gov',   r => sidingHas(r, 'GOVINDA')],
-    ['kmka',  r => sidingHas(r, 'KMKA')],
-    ['nkcr',  r => sidingHas(r, 'NKCR')],
-    ['oksr',  r => sidingHas(r, 'OKSR')],
-    ['gpck',  r => sidingHas(r, 'GPCK')],
-    ['jrgr',  r => sidingHas(r, 'JRGR')],
-    ['dipka', r => sidingHas(r, 'DIPKA')],
-    ['slog',  r => sidingHas(r, 'SLOG')],
-    ['ccl',   r => r[REC.area] === 'CCL'],
-    ['mcl',   r => r[REC.area] === 'MCL']
-  ];
-  MINES.forEach(([k, match]) => {
-    const m = recs.filter(match);
-    const rr  = sumOf(m, r => r[REC.rr_wt]);
-    const arb = sumOf(m, r => r[REC.gcv_arb]);
-    const adb = sumOf(m, r => r[REC.gcv_adb]);
-    const recv = sumOf(m, r => r[REC.recv_wt]);
-    const landed = sumOf(m, r => r[REC.landed_cost]);
-
-    out[`m_gcv_${k}`]  = rr ? sumProd(m, REC.gcv_arb, REC.rr_wt) / rr : 0;   // SUMPRODUCT(gcv_arb, rr_wt) / total rr_wt
-    out[`m_diff_${k}`] = adb - arb;                                            // total gcv_adb - total gcv_arb
-    out[`m_perf_${k}`] = sumOf(m, r => r.bonus_penalty);                       // sum of bonus_penalty
-    out[`m_cost_${k}`] = arb ? landed / arb : 0;                               // total landed_cost / total gcv_arb
-    out[`m_shrt_${k}`] = recv - rr;                                            // total recv_wt - total rr_wt
-    out[`m_pun_${k}`]  = sumOf(m, r => r[REC.pol_group]);
-    out[`m_ehbc_${k}`] = sumOf(m, r => r[REC.ehbc_group]);
-    out[`m_enhc_${k}`] = sumOf(m, r => r[REC.enhc_charge]);
-  });
-
-  /* Extra data used by the Monthly & Quarterly table (not shown in the cards) */
-  out._recs = recs;
-  out._tgtTotal = sumOf(tgts, t => t[TGT.qtr_target]);
-  out._from = from;
-  out._daysPassed = daysPassed;
-
-  return out;
-}
-
-/* ============ UI helpers ============ */
 let toastTimer;
-function showToast(msg, error) {
-  let t = document.querySelector('.toast');
-  if (!t) {
-    t = document.createElement('div');
-    t.className = 'toast';
-    document.body.appendChild(t);
-  }
+function toast(msg, err) {
+  const t = $('toast');
   t.textContent = msg;
-  t.classList.toggle('error', !!error);
+  t.classList.toggle('error', !!err);
   t.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-function setPeriodLabel() {
-  document.getElementById('periodLabel').textContent = `AMM HZL • ${periodInfo(PERIOD).label}`;
+/* ==================== PASSWORD + VIEWS ==================== */
+const PROTECTED = ['upload', 'log', 'entry', 'formulas'];
+const VIEW_NAMES = { upload: 'Upload Excel', log: 'Records Log', entry: 'Data Entry', formulas: 'Formulas' };
+let isUnlocked = false;
+let pendingView = 'dashboard';
+
+function showView(name) {
+  if (PROTECTED.includes(name) && !isUnlocked) {
+    pendingView = name;
+    $('lockTitle').textContent = 'Enter password to open ' + VIEW_NAMES[name];
+    $('pwdInput').value = '';
+    $('pwdErr').textContent = '';
+    name = 'lock';
+    setTimeout(() => $('pwdInput').focus(), 50);
+  }
+  document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
+  const navKey = name === 'lock' ? pendingView : name;
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.view === navKey));
+
+  if (name === 'dashboard') loadDashboard();
+  if (name === 'log') loadLog();
+  if (name === 'entry') initEntry();
+  if (name === 'formulas') renderFormulas();
 }
 
-function fillPeriodPicker() {
-  const sel = document.getElementById('periodPick');
-  sel.innerHTML = PERIOD_KEYS.map(k => `<option value="${k}">${periodInfo(k).label}</option>`).join('');
-  sel.value = PERIOD;
-  sel.addEventListener('change', () => {
-    PERIOD = sel.value;
-    try { history.replaceState(null, '', `?period=${PERIOD}`); } catch (e) { /* file:// pages */ }
-    setPeriodLabel();
-    loadDashboard(true);
-    subscribeLive();
+function tryUnlock() {
+  if ($('pwdInput').value === APP_PASSWORD) {
+    isUnlocked = true;
+    $('pwdInput').value = '';
+    $('pwdErr').textContent = '';
+    $('userLabel').textContent = 'Unlocked';
+    showView(pendingView);
+  } else {
+    $('pwdErr').textContent = 'Wrong password';
+    $('pwdInput').select();
+  }
+}
+$('unlockBtn').addEventListener('click', tryUnlock);
+$('pwdInput').addEventListener('keydown', e => { if (e.key === 'Enter') tryUnlock(); });
+$('lockBack').addEventListener('click', () => showView('dashboard'));
+$('lockBtn').addEventListener('click', () => {
+  isUnlocked = false;
+  $('userLabel').textContent = 'Locked';
+  showView('dashboard');
+});
+document.querySelectorAll('.nav-item').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
+
+/* ==================== FORMULAS (editable rules, stored under period_key 'global') ==================== */
+const DEFAULT_FORMULAS = {
+  bands: [[0.05, 5], [0.3, 0], [0.5, -1], [1, -2], [1.5, -3]],   // [up to %, rate per MT]
+  aboveRate: -4,        // rate when above the last limit
+  qtyPerRake: 3900,     // Per Day Quantity target = rakes x this
+  penaltyPct: 5         // % of total penalty used in the billing lines
+};
+let FORMULAS = structuredClone(DEFAULT_FORMULAS);
+
+async function loadFormulas() {
+  try {
+    const { data } = await db.from('hzl_dashboard_values').select('field_key, field_value').eq('period_key', 'global');
+    (data || []).forEach(r => {
+      const v = r.field_value;
+      if (r.field_key === 'f_bands') {
+        try { const b = JSON.parse(v); if (Array.isArray(b) && b.length) FORMULAS.bands = b.map(x => [Number(x[0]), Number(x[1])]); } catch (e) {}
+      }
+      if (r.field_key === 'f_above_rate') FORMULAS.aboveRate = Number(v);
+      if (r.field_key === 'f_qty_per_rake') FORMULAS.qtyPerRake = Number(v);
+      if (r.field_key === 'f_pen_pct') FORMULAS.penaltyPct = Number(v);
+    });
+  } catch (e) { console.warn('Formulas not loaded, using defaults', e); }
+}
+
+function shortageRate(s) {
+  for (const [upTo, rate] of FORMULAS.bands) if (s <= upTo) return rate;
+  return FORMULAS.aboveRate;
+}
+
+function renderFormulas() {
+  $('bandTbl').innerHTML = `<thead><tr><th>If shortage / excess is up to (%)</th><th>Rate (₹ / MT)</th></tr></thead><tbody>` +
+    FORMULAS.bands.map((b, i) => `<tr>
+      <td><input type="number" step="0.01" data-band="${i}" data-k="upTo" value="${b[0]}"></td>
+      <td><input type="number" step="0.01" data-band="${i}" data-k="rate" value="${b[1]}"></td>
+    </tr>`).join('') + '</tbody>';
+  $('fAboveRate').value = FORMULAS.aboveRate;
+  $('fQtyPerRake').value = FORMULAS.qtyPerRake;
+  $('fPenPct').value = FORMULAS.penaltyPct;
+}
+
+async function saveFormulas() {
+  const upTo = [], rate = [];
+  document.querySelectorAll('#bandTbl input[data-band]').forEach(inp => {
+    const i = +inp.dataset.band;
+    if (inp.dataset.k === 'upTo') upTo[i] = Number(inp.value);
+    else rate[i] = Number(inp.value);
   });
+  FORMULAS.bands = upTo.map((u, i) => [u, rate[i]]);
+  FORMULAS.aboveRate = Number($('fAboveRate').value);
+  FORMULAS.qtyPerRake = Number($('fQtyPerRake').value);
+  FORMULAS.penaltyPct = Number($('fPenPct').value);
+
+  const rows = [
+    { field_key: 'f_bands', field_value: JSON.stringify(FORMULAS.bands) },
+    { field_key: 'f_above_rate', field_value: String(FORMULAS.aboveRate) },
+    { field_key: 'f_qty_per_rake', field_value: String(FORMULAS.qtyPerRake) },
+    { field_key: 'f_pen_pct', field_value: String(FORMULAS.penaltyPct) }
+  ].map(r => ({ ...r, period_key: 'global', sort_order: 0 }));
+
+  const { error } = await db.from('hzl_dashboard_values').upsert(rows, { onConflict: 'period_key,field_key' });
+  if (error) { toast('Save failed: ' + error.message, true); return; }
+  toast('Formulas saved');
+  loadDashboard();
+}
+$('saveFormulas').addEventListener('click', saveFormulas);
+
+/* ==================== DATABASE COLUMN MAP ==================== */
+const DB_COLS = [
+  'sr_no','area','date','siding','unit','tranch','fsa','allot_date','seniority_no',
+  'time_pt','time_ct','time_dot','duration','supply_box','load_box','sick_box','box_type',
+  'net_wt','recv_wt','grn_qty','gcv_adb','gcv_arb','arb_tm','ch_wt','rr_wt','rr_no','rr_date',
+  'ul_qty','ul_paid_cil','ul_on_us','pol_group','ehbc_group','enhc_charge','total_fright',
+  'dead_fr_qty','dead_fr_chg','grade','landed_cost','declared_grade','remarks'
+];
+const NUMERIC_COLS = new Set(['sr_no','seniority_no','supply_box','load_box','sick_box','net_wt','recv_wt','grn_qty',
+  'gcv_adb','gcv_arb','arb_tm','ch_wt','rr_wt','ul_qty','ul_paid_cil','ul_on_us','pol_group','ehbc_group',
+  'enhc_charge','total_fright','dead_fr_qty','dead_fr_chg','landed_cost']);
+const DATE_COLS = new Set(['date','allot_date','rr_date']);
+const TIME_COLS = new Set(['time_pt','time_ct','time_dot']);
+const READONLY_DB = new Set(['bonus_penalty','gcv_bonus_penalty_per_mt','created_at','updated_at','id']);
+
+const norm = s => String(s ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
+const HEADER_ALIASES = {};
+DB_COLS.forEach(c => { HEADER_ALIASES[norm(c)] = c; });
+Object.assign(HEADER_ALIASES, {
+  allotdate: 'allot_date', seniority: 'seniority_no', ptime: 'time_pt', ctime: 'time_ct', dotime: 'time_dot',
+  supplybox: 'supply_box', loadbox: 'load_box', sickbox: 'sick_box', boxtype: 'box_type',
+  netwt: 'net_wt', recvwt: 'recv_wt', grnqty: 'grn_qty', gcvadb: 'gcv_adb', gcvarb: 'gcv_arb', arbtm: 'arb_tm',
+  chwt: 'ch_wt', rrwt: 'rr_wt', rrno: 'rr_no', rrdate: 'rr_date',
+  ulqty: 'ul_qty', ulpaidcil: 'ul_paid_cil', ulonus: 'ul_on_us',
+  polgroup: 'pol_group', ehbcgroup: 'ehbc_group', enhccharge: 'enhc_charge', totalfright: 'total_fright',
+  deadfrqty: 'dead_fr_qty', deadfrchg: 'dead_fr_chg', landedcost: 'landed_cost', declaredgrade: 'declared_grade',
+  srno: 'sr_no'
+});
+
+function toDbValue(col, v) {
+  if (v === '' || v == null) return null;
+  if (NUMERIC_COLS.has(col)) { const n = Number(String(v).replace(/[,₹\s]/g, '')); return isNaN(n) ? null : n; }
+  if (DATE_COLS.has(col)) return excelDate(v);
+  if (TIME_COLS.has(col)) return excelTime(v);
+  return String(v).trim();
+}
+function excelDate(v) {
+  if (v instanceof Date) return v.toISOString().slice(0, 10);
+  if (typeof v === 'number') return new Date(Math.round((v - 25569) * 86400 * 1000)).toISOString().slice(0, 10);
+  const s = String(v).trim();
+  const m = s.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})$/);
+  if (m) { const y = m[3].length === 2 ? '20' + m[3] : m[3]; return `${y}-${pad2(m[2])}-${pad2(m[1])}`; }
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+  const d = new Date(s); return isNaN(d) ? null : d.toISOString().slice(0, 10);
+}
+function excelTime(v) {
+  if (typeof v === 'number') {
+    const total = Math.round(v * 24 * 60);
+    return `${pad2(Math.floor(total / 60) % 24)}:${pad2(total % 60)}:00`;
+  }
+  const s = String(v).trim();
+  const m = s.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+  return m ? `${pad2(m[1])}:${m[2]}:${pad2(m[3] || 0)}` : null;
+}
+function durationText(pt, ct) {
+  const toM = t => { if (!t) return null; const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+  const p = toM(pt), c = toM(ct);
+  if (p == null || c == null) return null;
+  const d = Math.abs(c - p);
+  return `${pad2(Math.floor(d / 60))}:${pad2(d % 60)} hrs`;
 }
 
-/* Clears every value the dashboard fills, so sample values never show */
-function clearFields() {
-  document.querySelectorAll('input[id]').forEach(input => {
-    if (input === document.activeElement) return;
-    input.value = '';
-    input.classList.remove('neg', 'pos');
+/* ==================== UPLOAD EXCEL ==================== */
+let parsedRows = [];
+let workbook = null;
+
+function setStatus(id, msg, cls) { const el = $(id); el.textContent = msg; el.className = 'status ' + (cls || ''); }
+
+$('drop').addEventListener('click', () => $('fileInput').click());
+$('drop').addEventListener('dragover', e => { e.preventDefault(); $('drop').classList.add('over'); });
+$('drop').addEventListener('dragleave', () => $('drop').classList.remove('over'));
+$('drop').addEventListener('drop', e => {
+  e.preventDefault(); $('drop').classList.remove('over');
+  if (e.dataTransfer.files[0]) readFile(e.dataTransfer.files[0]);
+});
+$('fileInput').addEventListener('change', e => { if (e.target.files[0]) readFile(e.target.files[0]); });
+
+function readFile(file) {
+  setStatus('uploadStatus', 'Reading ' + file.name + '...');
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      workbook = XLSX.read(new Uint8Array(e.target.result), { type: 'array', cellDates: true });
+      $('sheetPick').innerHTML = workbook.SheetNames.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
+      loadSheet(workbook.SheetNames[0]);
+      setStatus('uploadStatus', `Loaded ${file.name}`, 'ok');
+    } catch (err) {
+      console.error(err);
+      setStatus('uploadStatus', 'Could not read this file: ' + err.message, 'err');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+$('sheetPick').addEventListener('change', e => loadSheet(e.target.value));
+
+function loadSheet(name) {
+  const ws = workbook.Sheets[name];
+  const aoa = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: true });
+  if (!aoa.length) { setStatus('uploadStatus', 'Sheet is empty', 'err'); return; }
+
+  let hdr = aoa.findIndex(r => r.filter(c => String(c).trim() !== '').length >= 3);
+  if (hdr < 0) hdr = 0;
+  const headers = aoa[hdr].map(h => String(h).trim());
+  const colMap = headers.map(h => HEADER_ALIASES[norm(h)] || null);
+  const ignored = headers.filter((h, i) => h && !colMap[i]);
+  const mapped = headers.map((h, i) => ({ h, db: colMap[i] })).filter(x => x.h);
+
+  $('mapping').innerHTML = mapped.map(x => x.db
+    ? `<span class="chip">${esc(x.h)} → ${x.db}</span>`
+    : `<span class="chip skip">${esc(x.h)} (not in DB, skipped)</span>`).join('');
+
+  parsedRows = [];
+  for (let r = hdr + 1; r < aoa.length; r++) {
+    const row = aoa[r];
+    if (row.every(c => String(c).trim() === '')) continue;
+    const data = {};
+    const errors = [];
+    colMap.forEach((db, i) => {
+      if (!db || READONLY_DB.has(db)) return;
+      data[db] = toDbValue(db, row[i]);
+    });
+    if (!data.date) errors.push('no date');
+    if (!data.area) errors.push('no area');
+    if (!data.duration) data.duration = durationText(data.time_pt, data.time_ct);
+    if (data.sick_box == null && data.supply_box != null && data.load_box != null) data.sick_box = data.supply_box - data.load_box;
+    parsedRows.push({ rowNo: r + 1, data, errors });
+  }
+  renderPreview(ignored);
+}
+
+function renderPreview(ignored) {
+  const cols = DB_COLS.filter(c => parsedRows.some(r => r.data[c] != null));
+  const head = `<thead><tr><th>Row</th>${cols.map(c => `<th>${c}</th>`).join('')}<th>Check</th></tr></thead>`;
+  const body = parsedRows.slice(0, 300).map(r => `<tr>
+    <td>${r.rowNo}</td>
+    ${cols.map(c => `<td>${esc(r.data[c] ?? '')}</td>`).join('')}
+    <td>${r.errors.length ? `<span class="badge badge-warning">${esc(r.errors.join(', '))}</span>` : '<span class="badge badge-success">OK</span>'}</td>
+  </tr>`).join('');
+  $('previewTbl').innerHTML = head + `<tbody>${body || '<tr><td class="empty">No data rows found.</td></tr>'}</tbody>`;
+  $('previewCount').textContent = parsedRows.length;
+  $('previewPanel').classList.toggle('hidden', !parsedRows.length);
+  const bad = parsedRows.filter(r => r.errors.length).length;
+  $('importNote').textContent = (ignored.length ? `Ignored columns: ${ignored.join(', ')}. ` : '') +
+    (bad ? `${bad} row(s) missing date or area will be skipped.` : '');
+}
+
+$('cancelImport').addEventListener('click', () => {
+  parsedRows = []; $('previewPanel').classList.add('hidden'); $('mapping').innerHTML = '';
+  setStatus('uploadStatus', 'Import cancelled');
+});
+
+$('importBtn').addEventListener('click', async () => {
+  const good = parsedRows.filter(r => !r.errors.length);
+  if (!good.length) { toast('Nothing to import', true); return; }
+  if (!confirm(`Save ${good.length} rows to the database?`)) return;
+  const btn = $('importBtn');
+  btn.disabled = true;
+  let ok = 0; const fail = [];
+  try {
+    const { data: maxRow } = await db.from('hzl_rake_records').select('sr_no').order('sr_no', { ascending: false }).limit(1);
+    let next = maxRow && maxRow.length ? maxRow[0].sr_no + 1 : 1;
+    for (const r of good) {
+      const row = { ...r.data, sr_no: r.data.sr_no ?? next++ };
+      Object.keys(row).forEach(k => { if (READONLY_DB.has(k)) delete row[k]; });
+      const { error } = await db.from('hzl_rake_records').upsert(row, { onConflict: 'rr_no' });
+      if (error) fail.push(`row ${r.rowNo}: ${error.message}`); else ok++;
+    }
+    toast(`Saved ${ok} rows${fail.length ? `, ${fail.length} failed` : ''}`, !!fail.length);
+    setStatus('uploadStatus', `Saved ${ok} of ${good.length} rows.` + (fail.length ? ' Failed: ' + fail.slice(0, 5).join('; ') : ''), fail.length ? 'err' : 'ok');
+    if (!fail.length) { parsedRows = []; $('previewPanel').classList.add('hidden'); }
+  } catch (err) {
+    console.error(err);
+    toast('Import failed: ' + err.message, true);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+/* ==================== RECORDS LOG (all columns, edit / delete) ==================== */
+let logRecords = [];
+const LOG_COLS = ['id','sr_no','area','date','siding','unit','tranch','fsa','allot_date','seniority_no',
+  'time_pt','time_ct','time_dot','duration','supply_box','load_box','sick_box','box_type',
+  'net_wt','recv_wt','grn_qty','gcv_adb','gcv_arb','arb_tm','ch_wt','rr_wt','rr_no','rr_date',
+  'ul_qty','ul_paid_cil','ul_on_us','pol_group','ehbc_group','enhc_charge','total_fright',
+  'dead_fr_qty','dead_fr_chg','grade','landed_cost','declared_grade','remarks',
+  'created_at','updated_at','gcv_bonus_penalty_per_mt','bonus_penalty'];
+
+async function loadLog() {
+  const { data, error } = await db.from('hzl_rake_records').select('*').order('sr_no', { ascending: true }).limit(5000);
+  if (error) { toast('Could not load records: ' + error.message, true); return; }
+  logRecords = data || [];
+  renderLog();
+}
+
+function renderLog() {
+  const q = $('logSearch').value.toLowerCase();
+  const rows = logRecords.filter(r => !q || JSON.stringify(r).toLowerCase().includes(q));
+  $('logCount').textContent = `${rows.length} of ${logRecords.length} records`;
+  const head = `<thead><tr><th>Actions</th>${LOG_COLS.map(c => `<th>${c}</th>`).join('')}</tr></thead>`;
+  const body = rows.map(r => `<tr data-id="${esc(r.id)}">
+    <td class="act">
+      <button class="btn-soft btn-sm" data-save="${esc(r.id)}"><i class="fas fa-floppy-disk"></i></button>
+      <button class="btn-soft btn-sm btn-danger" data-del="${esc(r.id)}"><i class="fas fa-trash"></i></button>
+    </td>
+    ${LOG_COLS.map(c => `<td><input data-col="${c}" value="${esc(r[c] ?? '')}" ${READONLY_DB.has(c) ? 'readonly' : ''}></td>`).join('')}
+  </tr>`).join('');
+  $('logTbl').innerHTML = head + `<tbody>${body || '<tr><td class="empty" colspan="' + (LOG_COLS.length + 1) + '">No records.</td></tr>'}</tbody>`;
+}
+$('logSearch').addEventListener('input', renderLog);
+$('logReload').addEventListener('click', loadLog);
+
+$('logTbl').addEventListener('click', async e => {
+  const saveBtn = e.target.closest('[data-save]');
+  const delBtn = e.target.closest('[data-del]');
+  if (saveBtn) {
+    const tr = saveBtn.closest('tr');
+    const patch = {};
+    tr.querySelectorAll('input[data-col]').forEach(inp => {
+      const col = inp.dataset.col;
+      if (READONLY_DB.has(col)) return;
+      patch[col] = toDbValue(col, inp.value);
+    });
+    const { error } = await db.from('hzl_rake_records').update(patch).eq('id', saveBtn.dataset.save);
+    if (error) { setStatus('logStatus', 'Update failed: ' + error.message, 'err'); return; }
+    setStatus('logStatus', 'Record updated', 'ok');
+    toast('Record updated');
+    loadLog();
+  }
+  if (delBtn) {
+    if (!confirm('Delete this record permanently?')) return;
+    const { error } = await db.from('hzl_rake_records').delete().eq('id', delBtn.dataset.del);
+    if (error) { setStatus('logStatus', 'Delete failed: ' + error.message, 'err'); return; }
+    setStatus('logStatus', 'Record deleted', 'ok');
+    toast('Record deleted');
+    loadLog();
+  }
+});
+
+/* ==================== DATA ENTRY (new record + target rake) ==================== */
+const ENTRY_OPT = {
+  area: ['SECL','WCL','CCL','MCL'], unit: ['CPP','IPP','EAC'], tranch: ['I','II','III','IV','V','VI','VII','VIII','IX'],
+  grade: ['G-07','G-08','G-09','G-10','G-11','G-12','G-13','G-14','G-15'], box: ['N+NHL','BOXN','BOXNHL','BCN']
+};
+const ENTRY_SECTIONS = [
+  { title: 'Basic Details', icon: 'fa-circle-info', fields: [
+    { key: 'sr_no', label: 'Sr No', type: 'number', tag: 'auto' },
+    { key: 'area', label: 'Area', type: 'select', options: ENTRY_OPT.area, req: 1 },
+    { key: 'date', label: 'Date', type: 'date', req: 1 },
+    { key: 'siding', label: 'Siding', type: 'text', req: 1 },
+    { key: 'unit', label: 'Unit', type: 'select', options: ENTRY_OPT.unit, req: 1 },
+    { key: 'tranch', label: 'Tranch', type: 'select', options: ENTRY_OPT.tranch, req: 1 } ]},
+  { title: 'Allotment', icon: 'fa-file-signature', fields: [
+    { key: 'fsa', label: 'FSA', type: 'text', req: 1 },
+    { key: 'allot_date', label: 'Date Of Allotment', type: 'date', req: 1 },
+    { key: 'seniority_no', label: 'Seniority No', type: 'number' } ]},
+  { title: 'Mines Loading Time', icon: 'fa-clock', fields: [
+    { key: 'time_pt', label: 'P/T', type: 'time' }, { key: 'time_ct', label: 'C/T', type: 'time' },
+    { key: 'time_dot', label: 'D/O/T', type: 'time' }, { key: 'duration', label: 'Mines Loading Duration', type: 'calc', tag: 'auto' } ]},
+  { title: 'Box Details', icon: 'fa-box', fields: [
+    { key: 'supply_box', label: 'Supply Box', type: 'number' }, { key: 'load_box', label: 'Load Box', type: 'number' },
+    { key: 'sick_box', label: 'Sick Box', type: 'calc', tag: 'auto' },
+    { key: 'box_type', label: 'Box Type', type: 'select', options: ENTRY_OPT.box } ]},
+  { title: 'Weight & Quality', icon: 'fa-weight-scale', fields: [
+    { key: 'net_wt', label: 'Net Wt.', type: 'number', step: 0.01, unit: 'MT', req: 1 },
+    { key: 'recv_wt', label: 'Received Wt.', type: 'number', step: 0.01, unit: 'MT' },
+    { key: 'grn_qty', label: 'GRN Qty. (MT)', type: 'number', step: 0.01, unit: 'MT' },
+    { key: 'gcv_adb', label: 'GCV ADB', type: 'number', unit: 'kcal' },
+    { key: 'gcv_arb', label: 'GCV ARB', type: 'number', unit: 'kcal' },
+    { key: 'arb_tm', label: 'ARB TM%', type: 'number', step: 0.01, unit: '%' },
+    { key: 'ch_wt', label: 'Ch Weight', type: 'number', step: 0.01, unit: 'MT' },
+    { key: 'rr_wt', label: 'RR Weight', type: 'number', step: 0.01, unit: 'MT' } ]},
+  { title: 'Railway Receipt', icon: 'fa-train', fields: [
+    { key: 'rr_no', label: 'RR Number', type: 'text' }, { key: 'rr_date', label: 'RR Date', type: 'date' } ]},
+  { title: 'Underload', icon: 'fa-arrow-down-wide-short', fields: [
+    { key: 'ul_qty', label: 'Underload Quantity', type: 'number', step: 0.01 },
+    { key: 'ul_paid_cil', label: 'Underload Qty Paid Coal India', type: 'number', step: 0.01 },
+    { key: 'ul_on_us', label: 'Underload Qty On Us', type: 'number', step: 0.01 } ]},
+  { title: 'Freight & Charges', icon: 'fa-indian-rupee-sign', fields: [
+    { key: 'pol_group', label: 'POL1/PO2/POLA/PCLA/DCLA', type: 'number', step: 0.01, unit: '₹' },
+    { key: 'ehbc_group', label: 'EHBC/FAUC/TC/ST', type: 'number', step: 0.01, unit: '₹' },
+    { key: 'enhc_charge', label: 'ENHC Charge', type: 'number', step: 0.01, unit: '₹' },
+    { key: 'total_fright', label: 'Total Fright', type: 'number', step: 0.01, unit: '₹' },
+    { key: 'dead_fr_qty', label: 'Dead Freight Qty', type: 'number', step: 0.01 },
+    { key: 'dead_fr_chg', label: 'Dead Freight Charges', type: 'number', step: 0.01, unit: '₹' } ]},
+  { title: 'Grade & Cost', icon: 'fa-medal', fields: [
+    { key: 'grade', label: 'Grade', type: 'select', options: ENTRY_OPT.grade, req: 1 },
+    { key: 'landed_cost', label: 'Landed cost', type: 'number', step: 0.01, unit: '₹' },
+    { key: 'declared_grade', label: 'Loading Declared Grade', type: 'select', options: ENTRY_OPT.grade } ]}
+];
+
+function buildEntryForm() {
+  $('formSections').innerHTML = ENTRY_SECTIONS.map(s => `
+    <div class="section">
+      <div class="section-title"><i class="fas ${s.icon}"></i> ${s.title}</div>
+      <div class="form-grid">${s.fields.map(f => {
+        const label = `<label for="f_${f.key}">${f.label}${f.req ? '<span class="req">*</span>' : ''}${f.tag ? `<span class="tag">${f.tag}</span>` : ''}</label>`;
+        let input;
+        if (f.type === 'select') input = `<select class="field" id="f_${f.key}" name="${f.key}" ${f.req ? 'required' : ''}><option value="">Select</option>${f.options.map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('')}</select>`;
+        else if (f.type === 'calc') input = `<input id="f_${f.key}" name="${f.key}" readonly placeholder="Auto">`;
+        else {
+          input = `<input id="f_${f.key}" name="${f.key}" type="${f.type}" ${f.step ? `step="${f.step}"` : ''} ${f.req ? 'required' : ''}>`;
+          if (f.unit) input = `<div class="unit-wrap">${input}<span class="unit">${f.unit}</span></div>`;
+        }
+        return `<div class="form-group">${label}${input}</div>`;
+      }).join('')}</div>
+    </div>`).join('');
+  ['time_pt','time_ct','supply_box','load_box'].forEach(k => { const e = $('f_' + k); if (e) e.addEventListener('input', recalcForm); });
+}
+
+function recalcForm() {
+  $('f_duration').value = durationText($('f_time_pt').value, $('f_time_ct').value) || '';
+  const s = $('f_supply_box').value, l = $('f_load_box').value;
+  $('f_sick_box').value = (s === '' || l === '') ? '' : (+s - +l);
+}
+
+let entryReady = false;
+async function initEntry() {
+  if (entryReady) return;
+  entryReady = true;
+  buildEntryForm();
+  const now = new Date(), m = now.getMonth() + 1;
+  $('rakeQuarter').value = m >= 4 && m <= 6 ? 'Q1' : m >= 7 && m <= 9 ? 'Q2' : m >= 10 ? 'Q3' : 'Q4';
+  $('rakeReportDate').value = now.toISOString().slice(0, 10);
+  await loadRake();
+  await loadSettings();
+  await resetEntryForm();
+}
+
+async function resetEntryForm() {
+  $('entryForm').reset();
+  $('f_date').value = new Date().toISOString().slice(0, 10);
+  const { data } = await db.from('hzl_rake_records').select('sr_no').order('sr_no', { ascending: false }).limit(1);
+  $('f_sr_no').value = data && data.length ? data[0].sr_no + 1 : 1;
+  recalcForm();
+}
+$('clearForm').addEventListener('click', resetEntryForm);
+
+$('entryForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const f = $('entryForm');
+  if (!f.checkValidity()) { f.reportValidity(); toast('Please fill the required fields', true); return; }
+  const row = {};
+  DB_COLS.forEach(col => {
+    const el = $('f_' + col);
+    if (!el || el.readOnly) return;
+    row[col] = toDbValue(col, el.value);
   });
-  document.getElementById('reportUpdatedUpto').textContent = '';
+  row.duration = durationText($('f_time_pt').value, $('f_time_ct').value);
+  row.sick_box = $('f_sick_box').value === '' ? null : +$('f_sick_box').value;
+  row.sr_no = +$('f_sr_no').value || null;
+  const { error } = await db.from('hzl_rake_records').insert(row);
+  if (error) { toast('Save failed: ' + error.message, true); return; }
+  toast('Record saved');
+  await syncRakeLoaded(row.date);
+  await resetEntryForm();
+});
+
+/* ---- Target rake ---- */
+const RAKE_TYPES = ['SECL','CCL','MCL'];
+const Q_START = { Q1: 4, Q2: 7, Q3: 10, Q4: 1 };
+const Q_END = { Q1: 6, Q2: 9, Q3: 12, Q4: 3 };
+let rake = [];
+const curYear = () => new Date().getFullYear();
+const qKey = (q, y) => `${y}-${pad2(Q_START[q])}`;
+const qStart = (q, y) => `${y}-${pad2(Q_START[q])}-01`;
+const qEnd = (q, y) => { const m = Q_END[q]; return `${y}-${pad2(m)}-${pad2(new Date(Date.UTC(y, m, 0)).getUTCDate())}`; };
+const quarterKey = () => qKey($('rakeQuarter').value, curYear());
+const quarterEndDate = () => qEnd($('rakeQuarter').value, curYear());
+function fyLabel(monthKey) { const [y, m] = monthKey.split('-').map(Number); return m >= 4 ? `${y}-${String(y + 1).slice(2)}` : `${y - 1}-${String(y).slice(2)}`; }
+function daysBetween(a, b) { const d = Math.round((new Date(b + 'T00:00:00Z') - new Date(a + 'T00:00:00Z')) / 86400000); return d > 0 ? d : 0; }
+function daysRemaining() { return daysBetween($('rakeReportDate').value || new Date().toISOString().slice(0, 10), quarterEndDate()); }
+const askingPerDay = (bal, days) => { const d = days === undefined ? daysRemaining() : days; return d ? Math.round(bal / d * 100) / 100 : 0; };
+const askingPct = (l, t) => t ? Math.round(l / t * 1000) / 10 : 0;
+const fmtDay = v => Number(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+const fmtPct = v => Number(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 1 }) + '%';
+function defaultRake() { return RAKE_TYPES.map(t => ({ type: t, target: 0, loaded: 0 })); }
+
+function renderRake() {
+  $('rakeBody').innerHTML = rake.map((r, i) => {
+    const bal = (+r.target || 0) - (+r.loaded || 0);
+    const apd = askingPerDay(bal), apc = askingPct(+r.loaded || 0, +r.target || 0);
+    return `<tr>
+      <td><input readonly value="${i + 1}"></td>
+      <td><input readonly value="${r.type}"></td>
+      <td><input type="number" min="0" data-i="${i}" value="${r.target}"></td>
+      <td><input readonly value="${r.loaded}"></td>
+      <td><input readonly value="${bal}"></td>
+      <td><input readonly value="${fmtDay(apd)}"></td>
+      <td><input readonly value="${fmtPct(apc)}"></td>
+    </tr>`;
+  }).join('');
+  const t = rake.reduce((a, r) => a + (+r.target || 0), 0), l = rake.reduce((a, r) => a + (+r.loaded || 0), 0), bal = t - l;
+  $('tTarget').textContent = t; $('tLoaded').textContent = l; $('tBalance').textContent = bal;
+  $('tAskingDay').textContent = fmtDay(askingPerDay(bal));
+  $('tAskingPct').textContent = fmtPct(askingPct(l, t));
 }
 
-/* 'YYYY-MM-DD' -> '13 October 2026' */
-function fmtDate(d) {
-  if (!d) return '';
-  const dt = new Date(d + 'T00:00:00');
-  return isNaN(dt) ? d : dt.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+async function countRakes(area, from, to) {
+  const { count, error } = await db.from('hzl_rake_records').select('id', { count: 'exact', head: true })
+    .eq('area', area).gte('date', from).lte('date', to);
+  if (error) throw error;
+  return count || 0;
+}
+async function refreshLoaded() {
+  const q = $('rakeQuarter').value, y = curYear();
+  const from = qStart(q, y), end = qEnd(q, y), rep = $('rakeReportDate').value;
+  const to = (rep && rep >= from && rep <= end) ? rep : end;
+  try {
+    const counts = await Promise.all(rake.map(r => countRakes(r.type, from, to)));
+    rake.forEach((r, i) => r.loaded = counts[i]);
+  } catch (e) { console.error(e); toast('Could not count loaded rakes', true); }
+  renderRake();
 }
 
-/* Billing and penalty amounts, shown as whole rupees with ₹ and commas */
-const MONEY_FIELDS = new Set([
-  'billQty', 'billQtyMt', 'billGcv', 'billGcvMt',
-  'svcSecl', 'svcSeclMt', 'svcCcl', 'svcCclMt', 'svcMcl', 'svcMclMt',
-  'pen5', 'pen5Mt', 'totalBill', 'totalBillMt', 'expBill',
-  'ulChg', 'olChg', 'punSum', 'ehbc', 'enhc', 'deadFr', 'totalPen', 'pen5b'
-]);
-/* Whole-number fields: billing, penalty amounts and the Area Targets card */
-const INT_FIELDS = new Set([
-  ...MONEY_FIELDS,
-  'tgtSecl', 'tgtCcl', 'tgtMcl', 'loadSecl', 'loadCcl', 'loadMcl',
-  'balSecl', 'balCcl', 'balMcl', 'askSecl', 'askCcl', 'askMcl'
-]);
+function prevQuarter(q, y) {
+  if (q === 'Q1') return { quarter: 'Q4', year: y };
+  if (q === 'Q2') return { quarter: 'Q1', year: y };
+  if (q === 'Q3') return { quarter: 'Q2', year: y };
+  return { quarter: 'Q3', year: y - 1 };
+}
+async function carryForward() {
+  const p = prevQuarter($('rakeQuarter').value, curYear());
+  const { data } = await db.from('hzl_rake_targets').select('box_type, qtr_target')
+    .eq('quarter', p.quarter).eq('month', qKey(p.quarter, p.year));
+  if (!data || !data.length) return false;
+  for (const r of rake) {
+    const s = data.find(x => x.box_type === r.type);
+    if (!s) continue;
+    const loaded = await countRakes(r.type, qStart(p.quarter, p.year), qEnd(p.quarter, p.year));
+    r.target = Math.max(0, (Number(s.qtr_target) || 0) - loaded);
+  }
+  return true;
+}
+async function loadRake() {
+  const q = $('rakeQuarter').value;
+  const { data, error } = await db.from('hzl_rake_targets').select('box_type, qtr_target, report_date')
+    .eq('quarter', q).eq('month', quarterKey());
+  rake = defaultRake();
+  if (!error && data && data.length) {
+    data.forEach(row => { const r = rake.find(x => x.type === row.box_type); if (r) r.target = row.qtr_target ?? 0; });
+    if (data[0].report_date) $('rakeReportDate').value = data[0].report_date;
+  }
+  if (!rake.some(r => r.target > 0)) await carryForward();
+  await refreshLoaded();
+  await saveRake(true);
+}
+$('rakeBody').addEventListener('input', e => {
+  const i = e.target.dataset.i;
+  if (i == null) return;
+  rake[i].target = +e.target.value || 0;
+  renderRake();
+  scheduleSaveRake();
+});
+$('rakeQuarter').addEventListener('change', async () => { await loadRake(); await loadSettings(); });
+$('rakeReportDate').addEventListener('change', async () => { await refreshLoaded(); scheduleSaveRake(); });
+$('carryFwd').addEventListener('click', async () => {
+  if (!confirm("Replace Qtr Target with the previous quarter's balance?")) return;
+  if (!(await carryForward())) { toast('No saved targets for previous quarter', true); return; }
+  renderRake(); await saveRake(false);
+});
 
-/* Typed or stored amounts may contain ₹, commas or spaces; keep only the number */
-function parseAmount(v) {
-  return Number(String(v ?? '').replace(/[^0-9.\-]/g, '')) || 0;
+let rakeSaveChain = Promise.resolve(), rakeTimer;
+function scheduleSaveRake() { clearTimeout(rakeTimer); rakeTimer = setTimeout(() => saveRake(false), 600); }
+function saveRake(silent) {
+  rakeSaveChain = rakeSaveChain.then(async () => {
+    const q = $('rakeQuarter').value, month = quarterKey(), rep = $('rakeReportDate').value || null, days = daysRemaining();
+    try {
+      const { data: existing } = await db.from('hzl_rake_targets').select('id, box_type').eq('quarter', q).eq('month', month);
+      const ids = {}; (existing || []).forEach(e => ids[e.box_type] = e.id);
+      for (const r of rake) {
+        const bal = (+r.target || 0) - (+r.loaded || 0);
+        const row = { quarter: q, month, box_type: r.type, qtr_target: +r.target || 0, loaded_till: +r.loaded || 0,
+          report_date: rep, fiscal_year: fyLabel(month), asking_per_day: askingPerDay(bal, days), asking_pct: askingPct(+r.loaded || 0, +r.target || 0) };
+        if (ids[r.type]) await db.from('hzl_rake_targets').update(row).eq('id', ids[r.type]);
+        else await db.from('hzl_rake_targets').insert(row);
+      }
+      if (!silent) toast('Rake target saved');
+    } catch (err) { console.error(err); toast('Rake target save failed', true); }
+  });
+  return rakeSaveChain;
+}
+async function syncRakeLoaded(recordDate) {
+  const d = new Date(recordDate + 'T00:00:00');
+  const m = d.getMonth() + 1;
+  const q = m >= 4 && m <= 6 ? 'Q1' : m >= 7 && m <= 9 ? 'Q2' : m >= 10 ? 'Q3' : 'Q4';
+  if (q === $('rakeQuarter').value) { await refreshLoaded(); await saveRake(true); }
 }
 
-/* Zero shows as "-" so empty results look clean */
+/* Service charge + GCV target stored per dashboard period */
+const SETTING_KEYS = ['svcRate', 'gcvCostTarget'];
+function dashPeriodKey() { const q = $('rakeQuarter').value, y = curYear(); return `${q === 'Q4' ? y - 1 : y}-${q}`; }
+async function loadSettings() {
+  SETTING_KEYS.forEach(k => $(k).value = '');
+  const { data } = await db.from('hzl_dashboard_values').select('field_key, field_value')
+    .eq('period_key', dashPeriodKey()).in('field_key', SETTING_KEYS);
+  (data || []).forEach(r => { if ($(r.field_key)) $(r.field_key).value = r.field_value ?? ''; });
+}
+let settingsTimer;
+SETTING_KEYS.forEach(k => $(k).addEventListener('input', () => {
+  clearTimeout(settingsTimer);
+  settingsTimer = setTimeout(async () => {
+    await db.from('hzl_dashboard_values').upsert(SETTING_KEYS.map(x => ({
+      period_key: dashPeriodKey(), field_key: x, field_value: $(x).value, sort_order: 0
+    })), { onConflict: 'period_key,field_key' });
+    toast('Saved');
+  }, 600);
+}));
+
+/* ==================== DASHBOARD (calculated, read-only except Overload) ==================== */
+const PERIOD_KEYS = ['2026-Q1','2026-Q2','2026-Q3','2026-Q4'];
+const FISCAL = { 1: { start: 4, label: 'Apr–Jun' }, 2: { start: 7, label: 'Jul–Sep' }, 3: { start: 10, label: 'Oct–Dec' }, 4: { start: 1, label: 'Jan–Mar' } };
+const periodLabel = k => { const [fy, q] = k.split('-Q').map(Number); return `Q${q} (${FISCAL[q].label} ${q === 4 ? fy + 1 : fy})`; };
+function currentPeriodKey() {
+  const d = new Date(), m = d.getMonth() + 1, y = d.getFullYear();
+  const fy = m >= 4 ? y : y - 1, q = m >= 4 && m <= 6 ? 1 : m >= 7 && m <= 9 ? 2 : m >= 10 ? 3 : 4;
+  return `${fy}-Q${q}`;
+}
+let PERIOD = new URLSearchParams(location.search).get('period');
+if (!PERIOD_KEYS.includes(PERIOD)) PERIOD = currentPeriodKey();
+if (!PERIOD_KEYS.includes(PERIOD)) PERIOD = PERIOD_KEYS[0];
+
+function quarterRange(key) {
+  const [fy, q] = key.split('-Q').map(Number);
+  const sy = q === 4 ? fy + 1 : fy, sm = FISCAL[q].start, em = sm + 3;
+  const ey = sy + (em > 12 ? 1 : 0), emm = em > 12 ? em - 12 : em;
+  return { from: `${sy}-${pad2(sm)}-01`, to: `${ey}-${pad2(emm)}-01` };
+}
+const sumOf = (a, f) => a.reduce((s, r) => s + num(f(r)), 0);
+const sumProd = (a, x, y) => a.reduce((s, r) => s + num(r[x]) * num(r[y]), 0);
+function parseAmount(v) { return Number(String(v ?? '').replace(/[^0-9.\-]/g, '')) || 0; }
+
+async function computeDashboard(period = PERIOD) {
+  const { from, to } = quarterRange(period);
+  const DAY = 86400000;
+  const qStart = new Date(from + 'T00:00:00'), qEnd = new Date(to + 'T00:00:00');
+  const totalDays = Math.round((qEnd - qStart) / DAY);
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const daysPassed = Math.min(totalDays, Math.max(0, Math.floor((today - qStart) / DAY) + 1));
+
+  const saved = {};
+  try {
+    const { data } = await db.from('hzl_dashboard_values').select('field_key, field_value')
+      .eq('period_key', period).in('field_key', ['olChg', 'svcRate', 'gcvCostTarget']);
+    (data || []).forEach(r => saved[r.field_key] = r.field_value);
+  } catch (e) {}
+  const SERVICE_RATE = parseAmount(saved.svcRate);
+
+  const [recRes, tgtRes] = await Promise.all([
+    db.from('hzl_rake_records').select('*').gte('date', from).lt('date', to),
+    db.from('hzl_rake_targets').select('*').eq('quarter', `Q${period.split('-Q')[1]}`)
+      .gte('month', from.slice(0, 7)).lt('month', to.slice(0, 7))
+  ]);
+  if (recRes.error) throw recRes.error;
+  if (tgtRes.error) throw tgtRes.error;
+  const recs = recRes.data || [], tgts = tgtRes.data || [];
+  const out = {};
+  out._lastRake = recs.map(r => String(r.date || '').slice(0, 10)).filter(Boolean).sort().pop() || '';
+
+  const reportDates = tgts.map(t => t.report_date).filter(Boolean).sort();
+  const cutoff = reportDates.length ? reportDates[reportDates.length - 1] : to;
+
+  const rrTotal = sumOf(recs, r => r.rr_wt);
+  const perfGcv = rrTotal ? sumProd(recs, 'rr_wt', 'gcv_arb') / rrTotal : 0;
+  const adbGcv = rrTotal ? sumProd(recs, 'rr_wt', 'gcv_adb') / rrTotal : 0;
+  out.perDayReqRake = sumOf(tgts, t => t.asking_per_day);
+  out.rakeMat = sumOf(tgts, t => t.asking_pct);
+  out.gcvPerf = perfGcv;
+  out.gcvPosTarget = adbGcv - perfGcv;
+
+  const recvTotal = sumOf(recs, r => r.recv_wt);
+  out.avgShrt = recs.length ? (recvTotal - rrTotal) / recs.length : 0;
+  out.normQty = rrTotal ? (recvTotal - rrTotal) / rrTotal * 100 : 0;
+
+  const shortRate = shortageRate(out.normQty);
+  out.billQty = shortRate * recvTotal;
+  out.billQtyMt = shortRate;
+  out.billGcv = sumOf(recs, r => r.bonus_penalty);
+  out.billGcvMt = rrTotal ? out.billGcv / rrTotal : 0;
+
+  [['Secl','SECL'],['Ccl','CCL'],['Mcl','MCL']].forEach(([key, name]) => {
+    const aT = tgts.filter(t => t.box_type === name), aR = recs.filter(r => r.area === name);
+    const loaded = aR.filter(r => r.date <= cutoff).length, target = sumOf(aT, t => t.qtr_target);
+    out['tgt' + key] = target; out['load' + key] = loaded; out['bal' + key] = target - loaded;
+    out['ask' + key] = sumOf(aT, t => t.asking_per_day);
+    const areaRr = sumOf(aR, r => r.rr_wt);
+    out['svc' + key] = areaRr * SERVICE_RATE;
+    out['svc' + key + 'Mt'] = areaRr ? out['svc' + key] / areaRr : 0;
+    out['gcvPos' + key] = sumOf(aR, r => r.gcv_adb) - sumOf(aR, r => r.gcv_arb);
+    const arb = aR.filter(r => r.gcv_arb != null);
+    out[key.toLowerCase() + 'Gcv'] = arb.length ? sumOf(arb, r => r.gcv_arb) / arb.length : 0;
+    const arbT = sumOf(aR, r => r.gcv_arb);
+    out[key.toLowerCase() + 'GcvCost'] = arbT ? sumOf(aR, r => r.landed_cost) / arbT : 0;
+  });
+
+  const perMt = v => recvTotal ? v / recvTotal : 0;
+  const olCharge = parseAmount(saved.olChg);
+  const punSum = sumOf(recs, r => r.pol_group), ehbcSum = sumOf(recs, r => r.ehbc_group);
+  const enhcSum = sumOf(recs, r => r.enhc_charge), deadSum = sumOf(recs, r => r.dead_fr_chg);
+  const totalPen = olCharge + punSum + ehbcSum + enhcSum + deadSum;
+  const pen5 = totalPen * FORMULAS.penaltyPct / 100;
+  out.ulChg = 0; out.ulChgMt = 0;
+  out.olChg = olCharge; out.olChgMt = perMt(olCharge);
+  out.punSum = punSum; out.punSumMt = perMt(punSum);
+  out.ehbc = ehbcSum; out.ehbcMt = perMt(ehbcSum);
+  out.enhc = enhcSum; out.enhcMt = perMt(enhcSum);
+  out.deadFr = deadSum; out.deadFrMt = perMt(deadSum);
+  out.totalPen = totalPen; out.totalPenMt = perMt(totalPen);
+  out.pen5b = pen5; out.pen5bMt = perMt(pen5);
+  out.pen5 = pen5; out.pen5Mt = perMt(pen5);
+  out.totalBill = out.billQty + out.billGcv + out.svcSecl + out.svcCcl + out.svcMcl + pen5;
+  out.totalBillMt = perMt(out.totalBill);
+  out.expBill = daysPassed ? (out.totalBill / daysPassed) * totalDays : 0;
+
+  const avgOf = f => { const v = recs.map(f).filter(x => x != null && x !== '').map(Number); return v.length ? v.reduce((s, x) => s + x, 0) / v.length : 0; };
+  out.avgChWt = avgOf(r => r.ch_wt); out.avgRrWt = avgOf(r => r.rr_wt);
+  out.avgPlantWt = avgOf(r => r.recv_wt); out.avgGcv = avgOf(r => r.gcv_adb);
+  out.totalRrWt = rrTotal; out.totalPlantRec = recvTotal;
+  out.pdRakeAch = totalDays ? recs.length / totalDays : 0;
+  out.pdRakeTgt = out.perDayReqRake;
+  out.pdQtyAch = totalDays ? rrTotal / totalDays : 0;
+  out.pdQtyTgt = recs.length * FORMULAS.qtyPerRake;
+  out.pdGcvAch = out.seclGcvCost;
+  out.pdGcvTgt = parseAmount(saved.gcvCostTarget);
+
+  const has = (r, n) => String(r.siding || '').toUpperCase().includes(n);
+  const MINES = [['gov', r => has(r,'GOVINDA')], ['kmka', r => has(r,'KMKA')], ['nkcr', r => has(r,'NKCR')],
+    ['oksr', r => has(r,'OKSR')], ['gpck', r => has(r,'GPCK')], ['jrgr', r => has(r,'JRGR')],
+    ['dipka', r => has(r,'DIPKA')], ['slog', r => has(r,'SLOG')], ['ccl', r => r.area === 'CCL'], ['mcl', r => r.area === 'MCL']];
+  MINES.forEach(([k, match]) => {
+    const m = recs.filter(match);
+    const rr = sumOf(m, r => r.rr_wt), arb = sumOf(m, r => r.gcv_arb), adb = sumOf(m, r => r.gcv_adb);
+    const recv = sumOf(m, r => r.recv_wt), landed = sumOf(m, r => r.landed_cost);
+    out['m_gcv_' + k] = rr ? sumProd(m, 'gcv_arb', 'rr_wt') / rr : 0;
+    out['m_diff_' + k] = adb - arb;
+    out['m_perf_' + k] = sumOf(m, r => r.bonus_penalty);
+    out['m_cost_' + k] = arb ? landed / arb : 0;
+    out['m_shrt_' + k] = recv - rr;
+    out['m_pun_' + k] = sumOf(m, r => r.pol_group);
+    out['m_ehbc_' + k] = sumOf(m, r => r.ehbc_group);
+    out['m_enhc_' + k] = sumOf(m, r => r.enhc_charge);
+  });
+
+  out._recs = recs; out._tgtTotal = sumOf(tgts, t => t.qtr_target);
+  out._from = from; out._daysPassed = daysPassed;
+  return out;
+}
+
+/* Display: zero shows "-", money in whole rupees with en-IN grouping */
+const INT_FIELDS = new Set(['billQty','billGcv','svcSecl','svcCcl','svcMcl','pen5','totalBill','expBill','ulChg','olChg',
+  'punSum','ehbc','enhc','deadFr','totalPen','pen5b','tgtSecl','tgtCcl','tgtMcl','loadSecl','loadCcl','loadMcl',
+  'balSecl','balCcl','balMcl','askSecl','askCcl','askMcl']);
 function formatCell(id, n) {
   if (!Number.isFinite(n)) return '';
   const isInt = INT_FIELDS.has(id);
-  const isZero = isInt ? Math.round(n) === 0 : Math.abs(n) < 0.005;
-  if (isZero) return '-';
+  if (isInt ? Math.round(n) === 0 : Math.abs(n) < 0.005) return '-';
   const sign = n < 0 ? '-' : '';
-  /* en-IN grouping: 1,00,000 / 12,34,567 */
-  const body = isInt
-    ? Math.round(Math.abs(n)).toLocaleString('en-IN')
-    : Math.abs(n).toFixed(2);
-  return `${sign}${body}`;
+  return sign + (isInt ? Math.round(Math.abs(n)).toLocaleString('en-IN') : Math.abs(n).toFixed(2));
 }
-
 function renderCalculated(values) {
   Object.entries(values).forEach(([id, val]) => {
-    const el = document.getElementById(id);
+    if (id.startsWith('_')) return;
+    const el = $(id);
     if (!el || el === document.activeElement) return;
     const n = Number(val);
     el.value = formatCell(id, n);
@@ -1063,196 +1415,124 @@ function renderCalculated(values) {
   });
 }
 
-/* ============ Monthly & quarterly table (Q2 -> Q4 of the selected fiscal year) ============ */
-const TREND_AREA = null;   // set to 'SECL' to base cost / GCV / qty on one area only
-const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-let trendAt = 0;
-
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 function trendStats(rs, days) {
-  const rr  = sumOf(rs, r => r[REC.rr_wt]);
-  const arb = sumOf(rs, r => r[REC.gcv_arb]);
-  const landed = sumOf(rs, r => r[REC.landed_cost]);
-  return {
-    n: rs.length,
-    cost: arb ? landed / arb : null,
-    qty:  days && rr ? rr / days : null,
-    gcv:  rr ? sumProd(rs, REC.gcv_arb, REC.rr_wt) / rr : null
-  };
+  const rr = sumOf(rs, r => r.rr_wt), arb = sumOf(rs, r => r.gcv_arb), landed = sumOf(rs, r => r.landed_cost);
+  return { cost: arb ? landed / arb : null, qty: days && rr ? rr / days : null, gcv: rr ? sumProd(rs, 'gcv_arb', 'rr_wt') / rr : null };
 }
-
-async function loadTrend(force) {
-  if (!force && Date.now() - trendAt < 60000) return;
-  trendAt = Date.now();
-
+async function loadTrend() {
   const fy = PERIOD.split('-Q')[0];
   const keys = [`${fy}-Q2`, `${fy}-Q3`, `${fy}-Q4`];
   const results = await Promise.all(keys.map(k => computeDashboard(k)));
-
-  const DAY = 86400000;
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  const inr   = n => n == null ? '-' : '₹ ' + n.toFixed(3);
-  const int   = n => n == null ? '-' : Math.round(n).toLocaleString('en-IN');
+  const DAY = 86400000, today = new Date(); today.setHours(0, 0, 0, 0);
+  const inr = n => n == null ? '-' : '₹ ' + n.toFixed(3);
+  const int = n => n == null ? '-' : Math.round(n).toLocaleString('en-IN');
   const rupee = n => n == null ? '-' : '₹ ' + Math.round(n).toLocaleString('en-IN');
-
   let html = '';
   keys.forEach((k, qi) => {
-    const o = results[qi];
-    const recs = TREND_AREA ? o._recs.filter(r => r[REC.area] === TREND_AREA) : o._recs;
-    const start = new Date(o._from + 'T00:00:00');
-
+    const o = results[qi], recs = o._recs, start = new Date(o._from + 'T00:00:00');
     const months = [0, 1, 2].map(i => {
       const ms = new Date(start.getFullYear(), start.getMonth() + i, 1);
       const me = new Date(start.getFullYear(), start.getMonth() + i + 1, 1);
-      const mk = ms.getFullYear() + '-' + String(ms.getMonth() + 1).padStart(2, '0');
-      const mr = recs.filter(r => String(r[REC.date] || '').slice(0, 7) === mk);
+      const mk = ms.getFullYear() + '-' + pad2(ms.getMonth() + 1);
+      const mr = recs.filter(r => String(r.date || '').slice(0, 7) === mk);
       const days = Math.min(Math.round((me - ms) / DAY), Math.max(0, Math.floor((today - ms) / DAY) + 1));
-      return { label: `${MONTH_NAMES[ms.getMonth()]}-${String(ms.getFullYear()).slice(2)}`, ...trendStats(mr, days) };
+      return { label: `${MONTHS[ms.getMonth()]}-${String(ms.getFullYear()).slice(2)}`, ...trendStats(mr, days) };
     });
-
     const q = trendStats(recs, o._daysPassed);
-    const billing = o._recs.length ? o.totalBill : null;
-    const pct = o._tgtTotal ? Math.min(100, o._recs.length / o._tgtTotal * 100) : null;
+    const billing = recs.length ? o.totalBill : null;
+    const pct = o._tgtTotal ? Math.min(100, recs.length / o._tgtTotal * 100) : null;
     const pctCls = pct != null && pct < 100 ? 'qtr low' : 'qtr';
-
     months.forEach((m, i) => {
       html += `<tr><td>${m.label}</td><td>${inr(m.cost)}</td><td>${int(m.qty)}</td><td>${int(m.gcv)}</td>`;
-      if (i === 0) {
-        html += `<td class="qtr" rowspan="3">${periodInfo(k).label}</td>
-          <td class="qtr" rowspan="3">${inr(q.cost)}</td>
-          <td class="qtr" rowspan="3">${rupee(billing)}</td>
-          <td class="qtr" rowspan="3">${int(q.qty)}</td>
-          <td class="qtr" rowspan="3">${int(q.gcv)}</td>
-          <td class="${pctCls}" rowspan="3">${pct == null ? '-' : pct.toFixed(2) + '%'}</td>`;
-      }
+      if (i === 0) html += `<td class="qtr" rowspan="3">${periodLabel(k)}</td>
+        <td class="qtr" rowspan="3">${inr(q.cost)}</td><td class="qtr" rowspan="3">${rupee(billing)}</td>
+        <td class="qtr" rowspan="3">${int(q.qty)}</td><td class="qtr" rowspan="3">${int(q.gcv)}</td>
+        <td class="${pctCls}" rowspan="3">${pct == null ? '-' : pct.toFixed(2) + '%'}</td>`;
       html += '</tr>';
     });
   });
-  document.getElementById('trendBody').innerHTML = html;
+  $('trendBody').innerHTML = html;
 }
 
-/* ============ Load: calculate, then read the saved overload and report date ============ */
 let loadSeq = 0;
-async function loadDashboard(verbose = false) {
+async function loadDashboard() {
   const seq = ++loadSeq;
-  const periodAtStart = PERIOD;
-
+  document.querySelectorAll('.pctTxt').forEach(e => e.textContent = FORMULAS.penaltyPct);
   try {
     const calc = await computeDashboard();
-    if (seq !== loadSeq || periodAtStart !== PERIOD) return;
-    clearFields();
+    if (seq !== loadSeq) return;
     renderCalculated(calc);
-    document.getElementById('reportUpdatedUpto').textContent = fmtDate(calc._lastRake);
-    loadTrend(verbose).catch(err => console.error(err));
+    $('reportUpdatedUpto').textContent = calc._lastRake ? new Date(calc._lastRake + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : '';
+    loadTrend().catch(console.error);
   } catch (err) {
     console.error(err);
-    if (verbose) showToast(`Could not calculate dashboard: ${err.message || 'Supabase error'}`, true);
-    return;
+    toast('Could not calculate dashboard: ' + (err.message || 'Supabase error'), true);
   }
-
-  // Saved values. A missing table only blocks these two fields, not the calculated cards.
   try {
-    const { data, error } = await db.from('hzl_dashboard_values')
-      .select('field_key, field_value')
-      .eq('period_key', periodAtStart)
-      .in('field_key', ['olChg']);
-    if (seq !== loadSeq || periodAtStart !== PERIOD) return;
-    if (error) throw error;
-
+    const { data } = await db.from('hzl_dashboard_values').select('field_key, field_value')
+      .eq('period_key', PERIOD).in('field_key', ['olChg']);
     (data || []).forEach(row => {
-      const input = document.getElementById(row.field_key);
-      if (input && input !== document.activeElement) input.value = formatCell(row.field_key, parseAmount(row.field_value));
+      const i = $(row.field_key);
+      if (i && i !== document.activeElement) i.value = formatCell(row.field_key, parseAmount(row.field_value));
     });
-  } catch (err) {
-    console.error(err);
-    if (verbose) showToast('Could not load saved overload value', true);
-  }
+  } catch (e) {}
 }
 
-/* ============ Live updates ============ */
+function setPeriodLabel() { $('periodLabel').textContent = `AMM HZL • ${periodLabel(PERIOD)}`; }
+function fillPeriodPicker() {
+  const sel = $('periodPick');
+  sel.innerHTML = PERIOD_KEYS.map(k => `<option value="${k}">${periodLabel(k)}</option>`).join('');
+  sel.value = PERIOD;
+  sel.addEventListener('change', () => {
+    PERIOD = sel.value;
+    setPeriodLabel();
+    loadDashboard();
+    subscribeLive();
+  });
+}
+
 let liveChannel = null;
 function subscribeLive() {
   try {
     if (liveChannel) db.removeChannel(liveChannel);
-    liveChannel = db.channel(`hzl-dashboard-${PERIOD}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: REC.table }, () => loadDashboard(false))
-      .on('postgres_changes', { event: '*', schema: 'public', table: TGT.table }, () => loadDashboard(false))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'hzl_dashboard_values' }, () => loadDashboard(false))
+    liveChannel = db.channel('hzl-live-' + PERIOD)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'hzl_rake_records' }, () => loadDashboard())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'hzl_rake_targets' }, () => loadDashboard())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'hzl_dashboard_values' }, () => loadFormulas().then(loadDashboard))
       .subscribe();
-  } catch (err) {
-    console.warn('Realtime not available; using polling', err);
-  }
+  } catch (err) { console.warn('Realtime unavailable', err); }
 }
-setInterval(() => { if (!document.hidden) loadDashboard(false); }, 20000);
-document.addEventListener('visibilitychange', () => { if (!document.hidden) loadDashboard(false); });
-window.addEventListener('focus', () => loadDashboard(false));
 
-/* ============ One-page PDF of the dashboard ============ */
-async function downloadPdf() {
-  const el = document.querySelector('.main');
-  document.body.classList.add('pdf-mode');
+$('saveDemo').addEventListener('click', async () => {
+  const { error } = await db.from('hzl_dashboard_values').upsert([{ period_key: PERIOD, field_key: 'olChg',
+    field_value: $('olChg').value, sort_order: 0 }], { onConflict: 'period_key,field_key' });
+  if (error) { toast('Save failed: ' + error.message, true); return; }
+  toast('Overload saved');
+  await loadDashboard();
   try {
-    const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#e9eff8', useCORS: true, windowWidth: 1500 });
+    const canvas = await html2canvas(document.querySelector('#view-dashboard'), { scale: 2, backgroundColor: '#e9eff8', useCORS: true, windowWidth: 1500 });
     const { jsPDF } = window.jspdf;
-    const landscape = canvas.width >= canvas.height;
-    const pdf = new jsPDF({ orientation: landscape ? 'landscape' : 'portrait', unit: 'mm', format: 'a4' });
+    const pdf = new jsPDF({ orientation: canvas.width >= canvas.height ? 'landscape' : 'portrait', unit: 'mm', format: 'a4' });
     const pw = pdf.internal.pageSize.getWidth(), ph = pdf.internal.pageSize.getHeight(), m = 6;
     const ratio = Math.min((pw - 2 * m) / canvas.width, (ph - 2 * m) / canvas.height);
     const w = canvas.width * ratio, h = canvas.height * ratio;
     pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', (pw - w) / 2, (ph - h) / 2, w, h);
     pdf.save(`HZL-Performance-Meter-${PERIOD}.pdf`);
-  } finally {
-    document.body.classList.remove('pdf-mode');
-  }
-}
-
-/* ============ Save overload charge ============ */
-async function saveOverload() {
-  const btn = document.getElementById('saveDemo');
-  const oldHtml = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-  try {
-    const rows = MANUAL_FIELDS.map(fieldKey => ({
-      period_key: PERIOD,
-      field_key: fieldKey,
-      field_value: document.getElementById(fieldKey).value,
-      sort_order: 0
-    }));
-    const { error } = await db.from('hzl_dashboard_values').upsert(rows, { onConflict: 'period_key,field_key' });
-    if (error) throw error;
-    await loadDashboard(true);
-    showToast('Overload saved');
-    try { await downloadPdf(); }
-    catch (pdfErr) { console.error(pdfErr); showToast('Saved, but PDF failed: ' + ((pdfErr && pdfErr.message) || pdfErr), true); }
-  } catch (err) {
-    console.error(err);
-    showToast(`Save failed: ${err.message || 'Supabase error'}`, true);
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = oldHtml;
-  }
-}
-
-/* ============ Init ============ */
-document.querySelectorAll('input[id]').forEach(input => { if (!MANUAL_FIELDS.includes(input.id)) input.readOnly = true; });
-document.getElementById('saveDemo').addEventListener('click', saveOverload);
-document.getElementById('resetDemo').addEventListener('click', () => loadDashboard(true));
-setPeriodLabel();
-fillPeriodPicker();
-loadDashboard(false);
-subscribeLive();
-</script>
-<script>
-/* page transitions */
-document.addEventListener('click',function(e){
-  var a=e.target.closest('a[href]');
-  if(!a||e.defaultPrevented||e.metaKey||e.ctrlKey||e.shiftKey||e.button||a.target||a.hasAttribute('download'))return;
-  var h=a.getAttribute('href');
-  if(!h||h.charAt(0)==='#'||/^(https?:|mailto:|tel:|javascript:)/i.test(h))return;
-  e.preventDefault();document.body.classList.add('leaving');
-  setTimeout(function(){location.href=h;},180);
+  } catch (e) { console.error(e); toast('Saved, but PDF failed', true); }
 });
-window.addEventListener('pageshow',function(){document.body.classList.remove('leaving');});
+$('resetDemo').addEventListener('click', loadDashboard);
+document.querySelectorAll('#view-dashboard input[id]').forEach(i => { if (i.id !== 'olChg') i.readOnly = true; });
+
+/* ==================== INIT ==================== */
+setInterval(() => { if (!document.hidden && $('view-dashboard').classList.contains('active')) loadDashboard(); }, 20000);
+(async () => {
+  await loadFormulas();
+  setPeriodLabel();
+  fillPeriodPicker();
+  loadDashboard();
+  subscribeLive();
+})();
 </script>
 </body>
 </html>
