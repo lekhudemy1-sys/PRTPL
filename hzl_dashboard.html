@@ -96,6 +96,9 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 .total-row .metric-label{color:#fff;font-weight:700}
 .total-row .metric-value{background:rgba(154,212,255,.14);color:#9ad4ff;border:0}
 .total-row .metric-value.neg{color:#ffb3bd}
+.dead-grey{background:#eceef2;border-radius:12px}
+.dead-grey .metric-label{color:#5b6475}
+.dead-grey .metric-value{background:#d5dae3;color:#4b5563}
 #olChg{background:#fff;border:1px solid var(--line);color:var(--blue)}
 
 .area-table{width:100%;border-collapse:separate;border-spacing:6px}
@@ -323,12 +326,10 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
     <div class="card c-pen">
       <div class="card-header"><h3><i class="fas fa-exclamation-triangle"></i> Railway Freight Penalties</h3></div>
       <div class="dual-head"><span>Amount</span><span>Per MT</span></div>
-      <div class="metric-row"><span class="metric-label">Underload Charge</span><div class="pair"><input class="metric-value" id="ulChg" readonly><input class="metric-value" id="ulChgMt" readonly></div></div>
-      <div class="metric-row"><span class="metric-label">Overload Charge</span><div class="pair"><input class="metric-value" id="olChg"><input class="metric-value" id="olChgMt" readonly></div></div>
-      <div class="metric-row"><span class="metric-label">Punitive Sum</span><div class="pair"><input class="metric-value" id="punSum" readonly><input class="metric-value" id="punSumMt" readonly></div></div>
+      <div class="metric-row"><span class="metric-label">Underload Charge</span><div class="pair"><input class="metric-value" id="ulChg" readonly><input class="metric-value" id="ulChgMt" readonly></div></div>      <div class="metric-row"><span class="metric-label">Overload Charge</span><div class="pair"><input class="metric-value" id="olChg" readonly><input class="metric-value" id="olChgMt" readonly></div></div>      <div class="metric-row"><span class="metric-label">Punitive Sum</span><div class="pair"><input class="metric-value" id="punSum" readonly><input class="metric-value" id="punSumMt" readonly></div></div>
       <div class="metric-row"><span class="metric-label">EHBC / FAUC / TC</span><div class="pair"><input class="metric-value" id="ehbc" readonly><input class="metric-value" id="ehbcMt" readonly></div></div>
       <div class="metric-row"><span class="metric-label">ENHC Charges</span><div class="pair"><input class="metric-value" id="enhc" readonly><input class="metric-value" id="enhcMt" readonly></div></div>
-      <div class="metric-row"><span class="metric-label">Dead Freight</span><div class="pair"><input class="metric-value" id="deadFr" readonly><input class="metric-value" id="deadFrMt" readonly></div></div>
+      <div class="metric-row dead-grey"><span class="metric-label">Dead Freight</span><div class="pair"><input class="metric-value" id="deadFr" readonly><input class="metric-value" id="deadFrMt" readonly></div></div>
       <div class="metric-row total-row"><span class="metric-label">TOTAL PENALTY</span><div class="pair"><input class="metric-value" id="totalPen" readonly><input class="metric-value" id="totalPenMt" readonly></div></div>
       <div class="metric-row"><span class="metric-label"><span class="pctTxt">5</span>% of Total Penalty</span><div class="pair"><input class="metric-value" id="pen5b" readonly><input class="metric-value" id="pen5bMt" readonly></div></div>
     </div>
@@ -546,9 +547,9 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
       <li>Rate per MT (used below) = band rate from the Formulas table, chosen by "Shortage / Excess MT per rake" value</li>
       <li>Performance on Quantity Reco = rate per MT × sum of Recv; the per-MT box shows the rate</li>
       <li>Performance on GCV Reco = sum of bonus_penalty from the database; per-MT box = that sum ÷ sum of RR</li>
-      <li>Service Charge SECL / CCL / MCL = area sum of RR × fixed service charge (Data Entry); per-MT box = charge ÷ area sum of RR</li>
+      <li>Service Charge SECL / CCL / MCL = area sum of Recv × fixed service charge (Data Entry); per-MT box = charge ÷ area sum of Recv</li>
       <li>5% of Total Railway Penalty = Total Penalty × penalty share % (Formulas); per-MT box = ÷ sum of Recv</li>
-      <li>TOTAL BILLING = Quantity Reco + GCV Reco + Service SECL + Service CCL + Service MCL + 5% penalty; per-MT box = ÷ sum of Recv</li>
+      <li>TOTAL BILLING = Quantity Reco + GCV Reco + Service SECL + Service CCL + Service MCL − 5% penalty (the 5% line is negative, shown red); per-MT box = ÷ sum of Recv</li>
       <li>Expected Billing of the Qtr = TOTAL BILLING ÷ days passed in the quarter × total days in the quarter</li>
     </ul>
 
@@ -564,10 +565,10 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 
     <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Railway Freight Penalties</h4>
     <ul class="formula-list">
-      <li>Underload Charge = 0 for now (formula not yet defined in the code)</li>
-      <li>Overload Charge = typed value on the dashboard; per-MT box = charge ÷ sum of Recv</li>
+      <li>Underload Charge = sum of ul_ch (Data Entry) for the quarter; per-MT box = charge ÷ sum of Recv</li>
+      <li>Overload Charge = sum of ol_ch (Data Entry) for the quarter; per-MT box = charge ÷ sum of Recv</li>
       <li>Punitive Sum = sum of POL group charges; EHBC / FAUC / TC = sum of EHBC group; ENHC = sum of ENHC charge; Dead Freight = sum of dead freight charges</li>
-      <li>TOTAL PENALTY = Overload + Punitive + EHBC + ENHC + Dead Freight; per-MT box = ÷ sum of Recv</li>
+      <li>TOTAL PENALTY = Overload + Punitive + EHBC + ENHC (Dead Freight is shown in grey and is NOT included); per-MT box = ÷ sum of Recv</li>
       <li>5% of Total Penalty = TOTAL PENALTY × penalty share % (Formulas)</li>
     </ul>
 
@@ -575,7 +576,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
     <ul class="formula-list">
       <li>Mine rows are matched by siding name (for example, a siding containing KMKA counts for KMKA); CCL and MCL use the area field</li>
       <li>GCV (ARB) = sum of (RR × GCV ARB) ÷ sum of RR for the mine</li>
-      <li>Quality Diff. ADB/ARB = sum of GCV ADB − sum of GCV ARB</li>
+      <li>Quality Diff. ADB/ARB = (sum of GCV ADB × RR ÷ sum of RR) − (sum of GCV ARB × RR ÷ sum of RR) for the mine</li>
       <li>Performance on GCV Mines Wise = sum of bonus_penalty for the mine</li>
       <li>Cost Rs. GCV Per Paisa = sum of Landed Cost ÷ sum of GCV ARB</li>
       <li>Shortage = sum of Recv − sum of RR</li>
@@ -750,11 +751,11 @@ const DB_COLS = [
   'sr_no','area','date','siding','unit','tranch','fsa','allot_date','seniority_no',
   'time_pt','time_ct','time_dot','duration','supply_box','load_box','sick_box','box_type',
   'net_wt','recv_wt','grn_qty','gcv_adb','gcv_arb','arb_tm','ch_wt','rr_wt','rr_no','rr_date',
-  'ul_qty','ul_paid_cil','ul_on_us','pol_group','ehbc_group','enhc_charge','total_fright',
+  'ul_qty','ul_paid_cil','ul_on_us','ol_qty','ul_ch','ol_ch','pol_group','ehbc_group','enhc_charge','total_fright',
   'dead_fr_qty','dead_fr_chg','grade','landed_cost','declared_grade','remarks'
 ];
 const NUMERIC_COLS = new Set(['sr_no','seniority_no','supply_box','load_box','sick_box','net_wt','recv_wt','grn_qty',
-  'gcv_adb','gcv_arb','arb_tm','ch_wt','rr_wt','ul_qty','ul_paid_cil','ul_on_us','pol_group','ehbc_group',
+  'gcv_adb','gcv_arb','arb_tm','ch_wt','rr_wt','ul_qty','ul_paid_cil','ul_on_us','ol_qty','ul_ch','ol_ch','pol_group','ehbc_group',
   'enhc_charge','total_fright','dead_fr_qty','dead_fr_chg','landed_cost']);
 const DATE_COLS = new Set(['date','allot_date','rr_date']);
 const TIME_COLS = new Set(['time_pt','time_ct','time_dot']);
@@ -929,7 +930,7 @@ const LOG_COLS = ['id','sr_no','area','date','siding','unit','tranch','fsa','all
   'time_pt','time_ct','time_dot','duration','supply_box','load_box','sick_box','box_type',
   'net_wt','recv_wt','grn_qty','gcv_adb','gcv_arb','arb_tm','ch_wt','rr_wt','rr_no','rr_date',
   'ul_qty','ul_paid_cil','ul_on_us','pol_group','ehbc_group','enhc_charge','total_fright',
-  'dead_fr_qty','dead_fr_chg','grade','landed_cost','declared_grade','remarks',
+  'dead_fr_qty','dead_fr_chg','grade','landed_cost','declared_grade','remarks','ol_qty','ul_ch','ol_ch',
   'created_at','updated_at','gcv_bonus_penalty_per_mt','bonus_penalty'];
 
 async function loadLog() {
@@ -1018,10 +1019,13 @@ const ENTRY_SECTIONS = [
     { key: 'rr_wt', label: 'RR Weight', type: 'number', step: 0.01, unit: 'MT' } ]},
   { title: 'Railway Receipt', icon: 'fa-train', fields: [
     { key: 'rr_no', label: 'RR Number', type: 'text' }, { key: 'rr_date', label: 'RR Date', type: 'date' } ]},
-  { title: 'Underload', icon: 'fa-arrow-down-wide-short', fields: [
+  { title: 'Underload & Overload', icon: 'fa-arrow-down-wide-short', fields: [
     { key: 'ul_qty', label: 'Underload Quantity', type: 'number', step: 0.01 },
     { key: 'ul_paid_cil', label: 'Underload Qty Paid Coal India', type: 'number', step: 0.01 },
-    { key: 'ul_on_us', label: 'Underload Qty On Us', type: 'number', step: 0.01 } ]},
+    { key: 'ul_on_us', label: 'Underload Qty On Us', type: 'number', step: 0.01 },
+    { key: 'ol_qty', label: 'Overload Quantity', type: 'number', step: 0.01, unit: 'MT' },
+    { key: 'ul_ch', label: 'Underload Charge', type: 'number', step: 0.01, unit: '₹' },
+    { key: 'ol_ch', label: 'Overload Charge', type: 'number', step: 0.01, unit: '₹' } ]},
   { title: 'Freight & Charges', icon: 'fa-indian-rupee-sign', fields: [
     { key: 'pol_group', label: 'POL1/PO2/POLA/PCLA/DCLA', type: 'number', step: 0.01, unit: '₹' },
     { key: 'ehbc_group', label: 'EHBC/FAUC/TC/ST', type: 'number', step: 0.01, unit: '₹' },
@@ -1329,9 +1333,9 @@ async function computeDashboard(period = PERIOD) {
     const loaded = aR.filter(r => r.date <= cutoff).length, target = sumOf(aT, t => t.qtr_target);
     out['tgt' + key] = target; out['load' + key] = loaded; out['bal' + key] = target - loaded;
     out['ask' + key] = sumOf(aT, t => t.asking_per_day);
-    const areaRr = sumOf(aR, r => r.rr_wt);
-    out['svc' + key] = areaRr * SERVICE_RATE;
-    out['svc' + key + 'Mt'] = areaRr ? out['svc' + key] / areaRr : 0;
+    const areaRecv = sumOf(aR, r => r.recv_wt);
+    out['svc' + key] = areaRecv * SERVICE_RATE;
+    out['svc' + key + 'Mt'] = areaRecv ? out['svc' + key] / areaRecv : 0;
     out['gcvPos' + key] = sumOf(aR, r => r.gcv_adb) - sumOf(aR, r => r.gcv_arb);
     const arb = aR.filter(r => r.gcv_arb != null);
     out[key.toLowerCase() + 'Gcv'] = arb.length ? sumOf(arb, r => r.gcv_arb) / arb.length : 0;
@@ -1340,21 +1344,21 @@ async function computeDashboard(period = PERIOD) {
   });
 
   const perMt = v => recvTotal ? v / recvTotal : 0;
-  const olCharge = parseAmount(saved.olChg);
   const punSum = sumOf(recs, r => r.pol_group), ehbcSum = sumOf(recs, r => r.ehbc_group);
   const enhcSum = sumOf(recs, r => r.enhc_charge), deadSum = sumOf(recs, r => r.dead_fr_chg);
-  const totalPen = olCharge + punSum + ehbcSum + enhcSum + deadSum;
+  const ulChgSum = sumOf(recs, r => r.ul_ch), olChgSum = sumOf(recs, r => r.ol_ch);
+  const totalPen = olChgSum + punSum + ehbcSum + enhcSum;   // dead freight is shown in grey, NOT part of total penalty
   const pen5 = totalPen * FORMULAS.penaltyPct / 100;
-  out.ulChg = 0; out.ulChgMt = 0;
-  out.olChg = olCharge; out.olChgMt = perMt(olCharge);
+  out.ulChg = ulChgSum; out.ulChgMt = perMt(ulChgSum);
+  out.olChg = olChgSum; out.olChgMt = perMt(olChgSum);
   out.punSum = punSum; out.punSumMt = perMt(punSum);
   out.ehbc = ehbcSum; out.ehbcMt = perMt(ehbcSum);
   out.enhc = enhcSum; out.enhcMt = perMt(enhcSum);
   out.deadFr = deadSum; out.deadFrMt = perMt(deadSum);
   out.totalPen = totalPen; out.totalPenMt = perMt(totalPen);
   out.pen5b = pen5; out.pen5bMt = perMt(pen5);
-  out.pen5 = pen5; out.pen5Mt = perMt(pen5);
-  out.totalBill = out.billQty + out.billGcv + out.svcSecl + out.svcCcl + out.svcMcl + pen5;
+  out.pen5 = -pen5; out.pen5Mt = perMt(-pen5);   // negative: deducted from billing (shown red)
+  out.totalBill = out.billQty + out.billGcv + out.svcSecl + out.svcCcl + out.svcMcl + out.pen5;
   out.totalBillMt = perMt(out.totalBill);
   out.expBill = daysPassed ? (out.totalBill / daysPassed) * totalDays : 0;
 
@@ -1378,7 +1382,7 @@ async function computeDashboard(period = PERIOD) {
     const rr = sumOf(m, r => r.rr_wt), arb = sumOf(m, r => r.gcv_arb), adb = sumOf(m, r => r.gcv_adb);
     const recv = sumOf(m, r => r.recv_wt), landed = sumOf(m, r => r.landed_cost);
     out['m_gcv_' + k] = rr ? sumProd(m, 'gcv_arb', 'rr_wt') / rr : 0;
-    out['m_diff_' + k] = adb - arb;
+    out['m_diff_' + k] = rr ? (sumProd(m, 'gcv_adb', 'rr_wt') / rr) - (sumProd(m, 'gcv_arb', 'rr_wt') / rr) : 0;
     out['m_perf_' + k] = sumOf(m, r => r.bonus_penalty);
     out['m_cost_' + k] = arb ? landed / arb : 0;
     out['m_shrt_' + k] = recv - rr;
@@ -1469,14 +1473,6 @@ async function loadDashboard() {
     console.error(err);
     toast('Could not calculate dashboard: ' + (err.message || 'Supabase error'), true);
   }
-  try {
-    const { data } = await db.from('hzl_dashboard_values').select('field_key, field_value')
-      .eq('period_key', PERIOD).in('field_key', ['olChg']);
-    (data || []).forEach(row => {
-      const i = $(row.field_key);
-      if (i && i !== document.activeElement) i.value = formatCell(row.field_key, parseAmount(row.field_value));
-    });
-  } catch (e) {}
 }
 
 function setPeriodLabel() { $('periodLabel').textContent = `AMM HZL • ${periodLabel(PERIOD)}`; }
@@ -1522,7 +1518,7 @@ $('saveDemo').addEventListener('click', async () => {
   } catch (e) { console.error(e); toast('Saved, but PDF failed', true); }
 });
 $('resetDemo').addEventListener('click', loadDashboard);
-document.querySelectorAll('#view-dashboard input[id]').forEach(i => { if (i.id !== 'olChg') i.readOnly = true; });
+document.querySelectorAll('#view-dashboard input[id]').forEach(i => { i.readOnly = true; });
 
 /* ==================== INIT ==================== */
 setInterval(() => { if (!document.hidden && $('view-dashboard').classList.contains('active')) loadDashboard(); }, 20000);
