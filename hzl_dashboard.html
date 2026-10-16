@@ -18,7 +18,7 @@
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html{font-size:clamp(12px,.55vw + 8px,15px)}
-body{font-family:var(--body);color:var(--ink);min-height:100vh;line-height:1.4;overflow-x:hidden;transition:opacity .18s;
+body{font-family:var(--body);color:var(--ink);min-height:100vh;line-height:1.4;overflow-x:hidden;
   background:radial-gradient(900px 480px at 95% -8%,#cfe0ff 0,transparent 70%),radial-gradient(800px 460px at -5% 105%,#d2efe6 0,transparent 70%),var(--bg);background-attachment:fixed}
 a{text-decoration:none;color:inherit}
 input,select,textarea{font-family:inherit;color-scheme:light;outline:none}
@@ -42,13 +42,19 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 .view.active{display:block;animation:rise .55s var(--ease) backwards}
 @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 
+/* Back button (shown on every non-dashboard view and on the dashboard) */
+.back-row{display:flex;justify-content:flex-start;margin-bottom:.8rem}
+.back-btn{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;border:0;padding:.6rem 1.1rem;border-radius:12px;font:700 .85rem var(--body);cursor:pointer;display:inline-flex;align-items:center;gap:.45rem;box-shadow:0 10px 18px -10px rgba(15,33,66,.6);transition:.2s}
+.back-btn:hover{transform:translateY(-2px)}
+
 /* Hero title bar */
-.topbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.8rem;margin-bottom:1.2rem;padding:1.1rem 1.5rem;border-radius:22px;color:#fff;
+.topbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:.8rem;margin-bottom:1.2rem;padding:1.1rem 1.5rem;border-radius:22px;color:#fff;
   background:radial-gradient(500px 200px at 90% 0,rgba(52,211,166,.35),transparent 70%),linear-gradient(120deg,var(--navy) 0%,var(--navy2) 60%,#1f6f8f 100%);
   box-shadow:0 18px 36px -18px rgba(15,33,66,.65)}
 .topbar h1{font:700 clamp(1.3rem,1.4vw + .8rem,2rem) var(--head);letter-spacing:-.02em}
 .period{font-size:.85rem;font-weight:500;color:#b8d3ee;margin-top:.1rem}
-.topbar-actions{display:flex;gap:.55rem;flex-wrap:wrap;align-items:center}
+.topbar-actions{display:flex;gap:.55rem;flex-wrap:wrap;align-items:center;margin-left:auto}
+.topbar .back-btn{flex-shrink:0;margin-right:.4rem}
 .month-pick{padding:.55rem .9rem;border-radius:12px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.12);color:#fff;font-weight:600;cursor:pointer}
 .month-pick option{color:var(--ink)}
 .btn{display:inline-flex;align-items:center;gap:.45rem;padding:.55rem 1.1rem;font:600 .85rem var(--body);border:1px solid transparent;border-radius:12px;cursor:pointer;transition:.2s}
@@ -99,7 +105,6 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 .dead-grey{background:#eceef2;border-radius:12px}
 .dead-grey .metric-label{color:#5b6475}
 .dead-grey .metric-value{background:#d5dae3;color:#4b5563}
-#olChg{background:#fff;border:1px solid var(--line);color:var(--blue)}
 
 .area-table{width:100%;border-collapse:separate;border-spacing:6px}
 .area-table th{font:700 .72rem var(--body);text-transform:uppercase;letter-spacing:.5px;color:#fff;background:var(--d);border-radius:10px;padding:.5rem;text-align:center}
@@ -109,7 +114,6 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 .area-table input{width:100%;border:1px solid transparent;border-radius:12px;background:var(--t);color:var(--ink);font:700 1.15rem var(--head);font-variant-numeric:tabular-nums;text-align:center;padding:.65rem .2rem;transition:.2s}
 .area-table input:hover{border-color:var(--c)}
 .area-table input.neg{color:#b3162b;background:#fdeaec}
-.c-rake .area-table td:nth-child(3) input{background:#fff;border:1px solid var(--line)}
 .avg-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:.7rem}
 .highlight-box{background:var(--t);border-radius:14px;padding:.55rem .6rem;text-align:center;border:1px solid var(--b);transition:transform .2s,box-shadow .2s}
 .highlight-box:hover{transform:translateY(-2px);box-shadow:0 10px 18px -12px var(--c)}
@@ -156,6 +160,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 .btn-soft{background:#fbfcfe;color:var(--navy);border:1px solid #d3ddee;padding:.55rem .95rem;border-radius:12px;font:600 .82rem var(--body);cursor:pointer;display:inline-flex;align-items:center;gap:.4rem}
 .btn-soft:hover{border-color:#34d3a6}
 .btn-soft.btn-danger{background:#fbe6e9;color:#b3162b;border-color:#f2c4cb}
+.btn-sm{padding:.3rem .55rem;font-size:.75rem}
 .drop{border:2px dashed #9fb4d6;border-radius:16px;padding:1.6rem;text-align:center;background:#f5f8fd;cursor:pointer;transition:.2s}
 .drop:hover,.drop.over{border-color:#0f9d7a;background:#eefaf5}
 .drop i{font-size:1.8rem;color:#0f9d7a}
@@ -178,6 +183,13 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 .toolbar input.search{flex:1;min-width:200px;border:1px solid var(--line);border-radius:11px;padding:.5rem .8rem;background:#f4f7fd}
 .hidden{display:none!important}
 .formula-list{margin-top:.5rem;padding-left:1.1rem;font-size:.88rem;font-weight:600;line-height:1.7;color:var(--ink)}
+.section{margin-bottom:1rem}
+.section-title{font:700 .95rem var(--head);margin-bottom:.5rem;display:flex;align-items:center;gap:.5rem;color:var(--navy)}
+.req{color:#b3162b;margin-left:.15rem}
+.tag{font-size:.6rem;font-weight:700;text-transform:uppercase;margin-left:.4rem;padding:.1rem .4rem;border-radius:999px;background:#e0f5ef;color:#095e49}
+.unit-wrap{position:relative;display:flex;align-items:center}
+.unit-wrap input{padding-right:3rem}
+.unit{position:absolute;right:.7rem;font-size:.72rem;font-weight:700;color:var(--mute);pointer-events:none}
 
 /* Password page: back button on the left, password sheet on the right, both centred */
 .lock-row{display:flex;align-items:center;justify-content:center;gap:1.5rem;flex-wrap:wrap;min-height:70vh;padding:1rem}
@@ -241,6 +253,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 <!-- ============ DASHBOARD VIEW ============ -->
 <section class="view active" id="view-dashboard">
   <div class="topbar">
+    <button class="back-btn" data-back="dashboard"><i class="fas fa-arrow-left"></i> Back</button>
     <div>
       <h1>Performance Meter</h1>
       <div class="period" id="periodLabel">AMM HZL</div>
@@ -326,7 +339,9 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
     <div class="card c-pen">
       <div class="card-header"><h3><i class="fas fa-exclamation-triangle"></i> Railway Freight Penalties</h3></div>
       <div class="dual-head"><span>Amount</span><span>Per MT</span></div>
-      <div class="metric-row"><span class="metric-label">Underload Charge</span><div class="pair"><input class="metric-value" id="ulChg" readonly><input class="metric-value" id="ulChgMt" readonly></div></div>      <div class="metric-row"><span class="metric-label">Overload Charge</span><div class="pair"><input class="metric-value" id="olChg" readonly><input class="metric-value" id="olChgMt" readonly></div></div>      <div class="metric-row"><span class="metric-label">Punitive Sum</span><div class="pair"><input class="metric-value" id="punSum" readonly><input class="metric-value" id="punSumMt" readonly></div></div>
+      <div class="metric-row"><span class="metric-label">Underload Charge</span><div class="pair"><input class="metric-value" id="ulChg" readonly><input class="metric-value" id="ulChgMt" readonly></div></div>
+      <div class="metric-row"><span class="metric-label">Overload Charge</span><div class="pair"><input class="metric-value" id="olChg" readonly><input class="metric-value" id="olChgMt" readonly></div></div>
+      <div class="metric-row"><span class="metric-label">Punitive Sum</span><div class="pair"><input class="metric-value" id="punSum" readonly><input class="metric-value" id="punSumMt" readonly></div></div>
       <div class="metric-row"><span class="metric-label">EHBC / FAUC / TC</span><div class="pair"><input class="metric-value" id="ehbc" readonly><input class="metric-value" id="ehbcMt" readonly></div></div>
       <div class="metric-row"><span class="metric-label">ENHC Charges</span><div class="pair"><input class="metric-value" id="enhc" readonly><input class="metric-value" id="enhcMt" readonly></div></div>
       <div class="metric-row dead-grey"><span class="metric-label">Dead Freight</span><div class="pair"><input class="metric-value" id="deadFr" readonly><input class="metric-value" id="deadFrMt" readonly></div></div>
@@ -369,7 +384,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 
 <!-- ============ REPORTS VIEW ============ -->
 <section class="view" id="view-reports">
-  <div class="topbar"><div><h1>Reports</h1><div class="period">Generate, view &amp; download operational reports</div></div></div>
+  <div class="topbar"><button class="back-btn" data-back="reports"><i class="fas fa-arrow-left"></i> Back</button><div><h1>Reports</h1><div class="period">Generate, view &amp; download operational reports</div></div></div>
   <div class="panel">
     <table class="rep-table">
       <thead><tr><th>Report Name</th><th>Type</th><th>Period</th><th>Status</th></tr></thead>
@@ -386,7 +401,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 
 <!-- ============ ALERTS VIEW ============ -->
 <section class="view" id="view-alerts">
-  <div class="topbar"><div><h1>Alerts</h1><div class="period">Real-time monitoring &amp; notifications</div></div></div>
+  <div class="topbar"><button class="back-btn" data-back="alerts"><i class="fas fa-arrow-left"></i> Back</button><div><h1>Alerts</h1><div class="period">Real-time monitoring &amp; notifications</div></div></div>
   <div class="stats-grid">
     <div class="stat-card" style="border-top-color:#d1344a"><div class="label">Critical</div><div class="value" style="color:#d1344a">2</div></div>
     <div class="stat-card" style="border-top-color:#c27a0a"><div class="label">Warning</div><div class="value" style="color:#c27a0a">3</div></div>
@@ -419,7 +434,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 
 <!-- ============ UPLOAD EXCEL VIEW ============ -->
 <section class="view" id="view-upload">
-  <div class="topbar"><div><h1>Upload Excel</h1><div class="period">Import rake records into the database</div></div></div>
+  <div class="topbar"><button class="back-btn" data-back="upload"><i class="fas fa-arrow-left"></i> Back</button><div><h1>Upload Excel</h1><div class="period">Import rake records into the database</div></div></div>
   <div class="panel">
     <h2><i class="fas fa-file-excel"></i> Choose workbook</h2>
     <div class="drop" id="drop"><i class="fas fa-cloud-arrow-up"></i><p>Drop an .xlsx / .xls / .csv file here or click to browse</p><input type="file" id="fileInput" accept=".xlsx,.xls,.csv" hidden></div>
@@ -443,7 +458,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 
 <!-- ============ RECORDS LOG VIEW ============ -->
 <section class="view" id="view-log">
-  <div class="topbar"><div><h1>Records Log</h1><div class="period">Edit or delete saved rake records</div></div></div>
+  <div class="topbar"><button class="back-btn" data-back="log"><i class="fas fa-arrow-left"></i> Back</button><div><h1>Records Log</h1><div class="period">Edit or delete saved rake records</div></div></div>
   <div class="panel">
     <div class="toolbar">
       <input class="search" id="logSearch" placeholder="Search by RR no, siding, area, FSA...">
@@ -457,7 +472,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 
 <!-- ============ DATA ENTRY VIEW ============ -->
 <section class="view" id="view-entry">
-  <div class="topbar"><div><h1>Data Entry</h1><div class="period">Record coal rake loading, receipt, freight &amp; cost data</div></div></div>
+  <div class="topbar"><button class="back-btn" data-back="entry"><i class="fas fa-arrow-left"></i> Back</button><div><h1>Data Entry</h1><div class="period">Record coal rake loading, receipt, freight &amp; cost data</div></div></div>
   <div class="panel">
     <h2><i class="fas fa-plus-circle"></i> New Rake Record</h2>
     <form id="entryForm" novalidate>
@@ -495,6 +510,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 <!-- ============ FORMULAS VIEW ============ -->
 <section class="view" id="view-formulas">
   <div class="topbar">
+    <button class="back-btn" data-back="formulas"><i class="fas fa-arrow-left"></i> Back</button>
     <div><h1>Formulas</h1><div class="period">Change the calculation rules here. The dashboard uses the new values as soon as you save.</div></div>
     <div class="topbar-actions"><button class="btn btn-secondary" id="saveFormulas"><i class="fas fa-save"></i> Save Formulas</button></div>
   </div>
@@ -638,8 +654,9 @@ const PROTECTED = ['upload', 'log', 'entry', 'formulas'];
 const VIEW_NAMES = { upload: 'Upload Excel', log: 'Records Log', entry: 'Data Entry', formulas: 'Formulas' };
 let isUnlocked = false;
 let pendingView = 'dashboard';
+let viewHistory = ['dashboard'];
 
-function showView(name) {
+function showView(name, fromBack) {
   if (PROTECTED.includes(name) && !isUnlocked) {
     pendingView = name;
     $('lockTitle').textContent = 'Enter password to open ' + VIEW_NAMES[name];
@@ -648,6 +665,7 @@ function showView(name) {
     name = 'lock';
     setTimeout(() => $('pwdInput').focus(), 50);
   }
+  if (!fromBack && name !== viewHistory[viewHistory.length - 1]) viewHistory.push(name);
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
   const navKey = name === 'lock' ? pendingView : name;
   document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.view === navKey));
@@ -656,6 +674,13 @@ function showView(name) {
   if (name === 'log') loadLog();
   if (name === 'entry') initEntry();
   if (name === 'formulas') renderFormulas();
+}
+
+function goBack() {
+  viewHistory.pop();
+  const prev = viewHistory[viewHistory.length - 1] || 'dashboard';
+  showView(prev, true);
+  if (!viewHistory.length) viewHistory = ['dashboard'];
 }
 
 function tryUnlock() {
@@ -679,6 +704,7 @@ $('lockBtn').addEventListener('click', () => {
   showView('dashboard');
 });
 document.querySelectorAll('.nav-item').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
+document.querySelectorAll('.back-btn').forEach(b => b.addEventListener('click', goBack));
 
 /* ==================== FORMULAS (editable rules, stored under period_key 'global') ==================== */
 const DEFAULT_FORMULAS = {
