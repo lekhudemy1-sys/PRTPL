@@ -522,7 +522,7 @@ function renderSummary() {
   $("dash").innerHTML = `
     <div class="sum-card" id="sumwrap">
       <div class="sum-top"><div class="sum-co">${esc(COMPANY)}</div><div class="sum-sub">Railway Operations</div></div>
-      <div class="sum-meta"><span class="t">Pending Rakes</span><span class="chip">${yesterdayStr()}</span></div>
+      <div class="sum-meta"><span class="t">Sidingwise Pending Rakes</span><span class="chip">${yesterdayStr()}</span></div>
       <table>
         <thead><tr><th>DVS</th><th>Area</th><th>Siding</th><th>Destin</th><th>Indents</th></tr></thead>
         <tbody>${rows.map(r => { const first = r.area !== prev; prev = r.area; return `<tr data-area="${esc(r.area)}" class="${first ? "first" : ""}">
