@@ -11,7 +11,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
-  /* Original palette, unchanged */
   :root{ --bg:#f5f6f8; --card:#fff; --text:#1c2230; --muted:#6b7385; --line:#e3e6ec; --brand:#0f5c4d; --brand2:#e8f3f0; --danger:#b3261e;
          --shadow:0 1px 2px rgba(28,34,48,.06),0 6px 18px -10px rgba(28,34,48,.14);
          --shadow-hover:0 2px 4px rgba(28,34,48,.06),0 18px 34px -16px rgba(28,34,48,.28);
@@ -21,7 +20,6 @@
   body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.4;-webkit-font-smoothing:antialiased}
   .hidden{display:none!important}
 
-  /* ---------- pop-up motion ---------- */
   @keyframes pop{
     0%{opacity:0;transform:translateY(14px) scale(.94)}
     65%{opacity:1;transform:translateY(-3px) scale(1.012)}
@@ -34,7 +32,6 @@
   .lift:hover{transform:translateY(-4px);box-shadow:var(--shadow-hover);border-color:#d3d9e2}
   @media (prefers-reduced-motion:reduce){ .pop,.toast{animation:none!important} .lift{transition:none} }
 
-  /* ---------- top bar ---------- */
   header{position:sticky;top:0;z-index:30;background:var(--brand);color:#fff;box-shadow:0 2px 10px rgba(0,0,0,.12)}
   .topbar{max-width:1640px;margin:0 auto;padding:0 24px;min-height:60px;display:flex;align-items:center;gap:22px;flex-wrap:wrap}
   .dback{display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:999px;padding:7px 14px;font-weight:600;font-size:13px;white-space:nowrap;transition:background .2s}
@@ -66,7 +63,6 @@
 
   main{max-width:1640px;margin:0 auto;padding:20px 24px 40px}
 
-  /* ---------- building blocks ---------- */
   .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:18px 20px;margin-bottom:16px}
   .card-h{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:16px}
   .card-h h2{font-size:16px;margin:0;font-weight:700}
@@ -99,7 +95,6 @@
   .chipset button:hover{color:var(--text);border-color:#cfd5de;transform:translateY(-1px)}
   .chipset button.active{background:var(--brand2);color:var(--brand);border-color:#bfe0d6}
 
-  /* ---------- KPI cards (centred) ---------- */
   .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}
   .kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:18px 16px;position:relative;overflow:hidden;min-width:0;text-align:center}
   .kpi::before{content:"";position:absolute;left:18px;right:18px;top:0;height:3px;border-radius:0 0 3px 3px;background:var(--tint,var(--brand))}
@@ -107,16 +102,13 @@
   .kpi .v{font-size:28px;font-weight:800;letter-spacing:-.01em;margin-top:8px;font-variant-numeric:tabular-nums;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .kpi .s{font-size:12px;color:var(--muted);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-  /* ---------- filters ---------- */
   .filters{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr)) auto;gap:14px;align-items:end}
   .filters.f3{grid-template-columns:repeat(3,minmax(150px,1fr))}
   .filters.fauto{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
 
-  /* ---------- monthly toolbar ---------- */
   .mtool{display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:center;margin-bottom:16px}
   .mtool .note{width:100%;text-align:center}
 
-  /* ---------- monthly table (original colours) ---------- */
   .tbl-wrap{overflow-x:auto;border:1px solid #bfbfbf;border-radius:8px;background:#fff}
   table.secl{border-collapse:separate;border-spacing:0;font-size:12px;width:max-content;min-width:100%;font-family:Arial,Helvetica,sans-serif}
   .secl th,.secl td{border-right:1px solid #8c8c8c;border-bottom:1px solid #8c8c8c;padding:4px 7px;text-align:center;white-space:nowrap;color:#000}
@@ -131,7 +123,6 @@
   .secl tr.total td.date{z-index:2;left:0}
   .secl th.perf,.secl th.single{white-space:normal;min-width:70px}
 
-  /* ---------- average page (original colours) ---------- */
   .avtitle{border:3px double #1f3864;border-radius:16px;background:linear-gradient(#eaf1fb,#cfdcf0);color:#1f3864;text-align:center;font:700 24px/1.2 Copperplate,"Copperplate Gothic Bold",Georgia,serif;letter-spacing:1px;padding:12px 10px;margin-bottom:16px;text-transform:uppercase}
   .avgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:24px;align-items:start}
   .avcard{background:#fff;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:16px;overflow-x:auto;text-align:center}
@@ -157,13 +148,11 @@
   table.sum td.val span{position:relative;z-index:1}
   table.sum tr.tot td{font-weight:700;font-size:14px}
 
-  /* ---------- states ---------- */
   .state{padding:44px 20px;text-align:center;color:var(--muted)}
   .state b{display:block;color:var(--text);font-size:15px;margin-bottom:4px}
   .skel{height:14px;border-radius:6px;background:linear-gradient(90deg,#eceff4 25%,#f7f8fa 37%,#eceff4 63%);background-size:400% 100%;animation:sh 1.3s ease infinite;margin:10px 16px}
   @keyframes sh{0%{background-position:100% 50%}100%{background-position:0 50%}}
 
-  /* ---------- entry ---------- */
   .entry-layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(300px,1fr);gap:16px;align-items:start}
   .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px}
   .form-grid .span-all{grid-column:1/-1}
@@ -176,7 +165,6 @@
   table.recent th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;background:#fafbfc}
   table.recent tr:last-child td{border-bottom:0}
 
-  /* destination multi-select */
   .destbox{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-content:flex-start;padding:12px;border:1px solid var(--line);border-radius:9px;min-height:60px;background:#fafbfc}
   .dchip{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--text);font:600 13px system-ui,sans-serif;cursor:pointer;transition:background .15s,border-color .15s,color .15s}
   .dchip:hover{border-color:#cfd5de}
@@ -185,7 +173,6 @@
   .addrow{display:flex;gap:8px;margin:10px auto 0;max-width:440px}
   .addrow .btn{flex:none}
 
-  /* ---------- type & log tables ---------- */
   .logwrap{overflow:auto;max-height:68vh}
   table.logt{width:100%;border-collapse:collapse;font-size:13px}
   table.logt th,table.logt td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
@@ -198,7 +185,6 @@
   table.logt tr.dirty:hover td{background:#fff3cd}
   .pager{display:flex;align-items:center;justify-content:center;gap:14px;padding:12px;border-top:1px solid var(--line);flex-wrap:wrap}
 
-  /* ---------- upload ---------- */
   .drop{border:2px dashed #b8c4c1;border-radius:14px;padding:40px 20px;text-align:center;color:var(--muted);cursor:pointer;background:var(--brand2);transition:background .15s,border-color .15s,transform .25s}
   .drop:hover,.drop.over{border-color:var(--brand);background:#d7ebe5;transform:scale(1.01)}
   .drop .ico{width:50px;height:50px;margin:0 auto 10px;border-radius:14px;background:var(--brand);display:grid;place-items:center}
@@ -216,7 +202,6 @@
   .bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:14px}
   .bar>div{height:100%;background:var(--brand);width:0;transition:width .25s}
 
-  /* ---------- alerts & toasts ---------- */
   .msg{padding:10px 12px;border-radius:8px;font-size:13px;margin-top:12px;text-align:center}
   .msg.ok{background:#e6f4ea;color:#1e6b34}.msg.err{background:#fce8e6;color:var(--danger)}.msg.info{background:#eef1f6;color:#3b4560}
   #toasts{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;z-index:60;pointer-events:none}
@@ -226,7 +211,6 @@
   .toast.out{opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s}
   @keyframes tpop{0%{opacity:0;transform:translateY(16px) scale(.92)}70%{transform:translateY(-2px) scale(1.02)}100%{opacity:1;transform:none}}
 
-  /* ---------- responsive ---------- */
   @media (max-width:1100px){ .kpis{grid-template-columns:repeat(2,minmax(0,1fr))} .sgrid{grid-template-columns:repeat(2,minmax(0,1fr))} .entry-layout{grid-template-columns:1fr} }
   @media (max-width:760px){
     .topbar{padding:12px 16px;gap:12px}
@@ -242,7 +226,7 @@
     .sgrid{grid-template-columns:1fr}
     .kpi .v{font-size:22px}
   }
-  /* ================= PURPLE REFRESH (layout and table data unchanged) ================= */
+  /* ================= PURPLE REFRESH ================= */
   :root{ --bg:#f7f5fb; --line:#e8e2f2; --brand:#6a2fa0; --brand-deep:#4a1d7a; --brand2:#f3edfb; --danger:#b3261e;
          --shadow:0 2px 6px rgba(56,24,92,.06),0 14px 30px -16px rgba(56,24,92,.28);
          --shadow-hover:0 4px 10px rgba(56,24,92,.08),0 24px 44px -18px rgba(56,24,92,.42);
@@ -251,7 +235,6 @@
   .eyebrow{color:var(--brand);letter-spacing:.12em}
   .card-h h2,.kpi .v{font-family:"Inter",system-ui,sans-serif}
 
-  /* header: purple gradient with a slow flow and small animations */
   header{background:linear-gradient(115deg,#3b1665 0%,#6a2fa0 45%,#9b59d6 100%);background-size:220% 220%;animation:hdrFlow 16s ease infinite;box-shadow:0 10px 28px -12px rgba(59,22,101,.6)}
   @keyframes hdrFlow{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
   .brand-mark{background:rgba(255,255,255,.18);box-shadow:inset 0 0 0 1px rgba(255,255,255,.28);transition:transform .3s}
@@ -273,11 +256,9 @@
   .sync .dot{animation:dotPulse 2.2s ease-out infinite}
   @keyframes dotPulse{0%{box-shadow:0 0 0 0 rgba(159,224,204,.55)}70%{box-shadow:0 0 0 9px rgba(159,224,204,0)}100%{box-shadow:0 0 0 0 rgba(159,224,204,0)}}
 
-  /* section and mode switch animation */
   @keyframes sectionIn{from{opacity:0;transform:translateY(16px) scale(.985);filter:blur(2px)}to{opacity:1;transform:none;filter:none}}
   .reveal{animation:sectionIn .5s cubic-bezier(.2,.8,.2,1) both}
 
-  /* rounded, pop-up cards */
   .card{border-radius:var(--r);border-color:#e6def2;box-shadow:var(--shadow)}
   .kpi{border-radius:18px;border-color:#e6def2}
   .kpi::before{height:4px;left:22px;right:22px;border-radius:0 0 6px 6px}
@@ -289,9 +270,6 @@
   .drop .ico{border-radius:16px;background:var(--brand)}
   .logwrap,.recent-wrap{border-radius:0}
 
-  /* remove extra white around the summary and average boxes: each box fits its table */
-  /* area blocks for a selected mine: each area gets its own colour theme (tm0..tm4) */
-  /* mine view: area blocks side by side, scrolling sideways when they run past the screen */
   .arearow{display:flex;gap:20px;overflow-x:auto;align-items:flex-start;padding:4px 4px 18px}
   .areablock{flex:0 0 auto;padding:14px;border-radius:20px;border:1px solid #e6def2;background:#fff;box-shadow:var(--shadow)}
   .areablock .chips{margin-bottom:10px;white-space:nowrap}
@@ -318,7 +296,6 @@
   .chipset button{border-radius:999px}
   .chipset button.active{background:var(--brand2);color:var(--brand);border-color:#cdb6ec}
 
-  /* buttons */
   .btn{border-radius:12px;font-weight:700;transition:transform .18s ease,box-shadow .25s ease,background .2s,border-color .2s,color .2s}
   .btn:hover{transform:translateY(-2px);box-shadow:0 10px 22px -12px rgba(74,29,122,.5)}
   .btn:active{transform:translateY(0) scale(.98)}
@@ -333,7 +310,6 @@
   .pill{border-radius:999px}
   .pill{background:var(--brand2);color:var(--brand)}
 
-  /* inputs */
   input,select{border-radius:12px;border-color:#dcd3ea}
   input:focus,select:focus{border-color:var(--brand);box-shadow:0 0 0 4px rgba(106,47,160,.14)}
   .destbox{border-radius:14px;border-color:#dcd3ea;background:#fcfbfe}
@@ -398,7 +374,6 @@
 <!-- ================= DASHBOARD ================= -->
 <section id="tab-dashboard">
 
-  <!-- MONTHLY -->
   <div id="mode-monthly" class="hidden">
     <div class="mtool">
       <div class="chipset" id="subtabs">
@@ -418,7 +393,6 @@
     <div class="tbl-wrap pop"><table class="secl" id="m-table"></table></div>
   </div>
 
-  <!-- AVERAGE -->
   <div id="mode-average">
     <div class="card pop">
       <div class="filters">
@@ -606,7 +580,6 @@ const MONTHS = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST
 const MON3 = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const cap = s => s[0] + s.slice(1).toLowerCase();
 
-/* alerts, toasts, connection state */
 const msg = (el, text, kind="info") => { $(el).innerHTML = text ? `<div class="msg ${kind}">${text}</div>` : ""; };
 function toast(text, kind="ok"){
   const t = document.createElement("div");
@@ -615,12 +588,11 @@ function toast(text, kind="ok"){
   $("toasts").appendChild(t);
   setTimeout(() => { t.classList.add("out"); setTimeout(() => t.remove(), 300); }, 3200);
 }
-/* replay the entrance animation on a section or mode panel when it is shown */
 function reveal(el){ if (!el) return; el.classList.remove("reveal"); void el.offsetWidth; el.classList.add("reveal"); }
 function setSync(ok, text){ $("sync").classList.toggle("bad", !ok); $("sync-text").textContent = text; }
 const loadingRow = () => `<div style="padding:10px 0"><div class="skel"></div><div class="skel" style="width:80%"></div><div class="skel" style="width:60%"></div></div>`;
 
-/* ======== HEADER: tabs, mode switch, month picker ======== */
+/* ======== HEADER ======== */
 let CUR_MODE = "average", LOG_LOADED = false;
 function syncHeader(){
   const onDash = !$("tab-dashboard").classList.contains("hidden");
@@ -647,17 +619,15 @@ document.querySelectorAll("#modes button").forEach(b => b.onclick = () => {
   syncHeader();
 });
 
-/* ======== CLASSIFICATION RULES (edit here if your Excel spellings differ) ======== */
-/* Text is compared ignoring case, spaces and symbols: "NON-POWER (CPP)" == "non power cpp" */
+/* ======== CLASSIFICATION RULES ======== */
 const TK = { NONPOWERCPP:"cpp", POWER:"ipp", NONPOWEREAC:"eac", WASHCOAL:"wc" };
 const catOf = t => t.includes("WASH") ? "p_wc" : t.includes("NON") ? "np" : t.includes("POWER") ? "p" : "";
 const catKey = t => { const c = catOf(t); return c === "p_wc" ? "wc" : c; };
 const isNonPower = r => catOf(nk(r.type)) === "np";
-/* Rows entered under SECL whose area is one of these are counted under MCFL (IB and CKP belong to MCFL) */
 const MCFL_AREAS = ["KUR","CKP","IB"];
 const effSub = r => { const s = normSub(r.subsidiary); return (s === "SECL" && MCFL_AREAS.includes(nk(r.area))) ? "MCFL" : s; };
 
-/* ======== MONTHLY TABLE DEFINITIONS (original colours) ======== */
+/* ======== MONTHLY TABLE DEFINITIONS ======== */
 const L = { p:"POWER", np:"NON-POWER", wc:"WASH COAL", t:"TOTAL" };
 const sc = keys => keys.map(k => ({ k, l:L[k], kind: k === "t" ? "sum" : undefined }));
 const dc = (keys, labels) => keys.map((k,i) => ({ k, l:labels[i] })).concat([{ k:"total", l:"TOTAL", kind:"sum" }]);
@@ -685,7 +655,6 @@ const TABS = {
   WCF: { title:"AMM WCF DISPATCH", groups:[{ id:"d", title:"WCF DISPATCH", head:"#d9d9d9", body:"#f2f2f2", cols:sc(PN) }] }
 };
 
-/* which data keys a database row adds 1 to, for a given tab */
 function keysFor(tab, r) {
   const sub = r.sub, a = nk(r.area), d = nk(r.destination), t = nk(r.type), ck = catKey(t), tk = TK[t], k = [];
   if (tab === "TOTAL") { if (ck) k.push(sub + "." + ck, "ALL." + ck); return k; }
@@ -697,7 +666,6 @@ function keysFor(tab, r) {
     if (a === "CICPS") k.push("ps.total");
     if (a === "CICGS") k.push("gs.total");
   } else if (tab === "MCFL") {
-    /* MCFL columns are NON-POWER (cpp), POWER (ipp) and WASH COAL (wc); every non-power type counts as NON-POWER */
     const mk = ck === "np" ? "cpp" : ck === "p" ? "ipp" : ck === "wc" ? "wc" : "";
     if (a === "KUR" && mk) k.push("kur." + mk);
     if (a === "CKP" && (mk === "cpp" || mk === "ipp")) k.push("ckp." + mk);
@@ -730,7 +698,6 @@ async function fetchRows(from, to, cols) {
     rows.push(...data);
     if (data.length < size) break;
   }
-  /* keep only the calendar date (YYYY-MM-DD) so every row lands on the right day, even if the database sends a time too */
   rows.forEach(r => { if (r.entry_date) r.entry_date = String(r.entry_date).slice(0, 10); });
   return rows;
 }
@@ -795,8 +762,6 @@ function renderMonthly() {
   h += `</tr>`;
 
   const totals = {};
-  // Show only calendar dates that have at least one source row for the selected tab.
-  // TOTAL uses all mines; an individual tab uses only rows mapped to that mine.
   const visibleDates = [...new Set(
     MONTH_DATA
       .filter(r => (curTab === "TOTAL" || effSub(r) === curTab) && r.entry_date && r.entry_date.startsWith(`${y}-${p2(m)}-`))
@@ -821,7 +786,6 @@ function renderMonthly() {
   }));
   $("m-table").innerHTML = h + `</tr>`;
 
-  /* KPIs follow the selected mine (or all mines for TOTAL) */
   const scope = MONTH_DATA.filter(r => curTab === "TOTAL" || effSub(r) === curTab);
   const all = scope.length;
   const power = scope.filter(r => catOf(nk(r.type)) === "p").length;
@@ -850,12 +814,10 @@ function renderMonthly() {
 
 /* ======== DOWNLOAD IMAGES (PNG) ======== */
 const ANIM_CLS = ["pop","lift","pop-d1","pop-d2","pop-d3","pop-d4"];
-/* copy of an element with the entrance animation classes removed, so the picture is never captured mid-animation */
 function plainClone(el) {
   const c = el.cloneNode(true);
   c.classList.remove(...ANIM_CLS);
   c.querySelectorAll("*").forEach(n => n.classList.remove(...ANIM_CLS));
-  /* html2canvas misplaces "sticky" cells (the DATE column jumped to the right), so freeze them in the picture only */
   const src = [el, ...el.querySelectorAll("*")], dst = [c, ...c.querySelectorAll("*")];
   src.forEach((n, i) => { if (getComputedStyle(n).position === "sticky") dst[i].style.position = "static"; });
   return c;
@@ -874,7 +836,6 @@ async function saveStageAsPng(stage, widthCss, filename) {
 }
 const noLib = el => { $(el).textContent = "Image tool did not load. Check your internet connection and try again."; };
 
-/* Monthly: the table for the mine that is selected (TOTAL, SECL, MCFL, CCL, NCL or WCF) */
 async function downloadMonthlyImage() {
   const btn = $("m-img"), val = $("m-month").value;
   if (!val) return;
@@ -890,7 +851,6 @@ async function downloadMonthlyImage() {
   finally { btn.disabled = false; }
 }
 
-/* Average: siding and destination tables side by side in one picture; Overall: the four boxes in one row */
 let LAST_AV = null;
 async function downloadAverageImage() {
   if (!LAST_AV) return;
@@ -924,7 +884,6 @@ let AV = [], aToken = 0;
   $("a-from").onchange = $("a-to").onchange = $("a-refresh").onclick = loadAverage;
   $("a-mine").onchange = () => { fillAreas(); renderAverage(); };
   $("a-area").onchange = renderAverage;
-  /* the Area option is removed: a selected mine shows all its areas */
   $("a-area").value = "";
   $("a-area").closest("div").classList.add("hidden");
   $("a-img").onclick = downloadAverageImage;
@@ -967,10 +926,8 @@ function avTable(rows, key, head, days) {
 }
 
 const AREA_HEAD = ["#1f4e79","#375623","#843c0c","#4a1d7a","#0f5c4d"];
-/* one block per area of the selected mine: its siding and destination tables, in that area's colour theme */
 function mineBlocks(scope, days, mine) {
   const key = r => (r.area || "").trim() || "(blank)";
-  /* CIC (PS) and CIC (GS) are not shown as area blocks in the Average view */
   const HIDE_AREAS = ["CICPS", "CICGS"];
   const areas = [...new Set(scope.map(key))].filter(a => !HIDE_AREAS.includes(nk(a))).sort();
   return `<div class="arearow">` + areas.map((a, i) => {
@@ -992,7 +949,6 @@ function renderAverage() {
   $("a-area").disabled = mine === "ALL";
   $("a-out").classList.toggle("hidden", mine === "ALL");
 
-  /* four KPI boxes: total rakes, days, average total coal placed per day, average non-power coal placed per day */
   const scope = mine === "ALL" ? AV : AV.filter(r => r.sub === mine && (!area || (r.area || "").trim() === area));
   const np = scope.filter(isNonPower).length;
   LAST_AV = { from, to, mine, area, rows: scope, days };
@@ -1016,7 +972,7 @@ function renderAverage() {
   $("a-note").textContent = `${fmt(scope.length)} rakes between ${dmy(from)} and ${dmy(to)} (${days} days). Average = total rakes ÷ ${days}.`;
 }
 
-/* ======== SUMMARY BOXES (original colours) ======== */
+/* ======== SUMMARY BOXES ======== */
 const SUMBOX = [
   { key:"sub", title:"PER DAY AVERAGE COAL LOADING", lh:"MINE", cols:["#d9d2e9","#7030a0","#fff","#8e5cc0","#4a1f70"] },
   { key:"area", title:"PER DAY AVERAGE - AREA WISE", lh:"AREA", cols:["#a9d18e","#a9d18e","#000","#70ad47","#548235"] },
@@ -1039,13 +995,12 @@ function sumBox(t, rows, days) {
   return h + `<tr class="tot"><td colspan="2" style="background:${tot};color:#fff">TOTAL RAKES</td><td style="background:${tot};color:#fff">${Math.round(total)}</td></tr></table>`;
 }
 
-/* ======== OVERALL (front page boxes, original colours) ======== */
+/* ======== OVERALL ======== */
 const OV_MINES = ["SECL","MCFL","CCL","NCL","WCF"];
 const OV_DESTS = ["NBSK","SEBD","HZL","MVAA","MVAB"];
 const CPP_EAC  = ["NONPOWERCPP","NONPOWEREAC","NONPOWER"];
 const destName = r => { const d = nk(r.destination); return d === "MAVB" ? "MVAB" : d; };
 
-/* area rows shown in the area boxes, each with the subsidiary it belongs to */
 const OV_AREA_ROWS = [
   { label:"KORBA (SECL)", area:"KORBA", sub:"SECL" },
   { label:"CIC (SECL)",   area:"CIC",   sub:"SECL" },
@@ -1074,7 +1029,7 @@ function renderOverall(days) {
   $("a-sum").innerHTML = boxes.map(([t, r], i) => `<div class="sbox lift pop pop-d${i}">${sumBox(t, r, days)}</div>`).join("");
 }
 
-/* ======== CATALOG: every row in the database, kept in memory for dropdowns and the Type tab ======== */
+/* ======== CATALOG ======== */
 let CAT = [], TYPE_GROUPS = new Map(), TYPE_SEL = {};
 const NEW = "__new__";
 function uniqNk(list){
@@ -1104,7 +1059,6 @@ async function loadCatalog() {
   setSync(true, "Live");
 }
 
-/* destination groups: one per subsidiary + destination */
 function buildGroups() {
   const g = new Map();
   CAT.forEach(r => {
@@ -1385,7 +1339,6 @@ $("l-table").addEventListener("click", async e => {
   if (await saveLogRow(b.closest("tr"))) { toast("Row saved"); updateSaveAll(); refreshAll(); }
 });
 
-/* delete one row from the database, after confirmation */
 $("l-table").addEventListener("click", async e => {
   const b = e.target.closest("[data-del]"); if (!b) return;
   const tr = b.closest("tr"), id = tr.dataset.id;
@@ -1426,10 +1379,6 @@ const FIELD_MATCH = {
   type:        h => h === "type" || h.endsWith("type")
 };
 
-/* Converts any date cell to YYYY-MM-DD.
-   TEXT dates are always read DAY-MONTH-YEAR (Indian format): 01-10-2026 = 1 Oct 2026.
-   If the first number is above 12 it can only be a day, so that is handled the same way.
-   Excel date numbers (serials) and real Date objects are converted as they are. */
 function toISODate(v) {
   if (v === null || v === undefined || v === "") return null;
   if (v instanceof Date && !isNaN(v)) return `${v.getFullYear()}-${p2(v.getMonth()+1)}-${p2(v.getDate())}`;
@@ -1438,17 +1387,13 @@ function toISODate(v) {
     return d ? `${d.y}-${p2(d.m)}-${p2(d.d)}` : null;
   }
   const s = String(v).trim();
-  /* YYYY-MM-DD (also with / or .), optional time after it */
   let m = s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/);
   if (m) return validISO(m[1], m[2], m[3]);
-  /* DD-MM-YYYY or DD/MM/YY (also with .), optional time after it */
   m = s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})/);
   if (m) { const y = m[3].length === 2 ? "20" + m[3] : m[3]; return validISO(y, m[2], m[1]); }
-  /* text such as "1 Oct 2026" or "Oct 1, 2026" */
   const d = new Date(s);
   return isNaN(d) ? null : toISODate(d);
 }
-/* returns YYYY-MM-DD only if it is a real calendar date, otherwise null (so a bad date is never silently shifted) */
 function validISO(y, mo, d) {
   y = +y; mo = +mo; d = +d;
   const dt = new Date(Date.UTC(y, mo - 1, d));
@@ -1494,8 +1439,6 @@ async function handleFile(file) {
   msg("u-msg",""); $("u-save").disabled = true; $("u-preview").innerHTML = ""; $("u-summary").innerHTML = "";
   $("u-hint").textContent = "Reading file…";
   try {
-    /* CSV FIX: SheetJS guesses dates in CSV files MONTH-first (01-10-2026 became 10 Jan 2026, so only 10 and 13 Oct showed data).
-       Reading the CSV with raw:true keeps every cell as plain text, and toISODate then reads it DAY-MONTH-YEAR. */
     const isCsv = /\.(csv|tsv|txt)$/i.test(file.name);
     const wb = isCsv
       ? XLSX.read(await file.text(), { type:"string", raw:true })
@@ -1507,7 +1450,6 @@ async function handleFile(file) {
       `<div class="stats pop pop-d1">${report.map(r => `<span class="pill ${r.skipped?'skip':''}">${esc(r.name)}: ${r.skipped ? "no matching header, skipped" : fmt(r.count) + " rows"}</span>`).join("")}</div>`;
     if (!rows.length) { $("u-hint").textContent = "Nothing to save."; return msg("u-msg", "No rows found. Check that the sheets have headers: Date, Subsidiary, Area, Siding, Destination, Type.", "err"); }
 
-    /* date check shown before saving: date range found and how many rows per date, so a wrong month is spotted at once */
     const dated = rows.filter(r => r.entry_date), bad = rows.length - dated.length;
     if (dated.length) {
       const ds = dated.map(r => r.entry_date).sort();
@@ -1536,7 +1478,6 @@ drop.addEventListener("drop", e => e.dataTransfer.files[0] && handleFile(e.dataT
 $("u-save").onclick = async () => {
   if (!PARSED.length) return;
   $("u-save").disabled = true; $("u-bar").classList.remove("hidden");
-  /* empty type -> use the type already assigned to that destination, otherwise leave it empty (null) */
   PARSED.forEach(r => { r.type = r.type || typeFor(effSub(r), r.destination) || null; });
   const bar = $("u-bar").firstElementChild; const size = 500; let done = 0;
   try {
@@ -1561,6 +1502,152 @@ $("u-save").onclick = async () => {
 /* ======== START ======== */
 renderDests();
 loadCatalog().catch(e => toast("Could not load lists: " + e.message, "err"));
+</script>
+
+<!-- ================= INDIA MAP (merged from map.js) ================= -->
+<script>
+(function () {
+  /* ---------- CSS ---------- */
+  const st = document.createElement("style");
+  st.textContent = `
+.mapcard{display:grid;grid-template-columns:minmax(300px,520px) 1fr;gap:22px;align-items:center}
+.mapcard .mapbox{border-radius:18px;padding:10px;background:linear-gradient(160deg,#f7f1fd,#ebe0f8);border:1px solid #e6def2}
+.mapcard svg{width:100%;height:auto;max-height:600px;display:block}
+.mapcard .india{fill:#fff;stroke:#6a2fa0;stroke-width:2;stroke-linejoin:round;filter:drop-shadow(0 6px 10px rgba(74,29,122,.25))}
+.mapcard g.india{fill:none;stroke:none}
+.mapcard .state{fill:#fff;stroke:#b9a2d8;stroke-width:.7;stroke-linejoin:round;transition:fill .2s}
+.mapcard .state:hover{fill:#efe4fb}
+.mapcard .bub{fill-opacity:.6;stroke-width:2;transform-box:fill-box;transform-origin:center;transition:transform .25s,fill-opacity .2s;animation:pop .6s cubic-bezier(.2,.8,.2,1) backwards}
+.mapcard .bub:hover{fill-opacity:.95;transform:scale(1.18)}
+.mapcard .hq{fill:#4a1d7a;stroke:#fff;stroke-width:1.5}
+.mapcard text{font:700 10.5px Inter,system-ui,sans-serif;fill:#4a1d7a;text-anchor:middle;pointer-events:none;paint-order:stroke;stroke:#fff;stroke-width:3px}
+.mapcard .lg{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:12px}
+.mapcard .lg span{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;background:var(--brand2);color:var(--brand-deep);font-size:12.5px;font-weight:700}
+.mapcard .lg i{width:11px;height:11px;border-radius:50%}
+.mapcard .tablewrap{max-height:430px;overflow:auto;border-radius:14px}
+@media(max-width:900px){.mapcard{grid-template-columns:1fr}}`;
+  document.head.appendChild(st);
+
+  /* ---------- MINE -> SUBSIDIARY ---------- */
+  const lab = document.querySelector('label[for="a-mine"]');
+  if (lab) lab.textContent = "Subsidiary";
+  if (typeof SUMBOX !== "undefined" && SUMBOX[0]) SUMBOX[0].lh = "SUBSIDIARY";
+
+  /* ---------- map container at the end of the Average page ---------- */
+  const kp = document.getElementById("a-sum");
+  if (kp && !document.getElementById("a-map")) {
+    const d = document.createElement("div");
+    d.id = "a-map";
+    d.style.marginTop = "20px";
+    kp.insertAdjacentElement("afterend", d);
+  }
+
+  /* ---------- data: [longitude, latitude]. WCL = WCF, MCL = MCFL ---------- */
+  const SUB_GEO = { SECL:[82.15,22.08], MCFL:[83.97,21.47], CCL:[85.33,23.35], NCL:[82.67,24.2], WCF:[79.09,21.15] };
+  const SUB_COL = { SECL:"#6a2fa0", MCFL:"#0f5c4d", CCL:"#c55a11", NCL:"#1f4e79", WCF:"#548235" };
+  const AREA_GEO = {
+    SECL:{ GEVRA:[82.55,22.33], KUSMUNDA:[82.72,22.32], DIPKA:[82.5,22.38], KORBA:[82.69,22.35], RAIGARH:[83.4,21.9], CHIRIMIRI:[82.33,23.19],
+      BAIKUNTHPUR:[82.56,23.25], HASDEO:[82.45,22.95], BISHRAMPUR:[83.2,23.1], BHATGAON:[82.9,23.1], LAKHANPUR:[83.5,22.9],
+      SOHAGPUR:[81.9,23.3], JAMUNAKOTMA:[81.97,23.2], JOHILLA:[80.9,23.5], UMARIA:[80.84,23.52], CIC:[82.2,22.3] },
+    CCL:{ NORTHKARANPURA:[85.0,23.75], SOUTHKARANPURA:[85.25,23.6], WESTBOKARO:[85.6,23.8], EASTBOKARO:[85.95,23.78], RAMGARH:[85.52,23.63],
+      ARGADA:[85.4,23.72], KUJU:[85.45,23.55], RAJRAPPA:[85.65,23.6], KATHARA:[85.8,23.72], DHORI:[85.9,23.85], BARKASAYAL:[85.35,23.65],
+      AMRAPALICHANDRAGUPTA:[85.1,23.65], DHN:[85.9,23.8] },
+    NCL:{ SINGRAULI:[82.67,24.2], JAYANT:[82.65,24.1], NIGAHI:[82.6,24.15], DUDHICHUA:[82.62,24.07], JHINGURDA:[82.72,24.22],
+      BINA:[82.57,24.05], AMLOHRI:[82.7,24.12], KHADIA:[82.8,24.2], SONBHADRA:[83.0,24.7], DHN:[82.62,24.07] },
+    WCF:{ NAGPUR:[79.09,21.15], UMRER:[79.3,20.85], KAMPTEE:[79.2,21.22], WANI:[78.95,20.05], WANINORTH:[78.95,20.15], MAJRI:[79.05,19.95],
+      CHANDRAPUR:[79.3,19.95], BALLARPUR:[79.35,19.85], PENCH:[78.75,21.7], KANHAN:[79.15,21.28], PATHAKHERA:[78.2,21.9],
+      NAG:[79.09,21.15], NGP:[79.2,21.3] },
+    MCFL:{ TALCHER:[85.2,20.95], JAGANNATH:[85.12,20.98], HINGULA:[85.0,20.9], KALINGA:[85.1,21.02], BHARATPUR:[85.0,21.0], LINGARAJ:[85.22,21.02],
+      ANANTA:[85.1,20.88], IBVALLEY:[83.9,21.85], IB:[83.9,21.85], LAKHANPUR:[83.95,22.0], BASUNDHARA:[83.95,21.92], ORIENT:[83.88,21.8],
+      CKP:[84.1,21.95], KUR:[85.1,21.1] }
+  };
+  const OUTLINE = [[74.5,37],[77.8,35.5],[79,32.5],[78.8,30.5],[81,30.2],[80.1,28.8],[84,27.3],[88.1,26.5],[88.2,27.8],[89.8,26.8],[92,26.9],[94.5,29.3],[96.1,28.3],[97.3,27.5],[95.5,26],[94.5,24.2],[93.4,22.9],[92.3,23.7],[91.5,24.1],[92.2,25.1],[90,25.2],[89,26.2],[88.8,24.8],[89,22.2],[87,21.5],[86.5,20.3],[85,19.3],[82.3,16.8],[80.2,15.5],[80.3,13.4],[79.8,10.3],[78.2,8.9],[77.5,8.1],[76.3,9.5],[75,12.5],[74,15],[73,17.5],[72.8,20],[72.6,21.5],[70,20.9],[68.9,22.3],[70.2,23],[68.2,23.7],[69.5,25.8],[70,27],[71,28],[73,29.8],[74.5,31],[74.3,32.5],[74.5,34]];
+  const K = 17, mx = lon => (lon - 67) * K, my = lat => (38 - lat) * K;
+
+  function areaGeo(sub, area) {
+    const t = AREA_GEO[sub] || {}, k = nk(area);
+    if (t[k]) return t[k];
+    const hit = Object.keys(t).find(x => k.length > 3 && (x.includes(k) || k.includes(x)));
+    return hit ? t[hit] : null;
+  }
+
+  /* ---------- real state boundaries (GeoJSON, loaded once in the browser) ---------- */
+  let GEO = null, GEO_TRY = false, LAST_MAP = null;
+  const GEO_URLS = [
+    "https://cdn.jsdelivr.net/gh/Subhash9325/GeoJson-Data-of-Indian-States@master/Indian_States",
+    "https://raw.githubusercontent.com/Subhash9325/GeoJson-Data-of-Indian-States/master/Indian_States"
+  ];
+  const ring = r => "M" + r.map(p => mx(p[0]).toFixed(1) + "," + my(p[1]).toFixed(1)).join("L") + "Z";
+  function loadGeo() {
+    if (GEO_TRY) return; GEO_TRY = true;
+    (async () => {
+      for (const u of GEO_URLS) {
+        try {
+          const r = await fetch(u); if (!r.ok) continue;
+          const j = await r.json();
+          GEO = j.features.map(f => {
+            const g = f.geometry, polys = g.type === "Polygon" ? [g.coordinates] : g.coordinates;
+            return { name: (f.properties && (f.properties.NAME_1 || f.properties.ST_NM || f.properties.name)) || "", d: polys.map(pl => pl.map(ring).join("")).join("") };
+          });
+          if (LAST_MAP) renderMap(LAST_MAP[0], LAST_MAP[1]);
+          return;
+        } catch (e) {}
+      }
+    })();
+  }
+
+  function renderMap(scope, days) {
+    const box = document.getElementById("a-map");
+    if (!box) return;
+    LAST_MAP = [scope, days]; loadGeo();
+    const g = {};
+    scope.forEach(r => {
+      const a = (r.area || "").trim() || "(blank)", k = r.sub + "|" + nk(a);
+      (g[k] = g[k] || { sub: r.sub, area: a, n: 0 }).n++;
+    });
+    const list = Object.values(g).sort((x, y) => y.n - x.n);
+    if (!list.length) { box.innerHTML = ""; return; }
+    const max = list[0].n, placed = [], spread = {};
+    const pts = list.map(x => {
+      let ll = areaGeo(x.sub, x.area);
+      if (!ll) {
+        const hq = SUB_GEO[x.sub] || [80, 22], i = spread[x.sub] = (spread[x.sub] || 0) + 1;
+        const ang = i * 2.4, r = 0.35 + 0.12 * Math.sqrt(i);
+        ll = [hq[0] + Math.cos(ang) * r, hq[1] + Math.sin(ang) * r];
+      }
+      let px = mx(ll[0]), py = my(ll[1]), tries = 0;
+      while (placed.some(p => Math.hypot(p[0] - px, p[1] - py) < 17) && tries++ < 40) {
+        const a = tries * 2.4; px += Math.cos(a) * 8; py += Math.sin(a) * 8;
+      }
+      placed.push([px, py]);
+      return { ...x, px, py, rad: 6 + Math.sqrt(x.n / max) * 16 };
+    });
+    const subs = [...new Set(list.map(x => x.sub))];
+    const W = Math.ceil(31 * K), H = Math.ceil(32 * K);
+    const poly = OUTLINE.map(p => mx(p[0]).toFixed(1) + "," + my(p[1]).toFixed(1)).join(" ");
+    const col = s => SUB_COL[s] || "#6a2fa0";
+    const lbl = pts.length <= 25;
+    box.innerHTML = `<div class="card pop"><div class="card-h" style="justify-content:center;text-align:center"><div>
+      <div class="eyebrow">Map</div><h2>Coal loading by area</h2>
+      <p>Bubble size shows total rakes. Hover a bubble for the average per day. New areas appear automatically.</p></div></div>
+      <div class="mapcard"><div class="mapbox"><svg viewBox="0 0 ${W} ${H}">${GEO ? `<g style="filter:drop-shadow(0 6px 10px rgba(74,29,122,.25))">` + GEO.map(f => `<path class="state" d="${f.d}"><title>${esc(f.name)}</title></path>`).join("") + `</g>` : `<polygon class="india" points="${poly}"/>`}` +
+      subs.map(s => { const h = SUB_GEO[s]; return h ? `<circle class="hq" cx="${mx(h[0])}" cy="${my(h[1])}" r="3.5"><title>${s} headquarters region</title></circle>` : ""; }).join("") +
+      pts.map(p => `<g><circle class="bub" cx="${p.px}" cy="${p.py}" r="${p.rad}" fill="${col(p.sub)}" stroke="${col(p.sub)}"><title>${esc(p.sub)} · ${esc(p.area)}: ${p.n} rakes, ${(p.n / days).toFixed(2)} per day</title></circle>` +
+        (lbl ? `<text x="${p.px}" y="${p.py - p.rad - 3}">${esc(p.area)}</text>` : "") + `</g>`).join("") +
+      `</svg></div><div><div class="lg">${subs.map(s => `<span><i style="background:${col(s)}"></i>${esc(s)}</span>`).join("")}</div>` +
+      `<div class="tablewrap"><table class="ptable"><thead><tr><th>Subsidiary</th><th>Area</th><th>Rakes</th><th>Avg / day</th></tr></thead><tbody>` +
+      pts.map(p => `<tr><td>${esc(p.sub)}</td><td>${esc(p.area)}</td><td>${fmt(p.n)}</td><td>${(p.n / days).toFixed(2)}</td></tr>`).join("") +
+      `</tbody></table></div></div></div></div>`;
+  }
+
+  /* ---------- hook: draw the map every time the Average view is drawn ---------- */
+  const orig = window.renderAverage;
+  window.renderAverage = function () {
+    orig.apply(this, arguments);
+    if (typeof LAST_AV !== "undefined" && LAST_AV) renderMap(LAST_AV.rows, LAST_AV.days);
+  };
+  if (typeof LAST_AV !== "undefined" && LAST_AV) renderMap(LAST_AV.rows, LAST_AV.days);
+})();
 </script>
 </body>
 </html>
