@@ -48,12 +48,13 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 .back-btn:hover{transform:translateY(-2px)}
 
 /* Hero title bar */
-.topbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.8rem;margin-bottom:1.2rem;padding:1.1rem 1.5rem;border-radius:22px;color:#fff;
+.topbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:.8rem;margin-bottom:1.2rem;padding:1.1rem 1.5rem;border-radius:22px;color:#fff;
   background:radial-gradient(500px 200px at 90% 0,rgba(52,211,166,.35),transparent 70%),linear-gradient(120deg,var(--navy) 0%,var(--navy2) 60%,#1f6f8f 100%);
   box-shadow:0 18px 36px -18px rgba(15,33,66,.65)}
 .topbar h1{font:700 clamp(1.3rem,1.4vw + .8rem,2rem) var(--head);letter-spacing:-.02em}
 .period{font-size:.85rem;font-weight:500;color:#b8d3ee;margin-top:.1rem}
-.topbar-actions{display:flex;gap:.55rem;flex-wrap:wrap;align-items:center}
+.topbar-actions{display:flex;gap:.55rem;flex-wrap:wrap;align-items:center;margin-left:auto}
+.topbar .back-btn{flex-shrink:0;margin-right:.4rem}
 .month-pick{padding:.55rem .9rem;border-radius:12px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.12);color:#fff;font-weight:600;cursor:pointer}
 .month-pick option{color:var(--ink)}
 .btn{display:inline-flex;align-items:center;gap:.45rem;padding:.55rem 1.1rem;font:600 .85rem var(--body);border:1px solid transparent;border-radius:12px;cursor:pointer;transition:.2s}
@@ -251,8 +252,8 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 
 <!-- ============ DASHBOARD VIEW ============ -->
 <section class="view active" id="view-dashboard">
-  <div class="back-row"><button class="back-btn" data-back="dashboard"><i class="fas fa-arrow-left"></i> Back</button></div>
   <div class="topbar">
+    <button class="back-btn" data-back="dashboard"><i class="fas fa-arrow-left"></i> Back</button>
     <div>
       <h1>Performance Meter</h1>
       <div class="period" id="periodLabel">AMM HZL</div>
@@ -383,8 +384,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 
 <!-- ============ REPORTS VIEW ============ -->
 <section class="view" id="view-reports">
-  <div class="back-row"><button class="back-btn" data-back="reports"><i class="fas fa-arrow-left"></i> Back</button></div>
-  <div class="topbar"><div><h1>Reports</h1><div class="period">Generate, view &amp; download operational reports</div></div></div>
+  <div class="topbar"><button class="back-btn" data-back="reports"><i class="fas fa-arrow-left"></i> Back</button><div><h1>Reports</h1><div class="period">Generate, view &amp; download operational reports</div></div></div>
   <div class="panel">
     <table class="rep-table">
       <thead><tr><th>Report Name</th><th>Type</th><th>Period</th><th>Status</th></tr></thead>
@@ -401,8 +401,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 
 <!-- ============ ALERTS VIEW ============ -->
 <section class="view" id="view-alerts">
-  <div class="back-row"><button class="back-btn" data-back="alerts"><i class="fas fa-arrow-left"></i> Back</button></div>
-  <div class="topbar"><div><h1>Alerts</h1><div class="period">Real-time monitoring &amp; notifications</div></div></div>
+  <div class="topbar"><button class="back-btn" data-back="alerts"><i class="fas fa-arrow-left"></i> Back</button><div><h1>Alerts</h1><div class="period">Real-time monitoring &amp; notifications</div></div></div>
   <div class="stats-grid">
     <div class="stat-card" style="border-top-color:#d1344a"><div class="label">Critical</div><div class="value" style="color:#d1344a">2</div></div>
     <div class="stat-card" style="border-top-color:#c27a0a"><div class="label">Warning</div><div class="value" style="color:#c27a0a">3</div></div>
@@ -435,8 +434,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 
 <!-- ============ UPLOAD EXCEL VIEW ============ -->
 <section class="view" id="view-upload">
-  <div class="back-row"><button class="back-btn" data-back="upload"><i class="fas fa-arrow-left"></i> Back</button></div>
-  <div class="topbar"><div><h1>Upload Excel</h1><div class="period">Import rake records into the database</div></div></div>
+  <div class="topbar"><button class="back-btn" data-back="upload"><i class="fas fa-arrow-left"></i> Back</button><div><h1>Upload Excel</h1><div class="period">Import rake records into the database</div></div></div>
   <div class="panel">
     <h2><i class="fas fa-file-excel"></i> Choose workbook</h2>
     <div class="drop" id="drop"><i class="fas fa-cloud-arrow-up"></i><p>Drop an .xlsx / .xls / .csv file here or click to browse</p><input type="file" id="fileInput" accept=".xlsx,.xls,.csv" hidden></div>
@@ -460,8 +458,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 
 <!-- ============ RECORDS LOG VIEW ============ -->
 <section class="view" id="view-log">
-  <div class="back-row"><button class="back-btn" data-back="log"><i class="fas fa-arrow-left"></i> Back</button></div>
-  <div class="topbar"><div><h1>Records Log</h1><div class="period">Edit or delete saved rake records</div></div></div>
+  <div class="topbar"><button class="back-btn" data-back="log"><i class="fas fa-arrow-left"></i> Back</button><div><h1>Records Log</h1><div class="period">Edit or delete saved rake records</div></div></div>
   <div class="panel">
     <div class="toolbar">
       <input class="search" id="logSearch" placeholder="Search by RR no, siding, area, FSA...">
@@ -475,8 +472,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 
 <!-- ============ DATA ENTRY VIEW ============ -->
 <section class="view" id="view-entry">
-  <div class="back-row"><button class="back-btn" data-back="entry"><i class="fas fa-arrow-left"></i> Back</button></div>
-  <div class="topbar"><div><h1>Data Entry</h1><div class="period">Record coal rake loading, receipt, freight &amp; cost data</div></div></div>
+  <div class="topbar"><button class="back-btn" data-back="entry"><i class="fas fa-arrow-left"></i> Back</button><div><h1>Data Entry</h1><div class="period">Record coal rake loading, receipt, freight &amp; cost data</div></div></div>
   <div class="panel">
     <h2><i class="fas fa-plus-circle"></i> New Rake Record</h2>
     <form id="entryForm" novalidate>
@@ -513,8 +509,8 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 
 <!-- ============ FORMULAS VIEW ============ -->
 <section class="view" id="view-formulas">
-  <div class="back-row"><button class="back-btn" data-back="formulas"><i class="fas fa-arrow-left"></i> Back</button></div>
   <div class="topbar">
+    <button class="back-btn" data-back="formulas"><i class="fas fa-arrow-left"></i> Back</button>
     <div><h1>Formulas</h1><div class="period">Change the calculation rules here. The dashboard uses the new values as soon as you save.</div></div>
     <div class="topbar-actions"><button class="btn btn-secondary" id="saveFormulas"><i class="fas fa-save"></i> Save Formulas</button></div>
   </div>
@@ -708,7 +704,7 @@ $('lockBtn').addEventListener('click', () => {
   showView('dashboard');
 });
 document.querySelectorAll('.nav-item').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
-document.querySelectorAll('.back-btn').forEach(b => b.addEventListener('click', goBack));
+document.querySelectorAll('.back-btn').forEach(b => b.addEventListener('click', () => { window.location.href = 'amm_home.html'; }));
 
 /* ==================== FORMULAS (editable rules, stored under period_key 'global') ==================== */
 const DEFAULT_FORMULAS = {
