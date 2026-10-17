@@ -117,30 +117,50 @@ input[type=checkbox]{accent-color:var(--teal);width:16px;height:16px;padding:0}
 .glass.r .glass-h{background:linear-gradient(90deg,rgba(217,119,6,.16),rgba(217,119,6,.02))}
 
 /* tables */
-table{width:100%;border-collapse:separate;border-spacing:0;font-size:12.5px}
-th,td{padding:8px 10px;text-align:left;white-space:nowrap;border-bottom:1px solid rgba(15,23,42,.16)}
-thead th{position:sticky;top:var(--gh);z-index:2;background:#eef2f9;color:#475569;font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:700}
-thead tr.grp th{position:sticky;top:0;z-index:3;height:var(--gh);text-align:center;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:800;padding:0 6px;border-bottom:1px solid var(--line);background:#e6ebf5}
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px;line-height:1.35}
+th,td{padding:9px 12px;text-align:left;white-space:nowrap;border-bottom:1px solid rgba(15,23,42,.10)}
+td.txt{max-width:240px;overflow:hidden;text-overflow:ellipsis}
+
+/* sticky headers: top:0 by default, second row sits under the group row */
+thead th{position:sticky;top:0;z-index:2;background:#eef2f9;color:#475569;font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;border-bottom:2px solid rgba(15,23,42,.18)}
+thead tr.grp th{top:0;z-index:3;height:var(--gh);box-sizing:border-box;text-align:center;font-size:10.5px;letter-spacing:.1em;font-weight:800;padding:0 6px;border-bottom:1px solid var(--line);background:#e6ebf5}
+thead tr.grp + tr th{top:calc(var(--gh) - 1px)}
+thead tr.grp th+th{border-left:1px solid rgba(15,23,42,.22)}
 th.sortable{cursor:pointer}
 th.sortable:hover{color:#0f172a}
+
+/* rows */
 tbody tr{transition:background .2s;animation:rowIn .4s both;animation-delay:calc(var(--r,0)*16ms)}
-tbody tr:nth-child(even) td{background-image:linear-gradient(rgba(15,23,42,.045),rgba(15,23,42,.045))}
-tbody tr:hover td{background-image:linear-gradient(rgba(15,23,42,.09),rgba(15,23,42,.09))}
-thead tr.grp th+th{border-left:1px solid rgba(15,23,42,.25)}
-.washery :is(tbody td,tfoot td,thead tr:not(.grp) th):is(:nth-child(7),:nth-child(10),:nth-child(13)),
-.rcr :is(tbody td,tfoot td,thead tr:not(.grp) th):is(:nth-child(5),:nth-child(9)){border-left:1px solid rgba(15,23,42,.25)}
-tfoot td{position:sticky;bottom:0;background:#eef2f9;font-weight:800;color:#0f172a;border-top:1px solid var(--line)}
-.washery thead tr.grp th.g1{color:#0f766e;background:linear-gradient(rgba(45,212,191,.2),rgba(45,212,191,.2)),#fff}
-.washery thead tr.grp th.g4{color:#0369a1;background:linear-gradient(rgba(56,189,248,.2),rgba(56,189,248,.2)),#fff}
-.washery thead tr.grp th.g3{color:#6d28d9;background:linear-gradient(rgba(167,139,250,.22),rgba(167,139,250,.22)),#fff}
-.washery thead tr.grp th.g2{color:#b45309;background:linear-gradient(rgba(251,191,36,.24),rgba(251,191,36,.24)),#fff}
+tbody tr:nth-child(even) td{background-image:linear-gradient(rgba(15,23,42,.035),rgba(15,23,42,.035))}
+tbody tr:hover td{background-image:linear-gradient(rgba(15,23,42,.08),rgba(15,23,42,.08))}
+tfoot td{position:sticky;bottom:0;background:#eef2f9;font-weight:800;color:#0f172a;border-top:2px solid rgba(15,23,42,.18);border-bottom:0}
+
+/* ---------- WASHERY (16 cols): 1-6 info | 7-9 receipt | 10 balance | 11-13 output | 14-16 dispatch ---------- */
+.washery :is(tbody td,tfoot td,thead tr:not(.grp) th):is(:nth-child(7),:nth-child(10),:nth-child(11),:nth-child(14)){border-left:1px solid rgba(15,23,42,.22)}
+.washery thead tr.grp th.g1{color:#0f766e;background:linear-gradient(rgba(45,212,191,.22),rgba(45,212,191,.22)),#fff}
+.washery thead tr.grp th.g2{color:#b45309;background:linear-gradient(rgba(251,191,36,.26),rgba(251,191,36,.26)),#fff}
+.washery thead tr.grp th.g3{color:#6d28d9;background:linear-gradient(rgba(167,139,250,.24),rgba(167,139,250,.24)),#fff}
+.washery thead tr.grp th.g4{color:#0369a1;background:linear-gradient(rgba(56,189,248,.22),rgba(56,189,248,.22)),#fff}
+/* body tints */
 .washery tbody td:nth-child(n+7):nth-child(-n+9){background-color:rgba(45,212,191,.08)}
-.washery tbody td:nth-child(n+10):nth-child(-n+12){background-color:rgba(167,139,250,.09)}
-.washery tbody td:nth-child(n+13){background-color:rgba(56,189,248,.09)}
-.rcr thead tr.grp th.g1{color:#b45309;background:linear-gradient(rgba(251,191,36,.24),rgba(251,191,36,.24)),#fff}
-.rcr thead tr.grp th.g2{color:#be123c;background:linear-gradient(rgba(251,113,133,.2),rgba(251,113,133,.2)),#fff}
+.washery tbody td:nth-child(10){background-color:rgba(251,191,36,.10)}
+.washery tbody td:nth-child(n+11):nth-child(-n+13){background-color:rgba(167,139,250,.09)}
+.washery tbody td:nth-child(n+14){background-color:rgba(56,189,248,.09)}
+/* column-header tints (second header row) */
+.washery thead tr:not(.grp) th:nth-child(n+7):nth-child(-n+9){background:linear-gradient(rgba(45,212,191,.16),rgba(45,212,191,.16)),#eef2f9}
+.washery thead tr:not(.grp) th:nth-child(10){background:linear-gradient(rgba(251,191,36,.20),rgba(251,191,36,.20)),#eef2f9}
+.washery thead tr:not(.grp) th:nth-child(n+11):nth-child(-n+13){background:linear-gradient(rgba(167,139,250,.18),rgba(167,139,250,.18)),#eef2f9}
+.washery thead tr:not(.grp) th:nth-child(n+14){background:linear-gradient(rgba(56,189,248,.16),rgba(56,189,248,.16)),#eef2f9}
+
+/* ---------- RCR & ROAD (9 cols): 1-4 info | 5-8 lifting | 9 balance ---------- */
+.rcr :is(tbody td,tfoot td,thead tr:not(.grp) th):is(:nth-child(5),:nth-child(9)){border-left:1px solid rgba(15,23,42,.22)}
+.rcr thead tr.grp th.g1{color:#b45309;background:linear-gradient(rgba(251,191,36,.26),rgba(251,191,36,.26)),#fff}
+.rcr thead tr.grp th.g2{color:#be123c;background:linear-gradient(rgba(251,113,133,.22),rgba(251,113,133,.22)),#fff}
 .rcr tbody td:nth-child(n+5):nth-child(-n+8){background-color:rgba(251,191,36,.09)}
 .rcr tbody td:nth-child(n+9){background-color:rgba(251,113,133,.08)}
+.rcr thead tr:not(.grp) th:nth-child(n+5):nth-child(-n+8){background:linear-gradient(rgba(251,191,36,.20),rgba(251,191,36,.20)),#eef2f9}
+.rcr thead tr:not(.grp) th:nth-child(n+9){background:linear-gradient(rgba(251,113,133,.18),rgba(251,113,133,.18)),#eef2f9}
+
 .empty{padding:30px;text-align:center;color:var(--mut)}
 .id{font-variant-numeric:tabular-nums;font-weight:700;color:#0f172a}
 .badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:800;letter-spacing:.05em}
@@ -778,7 +798,7 @@ function cellHTML(c, x) {
     const neg = c.neg && Number(v) < -0.005;
     return `<td class="num ${neg ? 'neg' : ''}">${inner}</td>`;
   }
-  return `<td>${v == null || v === '' ? '<span class="muted">–</span>' : esc(v)}</td>`;
+  return v == null || v === '' ? '<td><span class="muted">–</span></td>' : `<td class="txt" title="${esc(v)}">${esc(v)}</td>`;
 }
 
 function renderTable(tbl, cols, groups, rows, sortState) {
