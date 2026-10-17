@@ -1,0 +1,1646 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>KSK Mahanadi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+:root{
+  --bg0:#060a18; --bg1:#0d1530; --bg2:#1a1140;
+  --glass:rgba(255,255,255,.055); --glass2:rgba(255,255,255,.1); --line:rgba(255,255,255,.11);
+  --txt:#eef2ff; --mut:#9aa6c7;
+  --teal:#2dd4bf; --amber:#fbbf24; --violet:#a78bfa; --sky:#38bdf8; --rose:#fb7185; --ok:#34d399; --bad:#f87171;
+  --gh:31px; --radius:16px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; color:var(--txt); font-size:14px;
+  background:linear-gradient(135deg,var(--bg0),var(--bg1) 55%,var(--bg2)); background-color:var(--bg0);
+  display:grid; grid-template-rows:auto minmax(0,1fr) auto; height:100vh; height:100dvh; overflow:hidden; position:relative;
+}
+.bg{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.5;animation:drift 26s ease-in-out infinite alternate}
+.b1{width:46vw;height:46vw;background:#0d9488;left:-10vw;top:-12vw}
+.b2{width:40vw;height:40vw;background:#7c3aed;right:-12vw;top:10vh;animation-duration:32s;animation-delay:-8s}
+.b3{width:36vw;height:36vw;background:#f59e0b;left:30vw;bottom:-18vw;opacity:.35;animation-duration:38s;animation-delay:-16s}
+@keyframes drift{0%{transform:translate(0,0) scale(1)}50%{transform:translate(6vw,4vh) scale(1.12)}100%{transform:translate(-4vw,-6vh) scale(.94)}}
+.grid-lines{position:absolute;inset:-60px;background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);background-size:48px 48px;animation:gridmove 40s linear infinite}
+@keyframes gridmove{to{transform:translate(48px,48px)}}
+
+.hidden{display:none!important}
+.muted{color:var(--mut)}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.neg{color:var(--bad);font-weight:700}
+
+/* header */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px;background:rgba(10,15,35,.55);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line);z-index:5}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--teal),var(--violet) 55%,var(--amber));display:grid;place-items:center;font-weight:800;font-size:18px;color:#041014;animation:pulse 3.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 8px 24px rgba(45,212,191,.35)}50%{box-shadow:0 8px 34px rgba(167,139,250,.5)}}
+.brand h1{margin:0;font-size:18px;letter-spacing:.2px;background:linear-gradient(90deg,#fff,#a7f3d0 45%,#fde68a);-webkit-background-clip:text;background-clip:text;color:transparent}
+.brand small{color:var(--mut);font-size:12px}
+.back-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:10px;background:rgba(255,255,255,.08);border:1px solid var(--line);color:#e5e7eb;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap;transition:background .2s,transform .2s}
+.back-btn:hover{background:rgba(255,255,255,.16);transform:translateX(-2px)}
+.top-r{display:flex;align-items:center;gap:10px}
+.pill{font-size:12px;padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.08);color:var(--mut);font-weight:700;border:1px solid var(--line)}
+.pill.live{background:rgba(52,211,153,.15);color:#6ee7b7;border-color:rgba(52,211,153,.35)}
+.pill.err{background:rgba(248,113,113,.15);color:#fca5a5;border-color:rgba(248,113,113,.35)}
+.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:currentColor;margin-right:6px;animation:blink 1.6s infinite}
+@keyframes blink{50%{opacity:.25}}
+
+/* dock (footer, centred) */
+.dock{justify-self:center;margin:0 0 14px;display:flex;gap:6px;padding:6px;background:rgba(12,18,40,.72);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--line);border-radius:999px;box-shadow:0 14px 40px rgba(0,0,0,.4);z-index:10}
+.dock button{display:flex;align-items:center;gap:8px;border:0;background:transparent;color:var(--mut);padding:10px 18px;border-radius:999px;font:inherit;font-weight:600;cursor:pointer;transition:background .25s,color .25s,box-shadow .25s}
+.dock button svg{width:18px;height:18px;flex:none}
+.dock button:hover{color:#fff;background:rgba(255,255,255,.08)}
+.dock button.active{color:#06201c;background:linear-gradient(135deg,var(--teal),#5eead4);box-shadow:0 6px 18px rgba(45,212,191,.35)}
+
+/* main + views */
+main{min-height:0;overflow:hidden;padding:14px 18px 0;position:relative}
+.view{height:100%;display:flex;flex-direction:column;min-height:0;animation:viewIn .45s cubic-bezier(.2,.8,.2,1)}
+@keyframes viewIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes rowIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@keyframes grow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+
+/* controls */
+input,select{background:rgba(255,255,255,.06);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:9px 12px;font:inherit;min-width:0;transition:border-color .2s,box-shadow .2s}
+input::placeholder{color:#6b7896}
+select option,select optgroup{background:#101933;color:#eef2ff}
+input:focus,select:focus{outline:none;border-color:var(--sky);box-shadow:0 0 0 3px rgba(56,189,248,.18)}
+input[type=checkbox]{accent-color:var(--teal);width:16px;height:16px;padding:0}
+.chk{display:flex;gap:7px;align-items:center;font-weight:600;color:var(--mut);cursor:pointer}
+.btn{background:rgba(255,255,255,.07);border:1px solid var(--line);color:var(--txt);padding:9px 14px;border-radius:10px;font:inherit;font-weight:600;cursor:pointer;transition:background .2s,transform .2s,box-shadow .2s}
+.btn:hover{background:rgba(255,255,255,.13);transform:translateY(-1px)}
+.btn:active{transform:translateY(0) scale(.98)}
+.btn.primary{background:linear-gradient(135deg,#6366f1,#8b5cf6);border-color:transparent;color:#fff;box-shadow:0 8px 20px rgba(99,102,241,.35)}
+.btn.teal{background:linear-gradient(135deg,#0d9488,#2dd4bf);border-color:transparent;color:#031a17;box-shadow:0 8px 20px rgba(45,212,191,.25)}
+.btn.ghost{background:transparent}
+.btn.small{padding:5px 11px;font-size:12px}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+
+/* dashboard bar */
+.dash-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}
+.seg{display:inline-flex;padding:4px;background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:14px}
+.seg button{border:0;background:transparent;color:var(--mut);padding:9px 16px;border-radius:10px;font:inherit;font-weight:700;cursor:pointer;transition:background .3s,color .3s,box-shadow .3s}
+.seg button:hover{color:#fff}
+.seg button[data-page=w].active{background:linear-gradient(135deg,#0d9488,#2dd4bf);color:#031a17;box-shadow:0 6px 18px rgba(45,212,191,.3)}
+.seg button[data-page=r].active{background:linear-gradient(135deg,#d97706,#fbbf24);color:#2a1700;box-shadow:0 6px 18px rgba(251,191,36,.3)}
+.seg button[data-page=s].active{background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;box-shadow:0 6px 18px rgba(167,139,250,.35)}
+.page{flex:1;min-height:0;display:flex;flex-direction:column;gap:12px}
+
+/* cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.card{position:relative;overflow:hidden;background:var(--glass);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px 13px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);animation:rise .6s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0)*70ms);transition:transform .25s,box-shadow .25s}
+.card::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--c,var(--teal))}
+.card::after{content:"";position:absolute;right:-28px;top:-28px;width:90px;height:90px;border-radius:50%;background:var(--c,var(--teal));opacity:.14}
+.card:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(0,0,0,.35)}
+.card span{display:block;color:var(--mut);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.card b{display:block;font-size:24px;font-weight:800;margin-top:6px;font-variant-numeric:tabular-nums;color:#fff;text-shadow:0 0 18px color-mix(in srgb,var(--c,#2dd4bf) 45%,transparent)}
+.card small{display:block;color:var(--mut);margin-top:4px;font-size:12px}
+.card.w{--c:#2dd4bf} .card.r{--c:#fbbf24} .card.s{--c:#a78bfa} .card.sky{--c:#38bdf8} .card.ok{--c:#34d399} .card.warn{--c:#fb7185}
+
+/* glass panels */
+.glass{background:var(--glass);border:1px solid var(--line);border-radius:var(--radius);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);overflow:hidden;display:flex;flex-direction:column;min-height:0;flex:1;animation:rise .6s both}
+.glass-h{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.glass-h h2{margin:0;font-size:15px;font-weight:700}
+.glass-h .sub{color:var(--mut);font-size:12px}
+.tbl-scroll{flex:1;min-height:0;overflow:auto}
+.sec-tag{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:8px;vertical-align:middle}
+.glass.w .glass-h{background:linear-gradient(90deg,rgba(45,212,191,.22),rgba(45,212,191,.02))}
+.glass.r .glass-h{background:linear-gradient(90deg,rgba(251,191,36,.22),rgba(251,191,36,.02))}
+
+/* tables */
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:12.5px}
+th,td{padding:8px 10px;text-align:left;white-space:nowrap;border-bottom:1px solid rgba(255,255,255,.06)}
+thead th{position:sticky;top:var(--gh);z-index:2;background:#111a36;color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+thead tr.grp th{position:sticky;top:0;z-index:3;height:var(--gh);text-align:center;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:800;padding:0 6px;border-bottom:1px solid var(--line);background:#0c1430}
+th.sortable{cursor:pointer}
+th.sortable:hover{color:#fff}
+tbody tr{transition:background .2s;animation:rowIn .4s both;animation-delay:calc(var(--r,0)*16ms)}
+tbody tr:hover{background:rgba(255,255,255,.05)}
+tfoot td{position:sticky;bottom:0;background:#111a36;font-weight:800;color:#fff;border-top:1px solid var(--line)}
+.washery thead tr.grp th.g1{color:#5eead4;background:linear-gradient(180deg,rgba(45,212,191,.22),rgba(45,212,191,.06))}
+.washery thead tr.grp th.g2{color:#c4b5fd;background:linear-gradient(180deg,rgba(167,139,250,.22),rgba(167,139,250,.06))}
+.washery thead tr.grp th.g3{color:#7dd3fc;background:linear-gradient(180deg,rgba(56,189,248,.22),rgba(56,189,248,.06))}
+.washery tbody td:nth-child(n+7):nth-child(-n+9){background:rgba(45,212,191,.05)}
+.washery tbody td:nth-child(n+10):nth-child(-n+12){background:rgba(167,139,250,.06)}
+.washery tbody td:nth-child(n+13){background:rgba(56,189,248,.06)}
+.rcr thead tr.grp th.g1{color:#fcd34d;background:linear-gradient(180deg,rgba(251,191,36,.22),rgba(251,191,36,.06))}
+.rcr thead tr.grp th.g2{color:#fda4af;background:linear-gradient(180deg,rgba(251,113,133,.22),rgba(251,113,133,.06))}
+.rcr tbody td:nth-child(n+8):nth-child(-n+11){background:rgba(251,191,36,.05)}
+.rcr tbody td:nth-child(n+12){background:rgba(251,113,133,.06)}
+.empty{padding:30px;text-align:center;color:var(--mut)}
+.id{font-variant-numeric:tabular-nums;font-weight:700;color:#fff}
+.badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:800;letter-spacing:.05em}
+.badge.rcr{background:rgba(251,191,36,.18);color:#fcd34d;border:1px solid rgba(251,191,36,.35)}
+.badge.road{background:rgba(129,140,248,.18);color:#c7d2fe;border:1px solid rgba(129,140,248,.35)}
+.badge.in{background:rgba(45,212,191,.16);color:#5eead4;border:1px solid rgba(45,212,191,.35)}
+.badge.out{background:rgba(251,191,36,.16);color:#fcd34d;border:1px solid rgba(251,191,36,.35)}
+.st{display:inline-block;margin-left:8px;padding:1px 7px;border-radius:999px;font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;vertical-align:middle}
+.st.open{background:rgba(52,211,153,.15);color:#6ee7b7;border:1px solid rgba(52,211,153,.3)}
+.st.over{background:rgba(251,113,133,.15);color:#fda4af;border:1px solid rgba(251,113,133,.3)}
+.st.done{background:rgba(148,163,184,.15);color:#cbd5e1;border:1px solid rgba(148,163,184,.3)}
+.bar{height:6px;border-radius:6px;background:rgba(255,255,255,.08);margin-top:5px;overflow:hidden;min-width:70px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#2dd4bf,#38bdf8);border-radius:6px;transition:width 1s cubic-bezier(.2,.8,.2,1)}
+.alert{margin:0 0 12px;padding:11px 14px;border-radius:12px;background:rgba(251,146,60,.12);border:1px solid rgba(251,146,60,.35);color:#fdba74}
+.alert b{color:#fed7aa}
+
+/* summary page */
+.sum-top{display:flex;gap:12px;align-items:stretch;flex-wrap:wrap}
+.hero{flex:1;min-width:280px;flex-direction:row;align-items:center;justify-content:space-between;padding:14px 18px;background:linear-gradient(120deg,rgba(124,58,237,.28),rgba(45,212,191,.12));flex:none;animation:none}
+.hero .kicker{font-size:11px;font-weight:800;letter-spacing:.14em;color:#c4b5fd}
+.hero h2{margin:2px 0 2px;font-size:30px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums}
+.hero .sub{color:#cbd5e1;font-size:13px}
+.sum-select{display:flex;align-items:center;gap:8px}
+.sum-select select{min-width:300px}
+.sum-grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(300px,1fr);gap:12px;flex:1;min-height:0}
+.sum-col{display:flex;flex-direction:column;gap:12px;min-height:0}
+.chart{flex:1;min-height:180px;padding:8px 12px 4px;position:relative}
+.chart svg{width:100%;height:100%;display:block}
+.chart text{fill:var(--mut);font-size:11px;font-family:Inter,system-ui,sans-serif}
+.bar-rect{transform-box:fill-box;transform-origin:50% 100%;animation:grow .8s cubic-bezier(.2,.8,.2,1) both}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--mut);padding:0 14px 10px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:middle}
+.rings{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px 12px 14px}
+.ring{display:flex;flex-direction:column;align-items:center;gap:4px;animation:rise .6s both}
+.ring svg{width:124px;height:124px}
+.ring .bg{stroke:rgba(255,255,255,.08)}
+.ring .fg{stroke-linecap:round;transition:stroke-dasharray 1.2s cubic-bezier(.2,.8,.2,1)}
+.ring text{fill:#fff;font-size:19px;font-weight:800}
+.ring b{font-size:13px}
+.ring small{color:var(--mut);font-size:12px}
+.kv{padding:6px 16px 12px}
+.kv div{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed rgba(255,255,255,.08);font-size:13px}
+.kv div:last-child{border-bottom:0}
+.kv span{color:var(--mut)}
+.kv b{font-variant-numeric:tabular-nums}
+.recent{flex:1;min-height:0;overflow:auto}
+
+/* entry */
+.subtabs{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.stab{border:1px solid var(--line);background:rgba(255,255,255,.04);padding:9px 16px;border-radius:999px;font:inherit;font-weight:700;cursor:pointer;color:var(--mut);transition:.25s}
+.stab.active{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border-color:transparent;box-shadow:0 8px 20px rgba(99,102,241,.3)}
+.ent-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;flex:1;min-height:0}
+.ent-grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.panel{background:var(--glass);border:1px solid var(--line);border-radius:var(--radius);padding:16px;overflow:auto;min-height:0;border-top:3px solid var(--c,#a78bfa);backdrop-filter:blur(12px);animation:rise .6s both}
+#ent-w .panel{--c:#2dd4bf}
+#ent-r .panel{--c:#fbbf24}
+.panel h3{margin:0 0 12px;font-size:15px}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+.fld{display:flex;flex-direction:column;gap:5px;min-width:0}
+.fld.full{grid-column:1/-1}
+.fld span{font-size:11px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
+.fld input,.fld select{width:100%}
+.fld input[readonly]{opacity:.6}
+.calcbox{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,rgba(45,212,191,.13),rgba(167,139,250,.13));border:1px dashed rgba(255,255,255,.2);border-radius:12px;padding:11px 14px}
+.calcbox b{font-size:17px;font-variant-numeric:tabular-nums}
+.form .row{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end;align-items:center}
+.form .msg{grid-column:1/-1;font-size:13px;min-height:1em}
+.msg.err{color:#fca5a5}
+.msg.ok{color:#6ee7b7}
+
+/* log */
+.log-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.info{color:var(--mut);font-size:12.5px;padding:10px 16px;border-bottom:1px solid var(--line)}
+
+/* excel */
+.xl-grid{display:grid;grid-template-columns:minmax(290px,370px) minmax(0,1fr);gap:12px;flex:1;min-height:0}
+.xl-side{display:flex;flex-direction:column;gap:12px;min-height:0;overflow:auto}
+.drop{border:2px dashed rgba(167,139,250,.5);border-radius:18px;padding:26px 16px;text-align:center;background:rgba(124,58,237,.09);cursor:pointer;transition:.25s}
+.drop:hover,.drop.over{border-color:#c4b5fd;background:rgba(124,58,237,.2);transform:scale(1.01)}
+.drop .big{font-size:34px;line-height:1}
+.drop b{display:block;margin-top:8px}
+.drop small{color:var(--mut)}
+.field-stack{display:flex;flex-direction:column;gap:6px}
+.field-stack label{font-size:11px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
+.progress{height:8px;background:rgba(255,255,255,.08);border-radius:8px;overflow:hidden}
+.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,#a78bfa,#38bdf8);transition:width .3s}
+.xl-counts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.xl-counts div{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+.xl-counts b{display:block;font-size:20px;font-variant-numeric:tabular-nums}
+.xl-counts span{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+.s-ok{color:#6ee7b7}.s-dup{color:#fcd34d}.s-err{color:#fca5a5}
+
+/* image capture */
+.capture-wrap{padding:26px;background:#0d1530;background-image:linear-gradient(135deg,#060a18,#0d1530 55%,#1a1140)}
+.capture *{animation:none!important;transition:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+
+/* responsive: desktop fixed, mobile scrolls */
+@media (max-width:1100px){
+  .ent-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .sum-grid{grid-template-columns:1fr}
+  .xl-grid{grid-template-columns:1fr}
+}
+@media (max-width:860px){
+  body{height:auto;min-height:100dvh;overflow:auto;display:flex;flex-direction:column}
+  main{overflow:visible;padding:10px}
+  .view{height:auto}
+  .page,.glass{flex:none}
+  .tbl-scroll{max-height:62vh}
+  .recent{max-height:50vh}
+  .cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ent-grid,.ent-grid.two{grid-template-columns:1fr}
+  .form{grid-template-columns:1fr}
+  .sum-grid{display:flex;flex-direction:column}
+  .sum-select select{min-width:0;width:100%}
+  .hero h2{font-size:24px}
+  .dock{position:sticky;bottom:10px;margin:10px auto}
+  .dock button{padding:10px 12px}
+  .dock button span{display:none}
+  .top{padding:10px 12px}
+  .brand small{display:none}
+  .rings{grid-template-columns:1fr 1fr}
+  .ring svg{width:100px;height:100px}
+  .card b{font-size:19px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<div class="bg" aria-hidden="true">
+  <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span>
+  <span class="grid-lines"></span>
+</div>
+
+<header class="top">
+  <div class="brand">
+    <a href="amm_home.html" class="back-btn" aria-label="Back to AMM Home">← Back</a>
+    <div class="logo">K</div>
+    <div>
+      <h1>KSK Mahanadi</h1>
+      <small>Washery · RCR · Road sale</small>
+    </div>
+  </div>
+  <div class="top-r">
+    <span id="status" class="pill"><span class="live-dot"></span>Starting…</span>
+    <span id="updated" class="muted" style="font-size:12px"></span>
+    <button id="refresh" class="btn small">Refresh</button>
+  </div>
+</header>
+
+<main>
+  <!-- ============ DASHBOARD ============ -->
+  <section id="view-dashboard" class="view">
+    <div class="dash-bar">
+      <div class="seg" role="tablist">
+        <button data-page="w" class="active">Washery</button>
+        <button data-page="r">RCR &amp; Road sale</button>
+        <button data-page="s">D.O. Summary</button>
+      </div>
+      <div class="toolbar" id="flt-bar">
+        <input type="text" id="f-q" placeholder="Search D.O., colliery, party…" style="width:240px">
+        <select id="f-col"><option value="">All collieries</option></select>
+        <label class="chk"><input type="checkbox" id="f-hide"> Hide closed</label>
+        <button id="dl-img" class="btn teal small">⬇ Download image</button>
+      </div>
+    </div>
+
+    <div id="alert" class="alert hidden"></div>
+
+    <!-- Washery page -->
+    <div class="page" id="page-w">
+      <div class="cards" id="cards-w"></div>
+      <div class="glass w">
+        <div class="glass-h">
+          <h2><span class="sec-tag" style="background:#2dd4bf"></span>Washery D.O.s</h2>
+          <span class="sub" id="cnt-w"></span>
+        </div>
+        <div class="tbl-scroll"><table id="tbl-w"></table></div>
+      </div>
+    </div>
+
+    <!-- RCR & Road page -->
+    <div class="page hidden" id="page-r">
+      <div class="cards" id="cards-r"></div>
+      <div class="glass r">
+        <div class="glass-h">
+          <h2><span class="sec-tag" style="background:#fbbf24"></span>RCR &amp; Road sale D.O.s</h2>
+          <span class="sub" id="cnt-r"></span>
+        </div>
+        <div class="tbl-scroll"><table id="tbl-r"></table></div>
+      </div>
+    </div>
+
+    <!-- Summary page -->
+    <div class="page hidden" id="page-s">
+      <div class="sum-top">
+        <div class="glass hero">
+          <div>
+            <div class="kicker">D.O. ANALYTICS</div>
+            <h2 id="hero-do">–</h2>
+            <div class="sub" id="hero-sub">Select a D.O. to see its report</div>
+          </div>
+          <div id="hero-status"></div>
+        </div>
+        <div class="sum-select">
+          <select id="sum-do" aria-label="Choose D.O."></select>
+        </div>
+      </div>
+      <div id="sum-body" class="page" style="min-height:0"></div>
+    </div>
+  </section>
+
+  <!-- ============ DATA ENTRY ============ -->
+  <section id="view-entry" class="view hidden">
+    <div class="subtabs">
+      <button class="stab active" data-ent="w">Washery entry</button>
+      <button class="stab" data-ent="r">RCR &amp; Road entry</button>
+    </div>
+    <div id="ent-w" class="ent-grid">
+      <div class="panel"><h3>1 · New D.O.</h3><div id="form-do-w"></div></div>
+      <div class="panel"><h3>2 · Receipt (Inward)</h3><div id="form-rcv-w"></div></div>
+      <div class="panel"><h3>3 · Dispatch (Outward)</h3><div id="form-disp-w"></div></div>
+    </div>
+    <div id="ent-r" class="ent-grid two hidden">
+      <div class="panel"><h3>1 · New D.O.</h3><div id="form-do-r"></div></div>
+      <div class="panel"><h3>2 · RCR / Road lifting</h3><div id="form-lift-r"></div></div>
+    </div>
+  </section>
+
+  <!-- ============ LOG ============ -->
+  <section id="view-log" class="view hidden">
+    <div class="log-bar">
+      <select id="l-table">
+        <option value="inward_entries">Receipts (Inward)</option>
+        <option value="dispatch_entries">Dispatches (Outward)</option>
+        <option value="rcr_road_entries">RCR &amp; Road lifting</option>
+        <option value="do_master">D.O. master</option>
+      </select>
+      <input type="date" id="l-from" title="From date">
+      <input type="date" id="l-to" title="To date">
+      <input type="text" id="l-do" placeholder="D.O. no" inputmode="numeric" style="width:120px">
+      <select id="l-type" class="hidden"></select>
+      <input type="text" id="l-q" placeholder="Vehicle, party, unique no…" style="width:230px">
+      <button id="l-go" class="btn primary small">Apply</button>
+      <button id="l-clear" class="btn ghost small">Clear</button>
+    </div>
+    <div class="glass">
+      <div class="info" id="l-info"></div>
+      <div class="tbl-scroll"><table id="tbl-log"></table></div>
+    </div>
+  </section>
+
+  <!-- ============ EXCEL UPLOAD ============ -->
+  <section id="view-excel" class="view hidden">
+    <div class="xl-grid">
+      <div class="xl-side">
+        <div class="glass" style="padding:16px;gap:12px">
+          <div class="field-stack">
+            <label for="xl-target">Import into</label>
+            <select id="xl-target">
+              <option value="inward_entries">Receipts (Inward)</option>
+              <option value="dispatch_entries">Dispatches (Outward)</option>
+            </select>
+          </div>
+          <div class="drop" id="drop">
+            <div class="big">⬆</div>
+            <b>Drop an Excel file here</b>
+            <small>or click to choose (.xlsx, .xlsm, .xls)</small>
+            <input type="file" id="xl-file" accept=".xlsx,.xlsm,.xls" hidden>
+          </div>
+          <div class="field-stack">
+            <label for="xl-sheet">Sheet</label>
+            <select id="xl-sheet" disabled><option>Choose a file first</option></select>
+            <small class="muted" id="xl-file-name" style="font-size:12px"></small>
+          </div>
+          <div class="xl-counts">
+            <div><b id="c-ok">0</b><span>Ready</span></div>
+            <div><b id="c-dup">0</b><span>Duplicate</span></div>
+            <div><b id="c-err">0</b><span>Error</span></div>
+          </div>
+          <div class="progress"><i id="xl-prog"></i></div>
+          <button id="xl-import" class="btn primary" disabled>Import ready rows</button>
+          <small class="muted" style="font-size:12px;line-height:1.5">Duplicates are rows already in the database (same D.O., unique no. and date) or repeated in the file. Rows with errors are skipped. The D.O. must exist in the D.O. master.</small>
+        </div>
+      </div>
+      <div class="glass">
+        <div class="glass-h"><h2>Preview</h2><span class="sub" id="xl-info">Upload a file to preview its rows</span></div>
+        <div class="tbl-scroll"><table id="tbl-xl"></table></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<nav class="dock" aria-label="Main">
+  <button data-view="dashboard" class="active"><span>Dashboard</span></button>
+  <button data-view="entry"><span>Data entry</span></button>
+  <button data-view="log"><span>Log</span></button>
+  <button data-view="excel"><span>Excel upload</span></button>
+</nav>
+
+<dialog id="dlg">
+  <h3 id="dlg-title" style="margin:0 0 12px">Edit</h3>
+  <div id="dlg-body"></div>
+  <div style="display:flex;justify-content:flex-end;margin-top:10px">
+    <button id="dlg-x" class="btn ghost">Close</button>
+  </div>
+</dialog>
+
+<div id="toast" class="toast hidden"></div>
+<div id="setup" class="setup hidden"></div>
+<style>
+dialog{border:1px solid var(--line);border-radius:18px;padding:20px;width:min(760px,94vw);background:#101a3a;color:var(--txt);box-shadow:0 30px 80px rgba(0,0,0,.6)}
+dialog::backdrop{background:rgba(3,6,18,.65);backdrop-filter:blur(4px)}
+.toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);background:linear-gradient(135deg,#0d9488,#6366f1);color:#fff;padding:11px 18px;border-radius:12px;font-weight:700;box-shadow:0 12px 30px rgba(0,0,0,.4);z-index:50;max-width:92vw;animation:rise .35s both}
+.toast.err{background:linear-gradient(135deg,#be123c,#9f1239)}
+.setup{margin:14px 18px 0;padding:14px;border-radius:12px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.35);color:#bae6fd}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+/* ==================================================================
+   CONFIG
+   ================================================================== */
+const SUPABASE_URL      = 'https://lflsewvyhyfmuegksscy.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbHNld3Z5aHlmbXVlZ2tzc2N5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0NTY3MjIsImV4cCI6MjEwNzAzMjcyMn0.BKNDWGKs4MX7MFL4FD0ECesgFciFmMRpMdmQUnARj7s';
+const WASH_PCT  = 0.85;
+const REFRESH_MS = 60000;
+const REDUCED = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+/* ==================================================================
+   TABLE DEFINITIONS
+   ================================================================== */
+const TABLES = {
+  do_master: {
+    label:'D.O. master', pk:'do_no', date:'issue_date', order:'do_no', search:['colliery','party_name'],
+    fields:[
+      {k:'do_no',l:'D.O. No',t:'int',req:true},
+      {k:'section',l:'Section',t:'sel',opts:['WASHERY','RCR','ROAD'],req:true},
+      {k:'colliery',l:'Colliery',t:'text'},
+      {k:'party_name',l:'Party',t:'text'},
+      {k:'issue_date',l:'Issue date',t:'date'},
+      {k:'sized',l:'Sized',t:'text'},
+      {k:'lapsing_date',l:'Lapsing date',t:'date'},
+      {k:'do_qty',l:'D.O. qty (MT)',t:'num'}
+    ]
+  },
+  inward_entries: {
+    label:'Receipts (Inward)', pk:'id', date:'rec_date', order:'rec_date', calc:'net',
+    search:['vehicle_no','party_name','unique_no'],
+    fields:[
+      {k:'rec_date',l:'Rec. date',t:'date',req:true},
+      {k:'ch_date',l:'Challan date',t:'date'},
+      {k:'do_no',l:'D.O. No',t:'int',req:true},
+      {k:'vehicle_no',l:'Vehicle No',t:'text',req:true,upper:true},
+      {k:'gross_wt',l:'Gross (MT)',t:'num',req:true},
+      {k:'tare_wt',l:'Tare (MT)',t:'num',req:true},
+      {k:'unique_no',l:'Unique No',t:'text'},
+      {k:'excise_sr_no',l:'Excise Sr. No',t:'text'},
+      {k:'gate_pass',l:'Gate pass',t:'text'},
+      {k:'grade',l:'Grade',t:'text'},
+      {k:'party_name',l:'Party',t:'text'},
+      {k:'mines',l:'Mines',t:'text'}
+    ]
+  },
+  dispatch_entries: {
+    label:'Dispatches (Outward)', pk:'id', date:'disp_date', order:'disp_date', calc:'net',
+    search:['vehicle_no','party_name','unique_no'],
+    fields:[
+      {k:'disp_date',l:'Dispatch date',t:'date',req:true},
+      {k:'do_no',l:'D.O. No',t:'int',req:true},
+      {k:'vehicle_no',l:'Vehicle No',t:'text',req:true,upper:true},
+      {k:'gross_wt',l:'Gross (MT)',t:'num',req:true},
+      {k:'tare_wt',l:'Tare (MT)',t:'num',req:true},
+      {k:'item',l:'Item',t:'text'},
+      {k:'unique_no',l:'Unique No',t:'text'},
+      {k:'rptp_no',l:'RPTP No',t:'text'},
+      {k:'party_name',l:'Party',t:'text'}
+    ]
+  },
+  rcr_road_entries: {
+    label:'RCR & Road lifting', pk:'id', date:'entry_date', order:'entry_date',
+    search:['vehicle_or_rake','rr_no'],
+    fields:[
+      {k:'entry_date',l:'Date',t:'date',req:true},
+      {k:'do_no',l:'D.O. No',t:'int',req:true},
+      {k:'entry_type',l:'Type',t:'sel',opts:['RCR','ROAD'],req:true},
+      {k:'vehicle_or_rake',l:'Vehicle / Rake',t:'text'},
+      {k:'qty_mt',l:'Qty (MT)',t:'num',req:true},
+      {k:'rr_no',l:'RR No',t:'text'},
+      {k:'remarks',l:'Remarks',t:'text'}
+    ]
+  }
+};
+
+/* Dashboard columns (Sized, Days left, Asking, Daily lift, Daily dispatch are hidden on purpose) */
+const WCOLS = [
+  {k:'colliery',l:'Colliery',g:0},
+  {k:'party_name',l:'Party',g:0},
+  {k:'issue_date',l:'Issue',t:'date',g:0},
+  {k:'lapsing_date',l:'Lapsing',t:'date',g:0},
+  {k:'do_no',l:'D.O. No',t:'id',g:0},
+  {k:'do_qty',l:'D.O. Qty',t:'q',g:0,sum:true},
+  {k:'trips',l:'Trips',t:'i',g:1,sum:true},
+  {k:'rec_qty',l:'Rec. Qty',t:'q',g:1,sum:true},
+  {k:'mines_bal',l:'Mines Bal.',t:'q',g:1,sum:true,neg:true},
+  {k:'wash_coal_85',l:'Wash Coal 85%',t:'q',g:2,sum:true},
+  {k:'reject_15',l:'Reject 15%',t:'q',g:2,sum:true},
+  {k:'total_85',l:'Total 85%',t:'q',g:2,sum:true},
+  {k:'dispatch_trips',l:'Trips',t:'i',g:3,sum:true},
+  {k:'dispatch_qty',l:'Dispatch Qty',t:'q',g:3,sum:true,bar:true},
+  {k:'washery_bal',l:'Washery Bal.',t:'q',g:3,sum:true,neg:true}
+];
+const WGROUPS = [{l:'',span:6},{l:'Receipt (Inward)',span:3},{l:'Washery output',span:3},{l:'Dispatch (Outward)',span:3}];
+
+const RCOLS = [
+  {k:'sale_type',l:'Type',t:'badge',g:0},
+  {k:'colliery',l:'Colliery',g:0},
+  {k:'party_name',l:'Party',g:0},
+  {k:'issue_date',l:'Issue',t:'date',g:0},
+  {k:'lapsing_date',l:'Lapsing',t:'date',g:0},
+  {k:'do_no',l:'D.O. No',t:'id',g:0},
+  {k:'do_qty',l:'D.O. Qty',t:'q',g:0,sum:true},
+  {k:'trips',l:'Trips',t:'i',g:1,sum:true},
+  {k:'rcr_qty',l:'RCR Qty',t:'q',g:1,sum:true},
+  {k:'road_qty',l:'Road Qty',t:'q',g:1,sum:true},
+  {k:'lifted',l:'Lifted Qty',t:'q',g:1,sum:true},
+  {k:'balance_in_mines',l:'Balance in Mines',t:'q',g:2,sum:true,neg:true},
+  {k:'last_date',l:'Last lifting',t:'date',g:2}
+];
+const RGROUPS = [{l:'',span:7},{l:'Lifting',span:4},{l:'Balance',span:2}];
+
+/* ==================================================================
+   STATE + HELPERS
+   ================================================================== */
+const db = (SUPABASE_URL.startsWith('http') && window.supabase)
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+const state = {
+  w:[], r:[], unmatched:[], doSet:new Set(),
+  page:'w', view:'dashboard',
+  sortW:{k:'_status',d:1}, sortR:{k:'_status',d:1},
+  sum:{doNo:null},
+  xl:{wb:null, rows:[], busy:false}
+};
+
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const isNum = v => typeof v === 'number' && Number.isFinite(v);
+const r3 = v => Math.round(v * 1000) / 1000;
+const fmtQ = v => (v == null || v === '' || Number.isNaN(Number(v))) ? '–'
+  : Number(v).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
+const fmtI = v => (v == null || v === '' || Number.isNaN(Number(v))) ? '–' : Number(v).toLocaleString('en-IN', {maximumFractionDigits:0});
+const fmtD = v => v ? new Date(v + 'T00:00:00').toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'}) : '–';
+const fmtDs = v => v ? new Date(v + 'T00:00:00').toLocaleDateString('en-GB', {day:'2-digit', month:'short'}) : '';
+const sumOf = (rows, k) => rows.reduce((a, x) => a + (Number(x[k]) || 0), 0);
+const todayISO = () => new Date().toLocaleDateString('en-CA');
+
+const calc = {
+  net:(g,t) => (isNum(g) && isNum(t)) ? r3(g - t) : null
+};
+
+function toast(msg, isErr) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.className = 'toast' + (isErr ? ' err' : '');
+  clearTimeout(t._h);
+  t._h = setTimeout(() => t.classList.add('hidden'), 3600);
+}
+function setStatus(text, cls) {
+  const s = $('#status');
+  s.innerHTML = `<span class="live-dot"></span>${esc(text)}`;
+  s.className = 'pill' + (cls ? ' ' + cls : '');
+}
+function explainError(e) {
+  if (!e) return 'Unknown error';
+  if (e.code === '23505') return 'This record already exists (duplicate D.O. No or unique key).';
+  if (e.code === '23503') return 'The D.O. No does not exist in the D.O. master.';
+  if (e.code === '42501' || /row-level security/i.test(e.message || '')) return 'Not allowed by the database security rules.';
+  return e.message || String(e);
+}
+async function fetchAll(build) {
+  let out = [];
+  for (let from = 0; ; from += 1000) {
+    const {data, error} = await build().range(from, from + 999);
+    if (error) throw error;
+    out = out.concat(data || []);
+    if (!data || data.length < 1000) break;
+  }
+  return out;
+}
+function countUp(root) {
+  root.querySelectorAll('[data-num]').forEach(el => {
+    const to = Number(el.dataset.num);
+    const f = el.dataset.f === 'i' ? fmtI : fmtQ;
+    if (!Number.isFinite(to)) { el.textContent = f(null); return; }
+    const from = Number(el._last ?? 0);
+    el._last = to;
+    if (REDUCED) { el.textContent = f(to); return; }
+    const t0 = performance.now(), D = 900;
+    const step = t => {
+      const p = Math.min(1, (t - t0) / D), e = 1 - Math.pow(1 - p, 3);
+      el.textContent = f(from + (to - from) * e);
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  });
+}
+
+/* ==================================================================
+   DATA LOADING
+   ================================================================== */
+async function loadDoSet() {
+  if (!db) return;
+  const {data, error} = await db.from('do_master').select('do_no');
+  if (error) throw error;
+  state.doSet = new Set((data || []).map(r => Number(r.do_no)));
+}
+
+async function loadDashboard() {
+  if (!db) return;
+  setStatus('Loading…');
+  const [w, r, u] = await Promise.all([
+    db.from('v_washery_summary').select('*').order('do_no'),
+    db.from('v_rcr_road_summary').select('*').order('do_no'),
+    db.from('v_unmatched_do').select('*')
+  ]);
+  if (w.error || r.error) {
+    setStatus('Error', 'err');
+    toast('Could not load dashboard: ' + explainError(w.error || r.error), true);
+    return;
+  }
+  state.w = w.data || [];
+  state.r = r.data || [];
+  state.unmatched = u.error ? [] : (u.data || []);
+  setStatus('Live', 'live');
+  $('#updated').textContent = 'Updated ' + new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
+  buildColliery();
+  renderAll();
+  fillDoPicker();
+}
+
+/* ==================================================================
+   DASHBOARD
+   ================================================================== */
+const isClosedW = x => Number(x.mines_bal) <= 0.005 && Number(x.washery_bal) <= 0.005;
+const isClosedR = x => Number(x.balance_in_mines) <= 0.005;
+
+function statusPill(x) {
+  const closed = 'washery_bal' in x ? isClosedW(x) : isClosedR(x);
+  if (closed) return '<span class="st done">Closed</span>';
+  if (x.lapsing_date && x.lapsing_date < todayISO()) return '<span class="st over">Overdue</span>';
+  return '<span class="st open">Open</span>';
+}
+
+function buildColliery() {
+  const sel = $('#f-col');
+  const cur = sel.value;
+  const names = [...new Set([...state.w, ...state.r].map(x => x.colliery).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">All collieries</option>' + names.map(n => `<option>${esc(n)}</option>`).join('');
+  if (names.includes(cur)) sel.value = cur;
+}
+
+function card(label, num, cls, sub, f = 'q', i = 0) {
+  const n = Number(num);
+  const ok = Number.isFinite(n);
+  return `<div class="card ${cls}" style="--i:${i}"><span>${esc(label)}</span>` +
+    `<b data-num="${ok ? n : ''}" data-f="${f}">${ok ? (f === 'i' ? fmtI(n) : fmtQ(n)) : '–'}</b>` +
+    `<small>${esc(sub || '')}</small></div>`;
+}
+
+function renderCards() {
+  const W = state.w, R = state.r;
+  const doW = sumOf(W,'do_qty'), recW = sumOf(W,'rec_qty'), dispW = sumOf(W,'dispatch_qty');
+  const balW = sumOf(W,'washery_bal'), minesW = sumOf(W,'mines_bal'), out85 = sumOf(W,'total_85');
+  const liftR = sumOf(R,'lifted'), balR = sumOf(R,'balance_in_mines'), doR = sumOf(R,'do_qty');
+  const activeR = R.filter(x => !isClosedR(x)).length;
+  const pct = (a, b) => b ? (a / b * 100).toFixed(1) + '% of ' + 'D.O. qty' : '–';
+  $('#cards-w').innerHTML = [
+    card('D.O. quantity', doW, 'w', `${W.length} D.O.s`, 'q', 0),
+    card('Received', recW, 'w', pct(recW, doW), 'q', 1),
+    card('Dispatched', dispW, 'sky', `${out85 ? (dispW / out85 * 100).toFixed(1) : '0.0'}% of 85% output`, 'q', 2),
+    card('Washery balance', balW, balW < -0.005 ? 'warn' : 'ok', 'Output not yet dispatched', 'q', 3),
+    card('Mines balance', minesW, 'r', 'D.O. qty not yet received', 'q', 4)
+  ].join('');
+  $('#cards-r').innerHTML = [
+    card('D.O. quantity', doR, 'r', `${R.length} D.O.s`, 'q', 0),
+    card('Lifted', liftR, 'r', pct(liftR, doR), 'q', 1),
+    card('Balance in mines', balR, 'warn', 'D.O. qty not yet lifted', 'q', 2),
+    card('Active D.O.s', activeR, 's', 'Balance above zero', 'i', 3)
+  ].join('');
+  countUp($('#cards-w')); countUp($('#cards-r'));
+}
+
+function filteredW() {
+  const q = $('#f-q').value.trim().toLowerCase(), col = $('#f-col').value, hide = $('#f-hide').checked;
+  return state.w.filter(x => (!col || x.colliery === col) && (!hide || !isClosedW(x)) &&
+    (!q || [x.do_no, x.colliery, x.party_name].join(' ').toLowerCase().includes(q)));
+}
+function filteredR() {
+  const q = $('#f-q').value.trim().toLowerCase(), col = $('#f-col').value, hide = $('#f-hide').checked;
+  return state.r.filter(x => (!col || x.colliery === col) && (!hide || !isClosedR(x)) &&
+    (!q || [x.do_no, x.colliery, x.party_name, x.sale_type].join(' ').toLowerCase().includes(q)));
+}
+
+// Default order: Open first, then Overdue, then Closed (balance zero or negative)
+function statusRank(x) {
+  const closed = 'washery_bal' in x ? isClosedW(x) : isClosedR(x);
+  if (closed) return 2;
+  if (x.lapsing_date && x.lapsing_date < todayISO()) return 1;
+  return 0;
+}
+
+function sortRows(rows, s) {
+  if (s.k === '_status') {
+    return [...rows].sort((a, b) => (statusRank(a) - statusRank(b)) * s.d ||
+      String(a.do_no).localeCompare(String(b.do_no), 'en-IN', {numeric:true}));
+  }
+  return [...rows].sort((a, b) => {
+    const x = a[s.k], y = b[s.k];
+    if (x == null && y == null) return 0;
+    if (x == null) return 1;
+    if (y == null) return -1;
+    if (typeof x === 'number' || typeof y === 'number') return (Number(x) - Number(y)) * s.d;
+    return String(x).localeCompare(String(y), 'en-IN', {numeric:true}) * s.d;
+  });
+}
+
+function cellHTML(c, x) {
+  const v = x[c.k];
+  if (c.t === 'date') return `<td>${fmtD(v)}</td>`;
+  if (c.t === 'id') return `<td class="id">${esc(v ?? '–')}${statusPill(x)}</td>`;
+  if (c.t === 'badge') return `<td><span class="badge ${v === 'ROAD' ? 'road' : 'rcr'}">${esc(v)}</span></td>`;
+  if (c.t === 'i') return `<td class="num">${v == null ? '–' : fmtI(v)}</td>`;
+  if (c.t === 'q') {
+    let inner = fmtQ(v);
+    if (c.bar) {
+      const p = Number(x.total_85) > 0 ? Math.min(100, Number(x.dispatch_qty) / Number(x.total_85) * 100) : 0;
+      inner += `<div class="bar"><i style="width:${p.toFixed(1)}%"></i></div>`;
+    }
+    const neg = c.neg && Number(v) < -0.005;
+    return `<td class="num ${neg ? 'neg' : ''}">${inner}</td>`;
+  }
+  return `<td>${v == null || v === '' ? '<span class="muted">–</span>' : esc(v)}</td>`;
+}
+
+function renderTable(tbl, cols, groups, rows, sortState) {
+  const arrow = k => sortState.k === k ? (sortState.d > 0 ? ' ▲' : ' ▼') : '';
+  const head = `<thead>
+    <tr class="grp">${groups.map((g, i) => `<th colspan="${g.span}" class="g${i}">${esc(g.l)}</th>`).join('')}</tr>
+    <tr>${cols.map(c => `<th data-k="${c.k}" class="sortable ${c.t === 'q' || c.t === 'i' ? 'num' : ''}">${esc(c.l)}${arrow(c.k)}</th>`).join('')}</tr>
+  </thead>`;
+  const body = rows.length
+    ? '<tbody>' + rows.map((x, i) => `<tr style="--r:${Math.min(i, 25)}">` + cols.map(c => cellHTML(c, x)).join('') + '</tr>').join('') + '</tbody>'
+    : `<tbody><tr><td colspan="${cols.length}" class="empty">No D.O.s match the current filters.</td></tr></tbody>`;
+  const foot = rows.length ? '<tfoot><tr>' + cols.map((c, i) => {
+    if (i === 0) return `<td>Total · ${rows.length} D.O.s</td>`;
+    if (c.sum) return `<td class="num">${c.t === 'i' ? fmtI(sumOf(rows, c.k)) : fmtQ(sumOf(rows, c.k))}</td>`;
+    return '<td></td>';
+  }).join('') + '</tr></tfoot>' : '';
+  tbl.innerHTML = head + body + foot;
+  tbl.parentElement.parentElement.classList.toggle('washery', cols === WCOLS);
+  tbl.parentElement.parentElement.classList.toggle('rcr', cols === RCOLS);
+}
+
+function renderAll() {
+  const w = sortRows(filteredW(), state.sortW);
+  const r = sortRows(filteredR(), state.sortR);
+  renderCards();
+  renderTable($('#tbl-w'), WCOLS, WGROUPS, w, state.sortW);
+  renderTable($('#tbl-r'), RCOLS, RGROUPS, r, state.sortR);
+  $('#cnt-w').textContent = `${w.length} of ${state.w.length} shown`;
+  $('#cnt-r').textContent = `${r.length} of ${state.r.length} shown`;
+  renderAlert();
+}
+
+function renderAlert() {
+  const box = $('#alert');
+  if (!state.unmatched.length) { box.classList.add('hidden'); return; }
+  const byDo = {};
+  state.unmatched.forEach(u => {
+    byDo[u.do_no] = byDo[u.do_no] || {rows:0, qty:0};
+    byDo[u.do_no].rows += Number(u.rows) || 0;
+    byDo[u.do_no].qty += Number(u.qty) || 0;
+  });
+  const items = Object.entries(byDo).map(([d, v]) => `${esc(d)} (${fmtQ(v.qty)} MT, ${v.rows} rows)`).join(', ');
+  box.innerHTML = `<b>Check D.O. numbers:</b> these entries use a D.O. not in the master, so they are not counted: ${items}. Add the D.O. under <i>Data entry → New D.O.</i>`;
+  box.classList.remove('hidden');
+}
+
+/* ==================================================================
+   PAGE SWITCH + FILTERS
+   ================================================================== */
+function setPage(p) {
+  state.page = p;
+  $$('.seg button').forEach(b => b.classList.toggle('active', b.dataset.page === p));
+  ['w','r','s'].forEach(x => $('#page-' + x).classList.toggle('hidden', x !== p));
+  $('#flt-bar').classList.toggle('hidden', p === 's');
+  if (p === 's') ensureSummary(); else renderAll();
+}
+
+/* ==================================================================
+   SUMMARY (D.O. analytics)
+   ================================================================== */
+function fillDoPicker() {
+  const sel = $('#sum-do');
+  const cur = sel.value;
+  const opt = x => `<option value="${x.do_no}">${x.do_no} · ${esc(x.colliery || '')} · ${esc(x.party_name || '')}</option>`;
+  sel.innerHTML = `<optgroup label="Washery">${state.w.map(opt).join('')}</optgroup>` +
+    `<optgroup label="RCR &amp; Road sale">${state.r.map(opt).join('')}</optgroup>`;
+  if (cur && [...sel.options].some(o => o.value === cur)) sel.value = cur;
+}
+
+function ensureSummary() {
+  fillDoPicker();
+  if (!$('#sum-do').value && state.w.length) $('#sum-do').value = state.w[0].do_no;
+  const doNo = Number($('#sum-do').value);
+  if (doNo && doNo !== state.sum.doNo) loadSummary(doNo);
+}
+
+function barChart(series, keys) {
+  if (!series.length) return '<div class="empty">No entries recorded for this D.O. yet.</div>';
+  const W = 1000, H = 280, L = 52, R = 14, T = 12, B = 30;
+  const pw = W - L - R, ph = H - T - B;
+  const rawMax = Math.max(1, ...series.map(s => Math.max(s[keys[0][0]], s[keys[1][0]])));
+  const step = Math.pow(10, Math.floor(Math.log10(rawMax))) ;
+  const max = Math.ceil(rawMax / step) * step;
+  const gw = pw / series.length;
+  const bw = Math.max(2, Math.min(22, gw * 0.36));
+  let grid = '';
+  for (let i = 0; i <= 4; i++) {
+    const y = T + ph - (ph * i / 4);
+    grid += `<line x1="${L}" x2="${W - R}" y1="${y}" y2="${y}" stroke="rgba(255,255,255,.08)"/>` +
+            `<text x="${L - 8}" y="${y + 4}" text-anchor="end">${fmtI(max * i / 4)}</text>`;
+  }
+  let bars = '';
+  series.forEach((s, i) => {
+    const cx = L + gw * i + gw / 2;
+    keys.forEach(([k, label, color], j) => {
+      const v = s[k];
+      const h = ph * v / max;
+      const x = j === 0 ? cx - bw - 1 : cx + 1;
+      bars += `<rect class="bar-rect" x="${x}" y="${T + ph - h}" width="${bw}" height="${Math.max(0, h)}" rx="3" fill="${color}" style="animation-delay:${Math.min(i, 60) * 12}ms"><title>${fmtDs(s.d)} · ${label}: ${fmtQ(v)} MT</title></rect>`;
+    });
+  });
+  const tick = [0, Math.floor(series.length / 2), series.length - 1];
+  const labels = [...new Set(tick)].map(i => `<text x="${L + gw * i + gw / 2}" y="${H - 8}" text-anchor="middle">${fmtDs(series[i].d)}</text>`).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Daily chart">${grid}${bars}${labels}</svg>`;
+}
+
+function ring(pct, label, color, sub) {
+  const C = 2 * Math.PI * 52;
+  const p = Math.max(0, Math.min(100, Number.isFinite(pct) ? pct : 0));
+  const dash = (C * p / 100).toFixed(2);
+  return `<div class="ring">
+    <svg viewBox="0 0 120 120">
+      <circle class="bg" cx="60" cy="60" r="52" fill="none" stroke-width="12"/>
+      <circle class="fg" cx="60" cy="60" r="52" fill="none" stroke="${color}" stroke-width="12"
+        stroke-dasharray="0 ${C.toFixed(2)}" data-dash="${dash} ${C.toFixed(2)}" transform="rotate(-90 60 60)"/>
+      <text x="60" y="66" text-anchor="middle">${p.toFixed(1)}%</text>
+    </svg>
+    <b>${esc(label)}</b><small>${esc(sub)}</small>
+  </div>`;
+}
+
+function kv(rows) {
+  return '<div class="kv">' + rows.map(([k, v]) => `<div><span>${esc(k)}</span><b>${v}</b></div>`).join('') + '</div>';
+}
+
+function recentTable(rows) {
+  if (!rows.length) return '<div class="empty">No entries yet.</div>';
+  return `<table><thead><tr><th>Date</th><th>Type</th><th>Vehicle / Rake</th><th class="num">Qty (MT)</th><th>Reference</th></tr></thead><tbody>` +
+    rows.map((r, i) => `<tr style="--r:${Math.min(i, 20)}"><td>${fmtD(r.date)}</td><td><span class="badge ${r.cls}">${esc(r.type)}</span></td>` +
+    `<td>${esc(r.vehicle || '–')}</td><td class="num">${fmtQ(r.qty)}</td><td class="muted">${esc(r.ref || '')}</td></tr>`).join('') +
+    '</tbody></table>';
+}
+
+function groupByDate(list, dateKey, valKey, bucket) {
+  const map = {};
+  list.forEach(x => {
+    const d = x[dateKey]; if (!d) return;
+    map[d] = map[d] || {d, a:0, b:0};
+    map[d][bucket] += Number(x[valKey]) || 0;
+  });
+  return Object.values(map).sort((x, y) => x.d < y.d ? -1 : 1);
+}
+
+async function loadSummary(doNo) {
+  state.sum.doNo = doNo;
+  const body = $('#sum-body');
+  const isW = state.w.find(x => Number(x.do_no) === doNo);
+  const head = isW || state.r.find(x => Number(x.do_no) === doNo);
+  if (!head) { body.innerHTML = '<div class="empty">D.O. not found.</div>'; return; }
+  $('#hero-do').textContent = head.do_no;
+  $('#hero-sub').textContent = `${head.colliery || '–'} · ${head.party_name || '–'} · Issued ${fmtD(head.issue_date)} · Lapses ${fmtD(head.lapsing_date)}`;
+  $('#hero-status').innerHTML = statusPill(head);
+  body.innerHTML = '<div class="empty">Loading analytics…</div>';
+  try {
+    if (isW) {
+      const [inn, dsp] = await Promise.all([
+        fetchAll(() => db.from('inward_entries').select('rec_date,vehicle_no,net_wt,unique_no').eq('do_no', doNo).order('rec_date')),
+        fetchAll(() => db.from('dispatch_entries').select('disp_date,vehicle_no,net_wt,unique_no').eq('do_no', doNo).order('disp_date'))
+      ]);
+      if (state.sum.doNo !== doNo) return;
+      renderSummaryW(head, inn, dsp);
+    } else {
+      const rr = await fetchAll(() => db.from('rcr_road_entries').select('entry_date,entry_type,qty_mt,vehicle_or_rake,rr_no').eq('do_no', doNo).order('entry_date'));
+      if (state.sum.doNo !== doNo) return;
+      renderSummaryR(head, rr);
+    }
+  } catch (e) {
+    body.innerHTML = `<div class="empty">Could not load analytics: ${esc(explainError(e))}</div>`;
+  }
+}
+
+function renderSummaryW(h, inn, dsp) {
+  const doQty = Number(h.do_qty) || 0;
+  const rec = sumOf(inn, 'net_wt'), disp = sumOf(dsp, 'net_wt');
+  const out85 = rec * WASH_PCT, wbal = out85 - disp, mines = doQty - rec;
+  const recPct = doQty ? rec / doQty * 100 : 0, dispPct = out85 ? disp / out85 * 100 : 0;
+  const series = groupByDate(inn.map(x => ({d:x.rec_date, v:x.net_wt, a:x.net_wt})), 'd', 'v', 'a')
+    .map(s => ({d:s.d, a:s.a, b:0}));
+  const dspSeries = groupByDate(dsp.map(x => ({d:x.disp_date, v:x.net_wt})), 'd', 'v', 'a');
+  const all = {};
+  series.forEach(s => all[s.d] = {d:s.d, a:s.a, b:0});
+  dspSeries.forEach(s => { all[s.d] = all[s.d] || {d:s.d, a:0, b:0}; all[s.d].b = s.a; });
+  const merged = Object.values(all).sort((x, y) => x.d < y.d ? -1 : 1);
+  const recent = [
+    ...inn.map(x => ({date:x.rec_date, type:'IN', cls:'in', vehicle:x.vehicle_no, qty:x.net_wt, ref:x.unique_no})),
+    ...dsp.map(x => ({date:x.disp_date, type:'OUT', cls:'out', vehicle:x.vehicle_no, qty:x.net_wt, ref:x.unique_no}))
+  ].sort((a, b) => a.date < b.date ? 1 : -1).slice(0, 40);
+
+  $('#sum-body').innerHTML = `
+    <div class="cards">
+      ${card('D.O. quantity', doQty, 'w', `${inn.length + dsp.length} entries`, 'q', 0)}
+      ${card('Received', rec, 'w', `${recPct.toFixed(1)}% of D.O.`, 'q', 1)}
+      ${card('Dispatched', disp, 'sky', `${dispPct.toFixed(1)}% of 85% output`, 'q', 2)}
+      ${card('Washery balance', wbal, wbal < -0.005 ? 'warn' : 'ok', 'Output not yet dispatched', 'q', 3)}
+      ${card('Mines balance', mines, 'r', 'D.O. qty not yet received', 'q', 4)}
+      ${card('Trips in / out', inn.length, 's', `${inn.length} in · ${dsp.length} out`, 'i', 5)}
+    </div>
+    <div class="sum-grid">
+      <div class="sum-col">
+        <div class="glass">
+          <div class="glass-h"><h2>Daily receipts &amp; dispatches</h2><span class="sub">MT per day</span></div>
+          <div class="legend"><span><i style="background:#2dd4bf"></i>Received</span><span><i style="background:#fbbf24"></i>Dispatched</span></div>
+          <div class="chart">${barChart(merged, [['a','Received','#2dd4bf'],['b','Dispatched','#fbbf24']])}</div>
+        </div>
+        <div class="glass" style="flex:1">
+          <div class="glass-h"><h2>Recent movements</h2><span class="sub">latest 40</span></div>
+          <div class="tbl-scroll recent">${recentTable(recent)}</div>
+        </div>
+      </div>
+      <div class="sum-col">
+        <div class="glass">
+          <div class="glass-h"><h2>Progress</h2></div>
+          <div class="rings">
+            ${ring(recPct, 'Received', '#2dd4bf', `${fmtQ(rec)} of ${fmtQ(doQty)} MT`)}
+            ${ring(dispPct, 'Dispatched', '#fbbf24', `${fmtQ(disp)} of ${fmtQ(out85)} MT`)}
+          </div>
+        </div>
+        <div class="glass" style="flex:1">
+          <div class="glass-h"><h2>Breakdown</h2></div>
+          ${kv([
+            ['Total D.O. quantity', fmtQ(doQty) + ' MT'],
+            ['Received (net)', fmtQ(rec) + ' MT'],
+            ['Wash coal 85%', fmtQ(out85) + ' MT'],
+            ['Reject coal 15%', fmtQ(rec - out85) + ' MT'],
+            ['Dispatched (net)', fmtQ(disp) + ' MT'],
+            ['Washery balance', fmtQ(wbal) + ' MT'],
+            ['Mines balance', fmtQ(mines) + ' MT'],
+            ['Dispatch trips', fmtI(dsp.length)]
+          ])}
+        </div>
+      </div>
+    </div>`;
+  countUp($('#sum-body'));
+  animateRings();
+}
+
+function renderSummaryR(h, rr) {
+  const doQty = Number(h.do_qty) || 0;
+  const rcr = sumOf(rr.filter(x => x.entry_type === 'RCR'), 'qty_mt');
+  const road = sumOf(rr.filter(x => x.entry_type === 'ROAD'), 'qty_mt');
+  const lifted = rcr + road, bal = doQty - lifted;
+  const liftPct = doQty ? lifted / doQty * 100 : 0;
+  const rcrShare = lifted ? rcr / lifted * 100 : 0;
+  const byDay = {};
+  rr.forEach(x => {
+    byDay[x.entry_date] = byDay[x.entry_date] || {d:x.entry_date, a:0, b:0};
+    if (x.entry_type === 'RCR') byDay[x.entry_date].a += Number(x.qty_mt) || 0;
+    else byDay[x.entry_date].b += Number(x.qty_mt) || 0;
+  });
+  const series = Object.values(byDay).sort((x, y) => x.d < y.d ? -1 : 1);
+  const recent = rr.map(x => ({date:x.entry_date, type:x.entry_type, cls: x.entry_type === 'ROAD' ? 'road' : 'rcr',
+    vehicle:x.vehicle_or_rake, qty:x.qty_mt, ref:x.rr_no})).sort((a, b) => a.date < b.date ? 1 : -1).slice(0, 40);
+
+  $('#sum-body').innerHTML = `
+    <div class="cards">
+      ${card('D.O. quantity', doQty, 'r', 'Allotted', 'q', 0)}
+      ${card('Lifted', lifted, 'r', `${liftPct.toFixed(1)}% of D.O.`, 'q', 1)}
+      ${card('RCR', rcr, 'w', `${rcrShare.toFixed(1)}% of lifted`, 'q', 2)}
+      ${card('Road sale', road, 'sky', `${(100 - rcrShare).toFixed(1)}% of lifted`, 'q', 3)}
+      ${card('Balance in mines', bal, bal < -0.005 ? 'warn' : 'ok', 'Not yet lifted', 'q', 4)}
+      ${card('Lifting trips', rr.length, 's', 'Entries recorded', 'i', 5)}
+    </div>
+    <div class="sum-grid">
+      <div class="sum-col">
+        <div class="glass">
+          <div class="glass-h"><h2>Daily lifting</h2><span class="sub">MT per day</span></div>
+          <div class="legend"><span><i style="background:#fbbf24"></i>RCR</span><span><i style="background:#818cf8"></i>Road</span></div>
+          <div class="chart">${barChart(series, [['a','RCR','#fbbf24'],['b','Road','#818cf8']])}</div>
+        </div>
+        <div class="glass" style="flex:1">
+          <div class="glass-h"><h2>Recent liftings</h2><span class="sub">latest 40</span></div>
+          <div class="tbl-scroll recent">${recentTable(recent)}</div>
+        </div>
+      </div>
+      <div class="sum-col">
+        <div class="glass">
+          <div class="glass-h"><h2>Progress</h2></div>
+          <div class="rings">
+            ${ring(liftPct, 'Lifted', '#fbbf24', `${fmtQ(lifted)} of ${fmtQ(doQty)} MT`)}
+            ${ring(rcrShare, 'RCR share', '#818cf8', `${fmtQ(rcr)} MT RCR`)}
+          </div>
+        </div>
+        <div class="glass" style="flex:1">
+          <div class="glass-h"><h2>Breakdown</h2></div>
+          ${kv([
+            ['Total D.O. quantity', fmtQ(doQty) + ' MT'],
+            ['RCR lifted', fmtQ(rcr) + ' MT'],
+            ['Road lifted', fmtQ(road) + ' MT'],
+            ['Total lifted', fmtQ(lifted) + ' MT'],
+            ['Balance in mines', fmtQ(bal) + ' MT'],
+            ['Lifting entries', fmtI(rr.length)]
+          ])}
+        </div>
+      </div>
+    </div>`;
+  countUp($('#sum-body'));
+  animateRings();
+}
+
+function animateRings() {
+  requestAnimationFrame(() => requestAnimationFrame(() =>
+    $$('#sum-body [data-dash]').forEach(el => el.setAttribute('stroke-dasharray', el.dataset.dash))));
+}
+
+/* ==================================================================
+   DOWNLOAD AS IMAGE
+   ================================================================== */
+async function captureImage(el, name) {
+  if (!window.html2canvas) { toast('Image library did not load. Check the internet connection.', true); return; }
+  const wrap = document.createElement('div');
+  wrap.className = 'capture-wrap';
+  wrap.style.cssText = `position:fixed;left:-20000px;top:0;width:${Math.max(1100, el.offsetWidth)}px`;
+  const clone = el.cloneNode(true);
+  clone.classList.add('capture');
+  clone.style.height = 'auto';
+  clone.querySelectorAll('*').forEach(n => {
+    if (n.matches && n.matches('.tbl-scroll,.glass,.page,.recent,.view,.sum-col,.sum-grid')) {
+      n.style.setProperty('height', 'auto', 'important');
+      n.style.setProperty('max-height', 'none', 'important');
+      n.style.setProperty('overflow', 'visible', 'important');
+      n.style.setProperty('flex', 'none', 'important');
+    }
+  });
+  wrap.appendChild(clone);
+  document.body.appendChild(wrap);
+  try {
+    toast('Preparing image…');
+    const canvas = await html2canvas(wrap, {backgroundColor:'#0d1530', scale:2, useCORS:true, logging:false});
+    const a = document.createElement('a');
+    a.download = `${name}-${new Date().toISOString().slice(0, 10)}.png`;
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+    toast('Image downloaded');
+  } catch (e) {
+    toast('Could not create image: ' + (e.message || e), true);
+  } finally {
+    wrap.remove();
+  }
+}
+
+/* ==================================================================
+   DATA ENTRY FORMS
+   ================================================================== */
+function buildForm(table, opts = {}) {
+  const T = TABLES[table];
+  const mode = opts.mode || 'create';
+  const values = opts.values || {};
+  const fixed = opts.fixed || {};
+  const over = opts.overrides || {};
+  const form = document.createElement('form');
+  form.className = 'form';
+  form.noValidate = true;
+
+  let html = '';
+  for (const f0 of T.fields) {
+    const f = {...f0, ...(over[f0.k] || {})};
+    if (f.k in fixed) { html += `<input type="hidden" name="${f.k}" value="${esc(fixed[f.k])}">`; continue; }
+    const v = values[f.k] ?? '';
+    const ro = mode === 'edit' && f.k === T.pk && table === 'do_master';
+    const req = f.req ? ' *' : '';
+    let input;
+    if (f.t === 'sel') input = `<select name="${f.k}">${f.opts.map(o => `<option ${o === v ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
+    else if (f.t === 'date') input = `<input type="date" name="${f.k}" value="${esc(v)}">`;
+    else if (f.t === 'num') input = `<input type="number" step="any" inputmode="decimal" name="${f.k}" value="${esc(v)}">`;
+    else if (f.t === 'int') input = `<input type="number" step="1" inputmode="numeric" name="${f.k}" value="${esc(v)}" ${ro ? 'readonly' : ''}>`;
+    else input = `<input type="text" name="${f.k}" value="${esc(v)}" ${f.upper ? 'style="text-transform:uppercase"' : ''}>`;
+    html += `<label class="fld ${f.k.length > 12 && f.t === 'text' ? 'full' : ''}"><span>${esc(f.l)}${req}</span>${input}</label>`;
+  }
+  if (T.calc) html += `<div class="calcbox"><span class="muted">Net weight (calculated by the database)</span><b data-net>–</b></div>`;
+  html += `<div class="msg"></div><div class="row">
+      ${mode === 'create' ? '<button type="button" class="btn ghost" data-clear>Clear</button>' : ''}
+      <button type="submit" class="btn primary">${mode === 'edit' ? 'Save changes' : 'Save entry'}</button>
+    </div>`;
+  form.innerHTML = html;
+
+  const refreshNet = () => {
+    if (!T.calc) return;
+    const g = parseFloat(form.querySelector('[name=gross_wt]')?.value);
+    const t = parseFloat(form.querySelector('[name=tare_wt]')?.value);
+    const n = calc.net(g, t);
+    form.querySelector('[data-net]').textContent = n == null ? '–' : fmtQ(n) + ' MT';
+  };
+  form.addEventListener('input', refreshNet);
+  refreshNet();
+  form.querySelector('[data-clear]')?.addEventListener('click', () => { form.reset(); refreshNet(); });
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const msg = form.querySelector('.msg');
+    const btn = form.querySelector('button[type=submit]');
+    msg.className = 'msg'; msg.textContent = '';
+    let payload;
+    try { payload = readForm(form, table, fixed); }
+    catch (err) { msg.className = 'msg err'; msg.textContent = err.message; return; }
+    if (table !== 'do_master' && !state.doSet.has(Number(payload.do_no))) {
+      msg.className = 'msg err';
+      msg.textContent = `D.O. ${payload.do_no} is not in the D.O. master. Add it first under "New D.O.".`;
+      return;
+    }
+    btn.disabled = true;
+    try {
+      if (mode === 'edit') {
+        const {error} = await db.from(table).update(payload).eq(T.pk, opts.values[T.pk]);
+        if (error) throw error;
+      } else {
+        const {error} = await db.from(table).insert(payload);
+        if (error) throw error;
+      }
+      toast(mode === 'edit' ? 'Changes saved' : 'Entry saved');
+      if (mode === 'create') {
+        const keep = {};
+        ['rec_date','disp_date','entry_date','do_no','section','entry_type'].forEach(k => {
+          const el = form.querySelector(`[name=${k}]`);
+          if (el && el.type !== 'hidden') keep[k] = el.value;
+        });
+        form.reset();
+        Object.entries(keep).forEach(([k, v]) => { const el = form.querySelector(`[name=${k}]`); if (el) el.value = v; });
+        refreshNet();
+      }
+      opts.onDone?.();
+    } catch (err) {
+      msg.className = 'msg err';
+      msg.textContent = explainError(err);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+  return form;
+}
+
+function readForm(form, table, fixed) {
+  const T = TABLES[table];
+  const out = {};
+  for (const f of T.fields) {
+    let v;
+    if (f.k in fixed) v = fixed[f.k];
+    else {
+      const el = form.elements[f.k];
+      if (!el) continue;
+      v = el.value;
+    }
+    if (f.t === 'int' || f.t === 'num') {
+      v = (v === '' || v == null) ? null : Number(v);
+      if (v !== null && Number.isNaN(v)) throw new Error(`${f.l}: enter a valid number`);
+      if (f.t === 'int' && v !== null && !Number.isInteger(v)) throw new Error(`${f.l}: whole number only`);
+    } else if (f.t === 'date') v = v || null;
+    else v = (typeof v === 'string' && v.trim() !== '') ? (f.upper ? v.trim().toUpperCase() : v.trim()) : null;
+    if (f.req && (v === null || v === '')) throw new Error(`${f.l} is required`);
+    out[f.k] = v;
+  }
+  if (T.calc === 'net' && out.gross_wt != null && out.tare_wt != null && out.gross_wt <= out.tare_wt)
+    throw new Error('Gross weight must be more than tare weight');
+  if (table === 'rcr_road_entries' && out.qty_mt != null && out.qty_mt < 0) throw new Error('Qty cannot be negative');
+  return out;
+}
+
+function buildEntryForms() {
+  $('#form-do-w').append(buildForm('do_master', {fixed:{section:'WASHERY'}, onDone: afterSave}));
+  $('#form-rcv-w').append(buildForm('inward_entries', {onDone: afterSave}));
+  $('#form-disp-w').append(buildForm('dispatch_entries', {onDone: afterSave}));
+  $('#form-do-r').append(buildForm('do_master', {overrides:{section:{opts:['RCR','ROAD']}}, onDone: afterSave}));
+  $('#form-lift-r').append(buildForm('rcr_road_entries', {onDone: afterSave}));
+}
+
+async function afterSave() {
+  await loadDoSet().catch(() => {});
+  await loadDashboard();
+  if (state.view === 'log') renderLog();
+}
+
+/* ==================================================================
+   LOG
+   ================================================================== */
+const LOG_TYPE_OPTS = {
+  rcr_road_entries: {col:'entry_type', opts:['','RCR','ROAD'], labels:['All types','RCR','Road']},
+  do_master: {col:'section', opts:['','WASHERY','RCR','ROAD'], labels:['All sections','Washery','RCR','Road']}
+};
+function setupLogType() {
+  const cfg = LOG_TYPE_OPTS[$('#l-table').value];
+  const sel = $('#l-type');
+  if (cfg) { sel.innerHTML = cfg.opts.map((o, i) => `<option value="${o}">${cfg.labels[i]}</option>`).join(''); sel.classList.remove('hidden'); }
+  else { sel.classList.add('hidden'); sel.innerHTML = ''; }
+}
+
+async function renderLog() {
+  if (!db) return;
+  const t = $('#l-table').value, T = TABLES[t];
+  let q = db.from(t).select('*').order(T.order, {ascending:false}).limit(1000);
+  const from = $('#l-from').value, to = $('#l-to').value;
+  if (from) q = q.gte(T.date, from);
+  if (to) q = q.lte(T.date, to);
+  const doNo = $('#l-do').value.trim();
+  if (doNo) {
+    if (!/^\d+$/.test(doNo)) { toast('D.O. number must be digits only', true); return; }
+    q = q.eq('do_no', Number(doNo));
+  }
+  const cfg = LOG_TYPE_OPTS[t], typeVal = $('#l-type').value;
+  if (cfg && typeVal) q = q.eq(cfg.col, typeVal);
+  const s = $('#l-q').value.trim().replace(/[,()*%]/g, ' ');
+  if (s) q = q.or(T.search.map(c => `${c}.ilike.%${s}%`).join(','));
+
+  $('#l-info').textContent = 'Loading…';
+  const {data, error} = await q;
+  if (error) { $('#l-info').textContent = ''; toast('Log error: ' + explainError(error), true); return; }
+
+  const cols = [...T.fields];
+  if (T.calc) cols.push({k:'net_wt', l:'Net (MT)', t:'num', calc:true});
+  const qtyKey = T.calc ? 'net_wt' : (t === 'rcr_road_entries' ? 'qty_mt' : (t === 'do_master' ? 'do_qty' : null));
+  const total = qtyKey ? sumOf(data || [], qtyKey) : null;
+  $('#l-info').textContent = `${data.length} row${data.length === 1 ? '' : 's'}` +
+    (data.length === 1000 ? ' · showing the latest 1000, narrow the filters for more' : '') +
+    (total !== null ? ` · total ${fmtQ(total)} MT` : '');
+
+  const head = `<thead><tr>${cols.map(c => `<th class="${c.t === 'num' || c.t === 'int' ? 'num' : ''}">${esc(c.l)}</th>`).join('')}<th></th></tr></thead>`;
+  const body = data.length ? '<tbody>' + data.map((row, i) => `<tr style="--r:${Math.min(i, 25)}">` + cols.map(c => {
+    const v = row[c.k];
+    if (v == null || v === '') return '<td><span class="muted">–</span></td>';
+    if (c.t === 'date') return `<td>${fmtD(v)}</td>`;
+    if (c.t === 'num' || c.calc) return `<td class="num">${fmtQ(v)}</td>`;
+    if (c.t === 'int') return `<td class="num">${esc(v)}</td>`;
+    return `<td>${esc(v)}</td>`;
+  }).join('') + `<td><button class="btn small" data-edit="${esc(row[T.pk])}">Edit</button></td></tr>`).join('') + '</tbody>'
+    : `<tbody><tr><td colspan="${cols.length + 1}" class="empty">No records match these filters.</td></tr></tbody>`;
+  const tbl = $('#tbl-log');
+  tbl.innerHTML = head + body;
+  tbl._rows = data; tbl._table = t;
+}
+
+function openEdit(table, id) {
+  const row = ($('#tbl-log')._rows || []).find(r => String(r[TABLES[table].pk]) === String(id));
+  if (!row) return;
+  $('#dlg-title').textContent = `Edit · ${TABLES[table].label} · ${table === 'do_master' ? 'D.O. ' + row.do_no : '#' + row.id}`;
+  const body = $('#dlg-body');
+  body.innerHTML = '';
+  body.append(buildForm(table, {mode:'edit', values:row, onDone: () => { $('#dlg').close(); renderLog(); loadDashboard(); }}));
+  $('#dlg').showModal();
+}
+
+/* ==================================================================
+   EXCEL UPLOAD
+   ================================================================== */
+const normKey = s => String(s ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
+const XL_MAP = {
+  inward_entries: {recdate:'rec_date', chdate:'ch_date', excisesrno:'excise_sr_no', uniqueno:'unique_no', dono:'do_no',
+    gatepass:'gate_pass', grade:'grade', vehicleno:'vehicle_no', grosswt:'gross_wt', tarewt:'tare_wt',
+    partyname:'party_name', mines:'mines'},
+  dispatch_entries: {date:'disp_date', dono:'do_no', item:'item', vehicleno:'vehicle_no', grosswt:'gross_wt',
+    tarewt:'tare_wt', uniqueno:'unique_no', rptpno:'rptp_no', partyname:'party_name'}
+};
+const pad2 = n => String(n).padStart(2, '0');
+
+function toIsoDate(v) {
+  if (v instanceof Date && !isNaN(v)) return `${v.getFullYear()}-${pad2(v.getMonth() + 1)}-${pad2(v.getDate())}`;
+  if (typeof v === 'number' && Number.isFinite(v) && v > 0) {
+    const d = new Date(Math.round((v - 25569) * 86400000));   // Excel serial -> UTC date
+    return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}-${pad2(d.getUTCDate())}`;
+  }
+  if (typeof v === 'string') {
+    const m = v.trim().match(/^(\d{1,2})\s*[-/.]\s*(\d{1,2})\s*[-/.]\s*(\d{2,4})$/);
+    if (!m) return null;
+    let y = Number(m[3]);
+    if (y < 100) y += 2000;
+    if (y < 1000) y += 2000;
+    const d = new Date(y, Number(m[2]) - 1, Number(m[1]));
+    return isNaN(d) ? null : `${y}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+  }
+  return null;
+}
+function toNum(v) {
+  if (typeof v === 'number') return Number.isFinite(v) ? v : null;
+  if (typeof v === 'string') { const n = parseFloat(v.replace(/,/g, '')); return Number.isFinite(n) ? n : null; }
+  return null;
+}
+const toStr = v => (v == null ? null : (String(v).trim() || null));
+
+function normalizeRow(o, T, excelRow) {
+  const dateF = T === 'inward_entries' ? 'rec_date' : 'disp_date';
+  const out = {_row: excelRow, _err: []};
+  out[dateF] = toIsoDate(o[dateF]);
+  if (!out[dateF]) out._err.push('bad date');
+  const dn = toNum(o.do_no);
+  out.do_no = dn != null && Number.isInteger(dn) ? dn : null;
+  if (out.do_no == null) out._err.push('bad D.O. no');
+  else if (!state.doSet.has(out.do_no)) out._err.push('D.O. not in master');
+  out.vehicle_no = toStr(o.vehicle_no)?.toUpperCase() || null;
+  if (!out.vehicle_no) out._err.push('no vehicle');
+  out.gross_wt = toNum(o.gross_wt);
+  out.tare_wt = toNum(o.tare_wt);
+  if (out.gross_wt == null || out.tare_wt == null) out._err.push('bad weight');
+  else if (out.gross_wt <= out.tare_wt) out._err.push('gross ≤ tare');
+  if (T === 'inward_entries') {
+    out.ch_date = toIsoDate(o.ch_date);
+    out.excise_sr_no = toStr(o.excise_sr_no);
+    out.gate_pass = toStr(o.gate_pass);
+    out.grade = toStr(o.grade);
+    out.mines = toStr(o.mines);
+  } else {
+    out.item = toStr(o.item);
+    out.rptp_no = toStr(o.rptp_no);
+  }
+  out.unique_no = toStr(o.unique_no);
+  out.party_name = toStr(o.party_name);
+  return out;
+}
+
+async function parseWorkbookSheet() {
+  const T = $('#xl-target').value;
+  const name = $('#xl-sheet').value;
+  const ws = state.xl.wb.Sheets[name];
+  const rows = XLSX.utils.sheet_to_json(ws, {header:1, raw:true, defval:null, blankrows:false});
+  let hdr = -1;
+  for (let i = 0; i < Math.min(rows.length, 40); i++) {
+    const keys = rows[i].map(normKey);
+    if (keys.includes('dono') && keys.includes('vehicleno')) { hdr = i; break; }
+  }
+  if (hdr < 0) { setXlMessage('Could not find a header row with "D.O. No" and "Vehicle No" in this sheet.'); return; }
+  const colOf = {};
+  rows[hdr].forEach((h, ci) => { const f = XL_MAP[T][normKey(h)]; if (f && !(f in colOf)) colOf[f] = ci; });
+  const dateF = T === 'inward_entries' ? 'rec_date' : 'disp_date';
+  const missing = [dateF, 'do_no', 'vehicle_no', 'gross_wt', 'tare_wt'].filter(f => !(f in colOf));
+  if (missing.length) { setXlMessage('Missing columns: ' + missing.join(', ')); return; }
+
+  const parsed = [];
+  for (let i = hdr + 1; i < rows.length; i++) {
+    const r = rows[i];
+    const o = {};
+    let any = false;
+    for (const f in colOf) { o[f] = r[colOf[f]]; if (o[f] !== null && o[f] !== '') any = true; }
+    if (!any) continue;
+    parsed.push(normalizeRow(o, T, i + 1));
+  }
+  await classifyRows(parsed, T, dateF);
+}
+
+async function classifyRows(parsed, T, dateF) {
+  const dos = [...new Set(parsed.filter(p => !p._err.length).map(p => p.do_no))];
+  const existing = new Set();
+  if (dos.length) {
+    const found = await fetchAll(() => db.from(T).select(`id,do_no,unique_no,${dateF}`).in('do_no', dos).order('id'));
+    found.forEach(r => { if (r.unique_no) existing.add(`${r.do_no}|${r.unique_no}|${r[dateF]}`); });
+  }
+  const seen = new Set();
+  parsed.forEach(p => {
+    if (p._err.length) { p._status = 'err'; p._msg = p._err.join(', '); return; }
+    const key = p.unique_no ? `${p.do_no}|${p.unique_no}|${p[dateF]}` : null;
+    if (key && (existing.has(key) || seen.has(key))) { p._status = 'dup'; p._msg = 'already in database or repeated in file'; return; }
+    if (key) seen.add(key);
+    p._status = 'ok'; p._msg = 'ready';
+  });
+  state.xl.rows = parsed;
+  renderXlPreview();
+}
+
+function setXlMessage(msg) {
+  state.xl.rows = [];
+  $('#tbl-xl').innerHTML = `<tbody><tr><td class="empty">${esc(msg)}</td></tr></tbody>`;
+  $('#xl-info').textContent = msg;
+  updateXlCounts();
+}
+
+function updateXlCounts() {
+  const rows = state.xl.rows;
+  const c = {ok:0, dup:0, err:0};
+  rows.forEach(r => c[r._status]++);
+  $('#c-ok').textContent = fmtI(c.ok);
+  $('#c-dup').textContent = fmtI(c.dup);
+  $('#c-err').textContent = fmtI(c.err);
+  $('#xl-import').disabled = c.ok === 0 || state.xl.busy;
+  return c;
+}
+
+function renderXlPreview() {
+  const T = $('#xl-target').value;
+  const dateF = T === 'inward_entries' ? 'rec_date' : 'disp_date';
+  const rows = state.xl.rows;
+  const c = updateXlCounts();
+  $('#xl-info').textContent = `${rows.length} data rows found · showing first ${Math.min(150, rows.length)}`;
+  const head = `<thead><tr><th class="num">Row</th><th>Status</th><th>Date</th><th class="num">D.O.</th><th>Vehicle</th>
+    <th class="num">Gross</th><th class="num">Tare</th><th class="num">Net</th><th>Unique no.</th><th>Party</th><th>Note</th></tr></thead>`;
+  const body = rows.length ? '<tbody>' + rows.slice(0, 150).map((r, i) => {
+    const net = calc.net(r.gross_wt, r.tare_wt);
+    const cls = r._status === 'ok' ? 's-ok' : r._status === 'dup' ? 's-dup' : 's-err';
+    const label = r._status === 'ok' ? 'Ready' : r._status === 'dup' ? 'Duplicate' : 'Error';
+    return `<tr style="--r:${Math.min(i, 25)}"><td class="num muted">${r._row}</td><td class="${cls}" style="font-weight:700">${label}</td>
+      <td>${fmtD(r[dateF])}</td><td class="num">${esc(r.do_no ?? '–')}</td><td>${esc(r.vehicle_no || '–')}</td>
+      <td class="num">${fmtQ(r.gross_wt)}</td><td class="num">${fmtQ(r.tare_wt)}</td><td class="num">${fmtQ(net)}</td>
+      <td>${esc(r.unique_no || '–')}</td><td>${esc(r.party_name || '–')}</td><td class="muted">${esc(r._msg)}</td></tr>`;
+  }).join('') + '</tbody>' : '<tbody><tr><td class="empty">No rows to preview.</td></tr></tbody>';
+  $('#tbl-xl').innerHTML = head + body;
+  void c;
+}
+
+function loadXlsxFile(file) {
+  if (!window.XLSX) { toast('Excel library did not load. Check the internet connection.', true); return; }
+  $('#xl-file-name').textContent = file.name;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      state.xl.wb = XLSX.read(e.target.result, {type:'array', cellDates:true});
+    } catch (err) { toast('Could not read this file: ' + err.message, true); return; }
+    const sel = $('#xl-sheet');
+    sel.disabled = false;
+    sel.innerHTML = state.xl.wb.SheetNames.map(n => `<option>${esc(n)}</option>`).join('');
+    guessSheet();
+    parseWorkbookSheet().catch(err => toast('Preview failed: ' + explainError(err), true));
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function guessSheet() {
+  const want = $('#xl-target').value === 'inward_entries' ? /inward/i : /dispatch/i;
+  const names = state.xl.wb.SheetNames;
+  $('#xl-sheet').value = names.find(n => want.test(n)) || names[0];
+}
+
+async function importXlsx() {
+  const T = $('#xl-target').value;
+  const ready = state.xl.rows.filter(r => r._status === 'ok');
+  if (!ready.length || state.xl.busy) return;
+  const fields = TABLES[T].fields.map(f => f.k);
+  const payload = ready.map(r => { const o = {}; fields.forEach(k => o[k] = r[k] ?? null); return o; });
+  state.xl.busy = true;
+  $('#xl-import').disabled = true;
+  const bar = $('#xl-prog');
+  let done = 0;
+  try {
+    for (let i = 0; i < payload.length; i += 500) {
+      const chunk = payload.slice(i, i + 500);
+      const {error} = await db.from(T).insert(chunk);
+      if (error) throw error;
+      done += chunk.length;
+      bar.style.width = (done / payload.length * 100).toFixed(1) + '%';
+    }
+    toast(`Imported ${fmtI(done)} rows`);
+    state.xl.rows = [];
+    renderXlPreview();
+    await afterSave();
+  } catch (err) {
+    toast(`Stopped after ${fmtI(done)} rows: ${explainError(err)}`, true);
+    await afterSave();
+  } finally {
+    state.xl.busy = false;
+    setTimeout(() => { bar.style.width = '0%'; }, 1200);
+    updateXlCounts();
+  }
+}
+
+/* ==================================================================
+   EVENTS
+   ================================================================== */
+function showView(v) {
+  state.view = v;
+  $$('.dock button').forEach(b => b.classList.toggle('active', b.dataset.view === v));
+  ['dashboard','entry','log','excel'].forEach(n => $('#view-' + n).classList.toggle('hidden', n !== v));
+  if (v === 'log') renderLog();
+  if (v === 'dashboard') setPage(state.page);
+}
+
+const ICON = {
+  dashboard:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/></svg>',
+  entry:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  log:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>',
+  excel:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3m0 0l-4 4m4-4l4 4M4 15v4a2 2 0 002 2h12a2 2 0 002-2v-4"/></svg>'
+};
+
+$$('.dock button').forEach(b => b.insertAdjacentHTML('afterbegin', ICON[b.dataset.view]));
+$$('.dock button').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
+$$('.seg button').forEach(b => b.addEventListener('click', () => setPage(b.dataset.page)));
+$$('.stab').forEach(btn => btn.addEventListener('click', () => {
+  $$('.stab').forEach(b => b.classList.toggle('active', b === btn));
+  $('#ent-w').classList.toggle('hidden', btn.dataset.ent !== 'w');
+  $('#ent-r').classList.toggle('hidden', btn.dataset.ent !== 'r');
+}));
+
+$('#f-q').addEventListener('input', renderAll);
+$('#f-col').addEventListener('change', renderAll);
+$('#f-hide').addEventListener('change', renderAll);
+$('#dl-img').addEventListener('click', () => {
+  const map = {w:['#page-w','ksk-washery'], r:['#page-r','ksk-rcr-road'], s:['#page-s','ksk-do-summary']};
+  const [sel, name] = map[state.page];
+  captureImage($(sel), name);
+});
+$('#sum-do').addEventListener('change', e => loadSummary(Number(e.target.value)));
+
+function bindSort(id, key) {
+  $(id).addEventListener('click', e => {
+    const th = e.target.closest('th.sortable');
+    if (!th) return;
+    const s = state[key];
+    if (s.k === th.dataset.k) s.d = -s.d; else { s.k = th.dataset.k; s.d = 1; }
+    renderAll();
+  });
+}
+bindSort('#tbl-w', 'sortW');
+bindSort('#tbl-r', 'sortR');
+
+$('#l-table').addEventListener('change', () => { setupLogType(); renderLog(); });
+$('#l-go').addEventListener('click', renderLog);
+$('#l-clear').addEventListener('click', () => {
+  ['#l-from','#l-to','#l-do','#l-q'].forEach(s => $(s).value = '');
+  $('#l-type').value = '';
+  renderLog();
+});
+$('#l-type').addEventListener('change', renderLog);
+['#l-q','#l-do'].forEach(s => $(s).addEventListener('keydown', e => { if (e.key === 'Enter') renderLog(); }));
+$('#tbl-log').addEventListener('click', e => {
+  const b = e.target.closest('[data-edit]');
+  if (b) openEdit($('#l-table').value, b.dataset.edit);
+});
+$('#dlg-x').addEventListener('click', () => $('#dlg').close());
+$('#refresh').addEventListener('click', async () => { await loadDoSet().catch(() => {}); loadDashboard(); });
+
+$('#xl-target').addEventListener('change', () => {
+  if (state.xl.wb) { guessSheet(); parseWorkbookSheet().catch(err => toast(explainError(err), true)); }
+});
+$('#xl-sheet').addEventListener('change', () => parseWorkbookSheet().catch(err => toast(explainError(err), true)));
+const drop = $('#drop');
+drop.addEventListener('click', () => $('#xl-file').click());
+$('#xl-file').addEventListener('change', e => { if (e.target.files[0]) loadXlsxFile(e.target.files[0]); });
+['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) loadXlsxFile(f); });
+$('#xl-import').addEventListener('click', importXlsx);
+
+/* ==================================================================
+   START
+   ================================================================== */
+function subscribeLive() {
+  let timer;
+  const kick = () => {
+    clearTimeout(timer);
+    timer = setTimeout(async () => {
+      await loadDoSet().catch(() => {});
+      await loadDashboard();
+      if (state.view === 'log') renderLog();
+    }, 400);
+  };
+  db.channel('ksk-mis').on('postgres_changes', {event:'*', schema:'public'}, kick).subscribe();
+}
+
+async function init() {
+  setupLogType();
+  buildEntryForms();
+  if (!db) {
+    $('#setup').classList.remove('hidden');
+    $('#setup').innerHTML = '<b>Database not connected.</b> Paste the Supabase URL and anon key at the top of this file.';
+    setStatus('Not connected', 'err');
+    return;
+  }
+  try {
+    await loadDoSet();
+    await loadDashboard();
+    subscribeLive();
+    setInterval(loadDashboard, REFRESH_MS);
+  } catch (err) {
+    setStatus('Error', 'err');
+    toast('Could not connect: ' + explainError(err), true);
+  }
+}
+init();
+</script>
+</body>
+</html>
