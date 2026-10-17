@@ -489,7 +489,7 @@ const TABLES = {
     ]
   },
   inward_entries: {
-    label:'Receipts (Inward)', pk:'id', date:'rec_date', order:'rec_date', calc:'net',
+    label:'Receipts (Inward)', pk:'id', date:'rec_date', order:'rec_date',
     search:['vehicle_no','party_name','unique_no'],
     fields:[
       {k:'rec_date',l:'Rec. date',t:'date',req:true},
@@ -498,6 +498,7 @@ const TABLES = {
       {k:'vehicle_no',l:'Vehicle No',t:'text',req:true,upper:true},
       {k:'gross_wt',l:'Gross (MT)',t:'num',req:true},
       {k:'tare_wt',l:'Tare (MT)',t:'num',req:true},
+      {k:'net_wt',l:'Net (MT)',t:'num',req:true},
       {k:'rec_wt',l:'Rec. Wt (MT)',t:'num'},
       {k:'unique_no',l:'Unique No',t:'text'},
       {k:'excise_sr_no',l:'Excise Sr. No',t:'text'},
@@ -508,7 +509,7 @@ const TABLES = {
     ]
   },
   dispatch_entries: {
-    label:'Dispatches (Outward)', pk:'id', date:'disp_date', order:'disp_date', calc:'net',
+    label:'Dispatches (Outward)', pk:'id', date:'disp_date', order:'disp_date',
     search:['vehicle_no','party_name','unique_no'],
     fields:[
       {k:'disp_date',l:'Dispatch date',t:'date',req:true},
@@ -516,6 +517,7 @@ const TABLES = {
       {k:'vehicle_no',l:'Vehicle No',t:'text',req:true,upper:true},
       {k:'gross_wt',l:'Gross (MT)',t:'num',req:true},
       {k:'tare_wt',l:'Tare (MT)',t:'num',req:true},
+      {k:'net_wt',l:'Net (MT)',t:'num',req:true},
       {k:'item',l:'Item',t:'text'},
       {k:'unique_no',l:'Unique No',t:'text'},
       {k:'rptp_no',l:'RPTP No',t:'text'},
@@ -601,9 +603,6 @@ const fmtDs = v => v ? new Date(v + 'T00:00:00').toLocaleDateString('en-GB', {da
 const sumOf = (rows, k) => rows.reduce((a, x) => a + (Number(x[k]) || 0), 0);
 const todayISO = () => new Date().toLocaleDateString('en-CA');
 
-const calc = {
-  net:(g,t) => (isNum(g) && isNum(t)) ? r3(g - t) : null
-};
 
 function toast(msg, isErr) {
   const t = $('#toast');
@@ -1153,34 +1152,13 @@ function buildForm(table, opts = {}) {
     else input = `<input type="text" name="${f.k}" value="${esc(v)}" ${f.upper ? 'style="text-transform:uppercase"' : ''}>`;
     html += `<label class="fld ${f.k.length > 12 && f.t === 'text' ? 'full' : ''}"><span>${esc(f.l)}${req}</span>${input}</label>`;
   }
-  if (T.calc) html += `<div class="calcbox"><span class="muted">Net weight (Gross − Tare, auto)</span><b data-net>–</b></div>`;
   html += `<div class="msg"></div><div class="row">
       ${mode === 'create' ? '<button type="button" class="btn ghost" data-clear>Clear</button>' : ''}
       <button type="submit" class="btn primary">${mode === 'edit' ? 'Save changes' : 'Save entry'}</button>
     </div>`;
   form.innerHTML = html;
 
-  const refreshNet = () => {
-    if (!T.calc) return;
-    const g = parseFloat(form.querySelector('[name=gross_wt]')?.value);
-    const t = parseFloat(form.querySelector('[name=tare_wt]')?.value);
-    const n = calc.net(g, t);
-    const netEl = form.querySelector('[data-net]');
-    if (netEl) netEl.textContent = n == null ? '–' : fmtQ(n) + ' MT';
-    if (table === 'inward_entries' && mode === 'create') {
-      const recEl = form.querySelector('[name=rec_wt]');
-      if (recEl && (recEl.value === '' || recEl.dataset.autofilled === '1')) {
-        recEl.value = n == null ? '' : n;
-        recEl.dataset.autofilled = '1';
-      }
-    }
-  };
-  form.addEventListener('input', e => {
-    if (e.target && e.target.name === 'rec_wt') e.target.dataset.autofilled = '0';
-    refreshNet();
-  });
-  refreshNet();
-  form.querySelector('[data-clear]')?.addEventListener('click', () => { form.reset(); refreshNet(); });
+  form.querySelector('[data-clear]')?.addEventListener('click', () => { form.reset(); });
 
   form.addEventListener('submit', async e => {
     e.preventDefault();
@@ -1213,7 +1191,6 @@ function buildForm(table, opts = {}) {
         });
         form.reset();
         Object.entries(keep).forEach(([k, v]) => { const el = form.querySelector(`[name=${k}]`); if (el) el.value = v; });
-        refreshNet();
       }
       opts.onDone?.();
     } catch (err) {
@@ -1246,7 +1223,7 @@ function readForm(form, table, fixed) {
     if (f.req && (v === null || v === '')) throw new Error(`${f.l} is required`);
     out[f.k] = v;
   }
-  if (T.calc === 'net' && out.gross_wt != null && out.tare_wt != null && out.gross_wt <= out.tare_wt)
+  if ((table === 'inward_entries' || table === 'dispatch_entries') && out.gross_wt != null && out.tare_wt != null && out.gross_wt <= out.tare_wt)
     throw new Error('Gross weight must be more than tare weight');
   if (table === 'rcr_road_entries' && out.qty_mt != null && out.qty_mt < 0) throw new Error('Qty cannot be negative');
   return out;
@@ -1302,9 +1279,8 @@ async function renderLog() {
   if (error) { $('#l-info').textContent = ''; toast('Log error: ' + explainError(error), true); return; }
 
   const cols = [...T.fields];
-  if (T.calc) cols.push({k:'net_wt', l:'Net (MT)', t:'num', calc:true});
   const qtyKey = t === 'inward_entries' ? 'rec_wt'
-    : T.calc ? 'net_wt'
+    : t === 'dispatch_entries' ? 'net_wt'
     : (t === 'rcr_road_entries' ? 'qty_mt' : (t === 'do_master' ? 'do_qty' : null));
   const total = qtyKey ? sumOf(data || [], qtyKey) : null;
   $('#l-info').textContent = `${data.length} row${data.length === 1 ? '' : 's'}` +
@@ -1345,7 +1321,7 @@ const XL_MAP = {
     gatepass:'gate_pass', grade:'grade', vehicleno:'vehicle_no', grosswt:'gross_wt', tarewt:'tare_wt',
     netwt:'net_wt', recwt:'rec_wt', partyname:'party_name', mines:'mines'},
   dispatch_entries: {date:'disp_date', dono:'do_no', item:'item', vehicleno:'vehicle_no', grosswt:'gross_wt',
-    tarewt:'tare_wt', uniqueno:'unique_no', rptpno:'rptp_no', partyname:'party_name'}
+    tarewt:'tare_wt', netwt:'net_wt', uniqueno:'unique_no', rptpno:'rptp_no', partyname:'party_name'}
 };
 const pad2 = n => String(n).padStart(2, '0');
 
@@ -1388,6 +1364,8 @@ function normalizeRow(o, T, excelRow) {
   out.tare_wt = toNum(o.tare_wt);
   if (out.gross_wt == null || out.tare_wt == null) out._err.push('bad weight');
   else if (out.gross_wt <= out.tare_wt) out._err.push('gross ≤ tare');
+  out.net_wt = toNum(o.net_wt);
+  if (out.net_wt == null) out._err.push('no net wt');
   if (T === 'inward_entries') {
     out.ch_date = toIsoDate(o.ch_date);
     out.excise_sr_no = toStr(o.excise_sr_no);
@@ -1395,8 +1373,6 @@ function normalizeRow(o, T, excelRow) {
     out.grade = toStr(o.grade);
     out.mines = toStr(o.mines);
     out.rec_wt = toNum(o.rec_wt);
-    if (out.rec_wt == null && out.gross_wt != null && out.tare_wt != null)
-      out.rec_wt = calc.net(out.gross_wt, out.tare_wt);
   } else {
     out.item = toStr(o.item);
     out.rptp_no = toStr(o.rptp_no);
@@ -1422,7 +1398,7 @@ async function parseWorkbookSheet() {
   TABLES[T].fields.forEach(f => { headerMap[normKey(f.k)] = f.k; });   // also accept database column names
   rows[hdr].forEach((h, ci) => { const f = headerMap[normKey(h)]; if (f && !(f in colOf)) colOf[f] = ci; });
   const dateF = T === 'inward_entries' ? 'rec_date' : 'disp_date';
-  const missing = [dateF, 'do_no', 'vehicle_no', 'gross_wt', 'tare_wt'].filter(f => !(f in colOf));
+  const missing = [dateF, 'do_no', 'vehicle_no', 'gross_wt', 'tare_wt', 'net_wt'].filter(f => !(f in colOf));
   if (missing.length) { setXlMessage('Missing columns: ' + missing.join(', ')); return; }
 
   const parsed = [];
@@ -1486,7 +1462,7 @@ function renderXlPreview() {
     (isIn ? `<th class="num">Rec. Wt</th>` : '') +
     `<th>Unique no.</th><th>Party</th><th>Note</th></tr></thead>`;
   const body = rows.length ? '<tbody>' + rows.slice(0, 150).map((r, i) => {
-    const net = calc.net(r.gross_wt, r.tare_wt);
+    const net = r.net_wt;
     const cls = r._status === 'ok' ? 's-ok' : r._status === 'dup' ? 's-dup' : 's-err';
     const label = r._status === 'ok' ? 'Ready' : r._status === 'dup' ? 'Duplicate' : 'Error';
     return `<tr style="--r:${Math.min(i, 25)}"><td class="num muted">${r._row}</td><td class="${cls}" style="font-weight:700">${label}</td>
