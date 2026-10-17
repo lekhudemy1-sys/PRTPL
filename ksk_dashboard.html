@@ -101,9 +101,9 @@ input[type=checkbox]{accent-color:var(--teal);width:16px;height:16px;padding:0}
 .card::after{content:"";position:absolute;right:-28px;top:-28px;width:90px;height:90px;border-radius:50%;background:var(--c,var(--teal));opacity:.14}
 .card:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(0,0,0,.35)}
 .card span{display:block;color:var(--mut);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
-.card b{display:block;font-size:24px;font-weight:800;margin-top:6px;font-variant-numeric:tabular-nums;color:#fff;text-shadow:0 0 18px color-mix(in srgb,var(--c,#2dd4bf) 45%,transparent)}
+.card b{display:block;font-size:24px;font-weight:800;margin-top:6px;font-variant-numeric:tabular-nums;color:#fff;text-shadow:0 0 18px var(--cg,rgba(45,212,191,.45))}
 .card small{display:block;color:var(--mut);margin-top:4px;font-size:12px}
-.card.w{--c:#2dd4bf} .card.r{--c:#fbbf24} .card.s{--c:#a78bfa} .card.sky{--c:#38bdf8} .card.ok{--c:#34d399} .card.warn{--c:#fb7185}
+.card.w{--c:#2dd4bf;--cg:rgba(45,212,191,.45)} .card.r{--c:#fbbf24;--cg:rgba(251,191,36,.45)} .card.s{--c:#a78bfa;--cg:rgba(167,139,250,.45)} .card.sky{--c:#38bdf8;--cg:rgba(56,189,248,.45)} .card.ok{--c:#34d399;--cg:rgba(52,211,153,.45)} .card.warn{--c:#fb7185;--cg:rgba(251,113,133,.45)}
 
 /* glass panels */
 .glass{background:var(--glass);border:1px solid var(--line);border-radius:var(--radius);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);overflow:hidden;display:flex;flex-direction:column;min-height:0;flex:1;animation:rise .6s both}
@@ -229,7 +229,8 @@ tfoot td{position:sticky;bottom:0;background:#111a36;font-weight:800;color:#fff;
 
 /* image capture */
 .capture-wrap{padding:26px;background:#0d1530;background-image:linear-gradient(135deg,#060a18,#0d1530 55%,#1a1140)}
-.capture *{animation:none!important;transition:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+.capture *{animation:none!important;transition:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;text-shadow:none!important}
+.capture .card,.capture .glass,.capture .panel,.capture tbody tr{opacity:1!important;transform:none!important}
 
 /* responsive: desktop fixed, mobile scrolls */
 @media (max-width:1100px){
@@ -1092,8 +1093,10 @@ async function captureImage(el, name) {
   if (!window.html2canvas) { toast('Image library did not load. Check the internet connection.', true); return; }
   const wrap = document.createElement('div');
   wrap.className = 'capture-wrap';
-  wrap.style.cssText = `position:fixed;left:-20000px;top:0;width:${Math.max(1100, el.offsetWidth)}px`;
+  wrap.style.cssText = `position:absolute;left:0;top:0;z-index:-1;pointer-events:none;width:${Math.max(1100, el.offsetWidth)}px`;
   const clone = el.cloneNode(true);
+  clone.classList.remove('hidden');
+  clone.removeAttribute('id');
   clone.classList.add('capture');
   clone.style.height = 'auto';
   clone.querySelectorAll('*').forEach(n => {
@@ -1108,11 +1111,22 @@ async function captureImage(el, name) {
   document.body.appendChild(wrap);
   try {
     toast('Preparing image…');
-    const canvas = await html2canvas(wrap, {backgroundColor:'#0d1530', scale:2, useCORS:true, logging:false});
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const w = wrap.offsetWidth, h = wrap.offsetHeight;
+    // keep the canvas inside browser limits (long tables at 2x can exceed them and come out blank)
+    const scale = Math.max(0.5, Math.min(2, 15000 / h, Math.sqrt(16000000 / (w * h))));
+    const canvas = await html2canvas(wrap, {backgroundColor:'#0d1530', scale, useCORS:true, logging:false,
+      width:w, height:h, windowWidth:Math.max(w, document.documentElement.clientWidth), scrollX:0, scrollY:0});
+    const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+    if (!blob) throw new Error('image is too large to export');
+    const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.download = `${name}-${new Date().toISOString().slice(0, 10)}.png`;
-    a.href = canvas.toDataURL('image/png');
+    a.href = url;
+    document.body.appendChild(a);
     a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
     toast('Image downloaded');
   } catch (e) {
     toast('Could not create image: ' + (e.message || e), true);
