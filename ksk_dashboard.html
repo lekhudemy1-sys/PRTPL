@@ -135,22 +135,22 @@ tbody tr:nth-child(even) td{background-image:linear-gradient(rgba(15,23,42,.035)
 tbody tr:hover td{background-image:linear-gradient(rgba(15,23,42,.08),rgba(15,23,42,.08))}
 tfoot td{position:sticky;bottom:0;background:#eef2f9;font-weight:800;color:#0f172a;border-top:2px solid rgba(15,23,42,.18);border-bottom:0}
 
-/* ---------- WASHERY (16 cols): 1-6 info | 7-9 receipt | 10 balance | 11-13 output | 14-16 dispatch ---------- */
-.washery :is(tbody td,tfoot td,thead tr:not(.grp) th):is(:nth-child(7),:nth-child(10),:nth-child(11),:nth-child(14)){border-left:1px solid rgba(15,23,42,.22)}
+/* ---------- WASHERY (18 cols): 1-6 info | 7-9 receipt | 10-12 mines balance | 13-14 output | 15-18 dispatch ---------- */
+.washery :is(tbody td,tfoot td,thead tr:not(.grp) th):is(:nth-child(7),:nth-child(10),:nth-child(13),:nth-child(15)){border-left:1px solid rgba(15,23,42,.22)}
 .washery thead tr.grp th.g1{color:#0f766e;background:linear-gradient(rgba(45,212,191,.22),rgba(45,212,191,.22)),#fff}
 .washery thead tr.grp th.g2{color:#b45309;background:linear-gradient(rgba(251,191,36,.26),rgba(251,191,36,.26)),#fff}
 .washery thead tr.grp th.g3{color:#6d28d9;background:linear-gradient(rgba(167,139,250,.24),rgba(167,139,250,.24)),#fff}
 .washery thead tr.grp th.g4{color:#0369a1;background:linear-gradient(rgba(56,189,248,.22),rgba(56,189,248,.22)),#fff}
 /* body tints */
 .washery tbody td:nth-child(n+7):nth-child(-n+9){background-color:rgba(45,212,191,.08)}
-.washery tbody td:nth-child(10){background-color:rgba(251,191,36,.10)}
-.washery tbody td:nth-child(n+11):nth-child(-n+13){background-color:rgba(167,139,250,.09)}
-.washery tbody td:nth-child(n+14){background-color:rgba(56,189,248,.09)}
+.washery tbody td:nth-child(n+10):nth-child(-n+12){background-color:rgba(251,191,36,.10)}
+.washery tbody td:nth-child(n+13):nth-child(-n+14){background-color:rgba(167,139,250,.09)}
+.washery tbody td:nth-child(n+15){background-color:rgba(56,189,248,.09)}
 /* column-header tints (second header row) */
 .washery thead tr:not(.grp) th:nth-child(n+7):nth-child(-n+9){background:linear-gradient(rgba(45,212,191,.16),rgba(45,212,191,.16)),#eef2f9}
-.washery thead tr:not(.grp) th:nth-child(10){background:linear-gradient(rgba(251,191,36,.20),rgba(251,191,36,.20)),#eef2f9}
-.washery thead tr:not(.grp) th:nth-child(n+11):nth-child(-n+13){background:linear-gradient(rgba(167,139,250,.18),rgba(167,139,250,.18)),#eef2f9}
-.washery thead tr:not(.grp) th:nth-child(n+14){background:linear-gradient(rgba(56,189,248,.16),rgba(56,189,248,.16)),#eef2f9}
+.washery thead tr:not(.grp) th:nth-child(n+10):nth-child(-n+12){background:linear-gradient(rgba(251,191,36,.20),rgba(251,191,36,.20)),#eef2f9}
+.washery thead tr:not(.grp) th:nth-child(n+13):nth-child(-n+14){background:linear-gradient(rgba(167,139,250,.18),rgba(167,139,250,.18)),#eef2f9}
+.washery thead tr:not(.grp) th:nth-child(n+15){background:linear-gradient(rgba(56,189,248,.16),rgba(56,189,248,.16)),#eef2f9}
 
 /* ---------- RCR & ROAD (9 cols): 1-4 info | 5-8 lifting | 9 balance ---------- */
 .rcr :is(tbody td,tfoot td,thead tr:not(.grp) th):is(:nth-child(5),:nth-child(9)){border-left:1px solid rgba(15,23,42,.22)}
@@ -571,15 +571,17 @@ const WCOLS = [
   {k:'trips',l:'Trips',t:'i',g:1,sum:true},
   {k:'rec_qty',l:'Rec. Qty',t:'q',g:1,sum:true},
   {k:'net_qty',l:'Net Qty',t:'q',g:1,sum:true},
-  {k:'mines_bal',l:'Mines Bal.',t:'q',g:1,sum:true,neg:true},
-  {k:'wash_coal_85',l:'Wash Coal 85%',t:'q',g:2,sum:true},
-  {k:'reject_15',l:'Reject 15%',t:'q',g:2,sum:true},
-  {k:'total_85',l:'Total 85%',t:'q',g:2,sum:true},
-  {k:'dispatch_trips',l:'Trips',t:'i',g:3,sum:true},
-  {k:'dispatch_qty',l:'Dispatch Qty',t:'q',g:3,sum:true,bar:true},
-  {k:'washery_bal',l:'Washery Bal.',t:'q',g:3,sum:true,neg:true}
+  {k:'mines_bal',l:'Mines Bal.',t:'q',g:2,sum:true},
+  {k:'asking',l:'Asking',t:'q',g:2,sum:true},
+  {k:'daily_lift',l:'Daily Lift',t:'q',g:2,sum:true},
+  {k:'wash_coal_85',l:'Wash Coal 85%',t:'q',g:3,sum:true},
+  {k:'reject_15',l:'Reject 15%',t:'q',g:3,sum:true},
+  {k:'daily_dispatch',l:'Daily Dispatch',t:'q',g:4,sum:true},
+  {k:'dispatch_trips',l:'Trips',t:'i',g:4,sum:true},
+  {k:'dispatch_qty',l:'Dispatch Qty',t:'q',g:4,sum:true,bar:true},
+  {k:'washery_bal',l:'Washery Bal.',t:'q',g:4,sum:true}
 ];
-const WGROUPS = [{l:'',span:6},{l:'Receipt (Inward)',span:3},{l:'Balance',span:1},{l:'Washery output',span:3},{l:'Dispatch (Outward)',span:3}];
+const WGROUPS = [{l:'',span:6},{l:'Receipt (Inward)',span:3},{l:'Mines balance',span:3},{l:'Washery output',span:2},{l:'Dispatch (Outward)',span:4}];
 
 const RCOLS = [
   {k:'sale_type',l:'Type',t:'badge',g:0},
@@ -692,7 +694,8 @@ async function loadDashboard() {
     toast('Could not load dashboard: ' + explainError(w.error || r.error), true);
     return;
   }
-  state.w = w.data || [];
+  const nz = v => (v == null || v === '') ? v : Math.max(0, Number(v) || 0);   // negative balances show as 0
+  state.w = (w.data || []).map(x => ({...x, mines_bal: nz(x.mines_bal), washery_bal: nz(x.washery_bal), asking: nz(x.asking)}));
   state.r = r.data || [];
   state.unmatched = u.error ? [] : (u.data || []);
   setStatus('Live', 'live');
@@ -974,7 +977,7 @@ function renderSummaryW(h, inn, dsp) {
   const doQty = Number(h.do_qty) || 0;
   const rec = inn.reduce((a, x) => a + (Number(x.rec_wt != null ? x.rec_wt : x.net_wt) || 0), 0);
   const disp = sumOf(dsp, 'net_wt');
-  const out85 = rec * WASH_PCT, wbal = out85 - disp, mines = doQty - rec;
+  const out85 = rec * WASH_PCT, wbal = Math.max(0, out85 - disp), mines = Math.max(0, doQty - rec);
   const recPct = doQty ? rec / doQty * 100 : 0, dispPct = out85 ? disp / out85 * 100 : 0;
   const series = groupByDate(inn.map(x => {
       const q = x.rec_wt != null ? x.rec_wt : x.net_wt;
