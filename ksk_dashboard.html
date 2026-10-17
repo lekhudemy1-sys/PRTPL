@@ -1,1674 +1,313 @@
 <!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
+<html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>KSK Mahanadi</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <style>
-:root{
-  --bg0:#f6f8fc; --bg1:#eef2f9; --bg2:#f3eefb;
-  --glass:rgba(255,255,255,.82); --glass2:rgba(15,23,42,.05); --line:rgba(15,23,42,.11);
-  --txt:#0f172a; --mut:#5b6785;
-  --teal:#0d9488; --amber:#d97706; --violet:#7c3aed; --sky:#0284c7; --rose:#e11d48; --ok:#059669; --bad:#dc2626;
-  --gh:31px; --radius:16px;
-}
-*{box-sizing:border-box}
-html,body{margin:0;height:100%}
-body{
-  font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; color:var(--txt); font-size:14px;
-  background:linear-gradient(135deg,#f8fafc,#eef2fb 55%,#f3eefb); background-color:var(--bg0);
-  display:grid; grid-template-rows:auto minmax(0,1fr) auto; height:100vh; height:100dvh; overflow:hidden; position:relative;
-}
-.bg{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
-.blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.2;animation:drift 26s ease-in-out infinite alternate}
-.b1{width:46vw;height:46vw;background:#5eead4;left:-10vw;top:-12vw}
-.b2{width:40vw;height:40vw;background:#c4b5fd;right:-12vw;top:10vh;animation-duration:32s;animation-delay:-8s}
-.b3{width:36vw;height:36vw;background:#fcd34d;left:30vw;bottom:-18vw;opacity:.16;animation-duration:38s;animation-delay:-16s}
-@keyframes drift{0%{transform:translate(0,0) scale(1)}50%{transform:translate(6vw,4vh) scale(1.12)}100%{transform:translate(-4vw,-6vh) scale(.94)}}
-.grid-lines{position:absolute;inset:-60px;background-image:linear-gradient(rgba(15,23,42,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(15,23,42,.045) 1px,transparent 1px);background-size:48px 48px;animation:gridmove 40s linear infinite}
-@keyframes gridmove{to{transform:translate(48px,48px)}}
-
-.hidden{display:none!important}
-.muted{color:var(--mut)}
-.num{text-align:right;font-variant-numeric:tabular-nums}
-.neg{color:#dc2626;font-weight:700}
-
-/* header */
-.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px;background:rgba(255,255,255,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line);z-index:5}
-.brand{display:flex;align-items:center;gap:12px}
-.logo{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--teal),var(--violet) 55%,var(--amber));display:grid;place-items:center;font-weight:800;font-size:18px;color:#fff;animation:pulse 3.5s ease-in-out infinite}
-@keyframes pulse{0%,100%{box-shadow:0 8px 24px rgba(13,148,136,.3)}50%{box-shadow:0 8px 34px rgba(124,58,237,.38)}}
-.brand h1{margin:0;font-size:18px;letter-spacing:.2px;background:linear-gradient(90deg,#0f172a,#0d9488 50%,#b45309);-webkit-background-clip:text;background-clip:text;color:transparent}
-.back{text-decoration:none;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
-.brand small{color:var(--mut);font-size:12px}
+:root{--line:rgba(15,23,42,.11);--txt:#0f172a;--mut:#5b6785;--teal:#0d9488;--amber:#d97706;--violet:#7c3aed;--sky:#0284c7;--gh:31px;--glass:rgba(255,255,255,.82)}
+*{box-sizing:border-box}html,body{margin:0;height:100%}
+body{font:14px Inter,system-ui,sans-serif;color:var(--txt);background:linear-gradient(135deg,#f8fafc,#eef2fb 55%,#f3eefb);display:grid;grid-template-rows:auto minmax(0,1fr) auto;height:100dvh;overflow:hidden}
+.hidden{display:none!important}.muted{color:var(--mut)}.num{text-align:right;font-variant-numeric:tabular-nums}.neg{color:#dc2626;font-weight:700}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px;background:rgba(255,255,255,.78);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:12px}.brand h1{margin:0;font-size:18px;background:linear-gradient(90deg,#0f172a,#0d9488 50%,#b45309);-webkit-background-clip:text;background-clip:text;color:transparent}
+.brand small{color:var(--mut);font-size:12px}.back{text-decoration:none}
+.logo{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--teal),var(--violet) 55%,var(--amber));display:grid;place-items:center;font-weight:800;font-size:18px;color:#fff;box-shadow:0 8px 24px rgba(13,148,136,.3)}
 .top-r{display:flex;align-items:center;gap:10px}
 .pill{font-size:12px;padding:5px 11px;border-radius:999px;background:rgba(15,23,42,.05);color:var(--mut);font-weight:700;border:1px solid var(--line)}
-.pill.live{background:rgba(5,150,105,.12);color:#047857;border-color:rgba(5,150,105,.35)}
-.pill.err{background:rgba(220,38,38,.1);color:#b91c1c;border-color:rgba(220,38,38,.35)}
-.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:currentColor;margin-right:6px;animation:blink 1.6s infinite}
-@keyframes blink{50%{opacity:.25}}
-
-/* dock (footer, centred) */
-.dock{justify-self:center;margin:0 0 14px;display:flex;gap:6px;padding:6px;background:rgba(255,255,255,.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid var(--line);border-radius:999px;box-shadow:0 12px 34px rgba(15,23,42,.14);z-index:10}
-.dock button{display:flex;align-items:center;gap:8px;border:0;background:transparent;color:var(--mut);padding:10px 18px;border-radius:999px;font:inherit;font-weight:600;cursor:pointer;transition:background .25s,color .25s,box-shadow .25s}
-.dock button svg{width:18px;height:18px;flex:none}
-.dock button:hover{color:#0f172a;background:rgba(15,23,42,.06)}
-.dock button.active{color:#fff;background:linear-gradient(135deg,#0d9488,#14b8a6);box-shadow:0 6px 18px rgba(13,148,136,.3)}
-
-/* main + views */
-main{min-height:0;overflow:hidden;padding:14px 18px 0;position:relative}
-.view{height:100%;display:flex;flex-direction:column;min-height:0;animation:viewIn .45s cubic-bezier(.2,.8,.2,1)}
-@keyframes viewIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-@keyframes rowIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-@keyframes grow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
-
-/* controls */
-input,select{background:#fff;border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:9px 12px;font:inherit;min-width:0;transition:border-color .2s,box-shadow .2s}
-input::placeholder{color:#94a3b8}
-select option,select optgroup{background:#fff;color:#0f172a}
+.pill.live{background:rgba(5,150,105,.12);color:#047857;border-color:rgba(5,150,105,.35)}.pill.err{background:rgba(220,38,38,.1);color:#b91c1c}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:currentColor;margin-right:6px}
+.dock{justify-self:center;margin:0 0 14px;display:flex;gap:6px;padding:6px;background:rgba(255,255,255,.88);backdrop-filter:blur(16px);border:1px solid var(--line);border-radius:999px;box-shadow:0 12px 34px rgba(15,23,42,.14)}
+.dock button{display:flex;align-items:center;gap:8px;border:0;background:transparent;color:var(--mut);padding:10px 18px;border-radius:999px;font:inherit;font-weight:600;cursor:pointer}
+.dock svg{width:18px;height:18px}.dock button.active{color:#fff;background:linear-gradient(135deg,#0d9488,#14b8a6);box-shadow:0 6px 18px rgba(13,148,136,.3)}
+main{min-height:0;overflow:hidden;padding:14px 18px 0}.view{height:100%;display:flex;flex-direction:column;min-height:0;gap:12px}
+input,select{background:#fff;border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:9px 12px;font:inherit;min-width:0}
 input:focus,select:focus{outline:none;border-color:var(--sky);box-shadow:0 0 0 3px rgba(2,132,199,.15)}
-input[type=checkbox]{accent-color:var(--teal);width:16px;height:16px;padding:0}
-.chk{display:flex;gap:7px;align-items:center;font-weight:600;color:var(--mut);cursor:pointer}
-.btn{background:#fff;border:1px solid var(--line);color:var(--txt);padding:9px 14px;border-radius:10px;font:inherit;font-weight:600;cursor:pointer;transition:background .2s,transform .2s,box-shadow .2s}
-.btn:hover{background:#f1f5f9;transform:translateY(-1px)}
-.btn:active{transform:translateY(0) scale(.98)}
-.btn.primary{background:linear-gradient(135deg,#6366f1,#8b5cf6);border-color:transparent;color:#fff;box-shadow:0 8px 20px rgba(99,102,241,.28)}
-.btn.primary:hover{background:linear-gradient(135deg,#585be8,#7c4def)}
-.btn.teal{background:linear-gradient(135deg,#0d9488,#14b8a6);border-color:transparent;color:#fff;box-shadow:0 8px 20px rgba(13,148,136,.25)}
-.btn.teal:hover{background:linear-gradient(135deg,#0b857a,#10a899)}
-.btn.ghost{background:transparent}
-.btn.small{padding:5px 11px;font-size:12px}
-.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
-.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-
-/* dashboard bar */
-.dash-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px}
+.chk{display:flex;gap:7px;align-items:center;font-weight:600;color:var(--mut)}
+.btn{background:#fff;border:1px solid var(--line);color:var(--txt);padding:9px 14px;border-radius:10px;font:inherit;font-weight:600;cursor:pointer}
+.btn:hover{background:#f1f5f9}.btn.primary{background:linear-gradient(135deg,#6366f1,#8b5cf6);border-color:transparent;color:#fff}
+.btn.teal{background:linear-gradient(135deg,#0d9488,#14b8a6);border-color:transparent;color:#fff}.btn.ghost{background:transparent}.btn.small{padding:5px 11px;font-size:12px}.btn.red{color:#be123c}.btn:disabled{opacity:.45}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.bar2{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
 .seg{display:inline-flex;padding:4px;background:rgba(15,23,42,.05);border:1px solid var(--line);border-radius:14px}
-.seg button{border:0;background:transparent;color:var(--mut);padding:9px 16px;border-radius:10px;font:inherit;font-weight:700;cursor:pointer;transition:background .3s,color .3s,box-shadow .3s}
-.seg button:hover{color:#0f172a}
-.seg button[data-page=w].active{background:linear-gradient(135deg,#0d9488,#14b8a6);color:#fff;box-shadow:0 6px 18px rgba(13,148,136,.28)}
-.seg button[data-page=r].active{background:linear-gradient(135deg,#d97706,#f59e0b);color:#fff;box-shadow:0 6px 18px rgba(217,119,6,.28)}
-.seg button[data-page=s].active{background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;box-shadow:0 6px 18px rgba(124,58,237,.28)}
+.seg button{border:0;background:transparent;color:var(--mut);padding:9px 16px;border-radius:10px;font:inherit;font-weight:700;cursor:pointer}
+.seg button.active{color:#fff;background:linear-gradient(135deg,#0d9488,#14b8a6)}.seg button[data-p=r].active{background:linear-gradient(135deg,#d97706,#f59e0b)}.seg button[data-p=s].active{background:linear-gradient(135deg,#7c3aed,#a78bfa)}
 .page{flex:1;min-height:0;display:flex;flex-direction:column;gap:12px}
-
-/* cards */
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
-.card{position:relative;overflow:hidden;background:var(--glass);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px 13px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 2px 10px rgba(15,23,42,.06);animation:rise .6s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--i,0)*70ms);transition:transform .25s,box-shadow .25s}
+.card{position:relative;overflow:hidden;background:var(--glass);border:1px solid var(--line);border-radius:16px;padding:14px 16px;box-shadow:0 2px 10px rgba(15,23,42,.06)}
 .card::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--c,var(--teal))}
-.card::after{content:"";position:absolute;right:-28px;top:-28px;width:90px;height:90px;border-radius:50%;background:var(--c,var(--teal));opacity:.1}
-.card:hover{transform:translateY(-3px);box-shadow:0 12px 26px rgba(15,23,42,.12)}
-.card span{display:block;color:var(--mut);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
-.card b{display:block;font-size:24px;font-weight:800;margin-top:6px;font-variant-numeric:tabular-nums;color:#0f172a}
-.card small{display:block;color:var(--mut);margin-top:4px;font-size:12px}
-.card.w{--c:#0d9488} .card.r{--c:#d97706} .card.s{--c:#7c3aed} .card.sky{--c:#0284c7} .card.ok{--c:#059669} .card.warn{--c:#e11d48}
-
-/* glass panels */
-.glass{background:var(--glass);border:1px solid var(--line);border-radius:var(--radius);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 2px 12px rgba(15,23,42,.05);overflow:hidden;display:flex;flex-direction:column;min-height:0;flex:1;animation:rise .6s both}
-.glass-h{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
-.glass-h h2{margin:0;font-size:15px;font-weight:700}
-.glass-h .sub{color:var(--mut);font-size:12px}
-.tbl-scroll{flex:1;min-height:0;overflow:auto}
-.sec-tag{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:8px;vertical-align:middle}
-.glass.w .glass-h{background:linear-gradient(90deg,rgba(13,148,136,.16),rgba(13,148,136,.02))}
-.glass.r .glass-h{background:linear-gradient(90deg,rgba(217,119,6,.16),rgba(217,119,6,.02))}
-
-/* tables */
-table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px;line-height:1.35}
-th,td{padding:9px 12px;text-align:left;white-space:nowrap;border-bottom:1px solid rgba(15,23,42,.10)}
-td.txt{max-width:240px;overflow:hidden;text-overflow:ellipsis}
-
-/* sticky headers: top:0 by default, second row sits under the group row */
-thead th{position:sticky;top:0;z-index:2;background:#eef2f9;color:#475569;font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;border-bottom:2px solid rgba(15,23,42,.18)}
-thead tr.grp th{top:0;z-index:3;height:var(--gh);box-sizing:border-box;text-align:center;font-size:10.5px;letter-spacing:.1em;font-weight:800;padding:0 6px;border-bottom:1px solid var(--line);background:#e6ebf5}
-thead tr.grp + tr th{top:calc(var(--gh) - 1px)}
-thead tr.grp th+th{border-left:1px solid rgba(15,23,42,.22)}
-th.sortable{cursor:pointer}
-th.sortable:hover{color:#0f172a}
-
-/* rows */
-tbody tr{transition:background .2s;animation:rowIn .4s both;animation-delay:calc(var(--r,0)*16ms)}
-tbody tr:nth-child(even) td{background-image:linear-gradient(rgba(15,23,42,.035),rgba(15,23,42,.035))}
-tbody tr:hover td{background-image:linear-gradient(rgba(15,23,42,.08),rgba(15,23,42,.08))}
-tfoot td{position:sticky;bottom:0;background:#eef2f9;font-weight:800;color:#0f172a;border-top:2px solid rgba(15,23,42,.18);border-bottom:0}
-
-/* ---------- WASHERY (18 cols): 1-6 info | 7-9 receipt | 10-12 mines balance | 13-14 output | 15-18 dispatch ---------- */
-.washery :is(tbody td,tfoot td,thead tr:not(.grp) th):is(:nth-child(7),:nth-child(10),:nth-child(13),:nth-child(15)){border-left:1px solid rgba(15,23,42,.22)}
-.washery thead tr.grp th.g1{color:#0f766e;background:linear-gradient(rgba(45,212,191,.22),rgba(45,212,191,.22)),#fff}
-.washery thead tr.grp th.g2{color:#b45309;background:linear-gradient(rgba(251,191,36,.26),rgba(251,191,36,.26)),#fff}
-.washery thead tr.grp th.g3{color:#6d28d9;background:linear-gradient(rgba(167,139,250,.24),rgba(167,139,250,.24)),#fff}
-.washery thead tr.grp th.g4{color:#0369a1;background:linear-gradient(rgba(56,189,248,.22),rgba(56,189,248,.22)),#fff}
-/* body tints */
-.washery tbody td:nth-child(n+7):nth-child(-n+9){background-color:rgba(45,212,191,.08)}
-.washery tbody td:nth-child(n+10):nth-child(-n+12){background-color:rgba(251,191,36,.10)}
-.washery tbody td:nth-child(n+13):nth-child(-n+14){background-color:rgba(167,139,250,.09)}
-.washery tbody td:nth-child(n+15){background-color:rgba(56,189,248,.09)}
-/* column-header tints (second header row) */
-.washery thead tr:not(.grp) th:nth-child(n+7):nth-child(-n+9){background:linear-gradient(rgba(45,212,191,.16),rgba(45,212,191,.16)),#eef2f9}
-.washery thead tr:not(.grp) th:nth-child(n+10):nth-child(-n+12){background:linear-gradient(rgba(251,191,36,.20),rgba(251,191,36,.20)),#eef2f9}
-.washery thead tr:not(.grp) th:nth-child(n+13):nth-child(-n+14){background:linear-gradient(rgba(167,139,250,.18),rgba(167,139,250,.18)),#eef2f9}
-.washery thead tr:not(.grp) th:nth-child(n+15){background:linear-gradient(rgba(56,189,248,.16),rgba(56,189,248,.16)),#eef2f9}
-
-/* ---------- RCR & ROAD (9 cols): 1-4 info | 5-8 lifting | 9 balance ---------- */
-.rcr :is(tbody td,tfoot td,thead tr:not(.grp) th):is(:nth-child(5),:nth-child(9)){border-left:1px solid rgba(15,23,42,.22)}
-.rcr thead tr.grp th.g1{color:#b45309;background:linear-gradient(rgba(251,191,36,.26),rgba(251,191,36,.26)),#fff}
-.rcr thead tr.grp th.g2{color:#be123c;background:linear-gradient(rgba(251,113,133,.22),rgba(251,113,133,.22)),#fff}
-.rcr tbody td:nth-child(n+5):nth-child(-n+8){background-color:rgba(251,191,36,.09)}
-.rcr tbody td:nth-child(n+9){background-color:rgba(251,113,133,.08)}
-.rcr thead tr:not(.grp) th:nth-child(n+5):nth-child(-n+8){background:linear-gradient(rgba(251,191,36,.20),rgba(251,191,36,.20)),#eef2f9}
-.rcr thead tr:not(.grp) th:nth-child(n+9){background:linear-gradient(rgba(251,113,133,.18),rgba(251,113,133,.18)),#eef2f9}
-
-.empty{padding:30px;text-align:center;color:var(--mut)}
-.id{font-variant-numeric:tabular-nums;font-weight:700;color:#0f172a}
-.badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:800;letter-spacing:.05em}
-.badge.rcr{background:rgba(217,119,6,.12);color:#b45309;border:1px solid rgba(217,119,6,.35)}
-.badge.road{background:rgba(99,102,241,.12);color:#4338ca;border:1px solid rgba(99,102,241,.35)}
-.badge.in{background:rgba(13,148,136,.12);color:#0f766e;border:1px solid rgba(13,148,136,.35)}
-.badge.out{background:rgba(217,119,6,.12);color:#b45309;border:1px solid rgba(217,119,6,.35)}
-.st{display:inline-block;margin-left:8px;padding:1px 7px;border-radius:999px;font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;vertical-align:middle}
-.st.open{background:rgba(5,150,105,.12);color:#047857;border:1px solid rgba(5,150,105,.3)}
-.st.over{background:rgba(225,29,72,.1);color:#be123c;border:1px solid rgba(225,29,72,.3)}
-.st.done{background:rgba(100,116,139,.12);color:#475569;border:1px solid rgba(100,116,139,.3)}
-.bar{height:6px;border-radius:6px;background:rgba(15,23,42,.08);margin-top:5px;overflow:hidden;min-width:70px}
-.bar i{display:block;height:100%;background:linear-gradient(90deg,#0d9488,#0284c7);border-radius:6px;transition:width 1s cubic-bezier(.2,.8,.2,1)}
-.alert{margin:0 0 12px;padding:11px 14px;border-radius:12px;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.35);color:#9a3412}
-.alert b{color:#7c2d12}
-
-/* summary page */
-.sum-top{display:flex;gap:12px;align-items:stretch;flex-wrap:wrap}
-.hero{flex:1;min-width:280px;flex-direction:row;align-items:center;justify-content:space-between;padding:14px 18px;background:linear-gradient(120deg,rgba(124,58,237,.14),rgba(13,148,136,.08));flex:none;animation:none}
-.hero .kicker{font-size:11px;font-weight:800;letter-spacing:.14em;color:#6d28d9}
-.hero h2{margin:2px 0 2px;font-size:30px;font-weight:800;color:#0f172a;font-variant-numeric:tabular-nums}
-.hero .sub{color:#475569;font-size:13px}
-.sum-select{display:flex;align-items:center;gap:8px}
-.sum-select select{min-width:300px}
-.sum-grid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(300px,1fr);gap:12px;flex:1;min-height:0}
-.sum-col{display:flex;flex-direction:column;gap:12px;min-height:0}
-.chart{flex:1;min-height:180px;padding:8px 12px 4px;position:relative}
-.chart svg{width:100%;height:100%;display:block}
-.chart text{fill:var(--mut);font-size:11px;font-family:Inter,system-ui,sans-serif}
-.bar-rect{transform-box:fill-box;transform-origin:50% 100%;animation:grow .8s cubic-bezier(.2,.8,.2,1) both}
-.legend{display:flex;gap:14px;font-size:12px;color:var(--mut);padding:0 14px 10px}
-.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:middle}
-.rings{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px 12px 14px}
-.ring{display:flex;flex-direction:column;align-items:center;gap:4px;animation:rise .6s both}
-.ring svg{width:124px;height:124px}
-.ring .bg{stroke:rgba(15,23,42,.09)}
-.ring .fg{stroke-linecap:round;transition:stroke-dasharray 1.2s cubic-bezier(.2,.8,.2,1)}
-.ring text{fill:#0f172a;font-size:19px;font-weight:800}
-.ring b{font-size:13px}
-.ring small{color:var(--mut);font-size:12px}
-.kv{padding:6px 16px 12px}
-.kv div{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed rgba(15,23,42,.12);font-size:13px}
-.kv div:last-child{border-bottom:0}
-.kv span{color:var(--mut)}
-.kv b{font-variant-numeric:tabular-nums}
-.recent{flex:1;min-height:0;overflow:auto}
-
-/* entry */
-.subtabs{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
-.stab{border:1px solid var(--line);background:#fff;padding:9px 16px;border-radius:999px;font:inherit;font-weight:700;cursor:pointer;color:var(--mut);transition:.25s}
-.stab.active{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border-color:transparent;box-shadow:0 8px 20px rgba(99,102,241,.28)}
-.ent-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;flex:1;min-height:0}
-.ent-grid.two{grid-template-columns:repeat(2,minmax(0,1fr))}
-.panel{background:rgba(255,255,255,.88);border:1px solid var(--line);border-radius:var(--radius);padding:16px;overflow:auto;min-height:0;border-top:3px solid var(--c,#7c3aed);backdrop-filter:blur(12px);box-shadow:0 2px 12px rgba(15,23,42,.05);animation:rise .6s both}
-#ent-w .panel{--c:#0d9488}
-#ent-r .panel{--c:#d97706}
-.panel h3{margin:0 0 12px;font-size:15px}
-.form{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
-.fld{display:flex;flex-direction:column;gap:5px;min-width:0}
-.fld.full{grid-column:1/-1}
-.fld span{font-size:11px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
-.fld input,.fld select{width:100%}
-.fld input[readonly]{opacity:.6}
-.calcbox{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,rgba(13,148,136,.09),rgba(124,58,237,.08));border:1px dashed rgba(15,23,42,.2);border-radius:12px;padding:11px 14px}
-.calcbox b{font-size:17px;font-variant-numeric:tabular-nums}
-.form .row{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end;align-items:center}
-.form .msg{grid-column:1/-1;font-size:13px;min-height:1em}
-.msg.err{color:#b91c1c}
-.msg.ok{color:#047857}
-
-/* log */
-.log-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
-.info{color:var(--mut);font-size:12.5px;padding:10px 16px;border-bottom:1px solid var(--line)}
-
-/* excel */
-.xl-grid{display:grid;grid-template-columns:minmax(290px,370px) minmax(0,1fr);gap:12px;flex:1;min-height:0}
-.xl-side{display:flex;flex-direction:column;gap:12px;min-height:0;overflow:auto}
-.drop{border:2px dashed rgba(124,58,237,.4);border-radius:18px;padding:26px 16px;text-align:center;background:rgba(124,58,237,.05);cursor:pointer;transition:.25s}
-.drop:hover,.drop.over{border-color:#7c3aed;background:rgba(124,58,237,.12);transform:scale(1.01)}
-.drop .big{font-size:34px;line-height:1}
-.drop b{display:block;margin-top:8px}
-.drop small{color:var(--mut)}
-.field-stack{display:flex;flex-direction:column;gap:6px}
-.field-stack label{font-size:11px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
-.progress{height:8px;background:rgba(15,23,42,.08);border-radius:8px;overflow:hidden}
-.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7c3aed,#0284c7);transition:width .3s}
-.xl-counts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.xl-counts div{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
-.xl-counts b{display:block;font-size:20px;font-variant-numeric:tabular-nums}
-.xl-counts span{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
-.s-ok{color:#047857}.s-dup{color:#b45309}.s-err{color:#b91c1c}
-
-/* image capture */
-.capture-wrap{padding:26px;background:#f6f8fc;background-image:linear-gradient(135deg,#f8fafc,#eef2fb 55%,#f3eefb)}
-.capture *{animation:none!important;transition:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
-
-/* responsive: desktop fixed, mobile scrolls */
-@media (max-width:1100px){
-  .ent-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .sum-grid{grid-template-columns:1fr}
-  .xl-grid{grid-template-columns:1fr}
-}
-@media (max-width:860px){
-  body{height:auto;min-height:100dvh;overflow:auto;display:flex;flex-direction:column}
-  main{overflow:visible;padding:10px}
-  .view{height:auto}
-  .page,.glass{flex:none}
-  .tbl-scroll{max-height:62vh}
-  .recent{max-height:50vh}
-  .cards{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .ent-grid,.ent-grid.two{grid-template-columns:1fr}
-  .form{grid-template-columns:1fr}
-  .sum-grid{display:flex;flex-direction:column}
-  .sum-select select{min-width:0;width:100%}
-  .hero h2{font-size:24px}
-  .dock{position:sticky;bottom:10px;margin:10px auto}
-  .dock button{padding:10px 12px}
-  .dock button span{display:none}
-  .top{padding:10px 12px}
-  .brand small{display:none}
-  .rings{grid-template-columns:1fr 1fr}
-  .ring svg{width:100px;height:100px}
-  .card b{font-size:19px}
-}
-@media (prefers-reduced-motion:reduce){
-  *,*::before,*::after{animation:none!important;transition:none!important}
-}
-</style>
-</head>
-<body>
-<div class="bg" aria-hidden="true">
-  <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span>
-  <span class="grid-lines"></span>
-</div>
-
-<header class="top">
-  <div class="brand">
-    <a class="btn small back" href="amm_home.html" title="Back to AMM home">← Back</a>
-    <div class="logo">K</div>
-    <div>
-      <h1>KSK Mahanadi</h1>
-      <small>Washery · RCR · Road sale</small>
-    </div>
-  </div>
-  <div class="top-r">
-    <span id="status" class="pill"><span class="live-dot"></span>Starting…</span>
-    <span id="updated" class="muted" style="font-size:12px"></span>
-    <button id="refresh" class="btn small">Refresh</button>
-  </div>
-</header>
-
+.card span{display:block;color:var(--mut);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em}.card b{display:block;font-size:24px;font-weight:800;margin-top:6px;font-variant-numeric:tabular-nums}.card small{color:var(--mut);font-size:12px}
+.card.r{--c:#d97706}.card.s{--c:#7c3aed}.card.k{--c:#0284c7}.card.o{--c:#059669}.card.x{--c:#e11d48}
+.glass{background:var(--glass);border:1px solid var(--line);border-radius:16px;box-shadow:0 2px 12px rgba(15,23,42,.05);overflow:hidden;display:flex;flex-direction:column;min-height:0;flex:1}
+.glass-h{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--line)}.glass-h h2{margin:0;font-size:15px}.glass-h .sub,.info{color:var(--mut);font-size:12px}
+.glass.w .glass-h{background:linear-gradient(90deg,rgba(13,148,136,.16),rgba(13,148,136,.02))}.glass.r .glass-h{background:linear-gradient(90deg,rgba(217,119,6,.16),rgba(217,119,6,.02))}
+.info{padding:9px 16px;border-bottom:1px solid var(--line)}.sc{flex:1;min-height:0;overflow:auto}
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+th,td{padding:8px 12px;text-align:left;white-space:nowrap;border-bottom:1px solid rgba(15,23,42,.10)}td.t{max-width:220px;overflow:hidden;text-overflow:ellipsis}
+thead th{position:sticky;top:0;z-index:2;background:#eef2f9;color:#475569;font-size:11px;text-transform:uppercase;letter-spacing:.06em;border-bottom:2px solid rgba(15,23,42,.18)}
+thead tr.grp th{height:var(--gh);text-align:center;font-size:10.5px;font-weight:800;padding:0 6px;z-index:3;background:#e6ebf5}thead tr.grp+tr th{top:calc(var(--gh) - 1px)}
+th.so{cursor:pointer}
+.g1{--t:45,212,191}.g2{--t:251,191,36}.g3{--t:167,139,250}.g4{--t:56,189,248}
+td.g1,td.g2,td.g3,td.g4{background-color:rgba(var(--t),.09)}
+th.g1,th.g2,th.g3,th.g4{background:linear-gradient(rgba(var(--t),.22),rgba(var(--t),.22)),#eef2f9}
+.gs{border-left:1px solid rgba(15,23,42,.22)}tbody tr:hover td{background-image:linear-gradient(rgba(15,23,42,.07),rgba(15,23,42,.07))}
+tfoot td{position:sticky;bottom:0;background:#eef2f9;font-weight:800;border-top:2px solid rgba(15,23,42,.18)}
+.empty{padding:30px;text-align:center;color:var(--mut)}.id{font-weight:700}
+.mv{display:inline-block;width:6px;height:6px;border-radius:50%;background:#d97706;margin-left:5px;vertical-align:middle}
+.badge{padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:800;background:rgba(217,119,6,.12);color:#b45309}
+.st{margin-left:8px;padding:1px 7px;border-radius:999px;font-size:9.5px;font-weight:800;text-transform:uppercase}
+.st.open{background:rgba(5,150,105,.12);color:#047857}.st.over{background:rgba(225,29,72,.1);color:#be123c}.st.done{background:rgba(100,116,139,.12);color:#475569}
+.alert{padding:10px 14px;border-radius:12px;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.35);color:#9a3412}
+.subtabs{display:flex;gap:8px;flex-wrap:wrap}.stab{border:1px solid var(--line);background:#fff;padding:9px 16px;border-radius:999px;font:inherit;font-weight:700;cursor:pointer;color:var(--mut)}.stab.active{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border-color:transparent}
+.eg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;flex:1;min-height:0}
+.panel{background:rgba(255,255,255,.88);border:1px solid var(--line);border-radius:16px;padding:16px;overflow:auto;min-height:0;border-top:3px solid var(--c,#7c3aed)}.panel h3{margin:0 0 12px;font-size:15px}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}.fld{display:flex;flex-direction:column;gap:5px;min-width:0}.fld span{font-size:11px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}.fld input,.fld select{width:100%}
+.fld input:not(:placeholder-shown).ov{border-color:#d97706;background:#fffbeb}.full{grid-column:1/-1}
+.form .row{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end}.msg{grid-column:1/-1;font-size:13px}.msg.err{color:#b91c1c}
+.note{grid-column:1/-1;font-size:12px;color:var(--mut)}
+.hero{flex:none;flex-direction:row;align-items:center;justify-content:space-between;padding:14px 18px;background:linear-gradient(120deg,rgba(124,58,237,.14),rgba(13,148,136,.08))}.hero h2{margin:2px 0;font-size:30px}
+.kv{padding:6px 16px 12px}.kv div{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed rgba(15,23,42,.12)}
+.drop{border:2px dashed rgba(124,58,237,.4);border-radius:18px;padding:26px;text-align:center;background:rgba(124,58,237,.05);cursor:pointer}
+.xg{display:grid;grid-template-columns:minmax(290px,360px) minmax(0,1fr);gap:12px;flex:1;min-height:0}.xs{display:flex;flex-direction:column;gap:10px;padding:16px;flex:none}
+.cnt{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.cnt div{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}.cnt b{display:block;font-size:20px}
+.prog{height:8px;background:rgba(15,23,42,.08);border-radius:8px;overflow:hidden}.prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7c3aed,#0284c7)}
+.ok{color:#047857}.dup{color:#b45309}.er{color:#b91c1c}
+dialog{border:1px solid var(--line);border-radius:18px;padding:20px;width:min(760px,94vw)}dialog::backdrop{background:rgba(15,23,42,.35)}
+.toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);background:linear-gradient(135deg,#0d9488,#6366f1);color:#fff;padding:11px 18px;border-radius:12px;font-weight:700;z-index:50}.toast.err{background:#be123c}
+.capwrap{padding:24px;background:#f6f8fc}.caph{display:flex;justify-content:space-between;font-size:20px;font-weight:800;margin-bottom:14px}.capwrap .page{gap:14px;margin-bottom:16px}
+@media(max-width:1100px){.eg{grid-template-columns:1fr 1fr}.xg{grid-template-columns:1fr}}
+@media(max-width:860px){body{height:auto;overflow:auto;display:flex;flex-direction:column}main{overflow:visible}.view{height:auto}.page,.glass{flex:none}.sc{max-height:62vh}.eg,.form{grid-template-columns:1fr}.dock{position:sticky;bottom:10px}.dock span{display:none}.brand small{display:none}}
+</style></head><body>
+<header class="top"><div class="brand"><a class="btn small back" href="amm_home.html">← Back</a><div class="logo">K</div><div><h1>KSK Mahanadi</h1><small>Washery · RCR · Road sale</small></div></div>
+<div class="top-r"><span id="status" class="pill">Starting…</span><span id="updated" class="muted" style="font-size:12px"></span><button id="refresh" class="btn small">Refresh</button></div></header>
 <main>
-  <!-- ============ DASHBOARD ============ -->
-  <section id="view-dashboard" class="view">
-    <div class="dash-bar">
-      <div class="seg" role="tablist">
-        <button data-page="w" class="active">Washery</button>
-        <button data-page="r">RCR &amp; Road sale</button>
-        <button data-page="s">D.O. Summary</button>
-      </div>
-      <div class="toolbar" id="flt-bar">
-        <input type="text" id="f-q" placeholder="Search D.O., colliery, party…" style="width:240px">
-        <select id="f-col"><option value="">All collieries</option></select>
-        <label class="chk"><input type="checkbox" id="f-hide"> Hide closed</label>
-        <button id="dl-img" class="btn teal small">⬇ Download image</button>
-      </div>
-    </div>
-
-    <div id="alert" class="alert hidden"></div>
-
-    <!-- Washery page -->
-    <div class="page" id="page-w">
-      <div class="cards" id="cards-w"></div>
-      <div class="glass w">
-        <div class="glass-h">
-          <h2><span class="sec-tag" style="background:#0d9488"></span>Washery D.O.s</h2>
-          <span class="sub" id="cnt-w"></span>
-        </div>
-        <div class="tbl-scroll"><table id="tbl-w"></table></div>
-      </div>
-    </div>
-
-    <!-- RCR & Road page -->
-    <div class="page hidden" id="page-r">
-      <div class="cards" id="cards-r"></div>
-      <div class="glass r">
-        <div class="glass-h">
-          <h2><span class="sec-tag" style="background:#d97706"></span>RCR &amp; Road sale D.O.s</h2>
-          <span class="sub" id="cnt-r"></span>
-        </div>
-        <div class="tbl-scroll"><table id="tbl-r"></table></div>
-      </div>
-    </div>
-
-    <!-- Summary page -->
-    <div class="page hidden" id="page-s">
-      <div class="sum-top">
-        <div class="glass hero">
-          <div>
-            <div class="kicker">D.O. ANALYTICS</div>
-            <h2 id="hero-do">–</h2>
-            <div class="sub" id="hero-sub">Select a D.O. to see its report</div>
-          </div>
-          <div id="hero-status"></div>
-        </div>
-        <div class="sum-select">
-          <select id="sum-do" aria-label="Choose D.O."></select>
-        </div>
-      </div>
-      <div id="sum-body" class="page" style="min-height:0"></div>
-    </div>
-  </section>
-
-  <!-- ============ DATA ENTRY ============ -->
-  <section id="view-entry" class="view hidden">
-    <div class="subtabs">
-      <button class="stab active" data-ent="w">Washery entry</button>
-      <button class="stab" data-ent="r">RCR &amp; Road entry</button>
-    </div>
-    <div id="ent-w" class="ent-grid">
-      <div class="panel"><h3>1 · New D.O.</h3><div id="form-do-w"></div></div>
-      <div class="panel"><h3>2 · Receipt (Inward)</h3><div id="form-rcv-w"></div></div>
-      <div class="panel"><h3>3 · Dispatch (Outward)</h3><div id="form-disp-w"></div></div>
-    </div>
-    <div id="ent-r" class="ent-grid two hidden">
-      <div class="panel"><h3>1 · New D.O.</h3><div id="form-do-r"></div></div>
-      <div class="panel"><h3>2 · RCR / Road lifting</h3><div id="form-lift-r"></div></div>
-    </div>
-  </section>
-
-  <!-- ============ LOG ============ -->
-  <section id="view-log" class="view hidden">
-    <div class="log-bar">
-      <select id="l-table">
-        <option value="inward_entries">Receipts (Inward)</option>
-        <option value="dispatch_entries">Dispatches (Outward)</option>
-        <option value="rcr_road_entries">RCR &amp; Road lifting</option>
-        <option value="do_master">D.O. master</option>
-      </select>
-      <input type="date" id="l-from" title="From date">
-      <input type="date" id="l-to" title="To date">
-      <input type="text" id="l-do" placeholder="D.O. no" inputmode="numeric" style="width:120px">
-      <select id="l-type" class="hidden"></select>
-      <input type="text" id="l-q" placeholder="Vehicle, party, unique no…" style="width:230px">
-      <button id="l-go" class="btn primary small">Apply</button>
-      <button id="l-clear" class="btn ghost small">Clear</button>
-    </div>
-    <div class="glass">
-      <div class="info" id="l-info"></div>
-      <div class="tbl-scroll"><table id="tbl-log"></table></div>
-    </div>
-  </section>
-
-  <!-- ============ EXCEL UPLOAD ============ -->
-  <section id="view-excel" class="view hidden">
-    <div class="xl-grid">
-      <div class="xl-side">
-        <div class="glass" style="padding:16px;gap:12px">
-          <div class="field-stack">
-            <label for="xl-target">Import into</label>
-            <select id="xl-target">
-              <option value="inward_entries">Receipts (Inward)</option>
-              <option value="dispatch_entries">Dispatches (Outward)</option>
-            </select>
-          </div>
-          <div class="drop" id="drop">
-            <div class="big">⬆</div>
-            <b>Drop an Excel file here</b>
-            <small>or click to choose (.xlsx, .xlsm, .xls)</small>
-            <input type="file" id="xl-file" accept=".xlsx,.xlsm,.xls" hidden>
-          </div>
-          <div class="field-stack">
-            <label for="xl-sheet">Sheet</label>
-            <select id="xl-sheet" disabled><option>Choose a file first</option></select>
-            <small class="muted" id="xl-file-name" style="font-size:12px"></small>
-          </div>
-          <div class="xl-counts">
-            <div><b id="c-ok">0</b><span>Ready</span></div>
-            <div><b id="c-dup">0</b><span>Duplicate</span></div>
-            <div><b id="c-err">0</b><span>Error</span></div>
-          </div>
-          <div class="progress"><i id="xl-prog"></i></div>
-          <button id="xl-import" class="btn primary" disabled>Import ready rows</button>
-          <small class="muted" style="font-size:12px;line-height:1.5">Duplicates are rows already in the database (same D.O., unique no. and date) or repeated in the file. Rows with errors are skipped. The D.O. must exist in the D.O. master.</small>
-        </div>
-      </div>
-      <div class="glass">
-        <div class="glass-h"><h2>Preview</h2><span class="sub" id="xl-info">Upload a file to preview its rows</span></div>
-        <div class="tbl-scroll"><table id="tbl-xl"></table></div>
-      </div>
-    </div>
-  </section>
+<section id="v-dashboard" class="view">
+ <div class="bar2"><div class="seg"><button data-p="w" class="active">Washery</button><button data-p="r">RCR &amp; Road sale</button><button data-p="s">D.O. Summary</button></div>
+ <div class="toolbar" id="flt"><input id="f-q" placeholder="Search D.O., colliery, party…" style="width:230px"><select id="f-col"></select><label class="chk"><input type="checkbox" id="f-hide"> Hide closed</label><button id="dl" class="btn teal small">⬇ Download image (both)</button></div></div>
+ <div id="alert" class="alert hidden"></div>
+ <div class="page" id="p-w"><div class="cards" id="c-w"></div><div class="glass w"><div class="glass-h"><h2>Washery D.O.s</h2><span class="sub" id="n-w"></span></div><div class="sc"><table id="t-w"></table></div></div></div>
+ <div class="page hidden" id="p-r"><div class="cards" id="c-r"></div>
+  <div class="glass r"><div class="glass-h"><h2>RCR D.O.s</h2><span class="sub" id="n-r"></span></div><div class="sc"><table id="t-r"></table></div></div>
+  <div class="glass r"><div class="glass-h"><h2>Road sale D.O.s</h2><span class="sub" id="n-o"></span></div><div class="sc"><table id="t-o"></table></div></div></div>
+ <div class="page hidden" id="p-s"><div class="toolbar"><div class="glass hero" style="flex:1"><div><div class="muted" style="font-weight:800;letter-spacing:.14em;font-size:11px">D.O. ANALYTICS</div><h2 id="h-do">–</h2><div class="sub muted" id="h-sub"></div></div><div id="h-st"></div></div><select id="s-do" style="min-width:300px"></select></div><div id="s-body" class="page"></div></div>
+</section>
+<section id="v-entry" class="view hidden">
+ <div class="subtabs"><button class="stab active" data-e="do">D.O. &amp; values</button><button class="stab" data-e="in">Inward entry</button><button class="stab" data-e="out">Dispatch entry</button></div>
+ <div id="e-do" class="eg" style="grid-template-rows:minmax(0,1fr)"></div>
+ <div id="e-in" class="eg hidden" style="grid-template-columns:minmax(0,640px)"><div class="panel"><h3>Inward (Receipt)</h3><div id="f-in"></div></div></div>
+ <div id="e-out" class="eg hidden" style="grid-template-columns:minmax(0,640px)"><div class="panel"><h3>Dispatch (Outward)</h3><div id="f-out"></div></div></div>
+</section>
+<section id="v-log" class="view hidden">
+ <div class="toolbar"><select id="l-t"><option value="ksk_inward">Inward</option><option value="ksk_dispatch">Dispatch</option><option value="ksk_dashboard_values">D.O. values</option></select>
+ <input type="date" id="l-from" title="From"><input type="date" id="l-to" title="To"><select id="l-do"></select><select id="l-sec" class="hidden"><option value="">All sections</option><option>WASHERY</option><option>RCR</option><option>ROAD</option></select><select id="l-ord"><option value="1">Newest first</option><option value="0">Oldest first</option></select></div>
+ <div class="toolbar" id="l-x"></div>
+ <div class="toolbar"><button id="l-go" class="btn primary small">Apply</button><button id="l-clr" class="btn ghost small">Clear</button><button id="l-exp" class="btn small">⬇ Export Excel</button><button id="l-pv" class="btn small">‹ Prev</button><button id="l-nx" class="btn small">Next ›</button></div>
+ <div class="glass"><div class="info" id="l-info"></div><div class="sc"><table id="t-log"></table></div></div>
+</section>
+<section id="v-excel" class="view hidden"><div class="xg"><div><div class="glass xs"><select id="x-t"><option value="ksk_inward">Inward</option><option value="ksk_dispatch">Dispatch</option></select>
+ <div class="drop" id="drop"><b>Drop an Excel file here</b><br><small class="muted">or click (.xlsx, .xlsm, .xls)</small><input type="file" id="x-f" accept=".xlsx,.xlsm,.xls" hidden></div>
+ <select id="x-s" disabled><option>Choose a file first</option></select><div class="cnt"><div><b id="c-ok">0</b>Ready</div><div><b id="c-dup">0</b>Duplicate</div><div><b id="c-err">0</b>Error</div></div><div class="prog"><i id="x-p"></i></div><button id="x-imp" class="btn primary" disabled>Import ready rows</button>
+ <small class="muted">Duplicate = same D.O., unique no., date, vehicle and weights. Blank/total lines and repeated header rows are skipped.</small></div></div>
+ <div class="glass"><div class="glass-h"><h2>Preview</h2><span class="sub" id="x-i">Upload a file to preview</span></div><div class="sc"><table id="t-x"></table></div></div></div></section>
 </main>
-
-<nav class="dock" aria-label="Main">
-  <button data-view="dashboard" class="active"><span>Dashboard</span></button>
-  <button data-view="entry"><span>Data entry</span></button>
-  <button data-view="log"><span>Log</span></button>
-  <button data-view="excel"><span>Excel upload</span></button>
-</nav>
-
-<dialog id="dlg">
-  <h3 id="dlg-title" style="margin:0 0 12px">Edit</h3>
-  <div id="dlg-body"></div>
-  <div style="display:flex;justify-content:flex-end;margin-top:10px">
-    <button id="dlg-x" class="btn ghost">Close</button>
-  </div>
-</dialog>
-
+<nav class="dock" id="dock"><button data-v="dashboard" class="active"><span>Dashboard</span></button><button data-v="entry"><span>Data entry</span></button><button data-v="log"><span>Log</span></button><button data-v="excel"><span>Excel upload</span></button></nav>
+<dialog id="dlg"><h3 id="dlg-t" style="margin:0 0 12px">Edit</h3><div id="dlg-b"></div><div style="text-align:right;margin-top:10px"><button class="btn ghost" onclick="$('#dlg').close()">Close</button></div></dialog>
 <div id="toast" class="toast hidden"></div>
-<div id="setup" class="setup hidden"></div>
-<style>
-dialog{border:1px solid var(--line);border-radius:18px;padding:20px;width:min(760px,94vw);background:#fff;color:var(--txt);box-shadow:0 30px 80px rgba(15,23,42,.25)}
-dialog::backdrop{background:rgba(15,23,42,.35);backdrop-filter:blur(4px)}
-.toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);background:linear-gradient(135deg,#0d9488,#6366f1);color:#fff;padding:11px 18px;border-radius:12px;font-weight:700;box-shadow:0 12px 30px rgba(15,23,42,.25);z-index:50;max-width:92vw;animation:rise .35s both}
-.toast.err{background:linear-gradient(135deg,#be123c,#9f1239)}
-.setup{margin:14px 18px 0;padding:14px;border-radius:12px;background:rgba(2,132,199,.08);border:1px solid rgba(2,132,199,.35);color:#075985}
-</style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-/* ==================================================================
-   CONFIG
-   ================================================================== */
-const SUPABASE_URL      = 'https://lflsewvyhyfmuegksscy.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbHNld3Z5aHlmbXVlZ2tzc2N5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0NTY3MjIsImV4cCI6MjEwNzAzMjcyMn0.BKNDWGKs4MX7MFL4FD0ECesgFciFmMRpMdmQUnARj7s';
-const WASH_PCT  = 0.85;
-const REFRESH_MS = 60000;
-const REDUCED = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
-
-/* ==================================================================
-   TABLE DEFINITIONS
-   ================================================================== */
-const TABLES = {
-  do_master: {
-    label:'D.O. master', pk:'do_no', date:'issue_date', order:'do_no', search:['colliery','party_name'],
-    fields:[
-      {k:'do_no',l:'D.O. No',t:'int',req:true},
-      {k:'section',l:'Section',t:'sel',opts:['WASHERY','RCR','ROAD'],req:true},
-      {k:'colliery',l:'Colliery',t:'text'},
-      {k:'party_name',l:'Party',t:'text'},
-      {k:'issue_date',l:'Issue date',t:'date'},
-      {k:'sized',l:'Sized',t:'text'},
-      {k:'lapsing_date',l:'Lapsing date',t:'date'},
-      {k:'do_qty',l:'D.O. qty (MT)',t:'num'}
-    ]
-  },
-  inward_entries: {
-    label:'Receipts (Inward)', pk:'id', date:'rec_date', order:'rec_date',
-    search:['vehicle_no','party_name','unique_no'],
-    fields:[
-      {k:'rec_date',l:'Rec. date',t:'date',req:true},
-      {k:'ch_date',l:'Challan date',t:'date'},
-      {k:'do_no',l:'D.O. No',t:'int',req:true},
-      {k:'vehicle_no',l:'Vehicle No',t:'text',req:true,upper:true},
-      {k:'gross_wt',l:'Gross (MT)',t:'num',req:true},
-      {k:'tare_wt',l:'Tare (MT)',t:'num',req:true},
-      {k:'net_wt',l:'Net (MT)',t:'num',req:true},
-      {k:'rec_wt',l:'Rec. Wt (MT)',t:'num'},
-      {k:'unique_no',l:'Unique No',t:'text'},
-      {k:'excise_sr_no',l:'Excise Sr. No',t:'text'},
-      {k:'gate_pass',l:'Gate pass',t:'text'},
-      {k:'grade',l:'Grade',t:'text'},
-      {k:'party_name',l:'Party',t:'text'},
-      {k:'mines',l:'Mines',t:'text'}
-    ]
-  },
-  dispatch_entries: {
-    label:'Dispatches (Outward)', pk:'id', date:'disp_date', order:'disp_date',
-    search:['vehicle_no','party_name','unique_no'],
-    fields:[
-      {k:'disp_date',l:'Dispatch date',t:'date',req:true},
-      {k:'do_no',l:'D.O. No',t:'int',req:true},
-      {k:'vehicle_no',l:'Vehicle No',t:'text',req:true,upper:true},
-      {k:'gross_wt',l:'Gross (MT)',t:'num',req:true},
-      {k:'tare_wt',l:'Tare (MT)',t:'num',req:true},
-      {k:'net_wt',l:'Net (MT)',t:'num',req:true},
-      {k:'item',l:'Item',t:'text'},
-      {k:'unique_no',l:'Unique No',t:'text'},
-      {k:'rptp_no',l:'RPTP No',t:'text'},
-      {k:'party_name',l:'Party',t:'text'}
-    ]
-  },
-  rcr_road_entries: {
-    label:'RCR & Road lifting', pk:'id', date:'entry_date', order:'entry_date',
-    search:['vehicle_or_rake','rr_no'],
-    fields:[
-      {k:'entry_date',l:'Date',t:'date',req:true},
-      {k:'do_no',l:'D.O. No',t:'int',req:true},
-      {k:'entry_type',l:'Type',t:'sel',opts:['RCR','ROAD'],req:true},
-      {k:'vehicle_or_rake',l:'Vehicle / Rake',t:'text'},
-      {k:'qty_mt',l:'Qty (MT)',t:'num',req:true},
-      {k:'rr_no',l:'RR No',t:'text'},
-      {k:'remarks',l:'Remarks',t:'text'}
-    ]
-  }
-};
-
-/* Dashboard columns (Sized, Days left, Asking, Daily lift, Daily dispatch are hidden on purpose) */
-const WCOLS = [
-  {k:'colliery',l:'Colliery',g:0},
-  {k:'party_name',l:'Party',g:0},
-  {k:'issue_date',l:'Issue',t:'date',g:0},
-  {k:'lapsing_date',l:'Lapsing',t:'date',g:0},
-  {k:'do_no',l:'D.O. No',t:'id',g:0},
-  {k:'do_qty',l:'D.O. Qty',t:'q',g:0,sum:true},
-  {k:'trips',l:'Trips',t:'i',g:1,sum:true},
-  {k:'rec_qty',l:'Rec. Qty',t:'q',g:1,sum:true},
-  {k:'net_qty',l:'Net Qty',t:'q',g:1,sum:true},
-  {k:'mines_bal',l:'Mines Bal.',t:'q',g:2,sum:true},
-  {k:'asking',l:'Asking',t:'q',g:2,sum:true},
-  {k:'daily_lift',l:'Daily Lift',t:'q',g:2,sum:true},
-  {k:'wash_coal_85',l:'Wash Coal 85%',t:'q',g:3,sum:true},
-  {k:'reject_15',l:'Reject 15%',t:'q',g:3,sum:true},
-  {k:'daily_dispatch',l:'Daily Dispatch',t:'q',g:4,sum:true},
-  {k:'dispatch_trips',l:'Trips',t:'i',g:4,sum:true},
-  {k:'dispatch_qty',l:'Dispatch Qty',t:'q',g:4,sum:true,bar:true},
-  {k:'washery_bal',l:'Washery Bal.',t:'q',g:4,sum:true}
-];
-const WGROUPS = [{l:'',span:6},{l:'Receipt (Inward)',span:3},{l:'Mines balance',span:3},{l:'Washery output',span:2},{l:'Dispatch (Outward)',span:4}];
-
-const RCOLS = [
-  {k:'sale_type',l:'Type',t:'badge',g:0},
-  {k:'do_no',l:'D.O. No',t:'id',g:0},
-  {k:'party_name',l:'Party',g:0},
-  {k:'do_qty',l:'D.O. Qty',t:'q',g:0,sum:true},
-  {k:'trips',l:'Trips',t:'i',g:1,sum:true},
-  {k:'rcr_qty',l:'RCR Qty',t:'q',g:1,sum:true},
-  {k:'road_qty',l:'Road Qty',t:'q',g:1,sum:true},
-  {k:'lifted',l:'Lifted Qty',t:'q',g:1,sum:true},
-  {k:'balance_in_mines',l:'Balance in Mines',t:'q',g:2,sum:true,neg:true}
-];
-const RGROUPS = [{l:'',span:4},{l:'Lifting',span:4},{l:'Balance',span:1}];
-
-/* ==================================================================
-   STATE + HELPERS
-   ================================================================== */
-const db = (SUPABASE_URL.startsWith('http') && window.supabase)
-  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-
-const state = {
-  w:[], r:[], unmatched:[], doSet:new Set(),
-  page:'w', view:'dashboard',
-  sortW:{k:'_status',d:1}, sortR:{k:'_status',d:1},
-  sum:{doNo:null},
-  xl:{wb:null, rows:[], busy:false}
-};
-
-const $ = s => document.querySelector(s);
-const $$ = s => [...document.querySelectorAll(s)];
-const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const isNum = v => typeof v === 'number' && Number.isFinite(v);
-const r3 = v => Math.round(v * 1000) / 1000;
-const fmtQ = v => (v == null || v === '' || Number.isNaN(Number(v))) ? '–'
-  : Number(v).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
-const fmtI = v => (v == null || v === '' || Number.isNaN(Number(v))) ? '–' : Number(v).toLocaleString('en-IN', {maximumFractionDigits:0});
-const fmtD = v => v ? new Date(v + 'T00:00:00').toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'}) : '–';
-const fmtDs = v => v ? new Date(v + 'T00:00:00').toLocaleDateString('en-GB', {day:'2-digit', month:'short'}) : '';
-const sumOf = (rows, k) => rows.reduce((a, x) => a + (Number(x[k]) || 0), 0);
-const todayISO = () => new Date().toLocaleDateString('en-CA');
-
-
-function toast(msg, isErr) {
-  const t = $('#toast');
-  t.textContent = msg;
-  t.className = 'toast' + (isErr ? ' err' : '');
-  clearTimeout(t._h);
-  t._h = setTimeout(() => t.classList.add('hidden'), 3600);
-}
-function setStatus(text, cls) {
-  const s = $('#status');
-  s.innerHTML = `<span class="live-dot"></span>${esc(text)}`;
-  s.className = 'pill' + (cls ? ' ' + cls : '');
-}
-function explainError(e) {
-  if (!e) return 'Unknown error';
-  if (e.code === '23505') return 'This record already exists (duplicate D.O. No or unique key).';
-  if (e.code === '23503') return 'The D.O. No does not exist in the D.O. master.';
-  if (e.code === '42501' || /row-level security/i.test(e.message || '')) return 'Not allowed by the database security rules.';
-  return e.message || String(e);
-}
-async function fetchAll(build) {
-  let out = [];
-  for (let from = 0; ; from += 1000) {
-    const {data, error} = await build().range(from, from + 999);
-    if (error) throw error;
-    out = out.concat(data || []);
-    if (!data || data.length < 1000) break;
-  }
-  return out;
-}
-function countUp(root) {
-  root.querySelectorAll('[data-num]').forEach(el => {
-    const to = Number(el.dataset.num);
-    const f = el.dataset.f === 'i' ? fmtI : fmtQ;
-    if (!Number.isFinite(to)) { el.textContent = f(null); return; }
-    const from = Number(el._last ?? 0);
-    el._last = to;
-    if (REDUCED) { el.textContent = f(to); return; }
-    const t0 = performance.now(), D = 900;
-    const step = t => {
-      const p = Math.min(1, (t - t0) / D), e = 1 - Math.pow(1 - p, 3);
-      el.textContent = f(from + (to - from) * e);
-      if (p < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  });
-}
-
-/* ==================================================================
-   DATA LOADING
-   ================================================================== */
-async function loadDoSet() {
-  if (!db) return;
-  const {data, error} = await db.from('do_master').select('do_no');
-  if (error) throw error;
-  state.doSet = new Set((data || []).map(r => Number(r.do_no)));
-}
-
-async function loadDashboard() {
-  if (!db) return;
-  setStatus('Loading…');
-  const [w, r, u] = await Promise.all([
-    db.from('v_washery_summary').select('*').order('do_no'),
-    db.from('v_rcr_road_summary').select('*').order('do_no'),
-    db.from('v_unmatched_do').select('*')
-  ]);
-  if (w.error || r.error) {
-    setStatus('Error', 'err');
-    toast('Could not load dashboard: ' + explainError(w.error || r.error), true);
-    return;
-  }
-  const nz = v => (v == null || v === '') ? v : Math.max(0, Number(v) || 0);   // negative balances show as 0
-  state.w = (w.data || []).map(x => ({...x, mines_bal: nz(x.mines_bal), washery_bal: nz(x.washery_bal), asking: nz(x.asking)}));
-  state.r = r.data || [];
-  state.unmatched = u.error ? [] : (u.data || []);
-  setStatus('Live', 'live');
-  $('#updated').textContent = 'Updated ' + new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
-  buildColliery();
-  renderAll();
-  fillDoPicker();
-}
-
-/* ==================================================================
-   DASHBOARD
-   ================================================================== */
-const isClosedW = x => Number(x.mines_bal) <= 0.005 && Number(x.washery_bal) <= 0.005;
-const isClosedR = x => Number(x.balance_in_mines) <= 0.005;
-
-function statusPill(x) {
-  const closed = 'washery_bal' in x ? isClosedW(x) : isClosedR(x);
-  if (closed) return '<span class="st done">Closed</span>';
-  if (x.lapsing_date && x.lapsing_date < todayISO()) return '<span class="st over">Overdue</span>';
-  return '<span class="st open">Open</span>';
-}
-
-function buildColliery() {
-  const sel = $('#f-col');
-  const cur = sel.value;
-  const names = [...new Set([...state.w, ...state.r].map(x => x.colliery).filter(Boolean))].sort();
-  sel.innerHTML = '<option value="">All collieries</option>' + names.map(n => `<option>${esc(n)}</option>`).join('');
-  if (names.includes(cur)) sel.value = cur;
-}
-
-function card(label, num, cls, sub, f = 'q', i = 0) {
-  const n = Number(num);
-  const ok = Number.isFinite(n);
-  return `<div class="card ${cls}" style="--i:${i}"><span>${esc(label)}</span>` +
-    `<b data-num="${ok ? n : ''}" data-f="${f}">${ok ? (f === 'i' ? fmtI(n) : fmtQ(n)) : '–'}</b>` +
-    `<small>${esc(sub || '')}</small></div>`;
-}
-
-function renderCards() {
-  const W = state.w, R = state.r;
-  const doW = sumOf(W,'do_qty'), recW = sumOf(W,'rec_qty'), dispW = sumOf(W,'dispatch_qty');
-  const balW = sumOf(W,'washery_bal'), minesW = sumOf(W,'mines_bal'), out85 = sumOf(W,'total_85');
-  const liftR = sumOf(R,'lifted'), balR = sumOf(R,'balance_in_mines'), doR = sumOf(R,'do_qty');
-  const activeR = R.filter(x => !isClosedR(x)).length;
-  const pct = (a, b) => b ? (a / b * 100).toFixed(1) + '% of ' + 'D.O. qty' : '–';
-  $('#cards-w').innerHTML = [
-    card('D.O. quantity', doW, 'w', `${W.length} D.O.s`, 'q', 0),
-    card('Received', recW, 'w', pct(recW, doW), 'q', 1),
-    card('Dispatched', dispW, 'sky', `${out85 ? (dispW / out85 * 100).toFixed(1) : '0.0'}% of 85% output`, 'q', 2),
-    card('Washery balance', balW, balW < -0.005 ? 'warn' : 'ok', 'Output not yet dispatched', 'q', 3),
-    card('Mines balance', minesW, 'r', 'D.O. qty not yet received', 'q', 4)
-  ].join('');
-  $('#cards-r').innerHTML = [
-    card('D.O. quantity', doR, 'r', `${R.length} D.O.s`, 'q', 0),
-    card('Lifted', liftR, 'r', pct(liftR, doR), 'q', 1),
-    card('Balance in mines', balR, 'warn', 'D.O. qty not yet lifted', 'q', 2),
-    card('Active D.O.s', activeR, 's', 'Balance above zero', 'i', 3)
-  ].join('');
-  countUp($('#cards-w')); countUp($('#cards-r'));
-}
-
-function filteredW() {
-  const q = $('#f-q').value.trim().toLowerCase(), col = $('#f-col').value, hide = $('#f-hide').checked;
-  return state.w.filter(x => (!col || x.colliery === col) && (!hide || !isClosedW(x)) &&
-    (!q || [x.do_no, x.colliery, x.party_name].join(' ').toLowerCase().includes(q)));
-}
-function filteredR() {
-  const q = $('#f-q').value.trim().toLowerCase(), col = $('#f-col').value, hide = $('#f-hide').checked;
-  return state.r.filter(x => (!col || x.colliery === col) && (!hide || !isClosedR(x)) &&
-    (!q || [x.do_no, x.colliery, x.party_name, x.sale_type].join(' ').toLowerCase().includes(q)));
-}
-
-const statusRank = x => {
-  const closed = 'washery_bal' in x ? isClosedW(x) : isClosedR(x);
-  if (closed) return 2;
-  if (x.lapsing_date && x.lapsing_date < todayISO()) return 1;
-  return 0;
-};
-function sortRows(rows, s) {
-  return [...rows].sort((a, b) => {
-    if (s.k === '_status') return ((statusRank(a) - statusRank(b)) * s.d) || (Number(a.do_no) - Number(b.do_no));
-    const x = a[s.k], y = b[s.k];
-    if (x == null && y == null) return 0;
-    if (x == null) return 1;
-    if (y == null) return -1;
-    if (typeof x === 'number' || typeof y === 'number') return (Number(x) - Number(y)) * s.d;
-    return String(x).localeCompare(String(y), 'en-IN', {numeric:true}) * s.d;
-  });
-}
-
-function cellHTML(c, x) {
-  const v = x[c.k];
-  if (c.t === 'date') return `<td>${fmtD(v)}</td>`;
-  if (c.t === 'id') return `<td class="id">${esc(v ?? '–')}${statusPill(x)}</td>`;
-  if (c.t === 'badge') return `<td><span class="badge ${v === 'ROAD' ? 'road' : 'rcr'}">${esc(v)}</span></td>`;
-  if (c.t === 'i') return `<td class="num">${v == null ? '–' : fmtI(v)}</td>`;
-  if (c.t === 'q') {
-    let inner = fmtQ(v);
-    if (c.bar) {
-      const p = Number(x.total_85) > 0 ? Math.min(100, Number(x.dispatch_qty) / Number(x.total_85) * 100) : 0;
-      inner += `<div class="bar"><i style="width:${p.toFixed(1)}%"></i></div>`;
-    }
-    const neg = c.neg && Number(v) < -0.005;
-    return `<td class="num ${neg ? 'neg' : ''}">${inner}</td>`;
-  }
-  return v == null || v === '' ? '<td><span class="muted">–</span></td>' : `<td class="txt" title="${esc(v)}">${esc(v)}</td>`;
-}
-
-function renderTable(tbl, cols, groups, rows, sortState) {
-  const arrow = k => sortState.k === k ? (sortState.d > 0 ? ' ▲' : ' ▼') : '';
-  const head = `<thead>
-    <tr class="grp">${groups.map((g, i) => `<th colspan="${g.span}" class="g${i}">${esc(g.l)}</th>`).join('')}</tr>
-    <tr>${cols.map(c => `<th data-k="${c.k}" class="sortable ${c.t === 'q' || c.t === 'i' ? 'num' : ''}">${esc(c.l)}${arrow(c.k)}</th>`).join('')}</tr>
-  </thead>`;
-  const body = rows.length
-    ? '<tbody>' + rows.map((x, i) => `<tr style="--r:${Math.min(i, 25)}">` + cols.map(c => cellHTML(c, x)).join('') + '</tr>').join('') + '</tbody>'
-    : `<tbody><tr><td colspan="${cols.length}" class="empty">No D.O.s match the current filters.</td></tr></tbody>`;
-  const foot = rows.length ? '<tfoot><tr>' + cols.map((c, i) => {
-    if (i === 0) return `<td>Total · ${rows.length} D.O.s</td>`;
-    if (c.sum) return `<td class="num">${c.t === 'i' ? fmtI(sumOf(rows, c.k)) : fmtQ(sumOf(rows, c.k))}</td>`;
-    return '<td></td>';
-  }).join('') + '</tr></tfoot>' : '';
-  tbl.innerHTML = head + body + foot;
-  tbl.parentElement.parentElement.classList.toggle('washery', cols === WCOLS);
-  tbl.parentElement.parentElement.classList.toggle('rcr', cols === RCOLS);
-}
-
-function renderAll() {
-  const w = sortRows(filteredW(), state.sortW);
-  const r = sortRows(filteredR(), state.sortR);
-  renderCards();
-  renderTable($('#tbl-w'), WCOLS, WGROUPS, w, state.sortW);
-  renderTable($('#tbl-r'), RCOLS, RGROUPS, r, state.sortR);
-  $('#cnt-w').textContent = `${w.length} of ${state.w.length} shown`;
-  $('#cnt-r').textContent = `${r.length} of ${state.r.length} shown`;
-  renderAlert();
-}
-
-function renderAlert() {
-  const box = $('#alert');
-  if (!state.unmatched.length) { box.classList.add('hidden'); return; }
-  const byDo = {};
-  state.unmatched.forEach(u => {
-    byDo[u.do_no] = byDo[u.do_no] || {rows:0, qty:0};
-    byDo[u.do_no].rows += Number(u.rows) || 0;
-    byDo[u.do_no].qty += Number(u.qty) || 0;
-  });
-  const items = Object.entries(byDo).map(([d, v]) => `${esc(d)} (${fmtQ(v.qty)} MT, ${v.rows} rows)`).join(', ');
-  box.innerHTML = `<b>Check D.O. numbers:</b> these entries use a D.O. not in the master, so they are not counted: ${items}. Add the D.O. under <i>Data entry → New D.O.</i>`;
-  box.classList.remove('hidden');
-}
-
-/* ==================================================================
-   PAGE SWITCH + FILTERS
-   ================================================================== */
-function setPage(p) {
-  state.page = p;
-  $$('.seg button').forEach(b => b.classList.toggle('active', b.dataset.page === p));
-  ['w','r','s'].forEach(x => $('#page-' + x).classList.toggle('hidden', x !== p));
-  $('#flt-bar').classList.toggle('hidden', p === 's');
-  if (p === 's') ensureSummary(); else renderAll();
-}
-
-/* ==================================================================
-   SUMMARY (D.O. analytics)
-   ================================================================== */
-function fillDoPicker() {
-  const sel = $('#sum-do');
-  const cur = sel.value;
-  const opt = x => `<option value="${x.do_no}">${x.do_no} · ${esc(x.colliery || '')} · ${esc(x.party_name || '')}</option>`;
-  sel.innerHTML = `<optgroup label="Washery">${state.w.map(opt).join('')}</optgroup>` +
-    `<optgroup label="RCR &amp; Road sale">${state.r.map(opt).join('')}</optgroup>`;
-  if (cur && [...sel.options].some(o => o.value === cur)) sel.value = cur;
-}
-
-function ensureSummary() {
-  fillDoPicker();
-  if (!$('#sum-do').value && state.w.length) $('#sum-do').value = state.w[0].do_no;
-  const doNo = Number($('#sum-do').value);
-  if (doNo && doNo !== state.sum.doNo) loadSummary(doNo);
-}
-
-function barChart(series, keys) {
-  if (!series.length) return '<div class="empty">No entries recorded for this D.O. yet.</div>';
-  const W = 1000, H = 280, L = 52, R = 14, T = 12, B = 30;
-  const pw = W - L - R, ph = H - T - B;
-  const rawMax = Math.max(1, ...series.map(s => Math.max(s[keys[0][0]], s[keys[1][0]])));
-  const step = Math.pow(10, Math.floor(Math.log10(rawMax))) ;
-  const max = Math.ceil(rawMax / step) * step;
-  const gw = pw / series.length;
-  const bw = Math.max(2, Math.min(22, gw * 0.36));
-  let grid = '';
-  for (let i = 0; i <= 4; i++) {
-    const y = T + ph - (ph * i / 4);
-    grid += `<line x1="${L}" x2="${W - R}" y1="${y}" y2="${y}" stroke="rgba(15,23,42,.1)"/>` +
-            `<text x="${L - 8}" y="${y + 4}" text-anchor="end">${fmtI(max * i / 4)}</text>`;
-  }
-  let bars = '';
-  series.forEach((s, i) => {
-    const cx = L + gw * i + gw / 2;
-    keys.forEach(([k, label, color], j) => {
-      const v = s[k];
-      const h = ph * v / max;
-      const x = j === 0 ? cx - bw - 1 : cx + 1;
-      bars += `<rect class="bar-rect" x="${x}" y="${T + ph - h}" width="${bw}" height="${Math.max(0, h)}" rx="3" fill="${color}" style="animation-delay:${Math.min(i, 60) * 12}ms"><title>${fmtDs(s.d)} · ${label}: ${fmtQ(v)} MT</title></rect>`;
-    });
-  });
-  const tick = [0, Math.floor(series.length / 2), series.length - 1];
-  const labels = [...new Set(tick)].map(i => `<text x="${L + gw * i + gw / 2}" y="${H - 8}" text-anchor="middle">${fmtDs(series[i].d)}</text>`).join('');
-  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Daily chart">${grid}${bars}${labels}</svg>`;
-}
-
-function ring(pct, label, color, sub) {
-  const C = 2 * Math.PI * 52;
-  const p = Math.max(0, Math.min(100, Number.isFinite(pct) ? pct : 0));
-  const dash = (C * p / 100).toFixed(2);
-  return `<div class="ring">
-    <svg viewBox="0 0 120 120">
-      <circle class="bg" cx="60" cy="60" r="52" fill="none" stroke-width="12"/>
-      <circle class="fg" cx="60" cy="60" r="52" fill="none" stroke="${color}" stroke-width="12"
-        stroke-dasharray="0 ${C.toFixed(2)}" data-dash="${dash} ${C.toFixed(2)}" transform="rotate(-90 60 60)"/>
-      <text x="60" y="66" text-anchor="middle">${p.toFixed(1)}%</text>
-    </svg>
-    <b>${esc(label)}</b><small>${esc(sub)}</small>
-  </div>`;
-}
-
-function kv(rows) {
-  return '<div class="kv">' + rows.map(([k, v]) => `<div><span>${esc(k)}</span><b>${v}</b></div>`).join('') + '</div>';
-}
-
-function recentTable(rows) {
-  if (!rows.length) return '<div class="empty">No entries yet.</div>';
-  return `<table><thead><tr><th>Date</th><th>Type</th><th>Vehicle / Rake</th><th class="num">Qty (MT)</th><th>Reference</th></tr></thead><tbody>` +
-    rows.map((r, i) => `<tr style="--r:${Math.min(i, 20)}"><td>${fmtD(r.date)}</td><td><span class="badge ${r.cls}">${esc(r.type)}</span></td>` +
-    `<td>${esc(r.vehicle || '–')}</td><td class="num">${fmtQ(r.qty)}</td><td class="muted">${esc(r.ref || '')}</td></tr>`).join('') +
-    '</tbody></table>';
-}
-
-function groupByDate(list, dateKey, valKey, bucket) {
-  const map = {};
-  list.forEach(x => {
-    const d = x[dateKey]; if (!d) return;
-    map[d] = map[d] || {d, a:0, b:0};
-    map[d][bucket] += Number(x[valKey]) || 0;
-  });
-  return Object.values(map).sort((x, y) => x.d < y.d ? -1 : 1);
-}
-
-async function loadSummary(doNo) {
-  state.sum.doNo = doNo;
-  const body = $('#sum-body');
-  const isW = state.w.find(x => Number(x.do_no) === doNo);
-  const head = isW || state.r.find(x => Number(x.do_no) === doNo);
-  if (!head) { body.innerHTML = '<div class="empty">D.O. not found.</div>'; return; }
-  $('#hero-do').textContent = head.do_no;
-  $('#hero-sub').textContent = `${head.colliery || '–'} · ${head.party_name || '–'} · Issued ${fmtD(head.issue_date)} · Lapses ${fmtD(head.lapsing_date)}`;
-  $('#hero-status').innerHTML = statusPill(head);
-  body.innerHTML = '<div class="empty">Loading analytics…</div>';
-  try {
-    if (isW) {
-      const [inn, dsp] = await Promise.all([
-        fetchAll(() => db.from('inward_entries').select('rec_date,vehicle_no,net_wt,rec_wt,unique_no').eq('do_no', doNo).order('rec_date')),
-        fetchAll(() => db.from('dispatch_entries').select('disp_date,vehicle_no,net_wt,unique_no').eq('do_no', doNo).order('disp_date'))
-      ]);
-      if (state.sum.doNo !== doNo) return;
-      renderSummaryW(head, inn, dsp);
-    } else {
-      const rr = await fetchAll(() => db.from('rcr_road_entries').select('entry_date,entry_type,qty_mt,vehicle_or_rake,rr_no').eq('do_no', doNo).order('entry_date'));
-      if (state.sum.doNo !== doNo) return;
-      renderSummaryR(head, rr);
-    }
-  } catch (e) {
-    body.innerHTML = `<div class="empty">Could not load analytics: ${esc(explainError(e))}</div>`;
-  }
-}
-
-function renderSummaryW(h, inn, dsp) {
-  const doQty = Number(h.do_qty) || 0;
-  const rec = inn.reduce((a, x) => a + (Number(x.rec_wt != null ? x.rec_wt : x.net_wt) || 0), 0);
-  const disp = sumOf(dsp, 'net_wt');
-  const out85 = rec * WASH_PCT, wbal = Math.max(0, out85 - disp), mines = Math.max(0, doQty - rec);
-  const recPct = doQty ? rec / doQty * 100 : 0, dispPct = out85 ? disp / out85 * 100 : 0;
-  const series = groupByDate(inn.map(x => {
-      const q = x.rec_wt != null ? x.rec_wt : x.net_wt;
-      return {d:x.rec_date, v:q, a:q};
-    }), 'd', 'v', 'a').map(s => ({d:s.d, a:s.a, b:0}));
-  const dspSeries = groupByDate(dsp.map(x => ({d:x.disp_date, v:x.net_wt})), 'd', 'v', 'a');
-  const all = {};
-  series.forEach(s => all[s.d] = {d:s.d, a:s.a, b:0});
-  dspSeries.forEach(s => { all[s.d] = all[s.d] || {d:s.d, a:0, b:0}; all[s.d].b = s.a; });
-  const merged = Object.values(all).sort((x, y) => x.d < y.d ? -1 : 1);
-  const recent = [
-    ...inn.map(x => ({date:x.rec_date, type:'IN', cls:'in', vehicle:x.vehicle_no, qty:(x.rec_wt != null ? x.rec_wt : x.net_wt), ref:x.unique_no})),
-    ...dsp.map(x => ({date:x.disp_date, type:'OUT', cls:'out', vehicle:x.vehicle_no, qty:x.net_wt, ref:x.unique_no}))
-  ].sort((a, b) => a.date < b.date ? 1 : -1).slice(0, 40);
-
-  $('#sum-body').innerHTML = `
-    <div class="cards">
-      ${card('D.O. quantity', doQty, 'w', `${inn.length + dsp.length} entries`, 'q', 0)}
-      ${card('Received', rec, 'w', `${recPct.toFixed(1)}% of D.O.`, 'q', 1)}
-      ${card('Dispatched', disp, 'sky', `${dispPct.toFixed(1)}% of 85% output`, 'q', 2)}
-      ${card('Washery balance', wbal, wbal < -0.005 ? 'warn' : 'ok', 'Output not yet dispatched', 'q', 3)}
-      ${card('Mines balance', mines, 'r', 'D.O. qty not yet received', 'q', 4)}
-      ${card('Trips in / out', inn.length, 's', `${inn.length} in · ${dsp.length} out`, 'i', 5)}
-    </div>
-    <div class="sum-grid">
-      <div class="sum-col">
-        <div class="glass">
-          <div class="glass-h"><h2>Daily receipts &amp; dispatches</h2><span class="sub">MT per day</span></div>
-          <div class="legend"><span><i style="background:#0d9488"></i>Received</span><span><i style="background:#f59e0b"></i>Dispatched</span></div>
-          <div class="chart">${barChart(merged, [['a','Received','#0d9488'],['b','Dispatched','#f59e0b']])}</div>
-        </div>
-        <div class="glass" style="flex:1">
-          <div class="glass-h"><h2>Recent movements</h2><span class="sub">latest 40</span></div>
-          <div class="tbl-scroll recent">${recentTable(recent)}</div>
-        </div>
-      </div>
-      <div class="sum-col">
-        <div class="glass">
-          <div class="glass-h"><h2>Progress</h2></div>
-          <div class="rings">
-            ${ring(recPct, 'Received', '#0d9488', `${fmtQ(rec)} of ${fmtQ(doQty)} MT`)}
-            ${ring(dispPct, 'Dispatched', '#f59e0b', `${fmtQ(disp)} of ${fmtQ(out85)} MT`)}
-          </div>
-        </div>
-        <div class="glass" style="flex:1">
-          <div class="glass-h"><h2>Breakdown</h2></div>
-          ${kv([
-            ['Total D.O. quantity', fmtQ(doQty) + ' MT'],
-            ['Received', fmtQ(rec) + ' MT'],
-            ['Wash coal 85%', fmtQ(out85) + ' MT'],
-            ['Reject coal 15%', fmtQ(rec - out85) + ' MT'],
-            ['Dispatched (net)', fmtQ(disp) + ' MT'],
-            ['Washery balance', fmtQ(wbal) + ' MT'],
-            ['Mines balance', fmtQ(mines) + ' MT'],
-            ['Dispatch trips', fmtI(dsp.length)]
-          ])}
-        </div>
-      </div>
-    </div>`;
-  countUp($('#sum-body'));
-  animateRings();
-}
-
-function renderSummaryR(h, rr) {
-  const doQty = Number(h.do_qty) || 0;
-  const rcr = sumOf(rr.filter(x => x.entry_type === 'RCR'), 'qty_mt');
-  const road = sumOf(rr.filter(x => x.entry_type === 'ROAD'), 'qty_mt');
-  const lifted = rcr + road, bal = doQty - lifted;
-  const liftPct = doQty ? lifted / doQty * 100 : 0;
-  const rcrShare = lifted ? rcr / lifted * 100 : 0;
-  const byDay = {};
-  rr.forEach(x => {
-    byDay[x.entry_date] = byDay[x.entry_date] || {d:x.entry_date, a:0, b:0};
-    if (x.entry_type === 'RCR') byDay[x.entry_date].a += Number(x.qty_mt) || 0;
-    else byDay[x.entry_date].b += Number(x.qty_mt) || 0;
-  });
-  const series = Object.values(byDay).sort((x, y) => x.d < y.d ? -1 : 1);
-  const recent = rr.map(x => ({date:x.entry_date, type:x.entry_type, cls: x.entry_type === 'ROAD' ? 'road' : 'rcr',
-    vehicle:x.vehicle_or_rake, qty:x.qty_mt, ref:x.rr_no})).sort((a, b) => a.date < b.date ? 1 : -1).slice(0, 40);
-
-  $('#sum-body').innerHTML = `
-    <div class="cards">
-      ${card('D.O. quantity', doQty, 'r', 'Allotted', 'q', 0)}
-      ${card('Lifted', lifted, 'r', `${liftPct.toFixed(1)}% of D.O.`, 'q', 1)}
-      ${card('RCR', rcr, 'w', `${rcrShare.toFixed(1)}% of lifted`, 'q', 2)}
-      ${card('Road sale', road, 'sky', `${(100 - rcrShare).toFixed(1)}% of lifted`, 'q', 3)}
-      ${card('Balance in mines', bal, bal < -0.005 ? 'warn' : 'ok', 'Not yet lifted', 'q', 4)}
-      ${card('Lifting trips', rr.length, 's', 'Entries recorded', 'i', 5)}
-    </div>
-    <div class="sum-grid">
-      <div class="sum-col">
-        <div class="glass">
-          <div class="glass-h"><h2>Daily lifting</h2><span class="sub">MT per day</span></div>
-          <div class="legend"><span><i style="background:#f59e0b"></i>RCR</span><span><i style="background:#6366f1"></i>Road</span></div>
-          <div class="chart">${barChart(series, [['a','RCR','#f59e0b'],['b','Road','#6366f1']])}</div>
-        </div>
-        <div class="glass" style="flex:1">
-          <div class="glass-h"><h2>Recent liftings</h2><span class="sub">latest 40</span></div>
-          <div class="tbl-scroll recent">${recentTable(recent)}</div>
-        </div>
-      </div>
-      <div class="sum-col">
-        <div class="glass">
-          <div class="glass-h"><h2>Progress</h2></div>
-          <div class="rings">
-            ${ring(liftPct, 'Lifted', '#f59e0b', `${fmtQ(lifted)} of ${fmtQ(doQty)} MT`)}
-            ${ring(rcrShare, 'RCR share', '#6366f1', `${fmtQ(rcr)} MT RCR`)}
-          </div>
-        </div>
-        <div class="glass" style="flex:1">
-          <div class="glass-h"><h2>Breakdown</h2></div>
-          ${kv([
-            ['Total D.O. quantity', fmtQ(doQty) + ' MT'],
-            ['RCR lifted', fmtQ(rcr) + ' MT'],
-            ['Road lifted', fmtQ(road) + ' MT'],
-            ['Total lifted', fmtQ(lifted) + ' MT'],
-            ['Balance in mines', fmtQ(bal) + ' MT'],
-            ['Lifting entries', fmtI(rr.length)]
-          ])}
-        </div>
-      </div>
-    </div>`;
-  countUp($('#sum-body'));
-  animateRings();
-}
-
-function animateRings() {
-  requestAnimationFrame(() => requestAnimationFrame(() =>
-    $$('#sum-body [data-dash]').forEach(el => el.setAttribute('stroke-dasharray', el.dataset.dash))));
-}
-
-/* ==================================================================
-   DOWNLOAD AS IMAGE
-   ================================================================== */
-async function captureImage(el, name) {
-  if (!window.html2canvas) { toast('Image library did not load. Check the internet connection.', true); return; }
-  const wrap = document.createElement('div');
-  wrap.className = 'capture-wrap';
-  wrap.style.cssText = `position:fixed;left:-20000px;top:0;width:${Math.max(1100, el.offsetWidth)}px`;
-  const clone = el.cloneNode(true);
-  clone.classList.add('capture');
-  clone.style.height = 'auto';
-  clone.querySelectorAll('*').forEach(n => {
-    if (n.matches && n.matches('.tbl-scroll,.glass,.page,.recent,.view,.sum-col,.sum-grid')) {
-      n.style.setProperty('height', 'auto', 'important');
-      n.style.setProperty('max-height', 'none', 'important');
-      n.style.setProperty('overflow', 'visible', 'important');
-      n.style.setProperty('flex', 'none', 'important');
-    }
-  });
-  wrap.appendChild(clone);
-  document.body.appendChild(wrap);
-  try {
-    toast('Preparing image…');
-    const canvas = await html2canvas(wrap, {backgroundColor:'#f6f8fc', scale:2, useCORS:true, logging:false});
-    const a = document.createElement('a');
-    a.download = `${name}-${new Date().toISOString().slice(0, 10)}.png`;
-    a.href = canvas.toDataURL('image/png');
-    a.click();
-    toast('Image downloaded');
-  } catch (e) {
-    toast('Could not create image: ' + (e.message || e), true);
-  } finally {
-    wrap.remove();
-  }
-}
-
-/* ==================================================================
-   DATA ENTRY FORMS
-   ================================================================== */
-function buildForm(table, opts = {}) {
-  const T = TABLES[table];
-  const mode = opts.mode || 'create';
-  const values = opts.values || {};
-  const fixed = opts.fixed || {};
-  const over = opts.overrides || {};
-  const form = document.createElement('form');
-  form.className = 'form';
-  form.noValidate = true;
-
-  let html = '';
-  for (const f0 of T.fields) {
-    const f = {...f0, ...(over[f0.k] || {})};
-    if (f.k in fixed) { html += `<input type="hidden" name="${f.k}" value="${esc(fixed[f.k])}">`; continue; }
-    const v = values[f.k] ?? '';
-    const ro = mode === 'edit' && f.k === T.pk && table === 'do_master';
-    const req = f.req ? ' *' : '';
-    let input;
-    if (f.t === 'sel') input = `<select name="${f.k}">${f.opts.map(o => `<option ${o === v ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
-    else if (f.t === 'date') input = `<input type="date" name="${f.k}" value="${esc(v)}">`;
-    else if (f.t === 'num') input = `<input type="number" step="any" inputmode="decimal" name="${f.k}" value="${esc(v)}">`;
-    else if (f.t === 'int') input = `<input type="number" step="1" inputmode="numeric" name="${f.k}" value="${esc(v)}" ${ro ? 'readonly' : ''}>`;
-    else input = `<input type="text" name="${f.k}" value="${esc(v)}" ${f.upper ? 'style="text-transform:uppercase"' : ''}>`;
-    html += `<label class="fld ${f.k.length > 12 && f.t === 'text' ? 'full' : ''}"><span>${esc(f.l)}${req}</span>${input}</label>`;
-  }
-  html += `<div class="msg"></div><div class="row">
-      ${mode === 'create' ? '<button type="button" class="btn ghost" data-clear>Clear</button>' : ''}
-      <button type="submit" class="btn primary">${mode === 'edit' ? 'Save changes' : 'Save entry'}</button>
-    </div>`;
-  form.innerHTML = html;
-
-  form.querySelector('[data-clear]')?.addEventListener('click', () => { form.reset(); });
-
-  form.addEventListener('submit', async e => {
-    e.preventDefault();
-    const msg = form.querySelector('.msg');
-    const btn = form.querySelector('button[type=submit]');
-    msg.className = 'msg'; msg.textContent = '';
-    let payload;
-    try { payload = readForm(form, table, fixed); }
-    catch (err) { msg.className = 'msg err'; msg.textContent = err.message; return; }
-    if (table !== 'do_master' && !state.doSet.has(Number(payload.do_no))) {
-      msg.className = 'msg err';
-      msg.textContent = `D.O. ${payload.do_no} is not in the D.O. master. Add it first under "New D.O.".`;
-      return;
-    }
-    btn.disabled = true;
-    try {
-      if (mode === 'edit') {
-        const {error} = await db.from(table).update(payload).eq(T.pk, opts.values[T.pk]);
-        if (error) throw error;
-      } else {
-        const {error} = await db.from(table).insert(payload);
-        if (error) throw error;
-      }
-      toast(mode === 'edit' ? 'Changes saved' : 'Entry saved');
-      if (mode === 'create') {
-        const keep = {};
-        ['rec_date','disp_date','entry_date','do_no','section','entry_type'].forEach(k => {
-          const el = form.querySelector(`[name=${k}]`);
-          if (el && el.type !== 'hidden') keep[k] = el.value;
-        });
-        form.reset();
-        Object.entries(keep).forEach(([k, v]) => { const el = form.querySelector(`[name=${k}]`); if (el) el.value = v; });
-      }
-      opts.onDone?.();
-    } catch (err) {
-      msg.className = 'msg err';
-      msg.textContent = explainError(err);
-    } finally {
-      btn.disabled = false;
-    }
-  });
-  return form;
-}
-
-function readForm(form, table, fixed) {
-  const T = TABLES[table];
-  const out = {};
-  for (const f of T.fields) {
-    let v;
-    if (f.k in fixed) v = fixed[f.k];
-    else {
-      const el = form.elements[f.k];
-      if (!el) continue;
-      v = el.value;
-    }
-    if (f.t === 'int' || f.t === 'num') {
-      v = (v === '' || v == null) ? null : Number(v);
-      if (v !== null && Number.isNaN(v)) throw new Error(`${f.l}: enter a valid number`);
-      if (f.t === 'int' && v !== null && !Number.isInteger(v)) throw new Error(`${f.l}: whole number only`);
-    } else if (f.t === 'date') v = v || null;
-    else v = (typeof v === 'string' && v.trim() !== '') ? (f.upper ? v.trim().toUpperCase() : v.trim()) : null;
-    if (f.req && (v === null || v === '')) throw new Error(`${f.l} is required`);
-    out[f.k] = v;
-  }
-  if ((table === 'inward_entries' || table === 'dispatch_entries') && out.gross_wt != null && out.tare_wt != null && out.gross_wt <= out.tare_wt)
-    throw new Error('Gross weight must be more than tare weight');
-  if (table === 'rcr_road_entries' && out.qty_mt != null && out.qty_mt < 0) throw new Error('Qty cannot be negative');
-  return out;
-}
-
-function buildEntryForms() {
-  $('#form-do-w').append(buildForm('do_master', {fixed:{section:'WASHERY'}, onDone: afterSave}));
-  $('#form-rcv-w').append(buildForm('inward_entries', {onDone: afterSave}));
-  $('#form-disp-w').append(buildForm('dispatch_entries', {onDone: afterSave}));
-  $('#form-do-r').append(buildForm('do_master', {overrides:{section:{opts:['RCR','ROAD']}}, onDone: afterSave}));
-  $('#form-lift-r').append(buildForm('rcr_road_entries', {onDone: afterSave}));
-}
-
-async function afterSave() {
-  await loadDoSet().catch(() => {});
-  await loadDashboard();
-  if (state.view === 'log') renderLog();
-}
-
-/* ==================================================================
-   LOG
-   ================================================================== */
-const LOG_TYPE_OPTS = {
-  rcr_road_entries: {col:'entry_type', opts:['','RCR','ROAD'], labels:['All types','RCR','Road']},
-  do_master: {col:'section', opts:['','WASHERY','RCR','ROAD'], labels:['All sections','Washery','RCR','Road']}
-};
-function setupLogType() {
-  const cfg = LOG_TYPE_OPTS[$('#l-table').value];
-  const sel = $('#l-type');
-  if (cfg) { sel.innerHTML = cfg.opts.map((o, i) => `<option value="${o}">${cfg.labels[i]}</option>`).join(''); sel.classList.remove('hidden'); }
-  else { sel.classList.add('hidden'); sel.innerHTML = ''; }
-}
-
-async function renderLog() {
-  if (!db) return;
-  const t = $('#l-table').value, T = TABLES[t];
-  let q = db.from(t).select('*').order(T.order, {ascending:false}).limit(1000);
-  const from = $('#l-from').value, to = $('#l-to').value;
-  if (from) q = q.gte(T.date, from);
-  if (to) q = q.lte(T.date, to);
-  const doNo = $('#l-do').value.trim();
-  if (doNo) {
-    if (!/^\d+$/.test(doNo)) { toast('D.O. number must be digits only', true); return; }
-    q = q.eq('do_no', Number(doNo));
-  }
-  const cfg = LOG_TYPE_OPTS[t], typeVal = $('#l-type').value;
-  if (cfg && typeVal) q = q.eq(cfg.col, typeVal);
-  const s = $('#l-q').value.trim().replace(/[,()*%]/g, ' ');
-  if (s) q = q.or(T.search.map(c => `${c}.ilike.%${s}%`).join(','));
-
-  $('#l-info').textContent = 'Loading…';
-  const {data, error} = await q;
-  if (error) { $('#l-info').textContent = ''; toast('Log error: ' + explainError(error), true); return; }
-
-  const cols = [...T.fields];
-  const qtyKey = t === 'inward_entries' ? 'rec_wt'
-    : t === 'dispatch_entries' ? 'net_wt'
-    : (t === 'rcr_road_entries' ? 'qty_mt' : (t === 'do_master' ? 'do_qty' : null));
-  const total = qtyKey ? sumOf(data || [], qtyKey) : null;
-  $('#l-info').textContent = `${data.length} row${data.length === 1 ? '' : 's'}` +
-    (data.length === 1000 ? ' · showing the latest 1000, narrow the filters for more' : '') +
-    (total !== null ? ` · total ${fmtQ(total)} MT` : '');
-
-  const head = `<thead><tr>${cols.map(c => `<th class="${c.t === 'num' || c.t === 'int' ? 'num' : ''}">${esc(c.l)}</th>`).join('')}<th></th></tr></thead>`;
-  const body = data.length ? '<tbody>' + data.map((row, i) => `<tr style="--r:${Math.min(i, 25)}">` + cols.map(c => {
-    const v = row[c.k];
-    if (v == null || v === '') return '<td><span class="muted">–</span></td>';
-    if (c.t === 'date') return `<td>${fmtD(v)}</td>`;
-    if (c.t === 'num' || c.calc) return `<td class="num">${fmtQ(v)}</td>`;
-    if (c.t === 'int') return `<td class="num">${esc(v)}</td>`;
-    return `<td>${esc(v)}</td>`;
-  }).join('') + `<td><button class="btn small" data-edit="${esc(row[T.pk])}">Edit</button></td></tr>`).join('') + '</tbody>'
-    : `<tbody><tr><td colspan="${cols.length + 1}" class="empty">No records match these filters.</td></tr></tbody>`;
-  const tbl = $('#tbl-log');
-  tbl.innerHTML = head + body;
-  tbl._rows = data; tbl._table = t;
-}
-
-function openEdit(table, id) {
-  const row = ($('#tbl-log')._rows || []).find(r => String(r[TABLES[table].pk]) === String(id));
-  if (!row) return;
-  $('#dlg-title').textContent = `Edit · ${TABLES[table].label} · ${table === 'do_master' ? 'D.O. ' + row.do_no : '#' + row.id}`;
-  const body = $('#dlg-body');
-  body.innerHTML = '';
-  body.append(buildForm(table, {mode:'edit', values:row, onDone: () => { $('#dlg').close(); renderLog(); loadDashboard(); }}));
-  $('#dlg').showModal();
-}
-
-/* ==================================================================
-   EXCEL UPLOAD
-   ================================================================== */
-const normKey = s => String(s ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
-const XL_MAP = {
-  inward_entries: {recdate:'rec_date', chdate:'ch_date', excisesrno:'excise_sr_no', uniqueno:'unique_no', dono:'do_no',
-    gatepass:'gate_pass', grade:'grade', vehicleno:'vehicle_no', grosswt:'gross_wt', tarewt:'tare_wt',
-    netwt:'net_wt', recwt:'rec_wt', partyname:'party_name', mines:'mines'},
-  dispatch_entries: {date:'disp_date', dono:'do_no', item:'item', vehicleno:'vehicle_no', grosswt:'gross_wt',
-    tarewt:'tare_wt', netwt:'net_wt', uniqueno:'unique_no', rptpno:'rptp_no', partyname:'party_name'}
-};
-const pad2 = n => String(n).padStart(2, '0');
-
-function toIsoDate(v) {
-  if (v instanceof Date && !isNaN(v)) return `${v.getFullYear()}-${pad2(v.getMonth() + 1)}-${pad2(v.getDate())}`;
-  if (typeof v === 'number' && Number.isFinite(v) && v > 0) {
-    const d = new Date(Math.round((v - 25569) * 86400000));   // Excel serial -> UTC date
-    return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}-${pad2(d.getUTCDate())}`;
-  }
-  if (typeof v === 'string') {
-    const m = v.trim().match(/^(\d{1,2})\s*[-/.]\s*(\d{1,2})\s*[-/.]\s*(\d{2,4})$/);
-    if (!m) return null;
-    let y = Number(m[3]);
-    if (y < 100) y += 2000;
-    if (y < 1000) y += 2000;
-    const d = new Date(y, Number(m[2]) - 1, Number(m[1]));
-    return isNaN(d) ? null : `${y}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
-  }
-  return null;
-}
-function toNum(v) {
-  if (typeof v === 'number') return Number.isFinite(v) ? v : null;
-  if (typeof v === 'string') { const n = parseFloat(v.replace(/,/g, '')); return Number.isFinite(n) ? n : null; }
-  return null;
-}
-const toStr = v => (v == null ? null : (String(v).trim() || null));
-
-function normalizeRow(o, T, excelRow) {
-  const dateF = T === 'inward_entries' ? 'rec_date' : 'disp_date';
-  const out = {_row: excelRow, _err: []};
-  out[dateF] = toIsoDate(o[dateF]);
-  if (!out[dateF]) out._err.push('bad date');
-  const dn = toNum(o.do_no);
-  out.do_no = dn != null && Number.isInteger(dn) ? dn : null;
-  if (out.do_no == null) out._err.push('bad D.O. no');
-  else if (!state.doSet.has(out.do_no)) out._err.push('D.O. not in master');
-  out.vehicle_no = toStr(o.vehicle_no)?.toUpperCase() || null;
-  if (!out.vehicle_no) out._err.push('no vehicle');
-  out.gross_wt = toNum(o.gross_wt);
-  out.tare_wt = toNum(o.tare_wt);
-  if (out.gross_wt == null || out.tare_wt == null) out._err.push('bad weight');
-  else if (out.gross_wt <= out.tare_wt) out._err.push('gross ≤ tare');
-  out.net_wt = toNum(o.net_wt);
-  if (out.net_wt == null) out._err.push('no net wt');
-  if (T === 'inward_entries') {
-    out.ch_date = toIsoDate(o.ch_date);
-    out.excise_sr_no = toStr(o.excise_sr_no);
-    out.gate_pass = toStr(o.gate_pass);
-    out.grade = toStr(o.grade);
-    out.mines = toStr(o.mines);
-    out.rec_wt = toNum(o.rec_wt);
-  } else {
-    out.item = toStr(o.item);
-    out.rptp_no = toStr(o.rptp_no);
-  }
-  out.unique_no = toStr(o.unique_no);
-  out.party_name = toStr(o.party_name);
-  return out;
-}
-
-async function parseWorkbookSheet() {
-  const T = $('#xl-target').value;
-  const name = $('#xl-sheet').value;
-  const ws = state.xl.wb.Sheets[name];
-  const rows = XLSX.utils.sheet_to_json(ws, {header:1, raw:true, defval:null, blankrows:false});
-  let hdr = -1;
-  for (let i = 0; i < Math.min(rows.length, 40); i++) {
-    const keys = rows[i].map(normKey);
-    if (keys.includes('dono') && keys.includes('vehicleno')) { hdr = i; break; }
-  }
-  if (hdr < 0) { setXlMessage('Could not find a header row with "D.O. No" and "Vehicle No" in this sheet.'); return; }
-  const colOf = {};
-  const headerMap = {...XL_MAP[T]};
-  TABLES[T].fields.forEach(f => { headerMap[normKey(f.k)] = f.k; });   // also accept database column names
-  rows[hdr].forEach((h, ci) => { const f = headerMap[normKey(h)]; if (f && !(f in colOf)) colOf[f] = ci; });
-  const dateF = T === 'inward_entries' ? 'rec_date' : 'disp_date';
-  const missing = [dateF, 'do_no', 'vehicle_no', 'gross_wt', 'tare_wt', 'net_wt'].filter(f => !(f in colOf));
-  if (missing.length) { setXlMessage('Missing columns: ' + missing.join(', ')); return; }
-
-  const parsed = [];
-  for (let i = hdr + 1; i < rows.length; i++) {
-    const r = rows[i];
-    const o = {};
-    let any = false;
-    for (const f in colOf) { o[f] = r[colOf[f]]; if (o[f] !== null && o[f] !== '') any = true; }
-    if (!any) continue;
-    parsed.push(normalizeRow(o, T, i + 1));
-  }
-  await classifyRows(parsed, T, dateF);
-}
-
-/* Duplicate = same D.O., Unique No, date, vehicle and weights. Same serial with different trip data is NOT a duplicate. */
-function dupKey(x, dateF) {
-  return [x.do_no, x.unique_no, x[dateF], x.vehicle_no, Number(x.gross_wt).toFixed(3), Number(x.tare_wt).toFixed(3)].join('|');
-}
-
-async function classifyRows(parsed, T, dateF) {
-  const dos = [...new Set(parsed.filter(p => !p._err.length).map(p => p.do_no))];
-  const existing = new Set();
-  if (dos.length) {
-    const found = await fetchAll(() => db.from(T).select(`id,do_no,unique_no,vehicle_no,gross_wt,tare_wt,${dateF}`).in('do_no', dos).order('id'));
-    found.forEach(r => { if (r.unique_no) existing.add(dupKey(r, dateF)); });
-  }
-  const seen = new Set();
-  parsed.forEach(p => {
-    if (p._err.length) { p._status = 'err'; p._msg = p._err.join(', '); return; }
-    const key = p.unique_no ? dupKey(p, dateF) : null;
-    if (key && (existing.has(key) || seen.has(key))) { p._status = 'dup'; p._msg = 'already in database or repeated in file'; return; }
-    if (key) seen.add(key);
-    p._status = 'ok'; p._msg = 'ready';
-  });
-  state.xl.rows = parsed;
-  renderXlPreview();
-}
-
-function setXlMessage(msg) {
-  state.xl.rows = [];
-  $('#tbl-xl').innerHTML = `<tbody><tr><td class="empty">${esc(msg)}</td></tr></tbody>`;
-  $('#xl-info').textContent = msg;
-  updateXlCounts();
-}
-
-function updateXlCounts() {
-  const rows = state.xl.rows;
-  const c = {ok:0, dup:0, err:0};
-  rows.forEach(r => c[r._status]++);
-  $('#c-ok').textContent = fmtI(c.ok);
-  $('#c-dup').textContent = fmtI(c.dup);
-  $('#c-err').textContent = fmtI(c.err);
-  $('#xl-import').disabled = c.ok === 0 || state.xl.busy;
-  return c;
-}
-
-function renderXlPreview() {
-  const T = $('#xl-target').value;
-  const dateF = T === 'inward_entries' ? 'rec_date' : 'disp_date';
-  const rows = state.xl.rows;
-  const c = updateXlCounts();
-  $('#xl-info').textContent = `${rows.length} data rows found · showing first ${Math.min(150, rows.length)}`;
-  const isIn = T === 'inward_entries';
-  const head = `<thead><tr><th class="num">Row</th><th>Status</th><th>Date</th><th class="num">D.O.</th><th>Vehicle</th>
-    <th class="num">Gross</th><th class="num">Tare</th><th class="num">Net</th>` +
-    (isIn ? `<th class="num">Rec. Wt</th>` : '') +
-    `<th>Unique no.</th><th>Party</th><th>Note</th></tr></thead>`;
-  const body = rows.length ? '<tbody>' + rows.slice(0, 150).map((r, i) => {
-    const net = r.net_wt;
-    const cls = r._status === 'ok' ? 's-ok' : r._status === 'dup' ? 's-dup' : 's-err';
-    const label = r._status === 'ok' ? 'Ready' : r._status === 'dup' ? 'Duplicate' : 'Error';
-    return `<tr style="--r:${Math.min(i, 25)}"><td class="num muted">${r._row}</td><td class="${cls}" style="font-weight:700">${label}</td>
-      <td>${fmtD(r[dateF])}</td><td class="num">${esc(r.do_no ?? '–')}</td><td>${esc(r.vehicle_no || '–')}</td>
-      <td class="num">${fmtQ(r.gross_wt)}</td><td class="num">${fmtQ(r.tare_wt)}</td><td class="num">${fmtQ(net)}</td>` +
-      (isIn ? `<td class="num">${fmtQ(r.rec_wt)}</td>` : '') +
-      `<td>${esc(r.unique_no || '–')}</td><td>${esc(r.party_name || '–')}</td><td class="muted">${esc(r._msg)}</td></tr>`;
-  }).join('') + '</tbody>' : '<tbody><tr><td class="empty">No rows to preview.</td></tr></tbody>';
-  $('#tbl-xl').innerHTML = head + body;
-  void c;
-}
-
-function loadXlsxFile(file) {
-  if (!window.XLSX) { toast('Excel library did not load. Check the internet connection.', true); return; }
-  $('#xl-file-name').textContent = file.name;
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      state.xl.wb = XLSX.read(e.target.result, {type:'array', cellDates:true});
-    } catch (err) { toast('Could not read this file: ' + err.message, true); return; }
-    const sel = $('#xl-sheet');
-    sel.disabled = false;
-    sel.innerHTML = state.xl.wb.SheetNames.map(n => `<option>${esc(n)}</option>`).join('');
-    guessSheet();
-    parseWorkbookSheet().catch(err => toast('Preview failed: ' + explainError(err), true));
-  };
-  reader.readAsArrayBuffer(file);
-}
-
-function guessSheet() {
-  const want = $('#xl-target').value === 'inward_entries' ? /inward/i : /dispatch/i;
-  const names = state.xl.wb.SheetNames;
-  $('#xl-sheet').value = names.find(n => want.test(n)) || names[0];
-}
-
-async function importXlsx() {
-  const T = $('#xl-target').value;
-  const ready = state.xl.rows.filter(r => r._status === 'ok');
-  if (!ready.length || state.xl.busy) return;
-  const fields = TABLES[T].fields.map(f => f.k);
-  const payload = ready.map(r => { const o = {}; fields.forEach(k => o[k] = r[k] ?? null); return o; });
-  state.xl.busy = true;
-  $('#xl-import').disabled = true;
-  const bar = $('#xl-prog');
-  let done = 0;
-  try {
-    for (let i = 0; i < payload.length; i += 500) {
-      const chunk = payload.slice(i, i + 500);
-      const {error} = await db.from(T).insert(chunk);
-      if (error) throw error;
-      done += chunk.length;
-      bar.style.width = (done / payload.length * 100).toFixed(1) + '%';
-    }
-    toast(`Imported ${fmtI(done)} rows`);
-    state.xl.rows = [];
-    renderXlPreview();
-    await afterSave();
-  } catch (err) {
-    toast(`Stopped after ${fmtI(done)} rows: ${explainError(err)}`, true);
-    await afterSave();
-  } finally {
-    state.xl.busy = false;
-    setTimeout(() => { bar.style.width = '0%'; }, 1200);
-    updateXlCounts();
-  }
-}
-
-/* ==================================================================
-   EVENTS
-   ================================================================== */
-function showView(v) {
-  state.view = v;
-  $$('.dock button').forEach(b => b.classList.toggle('active', b.dataset.view === v));
-  ['dashboard','entry','log','excel'].forEach(n => $('#view-' + n).classList.toggle('hidden', n !== v));
-  if (v === 'log') renderLog();
-  if (v === 'dashboard') setPage(state.page);
-}
-
-const ICON = {
-  dashboard:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/></svg>',
-  entry:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
-  log:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>',
-  excel:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3m0 0l-4 4m4-4l4 4M4 15v4a2 2 0 002 2h12a2 2 0 002-2v-4"/></svg>'
-};
-
-$$('.dock button').forEach(b => b.insertAdjacentHTML('afterbegin', ICON[b.dataset.view]));
-$$('.dock button').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
-$$('.seg button').forEach(b => b.addEventListener('click', () => setPage(b.dataset.page)));
-$$('.stab').forEach(btn => btn.addEventListener('click', () => {
-  $$('.stab').forEach(b => b.classList.toggle('active', b === btn));
-  $('#ent-w').classList.toggle('hidden', btn.dataset.ent !== 'w');
-  $('#ent-r').classList.toggle('hidden', btn.dataset.ent !== 'r');
-}));
-
-$('#f-q').addEventListener('input', renderAll);
-$('#f-col').addEventListener('change', renderAll);
-$('#f-hide').addEventListener('change', renderAll);
-$('#dl-img').addEventListener('click', () => {
-  const map = {w:['#page-w','ksk-washery'], r:['#page-r','ksk-rcr-road'], s:['#page-s','ksk-do-summary']};
-  const [sel, name] = map[state.page];
-  captureImage($(sel), name);
-});
-$('#sum-do').addEventListener('change', e => loadSummary(Number(e.target.value)));
-
-function bindSort(id, key) {
-  $(id).addEventListener('click', e => {
-    const th = e.target.closest('th.sortable');
-    if (!th) return;
-    const s = state[key];
-    if (s.k === th.dataset.k) s.d = -s.d; else { s.k = th.dataset.k; s.d = 1; }
-    renderAll();
-  });
-}
-bindSort('#tbl-w', 'sortW');
-bindSort('#tbl-r', 'sortR');
-
-$('#l-table').addEventListener('change', () => { setupLogType(); renderLog(); });
-$('#l-go').addEventListener('click', renderLog);
-$('#l-clear').addEventListener('click', () => {
-  ['#l-from','#l-to','#l-do','#l-q'].forEach(s => $(s).value = '');
-  $('#l-type').value = '';
-  renderLog();
-});
-$('#l-type').addEventListener('change', renderLog);
-['#l-q','#l-do'].forEach(s => $(s).addEventListener('keydown', e => { if (e.key === 'Enter') renderLog(); }));
-$('#tbl-log').addEventListener('click', e => {
-  const b = e.target.closest('[data-edit]');
-  if (b) openEdit($('#l-table').value, b.dataset.edit);
-});
-$('#dlg-x').addEventListener('click', () => $('#dlg').close());
-$('#refresh').addEventListener('click', async () => { await loadDoSet().catch(() => {}); loadDashboard(); });
-
-$('#xl-target').addEventListener('change', () => {
-  if (state.xl.wb) { guessSheet(); parseWorkbookSheet().catch(err => toast(explainError(err), true)); }
-});
-$('#xl-sheet').addEventListener('change', () => parseWorkbookSheet().catch(err => toast(explainError(err), true)));
-const drop = $('#drop');
-drop.addEventListener('click', () => $('#xl-file').click());
-$('#xl-file').addEventListener('change', e => { if (e.target.files[0]) loadXlsxFile(e.target.files[0]); });
-['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
-['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
-drop.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) loadXlsxFile(f); });
-$('#xl-import').addEventListener('click', importXlsx);
-
-/* ==================================================================
-   START
-   ================================================================== */
-function subscribeLive() {
-  let timer;
-  const kick = () => {
-    clearTimeout(timer);
-    timer = setTimeout(async () => {
-      await loadDoSet().catch(() => {});
-      await loadDashboard();
-      if (state.view === 'log') renderLog();
-    }, 400);
-  };
-  db.channel('ksk-mis').on('postgres_changes', {event:'*', schema:'public'}, kick).subscribe();
-}
-
-async function init() {
-  setupLogType();
-  buildEntryForms();
-  if (!db) {
-    $('#setup').classList.remove('hidden');
-    $('#setup').innerHTML = '<b>Database not connected.</b> Paste the Supabase URL and anon key at the top of this file.';
-    setStatus('Not connected', 'err');
-    return;
-  }
-  try {
-    await loadDoSet();
-    await loadDashboard();
-    subscribeLive();
-    setInterval(loadDashboard, REFRESH_MS);
-  } catch (err) {
-    setStatus('Error', 'err');
-    toast('Could not connect: ' + explainError(err), true);
-  }
-}
+const SB='https://lflsewvyhyfmuegksscy.supabase.co',KEY='PASTE_YOUR_SUPABASE_ANON_KEY_HERE';
+const WASH=.85,REJ=.15;
+const db=window.supabase&&!KEY.startsWith('PASTE')?window.supabase.createClient(SB,KEY):null;
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num=v=>{if(v===null||v===undefined||v==='')return null;const n=Number(v);return Number.isFinite(n)?n:null};
+const r3=v=>Math.round(v*1000)/1000,p2=n=>String(n).padStart(2,'0');
+const fQ=v=>num(v)===null?'–':num(v).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fI=v=>num(v)===null?'–':num(v).toLocaleString('en-IN',{maximumFractionDigits:0});
+const sum=(a,k)=>a.reduce((s,x)=>s+(num(x[k])||0),0);
+function pd(s){if(s instanceof Date)return s;if(!s)return null;s=String(s).trim();let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/),y,mo,d;
+ if(m){y=+m[1];mo=+m[2];d=+m[3]}else{m=s.match(/^(\d{1,2})\s*[-/.]\s*(\d{1,2})\s*[-/.]\s*(\d{2,4})$/);if(!m)return null;d=+m[1];mo=+m[2];y=+m[3];if(y<1000)y+=2000}
+ const t=new Date(y,mo-1,d);return isNaN(t)?null:t}
+const iso=t=>`${t.getFullYear()}-${p2(t.getMonth()+1)}-${p2(t.getDate())}`;
+const fD=s=>{const d=pd(s);return d?d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):(s||'–')};
+const normD=s=>{s=(s||'').trim();if(!s)return null;const d=pd(s);return d?iso(d):s};
+function toast(m,e){const t=$('#toast');t.textContent=m;t.className='toast'+(e?' err':'');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.add('hidden'),3800)}
+function setSt(t,c){const s=$('#status');s.innerHTML='<span class="dot"></span>'+esc(t);s.className='pill '+(c||'')}
+const exErr=e=>!e?'Unknown error':/row-level|42501/.test(e.message+e.code)?'Blocked by database security rules':/does not exist|42P01/.test(e.message+e.code)?'Table missing: run ksk_setup.sql in Supabase first':e.message||String(e);
+async function fetchAll(b){let o=[];for(let f=0;;f+=1000){const{data,error}=await b().range(f,f+999);if(error)throw error;o=o.concat(data||[]);if(!data||data.length<1000)break}return o}
+
+/* ---- tables ---- */
+const TB={
+ksk_inward:{l:'Inward',dc:'rec_date',ord:'rec_date',f:[['sn_no','Sn. No.','i'],['rec_date','Rec. Date','d',1],['ch_date','Ch. Date','d'],['excise_sr_no','Excise Sr. No.','t'],['unique_no','Unique No.','t'],['do_no','D.O. No.','i',1],['gate_pass','Gate Pass','t'],['grade','Grade','t'],['vehicle_no','Vehicle No.','t',1],['gross_wt','Gross Wt.','n',1],['tare_wt','Tare Wt.','n',1],['net_wt','Net Wt.','n',1],['rec_wt','Rec. Wt.','n'],['party_name','Party Name','t'],['mines','Mines','t']],x:['vehicle_no','unique_no','excise_sr_no','gate_pass','grade','mines','party_name'],sk:'net_wt'},
+ksk_dispatch:{l:'Dispatch',dc:'disp_date',ord:'disp_date',f:[['sn_no','Sr. No.','i'],['disp_date','Date','d',1],['do_no','D.O. No.','i',1],['item','Item','t'],['vehicle_no','Vehicle No.','t',1],['gross_wt','Gross Wt.','n',1],['tare_wt','Tare Wt.','n',1],['net_wt','Net Wt.','n',1],['unique_no','Unique No.','t'],['rptp_no','RPTP No.','t'],['party_name','Party Name','t']],x:['vehicle_no','unique_no','rptp_no','item','party_name'],sk:'net_wt'},
+ksk_dashboard_values:{l:'D.O. values',dc:null,ord:'sn_no',f:[['do_no','D.O. No.','i',1],['section','Section','t'],['sn_no','Sn. No.','i'],['colliery','Colliery','t'],['party_name','Party','t'],['issue_date','Issue','t'],['sized','Sized','t'],['lapsing_date','Lapsing','t'],['do_qty','D.O. Qty','n'],['asking','Asking','n'],['daily_lift','Daily Lift','n'],['daily_dispatch','Daily Dispatch','n'],['rr_no','RR No','t'],['rr_date','RR Date','t'],['rr_qty','RR Qty','n'],['ch_qty','CH Qty','n']],x:['colliery','party_name','sized'],sk:'do_qty'}};
+const lab=(t,k)=>TB[t].f.find(f=>f[0]==k)[1];
+const S={vals:[],inS:{},dsS:{},rows:[],view:'dashboard',page:'w',sort:{w:{k:'_s',d:1},r:{k:'_s',d:1},o:{k:'_s',d:1}},pg:0,xl:{wb:null,rows:[],busy:false}};
+
+/* ---- formulas (each can be overridden per D.O. via ov; override = formula disconnected) ---- */
+function calc(d,ov){ov=ov||d.ov||{};const m={},I=S.inS[d.do_no]||{trips:0,net:0},D=S.dsS[d.do_no]||{trips:0,net:0};
+ const pk=(k,f)=>{const v=num(ov[k]);if(v!==null){m[k]=1;return v}return f};
+ const trips=pk('trips',I.trips),rec=pk('rec_qty',r3(I.net)),mines=pk('mines_bal',r3((num(d.do_qty)||0)-rec)),wash=pk('wash_coal',r3(rec*WASH)),rej=pk('reject',r3(rec*REJ)),
+ dt=pk('disp_trips',D.trips),dq=pk('disp_qty',r3(D.net)),bal=pk('washery_bal',r3((d.section=='WASHERY'?wash:rec)-dq));
+ return{...d,trips,rec_qty:rec,mines_bal:mines,wash_coal:wash,reject:rej,disp_trips:dt,disp_qty:dq,washery_bal:bal,m}}
+const isClosed=x=>x.mines_bal<=.005&&(x.section=='ROAD'||x.washery_bal<=.005);
+const stRank=x=>isClosed(x)?2:(pd(x.lapsing_date)&&pd(x.lapsing_date)<new Date(new Date().toDateString())?1:0);
+const stPill=x=>['<span class="st open">Open</span>','<span class="st over">Overdue</span>','<span class="st done">Closed</span>'][stRank(x)];
+
+async function load(){if(!db)return setSt('Not connected','err');setSt('Loading…');
+ const[v,i,d]=await Promise.all([db.from('ksk_dashboard_values').select('*').order('sn_no'),db.from('ksk_inward_sum').select('*'),db.from('ksk_dispatch_sum').select('*')]);
+ const e=v.error||i.error||d.error;if(e){setSt('Error','err');return toast(exErr(e),true)}
+ S.vals=v.data;S.inS={};S.dsS={};i.data.forEach(r=>S.inS[r.do_no]={trips:r.trips,net:num(r.net_qty)||0});d.data.forEach(r=>S.dsS[r.do_no]={trips:r.trips,net:num(r.net_qty)||0});
+ S.rows=S.vals.map(x=>calc(x));setSt('Live','live');$('#updated').textContent='Updated '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+ const nm=[...new Set(S.rows.map(x=>(x.colliery||'').trim()).filter(Boolean).map(s=>s.toLowerCase()))].sort(),c=$('#f-col').value;
+ $('#f-col').innerHTML='<option value="">All collieries</option>'+nm.map(n=>`<option value="${esc(n)}">${esc(n.replace(/^./,m=>m.toUpperCase()))}</option>`).join('');$('#f-col').value=c;
+ const dl=S.rows.map(x=>`<option value="${x.do_no}">${x.do_no} · ${esc(x.colliery||'')}</option>`).join('');
+ $('#l-do').innerHTML='<option value="">All D.O.s</option>'+dl;$('#s-do').innerHTML=dl;renderAll();pickOpts()}
+
+/* ---- dashboard ---- */
+const INFO=[['colliery','Colliery','t'],['party_name','Party','t'],['issue_date','Issue','dt'],['sized','Sized','t'],['lapsing_date','Lapsing','dt'],['do_no','D.O. No.','id'],['do_qty','D.O. Qty','q']];
+const MB=[['asking','Asking','q'],['daily_lift','Daily Lift','q'],['trips','Trips','i'],['rec_qty','Rec. Qty','q'],['mines_bal','Mines Bal.','q']];
+const TD={
+ w:{id:'#t-w',g:[['',INFO,0],['Mines balance',MB,2],['Washery output',[['wash_coal','Wash Coal 85%','q'],['reject','Reject 15%','q']],3],['Dispatch (Outward)',[['daily_dispatch','Daily Dispatch','q'],['disp_trips','Trips','i'],['disp_qty','Dispatch Qty','q'],['washery_bal','Washery Bal.','q']],4]]},
+ r:{id:'#t-r',g:[['',INFO,0],['Mines balance',MB,2],['Rake dispatch',[['disp_qty','Dispatch by Rake','q'],['washery_bal','Balance at IUIK','q']],1],['Rake details',[['rr_no','RR No.','t'],['rr_date','RR Date','dt'],['rr_qty','RR Qty','q'],['ch_qty','CH Qty','q']],4]]},
+ o:{id:'#t-o',g:[['',INFO,0],['Lifting',[['daily_lift','Daily Lift','q'],['rec_qty','Lifted Qty','q'],['mines_bal','Bal. in Mines','q'],['disp_qty','Dispatch Qty','q']],2]]}};
+function cell(c,x){const[k,,t,g,gs]=c,v=x[k],cl=(g?'g'+g+' ':'')+(gs?'gs ':''),dot=x.m&&x.m[k]?'<i class="mv" title="Manual value"></i>':'';
+ if(t=='dt')return`<td class="${cl}">${fD(v)}</td>`;if(t=='id')return`<td class="${cl}id">${esc(v)}${stPill(x)}</td>`;
+ if(t=='q'||t=='i'){const n=(k=='mines_bal'||k=='washery_bal')&&num(v)<-.005;return`<td class="${cl}num ${n?'neg':''}">${t=='q'?fQ(v):fI(v)}${dot}</td>`}
+ return v==null||v===''?`<td class="${cl}"><span class="muted">–</span></td>`:`<td class="${cl}t" title="${esc(v)}">${esc(v)}</td>`}
+function drawT(key,rows){const T=TD[key],cols=[],sr=S.sort[key];T.g.forEach(([,cs,g],gi)=>cs.forEach((c,ci)=>cols.push([...c,g,gi&&!ci])));
+ const ar=k=>sr.k==k?(sr.d>0?' ▲':' ▼'):'';
+ rows=[...rows].sort((a,b)=>{if(sr.k=='_s')return(stRank(a)-stRank(b))*sr.d||a.sn_no-b.sn_no;const x=a[sr.k],y=b[sr.k];if(x==null)return 1;if(y==null)return -1;return(typeof x=='number'?x-y:String(x).localeCompare(String(y),'en-IN',{numeric:true}))*sr.d});
+ $(T.id).innerHTML=`<thead><tr class="grp">${T.g.map(([l,cs,g])=>`<th colspan="${cs.length}" class="${g?'g'+g:''}">${esc(l)}</th>`).join('')}</tr><tr>${cols.map(c=>`<th data-k="${c[0]}" data-t="${key}" class="so ${c[3]?'g'+c[3]:''} ${c[2]=='q'||c[2]=='i'?'num':''} ${c[4]?'gs':''}">${esc(c[1])}${ar(c[0])}</th>`).join('')}</tr></thead>`+
+ (rows.length?'<tbody>'+rows.map(x=>'<tr>'+cols.map(c=>cell(c,x)).join('')+'</tr>').join('')+'</tbody><tfoot><tr>'+cols.map((c,i)=>i==0?`<td>Total · ${rows.length}</td>`:c[2]=='q'||c[2]=='i'?`<td class="num ${c[3]?'g'+c[3]:''}">${c[2]=='q'?fQ(sum(rows,c[0])):fI(sum(rows,c[0]))}</td>`:'<td></td>').join('')+'</tr></tfoot>':`<tbody><tr><td class="empty" colspan="${cols.length}">No D.O.s match.</td></tr></tbody>`);
+ return rows.length}
+const card=(l,v,c,s,f)=>`<div class="card ${c}"><span>${l}</span><b>${f=='i'?fI(v):fQ(v)}</b><small>${s||''}</small></div>`;
+function filt(sec){const q=$('#f-q').value.trim().toLowerCase(),c=$('#f-col').value,h=$('#f-hide').checked;
+ return S.rows.filter(x=>sec.includes(x.section)&&(!c||(x.colliery||'').trim().toLowerCase()==c)&&(!h||!isClosed(x))&&(!q||[x.do_no,x.colliery,x.party_name].join(' ').toLowerCase().includes(q)))}
+function renderAll(){const W=filt(['WASHERY']),R=filt(['RCR']),O=filt(['ROAD']),aw=S.rows.filter(x=>x.section=='WASHERY'),ar=S.rows.filter(x=>x.section!='WASHERY');
+ $('#c-w').innerHTML=card('D.O. quantity',sum(aw,'do_qty'),'',aw.length+' D.O.s')+card('Received',sum(aw,'rec_qty'),'',`${sum(aw,'do_qty')?(sum(aw,'rec_qty')/sum(aw,'do_qty')*100).toFixed(1):0}% of D.O. qty`)+card('Dispatched',sum(aw,'disp_qty'),'k',`${sum(aw,'wash_coal')?(sum(aw,'disp_qty')/sum(aw,'wash_coal')*100).toFixed(1):0}% of 85% output`)+card('Washery balance',sum(aw,'washery_bal'),'o','Output not yet dispatched')+card('Mines balance',sum(aw,'mines_bal'),'r','D.O. qty not yet received');
+ $('#c-r').innerHTML=card('D.O. quantity',sum(ar,'do_qty'),'r',ar.length+' RCR + Road D.O.s')+card('Lifted',sum(ar,'rec_qty'),'r','RCR + Road')+card('Balance in mines',sum(ar,'mines_bal'),'x','Not yet lifted')+card('RCR balance at IUIK',sum(ar.filter(x=>x.section=='RCR'),'washery_bal'),'o','Lifted − rake dispatch')+card('Active D.O.s',ar.filter(x=>!isClosed(x)).length,'s','Balance above zero','i');
+ const n=[drawT('w',W),drawT('r',R),drawT('o',O)];$('#n-w').textContent=`${W.length} of ${aw.length} shown`;$('#n-r').textContent=`${R.length} shown`;$('#n-o').textContent=`${O.length} shown`;
+ const known=new Set(S.vals.map(x=>x.do_no)),un=[...new Set([...Object.keys(S.inS),...Object.keys(S.dsS)])].filter(d=>!known.has(Number(d)));
+ $('#alert').classList.toggle('hidden',!un.length);$('#alert').innerHTML=`<b>Check D.O. numbers:</b> entries exist for D.O.s not in the list, so they are not shown: ${un.join(', ')}. Add them under Data entry → D.O. &amp; values.`}
+function setPage(p){S.page=p;$$('.seg button').forEach(b=>b.classList.toggle('active',b.dataset.p==p));['w','r','s'].forEach(x=>$('#p-'+x).classList.toggle('hidden',x!=p));$('#flt').classList.toggle('hidden',p=='s');p=='s'?loadSum():renderAll()}
+async function loadSum(){const d=S.rows.find(x=>x.do_no==$('#s-do').value)||S.rows[0];if(!d)return;$('#s-do').value=d.do_no;$('#h-do').textContent=d.do_no;
+ $('#h-sub').textContent=`${d.colliery||'–'} · ${d.party_name||'–'} · Issued ${fD(d.issue_date)} · Lapses ${fD(d.lapsing_date)}`;$('#h-st').innerHTML=stPill(d);
+ const w=d.section=='WASHERY',[a,b]=await Promise.all([db.from('ksk_inward').select('rec_date,vehicle_no,net_wt,unique_no').eq('do_no',d.do_no).order('rec_date',{ascending:false}).limit(25),db.from('ksk_dispatch').select('disp_date,vehicle_no,net_wt,unique_no').eq('do_no',d.do_no).order('disp_date',{ascending:false}).limit(25)]);
+ const rc=[...(a.data||[]).map(x=>[x.rec_date,'IN',x.vehicle_no,x.net_wt,x.unique_no]),...(b.data||[]).map(x=>[x.disp_date,'OUT',x.vehicle_no,x.net_wt,x.unique_no])].sort((x,y)=>x[0]<y[0]?1:-1);
+ $('#s-body').innerHTML=`<div class="cards">${card('D.O. quantity',d.do_qty,w?'':'r',d.section)}${card('Received / lifted',d.rec_qty,'',`${d.trips} trips`,'q')}${card('Mines balance',d.mines_bal,'r','D.O. qty − received')}${w?card('Wash coal 85%',d.wash_coal,'s','Reject 15%: '+fQ(d.reject)):''}${card('Dispatched',d.disp_qty,'k',d.disp_trips+' trips')}${card(w?'Washery balance':'Balance at IUIK',d.washery_bal,'o','')}</div>
+ <div class="glass"><div class="glass-h"><h2>Recent movements</h2><span class="sub">latest entries</span></div><div class="sc"><table><thead><tr><th>Date</th><th>Type</th><th>Vehicle</th><th class="num">Net (MT)</th><th>Unique no.</th></tr></thead><tbody>${rc.map(r=>`<tr><td>${fD(r[0])}</td><td><span class="badge">${r[1]}</span></td><td>${esc(r[2])}</td><td class="num">${fQ(r[3])}</td><td class="muted">${esc(r[4]||'')}</td></tr>`).join('')||'<tr><td colspan="5" class="empty">No entries for this D.O.</td></tr>'}</tbody></table></div></div>`}
+async function capture(){if(!window.html2canvas)return toast('Image library did not load',true);
+ const w=document.createElement('div');w.className='capwrap';w.style.cssText='position:fixed;left:-20000px;top:0;width:1500px';w.innerHTML=`<div class="caph"><span>KSK Mahanadi · Stock summary</span><span>${new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'})}</span></div>`;
+ ['#p-w','#p-r'].forEach(s=>{const c=$(s).cloneNode(true);c.classList.remove('hidden');c.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));c.removeAttribute('id');[c,...c.querySelectorAll('.sc,.glass,.page')].forEach(n=>n.style.cssText+=';height:auto!important;max-height:none!important;overflow:visible!important;flex:none!important');w.appendChild(c)});
+ document.body.appendChild(w);try{toast('Preparing image…');const cv=await html2canvas(w,{backgroundColor:'#f6f8fc',scale:2,logging:false}),a=document.createElement('a');a.download=`ksk-mahanadi-${iso(new Date())}.png`;a.href=cv.toDataURL('image/png');a.click();toast('Image downloaded')}catch(e){toast('Image failed: '+e.message,true)}finally{w.remove()}}
+
+/* ---- entry forms (inward / dispatch) ---- */
+function mkForm(t,o={}){const T=TB[t],v=o.values||{},f=document.createElement('form');f.className='form';
+ f.innerHTML=T.f.map(([k,l,ty,rq])=>`<label class="fld"><span>${l}${rq?' *':''}</span><input type="${ty=='d'?'date':ty=='t'?'text':'number'}" ${ty=='t'?'':'step="any"'} name="${k}" value="${esc(v[k]??'')}" ${k=='vehicle_no'?'style="text-transform:uppercase"':''}></label>`).join('')+`<div class="msg"></div><div class="row">${o.edit?'':'<button type="button" class="btn ghost" data-c>Clear</button>'}<button class="btn primary">${o.edit?'Save changes':'Save entry'}</button></div>`;
+ f.querySelector('[data-c]')?.addEventListener('click',()=>f.reset());
+ f.addEventListener('submit',async e=>{e.preventDefault();const m=f.querySelector('.msg'),p={};m.className='msg';m.textContent='';
+  for(const[k,l,ty,rq]of T.f){let x=f.elements[k].value.trim();if(ty=='n'||ty=='i'){x=x===''?null:Number(x);if(x!==null&&(!Number.isFinite(x)||(ty=='i'&&!Number.isInteger(x))))return m.className='msg err',m.textContent=l+': enter a valid number'}else x=x||null;
+   if(k=='vehicle_no'&&x)x=x.toUpperCase();if(rq&&x===null)return m.className='msg err',m.textContent=l+' is required';p[k]=x}
+  if(!S.vals.some(d=>d.do_no==p.do_no)&&!confirm(`D.O. ${p.do_no} is not in the dashboard list. Save anyway?`))return;
+  const b=f.querySelector('.primary');b.disabled=true;
+  const{error}=o.edit?await db.from(t).update(p).eq('id',v.id):await db.from(t).insert(p);b.disabled=false;
+  if(error)return m.className='msg err',m.textContent=exErr(error);toast(o.edit?'Changes saved':'Entry saved');
+  if(!o.edit){const keep={};['rec_date','disp_date','ch_date','do_no','party_name','mines','grade','item'].forEach(k=>{if(f.elements[k])keep[k]=f.elements[k].value});f.reset();for(const k in keep)f.elements[k].value=keep[k]}
+  o.done?.()});return f}
+
+/* ---- D.O. & values form: 3 panels, overrides per value ---- */
+const OVK=[['trips','Trips'],['rec_qty','Rec. Qty (net sum of inward)'],['mines_bal','Mines Bal.'],['wash_coal','Wash Coal 85%'],['reject','Reject Coal 15%'],['disp_trips','Dispatch Trips'],['disp_qty','Dispatch Qty'],['washery_bal','Washery Bal. / Balance at IUIK']];
+function buildDo(){const fl=(n,l,t='text',x='')=>`<label class="fld ${x}"><span>${l}</span><input name="${n}" type="${t}" ${t=='number'?'step="any"':''}></label>`;
+ $('#e-do').innerHTML=`<form id="do-f" class="eg" style="grid-column:1/-1;grid-template-columns:repeat(3,minmax(0,1fr))" novalidate>
+ <div class="panel" style="--c:#0d9488"><h3>1 · D.O. details</h3><div class="form"><label class="fld full"><span>Edit existing D.O.</span><select id="do-pick"></select></label>
+ <label class="fld"><span>Section *</span><select name="section"><option>WASHERY</option><option>RCR</option><option>ROAD</option></select></label>${fl('do_no','D.O. No *','number')}${fl('colliery','Colliery')}${fl('party_name','Party')}${fl('issue_date','Issue (dd-mm-yyyy or text)')}${fl('sized','Sized')}${fl('lapsing_date','Lapsing (dd-mm-yyyy or text)')}${fl('do_qty','D.O. Qty (MT)','number')}${fl('sn_no','Sn. No.','number')}</div></div>
+ <div class="panel" style="--c:#d97706"><h3>2 · Manual values</h3><div class="form">${fl('asking','Asking')}${fl('daily_lift','Daily Lift')}${fl('daily_dispatch','Daily Dispatch')}<div class="note full">Rake details (RCR only)</div>${fl('rr_no','RR No.')}${fl('rr_date','RR Date')}${fl('rr_qty','RR Qty','number')}${fl('ch_qty','CH Qty','number')}
+ <div class="msg"></div><div class="row"><button type="button" class="btn red" id="do-del">Delete D.O.</button><button class="btn primary">Save D.O.</button></div></div></div>
+ <div class="panel" style="--c:#7c3aed"><h3>3 · Override calculated values</h3><div class="form"><div class="note">Empty = calculated from inward / dispatch (placeholder shows the formula result). Type a value to set it manually; that value stops following the formula.</div>
+ ${OVK.map(([k,l])=>`<label class="fld full"><span>${l}</span><input class="ov" type="number" step="any" name="ov_${k}" placeholder=" "></label>`).join('')}<div class="row"><button type="button" class="btn ghost" id="ov-reset">Reset all to formula</button></div></div></div></form>`;
+ const f=$('#do-f');f.addEventListener('input',ph);$('#do-pick').addEventListener('change',fillDoForm);
+ $('#ov-reset').onclick=()=>{OVK.forEach(([k])=>f.elements['ov_'+k].value='');ph()};
+ $('#do-del').onclick=async()=>{const n=f.elements.do_no.value;if(!$('#do-pick').value||!confirm(`Delete D.O. ${n} from the list? Inward/dispatch entries are kept.`))return;const{error}=await db.from('ksk_dashboard_values').delete().eq('do_no',n);error?toast(exErr(error),true):(toast('D.O. deleted'),$('#do-pick').value='',await load())};
+ f.addEventListener('submit',async e=>{e.preventDefault();const m=f.querySelector('.msg'),g=k=>f.elements[k].value.trim(),n=k=>g(k)===''?null:Number(g(k));m.className='msg';m.textContent='';
+  const dn=n('do_no');if(!Number.isInteger(dn))return m.className='msg err',m.textContent='D.O. No is required (whole number)';
+  const ov={};OVK.forEach(([k])=>{const v=n('ov_'+k);if(v!==null&&Number.isFinite(v))ov[k]=v});
+  const p={do_no:dn,section:g('section'),sn_no:n('sn_no'),colliery:g('colliery')||null,party_name:g('party_name')||null,issue_date:normD(g('issue_date')),sized:g('sized')||null,lapsing_date:normD(g('lapsing_date')),do_qty:n('do_qty'),asking:n('asking'),daily_lift:n('daily_lift'),daily_dispatch:n('daily_dispatch'),rr_no:g('rr_no')||null,rr_date:normD(g('rr_date')),rr_qty:n('rr_qty'),ch_qty:n('ch_qty'),ov,updated_at:new Date().toISOString()};
+  const{error}=await db.from('ksk_dashboard_values').upsert(p,{onConflict:'do_no'});if(error)return m.className='msg err',m.textContent=exErr(error);toast('D.O. saved');await load();$('#do-pick').value=dn;fillDoForm()})}
+function ph(){const f=$('#do-f');if(!f)return;const dn=Number(f.elements.do_no.value),base=S.vals.find(x=>x.do_no==dn)||{do_no:dn,section:f.elements.section.value,do_qty:num(f.elements.do_qty.value)||0},ov={};
+ OVK.forEach(([k])=>{const v=num(f.elements['ov_'+k].value);if(v!==null)ov[k]=v});const d={...base,section:f.elements.section.value,do_qty:num(f.elements.do_qty.value)||0};
+ OVK.forEach(([k])=>{const o2={...ov};delete o2[k];f.elements['ov_'+k].placeholder='formula: '+fQ(calc(d,o2)[k])})}
+function pickOpts(){const pk=$('#do-pick');if(!pk)return;const cur=pk.value;
+ pk.innerHTML='<option value="">➕ New D.O.</option>'+S.rows.map(x=>`<option value="${x.do_no}">${x.do_no} · ${x.section} · ${esc(x.colliery||'')}</option>`).join('');pk.value=S.rows.some(x=>x.do_no==cur)?cur:'';ph()}
+function fillDoForm(){const f=$('#do-f');if(!f)return;pickOpts();const pk=$('#do-pick');
+ const d=S.vals.find(x=>x.do_no==pk.value)||{section:'WASHERY',ov:{}};
+ ['section','do_no','colliery','party_name','issue_date','sized','lapsing_date','do_qty','sn_no','asking','daily_lift','daily_dispatch','rr_no','rr_date','rr_qty','ch_qty'].forEach(k=>f.elements[k].value=d[k]??'');
+ OVK.forEach(([k])=>f.elements['ov_'+k].value=(d.ov||{})[k]??'');f.elements.do_no.readOnly=!!pk.value;ph()}
+
+/* ---- log ---- */
+function logQ(sel,opt){const t=$('#l-t').value,T=TB[t];let q=db.from(t).select(sel,opt);const g=id=>$(id).value;
+ if(T.dc){g('#l-from')&&(q=q.gte(T.dc,g('#l-from')));g('#l-to')&&(q=q.lte(T.dc,g('#l-to')))}
+ g('#l-do')&&(q=q.eq('do_no',g('#l-do')));t=='ksk_dashboard_values'&&g('#l-sec')&&(q=q.eq('section',g('#l-sec')));
+ T.x.forEach(k=>{const v=$('#lx-'+k)?.value.trim().replace(/[,()*%]/g,' ');v&&(q=q.ilike(k,`%${v}%`))});return q}
+function setupLog(){const t=$('#l-t').value,T=TB[t];$('#l-x').innerHTML=T.x.map(k=>`<input id="lx-${k}" placeholder="${lab(t,k)}" style="width:140px">`).join('');
+ $$('#l-from,#l-to').forEach(e=>e.classList.toggle('hidden',!T.dc));$('#l-sec').classList.toggle('hidden',t!='ksk_dashboard_values');$('#l-ord').value=t=='ksk_dashboard_values'?'0':'1';$('#l-x').onkeydown=e=>e.key=='Enter'&&(S.pg=0,renderLog())}
+async function renderLog(){if(!db)return;const t=$('#l-t').value,T=TB[t],PS=500,asc=$('#l-ord').value=='0';$('#l-info').textContent='Loading…';
+ const{data,error,count}=await logQ('*',{count:'exact'}).order(T.ord,{ascending:asc}).order(t=='ksk_dashboard_values'?'do_no':'id',{ascending:asc}).range(S.pg*PS,S.pg*PS+PS-1);
+ if(error){$('#l-info').textContent='';return toast(exErr(error),true)}
+ let tot='';try{tot=' · total '+fQ(sum(await fetchAll(()=>logQ(T.sk).order(t=='ksk_dashboard_values'?'do_no':'id')),T.sk))+' MT ('+lab(t,T.sk)+')'}catch(e){}
+ $('#l-info').textContent=`${count} row${count==1?'':'s'} · showing ${count?S.pg*PS+1:0}–${S.pg*PS+data.length}${tot}`;$('#l-pv').disabled=S.pg==0;$('#l-nx').disabled=(S.pg+1)*PS>=count;
+ const ed=t!='ksk_dashboard_values'?'edit':'open';
+ $('#t-log').innerHTML=`<thead><tr>${T.f.map(f=>`<th class="${f[2]=='n'?'num':''}">${f[1]}</th>`).join('')}<th></th></tr></thead><tbody>`+(data.length?data.map(r=>'<tr>'+T.f.map(([k,,ty])=>{const v=r[k];return v==null||v===''?'<td class="muted">–</td>':ty=='d'?`<td>${fD(v)}</td>`:ty=='n'?`<td class="num">${fQ(v)}</td>`:ty=='i'?`<td class="num">${v}</td>`:`<td class="t" title="${esc(v)}">${esc(v)}</td>`}).join('')+`<td><button class="btn small" data-a="${ed}" data-id="${r.id??r.do_no}">${ed=='edit'?'Edit':'Open'}</button>${ed=='edit'?` <button class="btn small red" data-a="del" data-id="${r.id}">Delete</button>`:''}</td></tr>`).join(''):`<tr><td class="empty" colspan="${T.f.length+1}">No records match.</td></tr>`)+'</tbody>';
+ $('#t-log')._r=data}
+async function expLog(){const t=$('#l-t').value;try{const d=await fetchAll(()=>logQ('*').order(t=='ksk_dashboard_values'?'do_no':'id'));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(d.map(r=>{const o={};TB[t].f.forEach(f=>o[f[1]]=r[f[0]]);return o})),TB[t].l);XLSX.writeFile(wb,`ksk-${TB[t].l}-${iso(new Date())}.xlsx`)}catch(e){toast(exErr(e),true)}}
+
+/* ---- excel upload ---- */
+const nk=s=>String(s??'').toLowerCase().replace(/[^a-z0-9]/g,'');
+const AL={snno:'sn_no',srno:'sn_no',chdate:'ch_date',dono:'do_no',grosswt:'gross_wt',tarewt:'tare_wt',netwt:'net_wt',recwt:'rec_wt',partyname:'party_name',uniqueno:'unique_no',vehicleno:'vehicle_no',excisesrno:'excise_sr_no',gatepass:'gate_pass',rptpno:'rptp_no'};
+function xDate(v){if(v instanceof Date&&!isNaN(v))return iso(v);if(typeof v=='number'&&v>0){const d=new Date(Math.round((Math.floor(v)-25569)*864e5));return`${d.getUTCFullYear()}-${p2(d.getUTCMonth()+1)}-${p2(d.getUTCDate())}`}const d=typeof v=='string'?pd(v):null;return d?iso(d):null}
+async function parseSheet(){const t=$('#x-t').value,T=TB[t],ws=S.xl.wb.Sheets[$('#x-s').value],rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:null,blankrows:false});let h=-1;
+ for(let i=0;i<Math.min(rows.length,40)&&h<0;i++){const k=rows[i].map(nk);if(k.includes('dono')&&k.includes('vehicleno'))h=i}
+ if(h<0)return xMsg('No header row with "D.O. No" and "Vehicle No" found in this sheet.');
+ const hm={};T.f.forEach(f=>{hm[nk(f[0])]=f[0];hm[nk(f[1])]=f[0]});Object.assign(hm,AL);hm.date=T.dc;const col={};rows[h].forEach((x,i)=>{const f=hm[nk(x)];if(f&&!(f in col)&&T.f.some(z=>z[0]==f))col[f]=i});
+ const miss=T.f.filter(f=>f[3]&&!(f[0] in col)).map(f=>f[1]);if(miss.length)return xMsg('Missing columns: '+miss.join(', '));
+ const out=[];let skip=0;for(let i=h+1;i<rows.length;i++){const r=rows[i],o={_row:i+1,_e:[]};
+  if(nk(r[col.do_no])=='dono'||(r[col.vehicle_no]==null&&r[col[T.dc]]==null&&r[col.do_no]==null)){skip++;continue}
+  for(const[k,l,ty,rq]of T.f){if(!(k in col))continue;const x=r[col[k]];let v=null;
+   if(ty=='d')v=xDate(x);else if(ty=='n'||ty=='i'){v=typeof x=='number'?x:parseFloat(String(x??'').replace(/,/g,''));v=Number.isFinite(v)?v:null;if(ty=='i'&&v!==null)v=Math.round(v)}else v=x==null||String(x).trim()===''?null:String(x).trim();
+   if(k=='vehicle_no'&&v)v=v.toUpperCase();o[k]=v;if(rq&&v===null)o._e.push(l)}
+  o._err=o._e.length?'missing/invalid: '+o._e.join(', '):'';out.push(o)}
+ const dos=[...new Set(out.filter(o=>!o._err).map(o=>o.do_no))],ex=new Set(),dk=o=>[o.do_no,o.unique_no,o[T.dc],o.vehicle_no,(+o.gross_wt).toFixed(3),(+o.tare_wt).toFixed(3)].join('|');
+ if(dos.length)(await fetchAll(()=>db.from(t).select('do_no,unique_no,vehicle_no,gross_wt,tare_wt,'+T.dc).in('do_no',dos).order('id'))).forEach(r=>ex.add(dk(r)));
+ const seen=new Set();out.forEach(o=>{if(o._err){o._s='er';return}const k=dk(o);if(ex.has(k)||seen.has(k)){o._s='dup';o._err='already in database or repeated in file';return}seen.add(k);o._s='ok'});S.xl.rows=out;S.xl.skip=skip;drawX()}
+function xMsg(m){S.xl.rows=[];$('#t-x').innerHTML=`<tbody><tr><td class="empty">${esc(m)}</td></tr></tbody>`;$('#x-i').textContent=m;cntX()}
+function cntX(){const c={ok:0,dup:0,er:0};S.xl.rows.forEach(r=>c[r._s]++);$('#c-ok').textContent=fI(c.ok);$('#c-dup').textContent=fI(c.dup);$('#c-err').textContent=fI(c.er);$('#x-imp').disabled=!c.ok||S.xl.busy}
+function drawX(){cntX();const t=$('#x-t').value,T=TB[t],r=S.xl.rows;$('#x-i').textContent=`${r.length} data rows · ${S.xl.skip||0} blank/header/total lines skipped · showing first 150`;
+ $('#t-x').innerHTML=`<thead><tr><th>Row</th><th>Status</th>${T.f.map(f=>`<th>${f[1]}</th>`).join('')}<th>Note</th></tr></thead><tbody>`+r.slice(0,150).map(o=>`<tr><td class="muted">${o._row}</td><td class="${o._s}" style="font-weight:700">${{ok:'Ready',dup:'Duplicate',er:'Error'}[o._s]}</td>${T.f.map(([k,,ty])=>`<td class="${ty=='n'?'num':''}">${o[k]==null?'–':ty=='n'?fQ(o[k]):ty=='d'?fD(o[k]):esc(o[k])}</td>`).join('')}<td class="muted">${esc(o._err)}</td></tr>`).join('')+'</tbody>'}
+function loadX(file){const rd=new FileReader();rd.onload=e=>{try{S.xl.wb=XLSX.read(e.target.result,{type:'array'})}catch(x){return toast('Cannot read file: '+x.message,true)}
+ const n=S.xl.wb.SheetNames,s=$('#x-s');s.disabled=false;s.innerHTML=n.map(x=>`<option>${esc(x)}</option>`).join('');guess();parseSheet().catch(x=>toast(exErr(x),true))};rd.readAsArrayBuffer(file)}
+const guess=()=>{const re=$('#x-t').value=='ksk_inward'?/inward/i:/dispatch/i,n=S.xl.wb.SheetNames;$('#x-s').value=n.find(x=>re.test(x))||n[0]};
+async function impX(){const t=$('#x-t').value,T=TB[t],ok=S.xl.rows.filter(r=>r._s=='ok');if(!ok.length||S.xl.busy)return;S.xl.busy=true;$('#x-imp').disabled=true;let n=0;
+ try{for(let i=0;i<ok.length;i+=500){const ch=ok.slice(i,i+500).map(r=>{const o={};T.f.forEach(f=>o[f[0]]=r[f[0]]??null);return o}),{error}=await db.from(t).insert(ch);if(error)throw error;n+=ch.length;$('#x-p').style.width=(n/ok.length*100)+'%'}
+  toast(`Imported ${fI(n)} rows`);S.xl.rows=[];drawX()}catch(e){toast(`Stopped after ${fI(n)} rows: ${exErr(e)}`,true)}finally{S.xl.busy=false;await load();setTimeout(()=>$('#x-p').style.width='0',1200);cntX()}}
+
+/* ---- events ---- */
+const IC={dashboard:'<rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/>',entry:'<path d="M12 5v14M5 12h14"/>',log:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',excel:'<path d="M12 15V3m0 0l-4 4m4-4l4 4M4 15v4a2 2 0 002 2h12a2 2 0 002-2v-4"/>'};
+$$('#dock button').forEach(b=>{b.insertAdjacentHTML('afterbegin',`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">${IC[b.dataset.v]}</svg>`);b.onclick=()=>{S.view=b.dataset.v;$$('#dock button').forEach(x=>x.classList.toggle('active',x==b));['dashboard','entry','log','excel'].forEach(n=>$('#v-'+n).classList.toggle('hidden',n!=S.view));S.view=='log'&&renderLog();S.view=='dashboard'&&setPage(S.page)}});
+$$('.seg button').forEach(b=>b.onclick=()=>setPage(b.dataset.p));
+$$('.stab').forEach(b=>b.onclick=()=>{$$('.stab').forEach(x=>x.classList.toggle('active',x==b));['do','in','out'].forEach(n=>$('#e-'+n).classList.toggle('hidden',n!=b.dataset.e))});
+['#f-q','#f-col','#f-hide'].forEach(s=>$(s).addEventListener('input',renderAll));$('#dl').onclick=capture;$('#s-do').onchange=loadSum;
+document.addEventListener('click',e=>{const th=e.target.closest('th.so');if(!th)return;const s=S.sort[th.dataset.t];s.k==th.dataset.k?s.d*=-1:(s.k=th.dataset.k,s.d=1);renderAll()});
+$('#l-t').onchange=()=>{S.pg=0;setupLog();renderLog()};$('#l-go').onclick=()=>{S.pg=0;renderLog()};$('#l-ord').onchange=()=>{S.pg=0;renderLog()};$('#l-exp').onclick=expLog;
+$('#l-clr').onclick=()=>{$$('#l-from,#l-to,#l-do,#l-sec,#l-x input').forEach(e=>e.value='');S.pg=0;renderLog()};$('#l-pv').onclick=()=>{S.pg--;renderLog()};$('#l-nx').onclick=()=>{S.pg++;renderLog()};
+$('#t-log').addEventListener('click',async e=>{const b=e.target.closest('[data-a]');if(!b)return;const t=$('#l-t').value,id=b.dataset.id,a=b.dataset.a;
+ if(a=='open'){$('#dock [data-v=entry]').click();$$('.stab')[0].click();$('#do-pick').value=id;return fillDoForm()}
+ if(a=='del'){if(!confirm('Delete this entry permanently?'))return;const{error}=await db.from(t).delete().eq('id',id);return error?toast(exErr(error),true):(toast('Deleted'),renderLog(),load())}
+ const row=$('#t-log')._r.find(r=>String(r.id)==id);if(!row)return;$('#dlg-t').textContent=`Edit · ${TB[t].l} · #${id}`;$('#dlg-b').innerHTML='';$('#dlg-b').append(mkForm(t,{edit:1,values:row,done:()=>{$('#dlg').close();renderLog();load()}}));$('#dlg').showModal()});
+$('#refresh').onclick=load;$('#x-t').onchange=()=>{S.xl.wb&&(guess(),parseSheet().catch(x=>toast(exErr(x),true)))};$('#x-s').onchange=()=>parseSheet().catch(x=>toast(exErr(x),true));
+const dp=$('#drop');dp.onclick=()=>$('#x-f').click();$('#x-f').onchange=e=>e.target.files[0]&&loadX(e.target.files[0]);['dragover','drop'].forEach(v=>dp.addEventListener(v,e=>e.preventDefault()));dp.addEventListener('drop',e=>e.dataTransfer.files[0]&&loadX(e.dataTransfer.files[0]));$('#x-imp').onclick=impX;
+
+async function init(){setupLog();buildDo();$('#f-in').append(mkForm('ksk_inward',{done:load}));$('#f-out').append(mkForm('ksk_dispatch',{done:load}));if(!db){toast('Paste your Supabase anon key at the top of the script (KEY).',true);return setSt('Not connected','err')}
+ await load();let tm;db.channel('ksk').on('postgres_changes',{event:'*',schema:'public'},()=>{clearTimeout(tm);tm=setTimeout(()=>{load();S.view=='log'&&renderLog()},1500)}).subscribe();setInterval(()=>S.view=='dashboard'&&load(),60000)}
 init();
-</script>
-</body>
-</html>
+</script></body></html>
