@@ -131,8 +131,9 @@ thead tr.grp th+th{border-left:1px solid rgba(15,23,42,.25)}
 .rcr :is(tbody td,tfoot td,thead tr:not(.grp) th):is(:nth-child(5),:nth-child(9)){border-left:1px solid rgba(15,23,42,.25)}
 tfoot td{position:sticky;bottom:0;background:#eef2f9;font-weight:800;color:#0f172a;border-top:1px solid var(--line)}
 .washery thead tr.grp th.g1{color:#0f766e;background:linear-gradient(rgba(45,212,191,.2),rgba(45,212,191,.2)),#fff}
-.washery thead tr.grp th.g2{color:#6d28d9;background:linear-gradient(rgba(167,139,250,.22),rgba(167,139,250,.22)),#fff}
-.washery thead tr.grp th.g3{color:#0369a1;background:linear-gradient(rgba(56,189,248,.2),rgba(56,189,248,.2)),#fff}
+.washery thead tr.grp th.g4{color:#0369a1;background:linear-gradient(rgba(56,189,248,.2),rgba(56,189,248,.2)),#fff}
+.washery thead tr.grp th.g3{color:#6d28d9;background:linear-gradient(rgba(167,139,250,.22),rgba(167,139,250,.22)),#fff}
+.washery thead tr.grp th.g2{color:#b45309;background:linear-gradient(rgba(251,191,36,.24),rgba(251,191,36,.24)),#fff}
 .washery tbody td:nth-child(n+7):nth-child(-n+9){background-color:rgba(45,212,191,.08)}
 .washery tbody td:nth-child(n+10):nth-child(-n+12){background-color:rgba(167,139,250,.09)}
 .washery tbody td:nth-child(n+13){background-color:rgba(56,189,248,.09)}
@@ -558,7 +559,7 @@ const WCOLS = [
   {k:'dispatch_qty',l:'Dispatch Qty',t:'q',g:3,sum:true,bar:true},
   {k:'washery_bal',l:'Washery Bal.',t:'q',g:3,sum:true,neg:true}
 ];
-const WGROUPS = [{l:'',span:6},{l:'Receipt (Inward)',span:4},{l:'Washery output',span:3},{l:'Dispatch (Outward)',span:3}];
+const WGROUPS = [{l:'',span:6},{l:'Receipt (Inward)',span:3},{l:'Balance',span:1},{l:'Washery output',span:3},{l:'Dispatch (Outward)',span:3}];
 
 const RCOLS = [
   {k:'sale_type',l:'Type',t:'badge',g:0},
