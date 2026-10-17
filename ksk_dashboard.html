@@ -498,6 +498,7 @@ const TABLES = {
       {k:'vehicle_no',l:'Vehicle No',t:'text',req:true,upper:true},
       {k:'gross_wt',l:'Gross (MT)',t:'num',req:true},
       {k:'tare_wt',l:'Tare (MT)',t:'num',req:true},
+      {k:'rec_wt',l:'Rec. Wt (MT)',t:'num'},
       {k:'unique_no',l:'Unique No',t:'text'},
       {k:'excise_sr_no',l:'Excise Sr. No',t:'text'},
       {k:'gate_pass',l:'Gate pass',t:'text'},
@@ -937,7 +938,7 @@ async function loadSummary(doNo) {
   try {
     if (isW) {
       const [inn, dsp] = await Promise.all([
-        fetchAll(() => db.from('inward_entries').select('rec_date,vehicle_no,net_wt,unique_no').eq('do_no', doNo).order('rec_date')),
+        fetchAll(() => db.from('inward_entries').select('rec_date,vehicle_no,net_wt,rec_wt,unique_no').eq('do_no', doNo).order('rec_date')),
         fetchAll(() => db.from('dispatch_entries').select('disp_date,vehicle_no,net_wt,unique_no').eq('do_no', doNo).order('disp_date'))
       ]);
       if (state.sum.doNo !== doNo) return;
@@ -954,18 +955,21 @@ async function loadSummary(doNo) {
 
 function renderSummaryW(h, inn, dsp) {
   const doQty = Number(h.do_qty) || 0;
-  const rec = sumOf(inn, 'net_wt'), disp = sumOf(dsp, 'net_wt');
+  const rec = inn.reduce((a, x) => a + (Number(x.rec_wt != null ? x.rec_wt : x.net_wt) || 0), 0);
+  const disp = sumOf(dsp, 'net_wt');
   const out85 = rec * WASH_PCT, wbal = out85 - disp, mines = doQty - rec;
   const recPct = doQty ? rec / doQty * 100 : 0, dispPct = out85 ? disp / out85 * 100 : 0;
-  const series = groupByDate(inn.map(x => ({d:x.rec_date, v:x.net_wt, a:x.net_wt})), 'd', 'v', 'a')
-    .map(s => ({d:s.d, a:s.a, b:0}));
+  const series = groupByDate(inn.map(x => {
+      const q = x.rec_wt != null ? x.rec_wt : x.net_wt;
+      return {d:x.rec_date, v:q, a:q};
+    }), 'd', 'v', 'a').map(s => ({d:s.d, a:s.a, b:0}));
   const dspSeries = groupByDate(dsp.map(x => ({d:x.disp_date, v:x.net_wt})), 'd', 'v', 'a');
   const all = {};
   series.forEach(s => all[s.d] = {d:s.d, a:s.a, b:0});
   dspSeries.forEach(s => { all[s.d] = all[s.d] || {d:s.d, a:0, b:0}; all[s.d].b = s.a; });
   const merged = Object.values(all).sort((x, y) => x.d < y.d ? -1 : 1);
   const recent = [
-    ...inn.map(x => ({date:x.rec_date, type:'IN', cls:'in', vehicle:x.vehicle_no, qty:x.net_wt, ref:x.unique_no})),
+    ...inn.map(x => ({date:x.rec_date, type:'IN', cls:'in', vehicle:x.vehicle_no, qty:(x.rec_wt != null ? x.rec_wt : x.net_wt), ref:x.unique_no})),
     ...dsp.map(x => ({date:x.disp_date, type:'OUT', cls:'out', vehicle:x.vehicle_no, qty:x.net_wt, ref:x.unique_no}))
   ].sort((a, b) => a.date < b.date ? 1 : -1).slice(0, 40);
 
@@ -1149,7 +1153,7 @@ function buildForm(table, opts = {}) {
     else input = `<input type="text" name="${f.k}" value="${esc(v)}" ${f.upper ? 'style="text-transform:uppercase"' : ''}>`;
     html += `<label class="fld ${f.k.length > 12 && f.t === 'text' ? 'full' : ''}"><span>${esc(f.l)}${req}</span>${input}</label>`;
   }
-  if (T.calc) html += `<div class="calcbox"><span class="muted">Net weight (calculated by the database)</span><b data-net>–</b></div>`;
+  if (T.calc) html += `<div class="calcbox"><span class="muted">Net weight (Gross − Tare, auto)</span><b data-net>–</b></div>`;
   html += `<div class="msg"></div><div class="row">
       ${mode === 'create' ? '<button type="button" class="btn ghost" data-clear>Clear</button>' : ''}
       <button type="submit" class="btn primary">${mode === 'edit' ? 'Save changes' : 'Save entry'}</button>
@@ -1161,9 +1165,20 @@ function buildForm(table, opts = {}) {
     const g = parseFloat(form.querySelector('[name=gross_wt]')?.value);
     const t = parseFloat(form.querySelector('[name=tare_wt]')?.value);
     const n = calc.net(g, t);
-    form.querySelector('[data-net]').textContent = n == null ? '–' : fmtQ(n) + ' MT';
+    const netEl = form.querySelector('[data-net]');
+    if (netEl) netEl.textContent = n == null ? '–' : fmtQ(n) + ' MT';
+    if (table === 'inward_entries' && mode === 'create') {
+      const recEl = form.querySelector('[name=rec_wt]');
+      if (recEl && (recEl.value === '' || recEl.dataset.autofilled === '1')) {
+        recEl.value = n == null ? '' : n;
+        recEl.dataset.autofilled = '1';
+      }
+    }
   };
-  form.addEventListener('input', refreshNet);
+  form.addEventListener('input', e => {
+    if (e.target && e.target.name === 'rec_wt') e.target.dataset.autofilled = '0';
+    refreshNet();
+  });
   refreshNet();
   form.querySelector('[data-clear]')?.addEventListener('click', () => { form.reset(); refreshNet(); });
 
@@ -1288,7 +1303,9 @@ async function renderLog() {
 
   const cols = [...T.fields];
   if (T.calc) cols.push({k:'net_wt', l:'Net (MT)', t:'num', calc:true});
-  const qtyKey = T.calc ? 'net_wt' : (t === 'rcr_road_entries' ? 'qty_mt' : (t === 'do_master' ? 'do_qty' : null));
+  const qtyKey = t === 'inward_entries' ? 'rec_wt'
+    : T.calc ? 'net_wt'
+    : (t === 'rcr_road_entries' ? 'qty_mt' : (t === 'do_master' ? 'do_qty' : null));
   const total = qtyKey ? sumOf(data || [], qtyKey) : null;
   $('#l-info').textContent = `${data.length} row${data.length === 1 ? '' : 's'}` +
     (data.length === 1000 ? ' · showing the latest 1000, narrow the filters for more' : '') +
@@ -1326,7 +1343,7 @@ const normKey = s => String(s ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
 const XL_MAP = {
   inward_entries: {recdate:'rec_date', chdate:'ch_date', excisesrno:'excise_sr_no', uniqueno:'unique_no', dono:'do_no',
     gatepass:'gate_pass', grade:'grade', vehicleno:'vehicle_no', grosswt:'gross_wt', tarewt:'tare_wt',
-    partyname:'party_name', mines:'mines'},
+    netwt:'net_wt', recwt:'rec_wt', partyname:'party_name', mines:'mines'},
   dispatch_entries: {date:'disp_date', dono:'do_no', item:'item', vehicleno:'vehicle_no', grosswt:'gross_wt',
     tarewt:'tare_wt', uniqueno:'unique_no', rptpno:'rptp_no', partyname:'party_name'}
 };
@@ -1377,6 +1394,9 @@ function normalizeRow(o, T, excelRow) {
     out.gate_pass = toStr(o.gate_pass);
     out.grade = toStr(o.grade);
     out.mines = toStr(o.mines);
+    out.rec_wt = toNum(o.rec_wt);
+    if (out.rec_wt == null && out.gross_wt != null && out.tare_wt != null)
+      out.rec_wt = calc.net(out.gross_wt, out.tare_wt);
   } else {
     out.item = toStr(o.item);
     out.rptp_no = toStr(o.rptp_no);
@@ -1460,16 +1480,20 @@ function renderXlPreview() {
   const rows = state.xl.rows;
   const c = updateXlCounts();
   $('#xl-info').textContent = `${rows.length} data rows found · showing first ${Math.min(150, rows.length)}`;
+  const isIn = T === 'inward_entries';
   const head = `<thead><tr><th class="num">Row</th><th>Status</th><th>Date</th><th class="num">D.O.</th><th>Vehicle</th>
-    <th class="num">Gross</th><th class="num">Tare</th><th class="num">Net</th><th>Unique no.</th><th>Party</th><th>Note</th></tr></thead>`;
+    <th class="num">Gross</th><th class="num">Tare</th><th class="num">Net</th>` +
+    (isIn ? `<th class="num">Rec. Wt</th>` : '') +
+    `<th>Unique no.</th><th>Party</th><th>Note</th></tr></thead>`;
   const body = rows.length ? '<tbody>' + rows.slice(0, 150).map((r, i) => {
     const net = calc.net(r.gross_wt, r.tare_wt);
     const cls = r._status === 'ok' ? 's-ok' : r._status === 'dup' ? 's-dup' : 's-err';
     const label = r._status === 'ok' ? 'Ready' : r._status === 'dup' ? 'Duplicate' : 'Error';
     return `<tr style="--r:${Math.min(i, 25)}"><td class="num muted">${r._row}</td><td class="${cls}" style="font-weight:700">${label}</td>
       <td>${fmtD(r[dateF])}</td><td class="num">${esc(r.do_no ?? '–')}</td><td>${esc(r.vehicle_no || '–')}</td>
-      <td class="num">${fmtQ(r.gross_wt)}</td><td class="num">${fmtQ(r.tare_wt)}</td><td class="num">${fmtQ(net)}</td>
-      <td>${esc(r.unique_no || '–')}</td><td>${esc(r.party_name || '–')}</td><td class="muted">${esc(r._msg)}</td></tr>`;
+      <td class="num">${fmtQ(r.gross_wt)}</td><td class="num">${fmtQ(r.tare_wt)}</td><td class="num">${fmtQ(net)}</td>` +
+      (isIn ? `<td class="num">${fmtQ(r.rec_wt)}</td>` : '') +
+      `<td>${esc(r.unique_no || '–')}</td><td>${esc(r.party_name || '–')}</td><td class="muted">${esc(r._msg)}</td></tr>`;
   }).join('') + '</tbody>' : '<tbody><tr><td class="empty">No rows to preview.</td></tr></tbody>';
   $('#tbl-xl').innerHTML = head + body;
   void c;
