@@ -128,7 +128,7 @@ tbody tr:nth-child(even) td{background-image:linear-gradient(rgba(15,23,42,.045)
 tbody tr:hover td{background-image:linear-gradient(rgba(15,23,42,.09),rgba(15,23,42,.09))}
 thead tr.grp th+th{border-left:1px solid rgba(15,23,42,.25)}
 .washery :is(tbody td,tfoot td,thead tr:not(.grp) th):is(:nth-child(7),:nth-child(10),:nth-child(13)),
-.rcr :is(tbody td,tfoot td,thead tr:not(.grp) th):is(:nth-child(8),:nth-child(12)){border-left:1px solid rgba(15,23,42,.25)}
+.rcr :is(tbody td,tfoot td,thead tr:not(.grp) th):is(:nth-child(5),:nth-child(9)){border-left:1px solid rgba(15,23,42,.25)}
 tfoot td{position:sticky;bottom:0;background:#eef2f9;font-weight:800;color:#0f172a;border-top:1px solid var(--line)}
 .washery thead tr.grp th.g1{color:#0f766e;background:linear-gradient(rgba(45,212,191,.2),rgba(45,212,191,.2)),#fff}
 .washery thead tr.grp th.g2{color:#6d28d9;background:linear-gradient(rgba(167,139,250,.22),rgba(167,139,250,.22)),#fff}
@@ -138,8 +138,8 @@ tfoot td{position:sticky;bottom:0;background:#eef2f9;font-weight:800;color:#0f17
 .washery tbody td:nth-child(n+13){background-color:rgba(56,189,248,.09)}
 .rcr thead tr.grp th.g1{color:#b45309;background:linear-gradient(rgba(251,191,36,.24),rgba(251,191,36,.24)),#fff}
 .rcr thead tr.grp th.g2{color:#be123c;background:linear-gradient(rgba(251,113,133,.2),rgba(251,113,133,.2)),#fff}
-.rcr tbody td:nth-child(n+8):nth-child(-n+11){background-color:rgba(251,191,36,.09)}
-.rcr tbody td:nth-child(n+12){background-color:rgba(251,113,133,.08)}
+.rcr tbody td:nth-child(n+5):nth-child(-n+8){background-color:rgba(251,191,36,.09)}
+.rcr tbody td:nth-child(n+9){background-color:rgba(251,113,133,.08)}
 .empty{padding:30px;text-align:center;color:var(--mut)}
 .id{font-variant-numeric:tabular-nums;font-weight:700;color:#0f172a}
 .badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:800;letter-spacing:.05em}
@@ -549,6 +549,7 @@ const WCOLS = [
   {k:'do_qty',l:'D.O. Qty',t:'q',g:0,sum:true},
   {k:'trips',l:'Trips',t:'i',g:1,sum:true},
   {k:'rec_qty',l:'Rec. Qty',t:'q',g:1,sum:true},
+  {k:'net_qty',l:'Net Qty',t:'q',g:1,sum:true},
   {k:'mines_bal',l:'Mines Bal.',t:'q',g:1,sum:true,neg:true},
   {k:'wash_coal_85',l:'Wash Coal 85%',t:'q',g:2,sum:true},
   {k:'reject_15',l:'Reject 15%',t:'q',g:2,sum:true},
@@ -557,24 +558,20 @@ const WCOLS = [
   {k:'dispatch_qty',l:'Dispatch Qty',t:'q',g:3,sum:true,bar:true},
   {k:'washery_bal',l:'Washery Bal.',t:'q',g:3,sum:true,neg:true}
 ];
-const WGROUPS = [{l:'',span:6},{l:'Receipt (Inward)',span:3},{l:'Washery output',span:3},{l:'Dispatch (Outward)',span:3}];
+const WGROUPS = [{l:'',span:6},{l:'Receipt (Inward)',span:4},{l:'Washery output',span:3},{l:'Dispatch (Outward)',span:3}];
 
 const RCOLS = [
   {k:'sale_type',l:'Type',t:'badge',g:0},
-  {k:'colliery',l:'Colliery',g:0},
-  {k:'party_name',l:'Party',g:0},
-  {k:'issue_date',l:'Issue',t:'date',g:0},
-  {k:'lapsing_date',l:'Lapsing',t:'date',g:0},
   {k:'do_no',l:'D.O. No',t:'id',g:0},
+  {k:'party_name',l:'Party',g:0},
   {k:'do_qty',l:'D.O. Qty',t:'q',g:0,sum:true},
   {k:'trips',l:'Trips',t:'i',g:1,sum:true},
   {k:'rcr_qty',l:'RCR Qty',t:'q',g:1,sum:true},
   {k:'road_qty',l:'Road Qty',t:'q',g:1,sum:true},
   {k:'lifted',l:'Lifted Qty',t:'q',g:1,sum:true},
-  {k:'balance_in_mines',l:'Balance in Mines',t:'q',g:2,sum:true,neg:true},
-  {k:'last_date',l:'Last lifting',t:'date',g:2}
+  {k:'balance_in_mines',l:'Balance in Mines',t:'q',g:2,sum:true,neg:true}
 ];
-const RGROUPS = [{l:'',span:7},{l:'Lifting',span:4},{l:'Balance',span:2}];
+const RGROUPS = [{l:'',span:4},{l:'Lifting',span:4},{l:'Balance',span:1}];
 
 /* ==================================================================
    STATE + HELPERS
@@ -1005,7 +1002,7 @@ function renderSummaryW(h, inn, dsp) {
           <div class="glass-h"><h2>Breakdown</h2></div>
           ${kv([
             ['Total D.O. quantity', fmtQ(doQty) + ' MT'],
-            ['Received (net)', fmtQ(rec) + ' MT'],
+            ['Received', fmtQ(rec) + ' MT'],
             ['Wash coal 85%', fmtQ(out85) + ' MT'],
             ['Reject coal 15%', fmtQ(rec - out85) + ' MT'],
             ['Dispatched (net)', fmtQ(disp) + ' MT'],
