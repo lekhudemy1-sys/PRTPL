@@ -1410,17 +1410,22 @@ async function parseWorkbookSheet() {
   await classifyRows(parsed, T, dateF);
 }
 
+/* Duplicate = same D.O., Unique No, date, vehicle and weights. Same serial with different trip data is NOT a duplicate. */
+function dupKey(x, dateF) {
+  return [x.do_no, x.unique_no, x[dateF], x.vehicle_no, Number(x.gross_wt).toFixed(3), Number(x.tare_wt).toFixed(3)].join('|');
+}
+
 async function classifyRows(parsed, T, dateF) {
   const dos = [...new Set(parsed.filter(p => !p._err.length).map(p => p.do_no))];
   const existing = new Set();
   if (dos.length) {
-    const found = await fetchAll(() => db.from(T).select(`id,do_no,unique_no,${dateF}`).in('do_no', dos).order('id'));
-    found.forEach(r => { if (r.unique_no) existing.add(`${r.do_no}|${r.unique_no}|${r[dateF]}`); });
+    const found = await fetchAll(() => db.from(T).select(`id,do_no,unique_no,vehicle_no,gross_wt,tare_wt,${dateF}`).in('do_no', dos).order('id'));
+    found.forEach(r => { if (r.unique_no) existing.add(dupKey(r, dateF)); });
   }
   const seen = new Set();
   parsed.forEach(p => {
     if (p._err.length) { p._status = 'err'; p._msg = p._err.join(', '); return; }
-    const key = p.unique_no ? `${p.do_no}|${p.unique_no}|${p[dateF]}` : null;
+    const key = p.unique_no ? dupKey(p, dateF) : null;
     if (key && (existing.has(key) || seen.has(key))) { p._status = 'dup'; p._msg = 'already in database or repeated in file'; return; }
     if (key) seen.add(key);
     p._status = 'ok'; p._msg = 'ready';
