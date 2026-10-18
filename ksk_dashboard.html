@@ -116,7 +116,7 @@ dialog{border:1px solid var(--line);border-radius:18px;padding:20px;width:min(76
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const SB='https://lflsewvyhyfmuegksscy.supabase.co',KEY='PASTE_YOUR_SUPABASE_ANON_KEY_HERE';
+const SB='https://lflsewvyhyfmuegksscy.supabase.co',KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbHNld3Z5aHlmbXVlZ2tzc2N5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0NTY3MjIsImV4cCI6MjEwNzAzMjcyMn0.BKNDWGKs4MX7MFL4FD0ECesgFciFmMRpMdmQUnARj7s';
 const WASH=.85,REJ=.15;
 const db=window.supabase&&!KEY.startsWith('PASTE')?window.supabase.createClient(SB,KEY):null;
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
