@@ -494,7 +494,7 @@ function renderDashboard() {
 
 /* ---------- Summary (Pending Rakes) ---------- */
 function yesterdayStr() {                               // date = today - 1, DD/Mon/YYYY (e.g. 14/Oct/2026)
-  const d = new Date(); d.setDate(d.getDate() - 1);
+  const d = new Date(); 
   const M = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   return `${String(d.getDate()).padStart(2, "0")}/${M[d.getMonth()]}/${d.getFullYear()}`;
 }
