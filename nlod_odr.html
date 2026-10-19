@@ -304,6 +304,7 @@
 const SUPABASE_URL = "https://jzkrywwrsewchtiqsczk.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6a3J5d3dyc2V3Y2h0aXFzY3prIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1NDU0MzQsImV4cCI6MjEwNzEyMTQzNH0.IDwfVhqDI9uXfAALCVKBD0pNjsNVu38fW4eEueaKDSs";
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const FILTER_TABLE = "nalco_filters";
 
 let allData = [], allFilters = [], fmap = new Map(), parsedRecords = [];
 let page = "dashboard", selArea = "SUMMARY", loaded = false, loading = null;
