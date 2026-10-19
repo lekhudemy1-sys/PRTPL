@@ -304,6 +304,7 @@
 const SUPABASE_URL = "https://jzkrywwrsewchtiqsczk.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6a3J5d3dyc2V3Y2h0aXFzY3prIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1NDU0MzQsImV4cCI6MjEwNzEyMTQzNH0.IDwfVhqDI9uXfAALCVKBD0pNjsNVu38fW4eEueaKDSs";
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const ODR_TABLE = "NALCO_ODR";
 const FILTER_TABLE = "nalco_filters";
 
 let allData = [], allFilters = [], fmap = new Map(), parsedRecords = [];
@@ -345,7 +346,7 @@ async function fetchAll(table, order) {
 function rebuildMap() { fmap = new Map(allFilters.map(f => [fkey(f.area, f.filter_type, f.value), f])); }
 
 async function refreshAll() {
-  const [odr, flt] = await Promise.all([fetchAll("NALCO_ODR", "seq"), fetchAll("nalco_filters")]);
+  const [odr, flt] = await Promise.all([fetchAll(ODR_TABLE, "seq"), fetchAll(FILTER_TABLE)]);
   allData = odr; allFilters = flt; rebuildMap();
 
   // Create filter rows for any station/destination that does not have one yet
@@ -355,7 +356,7 @@ async function refreshAll() {
   if (add.length) {
     const chunks = [];
     for (let i = 0; i < add.length; i += 500) chunks.push(add.slice(i, i + 500));
-    const res = await Promise.all(chunks.map(c => db.from("nalco_filters").insert(c).select()));
+    const res = await Promise.all(chunks.map(c => db.from(FILTER_TABLE).insert(c).select()));
     for (const r of res) {                                             // reuse the inserted rows, no re-download
       if (r.error) throw r.error;
       allFilters.push(...r.data);
