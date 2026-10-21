@@ -76,6 +76,7 @@ tfoot td.g1,tfoot td.g2,tfoot td.g3,tfoot td.g4{background-color:#eef2f9;backgro
 dialog{border:1px solid var(--line);border-radius:18px;padding:20px;width:min(760px,94vw)}dialog::backdrop{background:rgba(15,23,42,.35)}
 .toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);background:linear-gradient(135deg,#0d9488,#6366f1);color:#fff;padding:11px 18px;border-radius:12px;font-weight:700;z-index:50}.toast.err{background:#be123c}
 .capwrap{padding:24px;background:#f6f8fc}.caph{display:flex;justify-content:space-between;font-size:20px;font-weight:800;margin-bottom:14px}.capwrap .page{gap:14px;margin-bottom:16px}
+#p-r{overflow-y:auto;padding-bottom:6px}#p-r>.glass{flex:none}#p-r>.glass .sc{flex:none;height:440px;overflow:auto}
 @media(max-width:1100px){.eg{grid-template-columns:1fr 1fr}.xg{grid-template-columns:1fr}}
 @media(max-width:860px){body{height:auto;overflow:auto;display:flex;flex-direction:column}main{overflow:visible}.view{height:auto}.page,.glass{flex:none}.sc{max-height:62vh}.eg,.form{grid-template-columns:1fr}.dock{position:sticky;bottom:10px}.dock span{display:none}.brand small{display:none}}
 </style></head><body>
@@ -169,7 +170,13 @@ async function load(){if(!db)return setSt('Not connected','err');setSt('Loading�
  const[v,i,d]=await Promise.all([db.from('ksk_dashboard_values').select('*').order('sn_no'),db.from('ksk_inward_sum').select('*'),db.from('ksk_dispatch_sum').select('*')]);
  const e=v.error||i.error||d.error;if(e){setSt('Error','err');return toast(exErr(e),true)}
  S.vals=v.data;S.inS={};S.dsS={};i.data.forEach(r=>S.inS[r.do_no]={trips:r.trips,net:num(r.net_qty)||0});d.data.forEach(r=>S.dsS[r.do_no]={trips:r.trips,net:num(r.net_qty)||0});
- S.rows=S.vals.map(x=>calc(x));setSt('Live','live');$('#updated').textContent='Updated '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+ /* grade (from inward) and loaded D.O. numbers (from dispatch) per D.O., for the RCR plant & loading columns */
+ S.gr={};S.ld={};
+ try{const sr=await fetchAll(()=>db.from('ksk_sheet_rows').select('id,do_key,do_no,grade,direction').order('id'));
+  sr.forEach(r=>{const k=String(r.do_key||'');if(!k)return;
+   if(r.direction=='IN'&&r.grade)S.gr[k]=r.grade;
+   if(r.direction=='OUT'&&r.do_no){(S.ld[k]=S.ld[k]||new Set()).add(String(r.do_no).trim())}})}catch(e){}
+ S.rows=S.vals.map(x=>{const c=calc(x),k=String(x.do_no);c.grade=S.gr[k]||null;c.loaded=S.ld[k]?[...S.ld[k]].join(', '):null;return c});setSt('Live','live');$('#updated').textContent='Updated '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
  const nm=[...new Set(S.rows.map(x=>(x.colliery||'').trim()).filter(Boolean).map(s=>s.toLowerCase()))].sort(),c=$('#f-col').value;
  $('#f-col').innerHTML='<option value="">All collieries</option>'+nm.map(n=>`<option value="${esc(n)}">${esc(n.replace(/^./,m=>m.toUpperCase()))}</option>`).join('');$('#f-col').value=c;
  const dl=S.rows.map(x=>`<option value="${x.do_no}">${x.do_no} · ${esc(x.colliery||'')}</option>`).join('');
@@ -179,8 +186,8 @@ async function load(){if(!db)return setSt('Not connected','err');setSt('Loading�
 const INFO=[['colliery','Colliery','t'],['party_name','Party','t'],['issue_date','Issue','dt'],['sized','Sized','t'],['lapsing_date','Lapsing','dt'],['do_no','D.O. No.','id'],['do_qty','D.O. Qty','q']];
 const MB=[['asking','Asking','q'],['daily_lift','Daily Lift','q'],['trips','Trips','i'],['rec_qty','Rec. Qty','q'],['mines_bal','Mines Bal.','q']];
 const TD={
- w:{id:'#t-w',g:[['',INFO,0],['Mines balance',MB,2],['Washery output',[['wash_coal','Wash Coal 85%','q'],['reject','Reject 15%','q']],3],['Dispatch (Outward)',[['daily_dispatch','Daily Dispatch','q'],['disp_trips','Trips','i'],['disp_qty','Dispatch Qty','q'],['washery_bal','Washery Bal.','q']],4]]},
- r:{id:'#t-r',g:[['',INFO,0],['Mines balance',MB,2],['Rake dispatch',[['disp_qty','Dispatch by Rake','q'],['washery_bal','Balance at IUIK','q']],1],['Rake details',[['rr_no','RR No.','t'],['rr_date','RR Date','dt'],['rr_qty','RR Qty','q'],['ch_qty','CH Qty','q']],4]]},
+ w:{id:'#t-w',g:[['',INFO,0],['Mines balance',MB,2],['Dispatch (Outward)',[['daily_dispatch','Daily Dispatch','q'],['disp_trips','Trips','i'],['disp_qty','Dispatch Qty','q']],4],['Washery output',[['wash_coal','Wash Coal 85%','q'],['reject','Reject 15%','q'],['washery_bal','Washery Bal.','q']],3]]},
+ r:{id:'#t-r',g:[['',INFO,0],['Mines balance',MB,2],['Rake dispatch',[['disp_qty','Dispatch by Rake','q'],['washery_bal','Balance at IUIK','q']],1],['Rake details',[['rr_no','RR No.','t'],['rr_date','RR Date','dt'],['rr_qty','RR Qty','q'],['ch_qty','CH Qty','q']],4],['Plant & loading',[['rec_qty','Plant Rec Qty','q'],['grade','Loading Grade','t'],['loaded','Loaded D.O. No','t']],3]]},
  o:{id:'#t-o',g:[['',INFO,0],['Lifting',[['daily_lift','Daily Lift','q'],['rec_qty','Lifted Qty','q'],['mines_bal','Bal. in Mines','q'],['disp_qty','Dispatch Qty','q']],2]]}};
 function cell(c,x){const[k,,t,g,gs]=c,v=x[k],cl=(g?'g'+g+' ':'')+(gs?'gs ':''),dot=x.m&&x.m[k]?'<i class="mv" title="Manual value"></i>':'';
  if(t=='dt')return`<td class="${cl}">${fD(v)}</td>`;if(t=='id')return`<td class="${cl}id">${esc(v)}${stPill(x)}</td>`;
@@ -212,7 +219,11 @@ async function loadSum(){const d=S.rows.find(x=>x.do_no==$('#s-do').value)||S.ro
 async function capture(){if(!window.html2canvas)return toast('Image library did not load',true);
  const w=document.createElement('div');w.className='capwrap';w.style.cssText='position:fixed;left:-20000px;top:0;width:1500px';w.innerHTML=`<div class="caph"><span>KSK Mahanadi · Stock summary</span><span>${new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'})}</span></div>`;
  ['#p-w','#p-r'].forEach(s=>{const c=$(s).cloneNode(true);c.classList.remove('hidden');c.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));c.removeAttribute('id');[c,...c.querySelectorAll('.sc,.glass,.page')].forEach(n=>n.style.cssText+=';height:auto!important;max-height:none!important;overflow:visible!important;flex:none!important');w.appendChild(c)});
- document.body.appendChild(w);try{toast('Preparing image…');const cv=await html2canvas(w,{backgroundColor:'#f6f8fc',scale:2,logging:false}),a=document.createElement('a');a.download=`ksk-mahanadi-${iso(new Date())}.png`;a.href=cv.toDataURL('image/png');a.click();toast('Image downloaded')}catch(e){toast('Image failed: '+e.message,true)}finally{w.remove()}}
+ document.body.appendChild(w);
+ /* widen the capture to the widest table so no right-hand columns are cut off */
+ const wide=Math.max(1500,...[...w.querySelectorAll('table')].map(t=>t.getBoundingClientRect().width));
+ w.style.width=(wide+48)+'px';
+ try{toast('Preparing image…');const cv=await html2canvas(w,{backgroundColor:'#f6f8fc',scale:2,logging:false}),a=document.createElement('a');a.download=`ksk-mahanadi-${iso(new Date())}.png`;a.href=cv.toDataURL('image/png');a.click();toast('Image downloaded')}catch(e){toast('Image failed: '+e.message,true)}finally{w.remove()}}
 
 /* ---- entry forms (inward / dispatch) ---- */
 function mkForm(t,o={}){const T=TB[t],v=o.values||{},f=document.createElement('form');f.className='form';
