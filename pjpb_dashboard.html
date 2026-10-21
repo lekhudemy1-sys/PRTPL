@@ -981,7 +981,8 @@ $('pdfBtn').addEventListener('click', async () => {
     // Use the same background as the on-screen page (gradients + base colour) for the capture
     const target = document.querySelector('#view-dashboard');
     const oldBg = target.style.background;
-    target.style.background = 'radial-gradient(900px 480px at 95% -8%,#ddd9ff 0,transparent 70%),radial-gradient(800px 460px at -5% 105%,#ffe8cc 0,transparent 70%),var(--bg)';
+    // html2canvas does not draw radial-gradient backgrounds (it falls back to white), so use the solid base colour
+    target.style.background = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#eeedf8';
     let canvas;
     try {
       canvas = await html2canvas(target, { scale: 2, useCORS: true, windowWidth: 1500 });
