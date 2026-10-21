@@ -28,6 +28,8 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(58,55,150,.35)
 .sidebar{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:100;display:flex;align-items:center;gap:1rem;
   background:rgba(31,27,77,.95);backdrop-filter:blur(12px);color:#ebe9ff;border-radius:999px;padding:.35rem .5rem .35rem 1rem;
   box-shadow:0 12px 32px -10px rgba(31,27,77,.55),0 0 0 1px rgba(255,255,255,.08);max-width:calc(100% - 1.5rem)}
+.back-btn{display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .85rem;border-radius:999px;color:#fff;font-weight:600;font-size:.85rem;white-space:nowrap;background:rgba(255,255,255,.12);transition:.2s}
+.back-btn:hover{background:rgba(255,255,255,.22)}
 .party-name{font:700 1.05rem var(--head);display:flex;align-items:center;gap:.45rem;color:#fff;white-space:nowrap}
 .party-name .dot{width:8px;height:8px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 3px rgba(255,179,71,.28)}
 .sidebar-nav{display:flex;gap:.2rem;flex-wrap:wrap}
@@ -235,6 +237,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(58,55,150,.35)
 
 <!-- Floating nav -->
 <aside class="sidebar">
+  <a class="back-btn" href="amm_home.html"><i class="fas fa-arrow-left"></i> Back</a>
   <div class="party-name"><span class="dot"></span> PJPB</div>
   <nav class="sidebar-nav">
     <button class="nav-item active" data-view="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</button>
@@ -258,9 +261,9 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(58,55,150,.35)
       <div class="period" id="periodLabel">AMM PJPB</div>
     </div>
     <div class="topbar-actions">
-      <select id="periodPick" class="month-pick" aria-label="Period"></select>
+      <select id="periodPick" class="month-pick" aria-label="Month"></select>
       <button class="btn btn-secondary" id="reloadBtn"><i class="fas fa-rotate"></i> Reload from Database</button>
-      <button class="btn btn-primary" id="pdfBtn"><i class="fas fa-file-pdf"></i> Download PDF</button>
+      <button class="btn btn-primary" id="pdfBtn"><i class="fas fa-file-image"></i> Download PNG</button>
     </div>
   </div>
 
@@ -269,7 +272,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(58,55,150,.35)
       <div class="card-header"><h3><i class="fas fa-chart-line"></i> Key Performance</h3></div>
       <div class="metric-row"><span class="metric-label">Per Day Required Rake for Target</span><input class="metric-value neg" id="k_perDayRake" readonly></div>
       <div class="metric-row"><span class="metric-label">Performance on Rake Materialization</span><input class="metric-value" id="k_rakeMat" readonly></div>
-      <div class="metric-row"><span class="metric-label">Quarter Target Qty (MT)</span><input class="metric-value" id="k_qtrTarget" readonly></div>
+      <div class="metric-row"><span class="metric-label">Month Target Qty (MT)</span><input class="metric-value" id="k_qtrTarget" readonly></div>
       <div class="metric-row"><span class="metric-label">Achieved Qty - RR Weight (MT)</span><input class="metric-value" id="k_achieved" readonly></div>
       <div class="metric-row"><span class="metric-label">Bal. Qty (Achieve &minus; Target)</span><input class="metric-value" id="k_balQty" readonly></div>
       <div class="metric-row"><span class="metric-label">Per Day Required Qty (MT)</span><input class="metric-value" id="k_perDayReqQty" readonly></div>
@@ -277,7 +280,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(58,55,150,.35)
     </div>
 
     <div class="card c-area">
-      <div class="card-header"><h3><i class="fas fa-map-marker-alt"></i> Area Targets (Qtr)</h3></div>
+      <div class="card-header"><h3><i class="fas fa-map-marker-alt"></i> Area Targets (Month)</h3></div>
       <div id="areaTargetsBox"></div>
     </div>
 
@@ -300,7 +303,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(58,55,150,.35)
       <div class="metric-row"><span class="metric-label">GST</span><div class="pair"><input class="metric-value" id="fr_gst" readonly><input class="metric-value" id="fr_gstMt" readonly></div></div>
       <div class="metric-row total-row"><span class="metric-label">TOTAL RAILWAY FREIGHT</span><div class="pair"><input class="metric-value" id="fr_total" readonly><input class="metric-value" id="fr_totalMt" readonly></div></div>
       <div class="metric-row"><span class="metric-label">Penalty as % of Total Freight</span><input class="metric-value" id="fr_penPct" readonly></div>
-      <div class="metric-row"><span class="metric-label">Expected Freight of the Qtr</span><input class="metric-value wide" id="fr_exp" readonly></div>
+      <div class="metric-row"><span class="metric-label">Expected Freight of the Month</span><input class="metric-value wide" id="fr_exp" readonly></div>
     </div>
 
     <div class="card c-rake">
@@ -338,27 +341,27 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(58,55,150,.35)
     </div>
   </div>
 
-  <div class="card mines-card">
+  <div class="card mines-card" id="capArea">
     <div class="card-header"><h3><i class="fas fa-industry"></i> Area Wise Performance</h3></div>
     <div class="mines-wrap"><table class="mines-table" id="areaPerfTbl"></table></div>
   </div>
 
-  <div class="card mines-card">
+  <div class="card trend-card" id="capTrend">
+    <div class="card-header"><h3><i class="fas fa-calendar-alt"></i> Monthly Performance</h3></div>
+    <div class="trend-wrap">
+      <table class="trend-table">
+        <thead><tr><th>Month</th><th>Rakes</th><th>RR Qty (MT)</th><th>Per Day Qty.</th><th>Freight / MT</th><th>Month Target (MT)</th><th>% of Target</th></tr></thead>
+        <tbody id="trendBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card mines-card" id="capSource">
     <div class="card-header"><h3><i class="fas fa-warehouse"></i> Source Wise Performance (Siding / Silo)</h3></div>
     <div class="src-wrap">
       <table class="mines-table" style="min-width:760px">
         <thead><tr><th>Source</th><th>Area</th><th>Rakes</th><th>RR Wt. (MT)</th><th>Avg. RR Wt.</th><th>Punitive Sum</th><th>Total Freight</th><th>Freight / MT</th><th>Avg. Loading</th></tr></thead>
         <tbody id="srcBody"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="card trend-card">
-    <div class="card-header"><h3><i class="fas fa-calendar-alt"></i> Monthly &amp; Quarterly Performance</h3></div>
-    <div class="trend-wrap">
-      <table class="trend-table">
-        <thead><tr><th>Month</th><th>Rakes</th><th>RR Qty (MT)</th><th>Per Day Qty.</th><th>Freight / MT</th><th>Quarter</th><th>Quarterly Rakes</th><th>Quarterly Qty (MT)</th><th>Quarterly Per Day Qty.</th><th>Quarterly Freight / MT</th><th>%</th></tr></thead>
-        <tbody id="trendBody"></tbody>
       </table>
     </div>
   </div>
@@ -369,9 +372,9 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(58,55,150,.35)
 <!-- ============ REPORTS VIEW ============ -->
 <section class="view" id="view-reports">
   <div class="topbar">
-    <div><h1>Reports</h1><div class="period" id="repPeriod">Month and area summary of the selected quarter</div></div>
+    <div><h1>Reports</h1><div class="period" id="repPeriod">Month and area summary</div></div>
     <div class="topbar-actions">
-      <select id="periodPick2" class="month-pick" aria-label="Period"></select>
+      <select id="periodPick2" class="month-pick" aria-label="Month"></select>
       <button class="btn btn-primary" id="repXlsx"><i class="fas fa-file-excel"></i> Download Excel</button>
     </div>
   </div>
@@ -383,7 +386,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(58,55,150,.35)
 <!-- ============ ALERTS VIEW ============ -->
 <section class="view" id="view-alerts">
   <div class="topbar">
-    <div><h1>Alerts</h1><div class="period" id="alPeriod">Data checks on the selected quarter</div></div>
+    <div><h1>Alerts</h1><div class="period" id="alPeriod">Data checks on the selected month</div></div>
     <div class="topbar-actions"><button class="btn btn-secondary" id="alReload"><i class="fas fa-rotate"></i> Re-check</button></div>
   </div>
   <div class="stats-grid">
@@ -472,7 +475,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(58,55,150,.35)
     </div>
     <div class="tbl-wrap" style="max-height:none">
       <table class="tbl">
-        <thead><tr><th>SL. No.</th><th>Area</th><th>Qtr Target</th><th>Loaded Till</th><th>Balance Rake</th><th>Asking Per Day</th><th>Asking (%)</th></tr></thead>
+        <thead><tr><th>SL. No.</th><th>Area</th><th>Month Target</th><th>Loaded Till</th><th>Balance Rake</th><th>Asking Per Day</th><th>Asking (%)</th></tr></thead>
         <tbody id="rakeBody"></tbody>
         <tfoot><tr><td colspan="2">Total</td><td id="tTarget">0</td><td id="tLoaded">0</td><td id="tBalance">0</td><td id="tAskingDay">0</td><td id="tAskingPct">0</td></tr></tfoot>
       </table>
@@ -492,86 +495,9 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(58,55,150,.35)
   <div class="panel">
     <h2><i class="fas fa-calculator"></i> Editable Rules</h2>
     <div class="form-grid">
-      <div class="form-group"><label for="fDayQty">Per Day Quantity target (MT per day)</label><input type="number" step="1" id="fDayQty"><span class="muted">Quarter Target Qty = this value &times; days in the quarter (MIS sheet: 15000 &times; 92)</span></div>
-      <div class="form-group"><label for="fPctLow">Highlight quarterly % below</label><input type="number" step="0.1" id="fPctLow"><span class="muted">In Monthly &amp; Quarterly Performance, a quarter below this % is shown in red</span></div>
+      <div class="form-group"><label for="fDayQty">Per Day Quantity target (MT per day)</label><input type="number" step="1" id="fDayQty"><span class="muted">Month Target Qty = this value &times; days in the month</span></div>
+      <div class="form-group"><label for="fPctLow">Highlight monthly % below</label><input type="number" step="0.1" id="fPctLow"><span class="muted">In Monthly Performance, a month below this % is shown in red</span></div>
     </div>
-  </div>
-  <div class="panel">
-    <h2><i class="fas fa-info-circle"></i> How every dashboard value is calculated</h2>
-    <p class="muted">Use this list to trace a wrong value. RR = RR Weight (rr_weight), Net = Net wt., Qtr = the selected quarter. "Sum" means the total of the quarter's rakes, unless an area or source is named. Per MT = amount &divide; total RR Weight.</p>
-
-    <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Key Performance (top left card)</h4>
-    <ul class="formula-list">
-      <li>Per Day Required Rake for Target = sum of each area's "Asking Per Day" from the Target Rake table (Data Entry)</li>
-      <li>Performance on Rake Materialization = total Rake Loaded Till &divide; total Qtr Target &times; 100</li>
-      <li>Quarter Target Qty = Per Day Quantity target (Formulas) &times; days in the quarter</li>
-      <li>Achieved Qty = sum of RR Weight; Bal. Qty = Achieved &minus; Target (negative = short, shown red)</li>
-      <li>Per Day Required Qty = (Target &minus; Achieved) &divide; days remaining (0 when the target is already met)</li>
-      <li>Plant End GCV = sum of (RR &times; Plant End GCV) &divide; sum of RR, only for rakes that have a GCV</li>
-    </ul>
-
-    <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Area Targets (Qtr)</h4>
-    <ul class="formula-list">
-      <li>Target of Qtr = Qtr Target for the area (Data Entry &gt; Target Rake)</li>
-      <li>Rake Loaded Till = count of the area's rakes with Loading Date up to the report date (today if no report date)</li>
-      <li>Balance Rake = Target of Qtr &minus; Rake Loaded Till</li>
-      <li>Asking Per Day = Balance Rake &divide; days from the report date to the quarter end (0 when no days remain)</li>
-    </ul>
-
-    <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Weight Variance</h4>
-    <ul class="formula-list">
-      <li>Avg Variance MT per rake = sum of (RR &minus; Net) &divide; number of rakes that have both weights</li>
-      <li>Variance % = sum of (RR &minus; Net) &divide; sum of Net &times; 100</li>
-      <li>Area Avg. RR Wt. = sum of RR &divide; number of the area's rakes with an RR Weight; Freight / MT = area Railway Total Freight &divide; area RR</li>
-    </ul>
-
-    <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Freight Summary</h4>
-    <ul class="formula-list">
-      <li>RR Freight Base Value, GST, Total Railway Freight = sums of the same columns; per-MT box = amount &divide; sum of RR</li>
-      <li>Total Railway Penalty = Punitive Sum + EHBC/FAUC/TC/ST group + ENHC + EHBC (see right card)</li>
-      <li>Penalty as % of Total Freight = Total Penalty &divide; Total Railway Freight &times; 100</li>
-      <li>Expected Freight of the Qtr = Total Railway Freight &divide; days passed in the quarter &times; total days in the quarter</li>
-    </ul>
-
-    <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Rake Performance</h4>
-    <ul class="formula-list">
-      <li>Per Day Rakes &ndash; Achieve = number of rakes &divide; days passed in the quarter; Target = Per Day Required Rake</li>
-      <li>Per Day Quantity &ndash; Achieve = sum of RR &divide; days passed; Target = Per Day Quantity target (Formulas)</li>
-      <li>Freight Cost / MT &ndash; Achieve = Total Railway Freight &divide; sum of RR; Target = Freight Cost Target (Data Entry)</li>
-      <li>Avg. Net Wt. / Chargeable Wt. / RR Wt. = simple averages; Avg. Loading Time = average of P/T to C/T; Total Rakes Loaded = number of rakes</li>
-    </ul>
-
-    <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Railway Freight Penalties</h4>
-    <ul class="formula-list">
-      <li>Punitive Sum = sum of POL1 + POL2 + POLA + KRBA + LADC + PCLA + DCLA</li>
-      <li>EHBC / FAUC / TC / ST group = sum of SD + SDCC + ST + TC + FAUC; ENHC = sum of ENHC; EHBC = sum of EHBC</li>
-      <li>TOTAL PENALTY = Punitive Sum + EHBC group + ENHC + EHBC; per-MT box = &divide; sum of RR</li>
-      <li>Underload, Overload and CHBL at Punitive Rate = sums of U/L, O/L and CHBL AT PUN RATE (quantities)</li>
-    </ul>
-
-    <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Area Wise &amp; Source Wise Performance</h4>
-    <ul class="formula-list">
-      <li>Each column is one area (TOTAL = all areas). Rakes, RR, Variance, Punitive, EHBC group, ENHC and Total Freight are sums for that area</li>
-      <li>Avg. RR Wt. = sum of RR &divide; rakes with RR; Freight / MT = Total Freight &divide; RR; Avg. Loading = average P/T to C/T</li>
-      <li>Source Wise groups rakes by siding name without the bracket code (BAROUD (BOMK) counts as BAROUD)</li>
-    </ul>
-
-    <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Monthly &amp; Quarterly Performance</h4>
-    <ul class="formula-list">
-      <li>Per Day Qty (month) = sum of RR for the month &divide; days passed in that month; Freight / MT (month) = month freight &divide; month RR</li>
-      <li>Quarterly values use the same formulas across the quarter</li>
-      <li>% = Quarterly Qty &divide; Quarter Target Qty &times; 100 (capped at 100%; red when below the "Highlight below" value)</li>
-    </ul>
-
-    <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Calculated in Data Entry and the database</h4>
-    <ul class="formula-list">
-      <li>Sick Wagons = Supply Wagons &minus; Load Wagons (blank Load counts as 0, same as the Excel sheet)</li>
-      <li>Punitive Sum (POL1/PO2/POLA/PCLA/DCLA) and EHBC/FAUC/TC/ST are the sums above, per rake</li>
-      <li>Loading Duration = P/T to C/T in minutes (past-midnight loading handled)</li>
-      <li>Railway Total Freight (Data Entry suggestion) = RR Freight Base Value + Punitive Sum + EHBC group + GST + ENHC + EHBC, rounded; you can overwrite it</li>
-      <li>Date of Sample Collection defaults to the Loading Date, as in the sheet</li>
-      <li>A rake is identified by Loading Date + Area + Source + P/T + RR Number, so uploading the same sheet twice updates rakes instead of duplicating them</li>
-    </ul>
   </div>
 </section>
 
@@ -580,24 +506,23 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(58,55,150,.35)
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 /* ==================== CONFIG ==================== */
 const SUPABASE_URL = 'https://pycmkjrmdieaqsbgrher.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5Y21ranJtZGllYXFzYmdyaGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwMjMxNzAsImV4cCI6MjEwNjU5OTE3MH0.9IE2c2FZ4BPv6Rvhfa_VniQ7LJvQ_c4EGDXFihYR4Lc';
-const APP_PASSWORD = '1234';   // password for Upload Excel, Records Log, Data Entry and Formulas
+const APP_PASSWORD = '1234';
 
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-/* Column spec (same list that built the Excel template and the SQL table):
-   db column, Excel header, type, form section, flags (R required, C calculated by database, O optional, A auto-number, S select), note, extra header aliases */
 const COLS = [{"db": "sr_no", "label": "Sr No", "type": "int", "section": "Basic Details", "flags": "A", "note": "Running number; restarts every month. Leave blank to auto-number.", "aliases": []}, {"db": "loading_date", "label": "Loading Date", "type": "date", "section": "Basic Details", "flags": "R", "note": "dd.mm.yyyy (text) or a real Excel date.", "aliases": ["Date"]}, {"db": "area", "label": "AREA", "type": "text", "section": "Basic Details", "flags": "RS", "note": "One of SECL, IB, CKP, CCL, NCL.", "aliases": []}, {"db": "source", "label": "Source", "type": "text", "section": "Basic Details", "flags": "R", "note": "Siding / silo name, e.g. BAROUD (BOMK).", "aliases": []}, {"db": "unit", "label": "UNIT", "type": "text", "section": "Basic Details", "flags": "", "note": "Defaults to IPP when blank.", "aliases": []}, {"db": "allotment_date", "label": "Allotment date", "type": "date", "section": "Allotment", "flags": "", "note": "dd.mm.yyyy.", "aliases": []}, {"db": "seq_no", "label": "Sr Seq no.", "type": "text", "section": "Allotment", "flags": "", "note": "Railway sequence number.", "aliases": ["Rlw Seq. No."]}, {"db": "reprogram_month", "label": "Reprogram Month of Loaded Rake", "type": "text", "section": "Allotment", "flags": "", "note": "Carry-forward programme reference, e.g. P/JBPL/SECL/C/OCT2026/1.", "aliases": ["Reprogram Month of Loaded rake, if Carryforward."]}, {"db": "time_pt", "label": "P/T", "type": "time", "section": "Loading Time", "flags": "", "note": "hh:mm (24 h).", "aliases": []}, {"db": "time_ct", "label": "C/T", "type": "time", "section": "Loading Time", "flags": "", "note": "hh:mm. Past-midnight loading is handled.", "aliases": []}, {"db": "time_do", "label": "D/O", "type": "time", "section": "Loading Time", "flags": "", "note": "hh:mm.", "aliases": []}, {"db": "loading_minutes", "label": "Loading Duration", "type": "int", "section": "Loading Time", "flags": "C", "note": "P/T to C/T in minutes. Not in the Excel sheet.", "aliases": []}, {"db": "supply_wagons", "label": "Supply Wagons", "type": "int", "section": "Wagon Details", "flags": "", "note": "", "aliases": []}, {"db": "load_wagons", "label": "Load Wagons", "type": "int", "section": "Wagon Details", "flags": "", "note": "", "aliases": []}, {"db": "sick_wagons", "label": "Sick Wagons", "type": "int", "section": "Wagon Details", "flags": "C", "note": "Supply Wagons - Load Wagons (blank Load counts as 0).", "aliases": []}, {"db": "box_type", "label": "Box Type", "type": "text", "section": "Wagon Details", "flags": "", "note": "e.g. N-BOX, NS BOX, MIX BOX, NHL, BOSM.", "aliases": []}, {"db": "net_wt", "label": "Net wt.", "type": "num", "section": "Weight & Quality", "flags": "", "note": "MT.", "aliases": []}, {"db": "chargeable_wt", "label": "Chargable Wt.", "type": "num", "section": "Weight & Quality", "flags": "", "note": "MT.", "aliases": ["Chargeable Wt."]}, {"db": "rr_weight", "label": "RR Weight", "type": "num", "section": "Weight & Quality", "flags": "", "note": "MT.", "aliases": []}, {"db": "plant_end_gcv", "label": "PLANT END GCV", "type": "num", "section": "Weight & Quality", "flags": "O", "note": "Optional - present in the May-Jul sheets only.", "aliases": []}, {"db": "tm_pct", "label": "TM%", "type": "num", "section": "Weight & Quality", "flags": "O", "note": "Optional.", "aliases": []}, {"db": "rr_number", "label": "RR Number", "type": "text", "section": "Railway Receipt", "flags": "", "note": "", "aliases": []}, {"db": "rr_date", "label": "RR Date", "type": "date", "section": "Railway Receipt", "flags": "", "note": "dd.mm.yyyy.", "aliases": []}, {"db": "fnot_no", "label": "FNOT No.", "type": "text", "section": "Railway Receipt", "flags": "", "note": "Kept as text (e.g. 2804.001).", "aliases": []}, {"db": "invoice_no", "label": "Invoice No.", "type": "text", "section": "Railway Receipt", "flags": "", "note": "", "aliases": []}, {"db": "ul_qty", "label": "U/L", "type": "num", "section": "Underload / Overload", "flags": "", "note": "Blank = 0.", "aliases": []}, {"db": "ol_qty", "label": "O/L", "type": "num", "section": "Underload / Overload", "flags": "", "note": "Blank = 0.", "aliases": []}, {"db": "chbl_pun_qty", "label": "CHBL AT PUN RATE.", "type": "num", "section": "Underload / Overload", "flags": "", "note": "Quantity charged at punitive rate (MT).", "aliases": []}, {"db": "pol1", "label": "POL1", "type": "num", "section": "Punitive Charges", "flags": "", "note": "Rs. Blank = 0.", "aliases": []}, {"db": "pol2", "label": "POL2", "type": "num", "section": "Punitive Charges", "flags": "", "note": "Rs.", "aliases": []}, {"db": "pola", "label": "POLA", "type": "num", "section": "Punitive Charges", "flags": "", "note": "Rs.", "aliases": []}, {"db": "krba", "label": "KRBA", "type": "num", "section": "Punitive Charges", "flags": "", "note": "Rs.", "aliases": []}, {"db": "ladc", "label": "LADC", "type": "num", "section": "Punitive Charges", "flags": "", "note": "Rs.", "aliases": []}, {"db": "pcla", "label": "PCLA", "type": "num", "section": "Punitive Charges", "flags": "", "note": "Rs.", "aliases": []}, {"db": "dcla", "label": "DCLA", "type": "num", "section": "Punitive Charges", "flags": "", "note": "Rs.", "aliases": []}, {"db": "pol_group", "label": "POL1/PO2/POLA/PCLA/DCLA", "type": "num", "section": "Punitive Charges", "flags": "C", "note": "Punitive Sum = POL1 + POL2 + POLA + KRBA + LADC + PCLA + DCLA.", "aliases": ["pun sum", "Punitative Sum"]}, {"db": "sd", "label": "SD", "type": "num", "section": "Other Railway Charges", "flags": "", "note": "Rs.", "aliases": []}, {"db": "sdcc", "label": "SDCC", "type": "num", "section": "Other Railway Charges", "flags": "", "note": "Rs.", "aliases": []}, {"db": "st", "label": "ST", "type": "num", "section": "Other Railway Charges", "flags": "", "note": "Rs.", "aliases": []}, {"db": "tc", "label": "TC", "type": "num", "section": "Other Railway Charges", "flags": "", "note": "Rs.", "aliases": []}, {"db": "fauc", "label": "FAUC", "type": "num", "section": "Other Railway Charges", "flags": "", "note": "Rs.", "aliases": []}, {"db": "ehbc_group", "label": "EHBC/FAUC/TC/ST", "type": "num", "section": "Other Railway Charges", "flags": "C", "note": "Sum of SD + SDCC + ST + TC + FAUC.", "aliases": ["DC SUM"]}, {"db": "gst", "label": "GST", "type": "num", "section": "Other Railway Charges", "flags": "", "note": "Rs.", "aliases": []}, {"db": "enhc", "label": "ENHC", "type": "num", "section": "Other Railway Charges", "flags": "", "note": "Rs.", "aliases": []}, {"db": "ehbc", "label": "EHBC", "type": "num", "section": "Other Railway Charges", "flags": "", "note": "Rs.", "aliases": []}, {"db": "rr_freight_base", "label": "RR Freight Base Value", "type": "num", "section": "Freight", "flags": "", "note": "Rs.", "aliases": []}, {"db": "railway_total_freight", "label": "Railway Total Freight", "type": "num", "section": "Freight", "flags": "", "note": "Rs. In the sheet this equals Base + Punitive Sum + EHBC group + GST + ENHC + EHBC (rounded).", "aliases": []}, {"db": "sample_collection_date", "label": "Date of Sample Collection", "type": "date", "section": "Sample & Powder", "flags": "", "note": "Defaults to Loading Date (as in the sheet).", "aliases": []}, {"db": "sample_rake_no", "label": "Rake No.", "type": "text", "section": "Sample & Powder", "flags": "", "note": "", "aliases": []}, {"db": "prep_commenced_date", "label": "DATE OF SAMPLE PREPARATION COMMENCED", "type": "date", "section": "Sample & Powder", "flags": "", "note": "dd.mm.yyyy.", "aliases": []}, {"db": "prep_50mm", "label": "Preparation for 50 mm ( YES/NO)", "type": "text", "section": "Sample & Powder", "flags": "", "note": "e.g. YES (02.07.2026).", "aliases": []}, {"db": "prep_12_5mm", "label": "Preparation for 12.5 mm ( YES/NO)", "type": "text", "section": "Sample & Powder", "flags": "", "note": "", "aliases": []}, {"db": "prep_3_35mm", "label": "Preparation for 3.35 mm ( YES / NO)", "type": "text", "section": "Sample & Powder", "flags": "", "note": "", "aliases": []}, {"db": "prep_212micron", "label": "Preparation for 212 micron (YES/NO)", "type": "text", "section": "Sample & Powder", "flags": "", "note": "", "aliases": []}, {"db": "prep_completed", "label": "DATE OF SAMPLE PREPARATION COMPLETED", "type": "text", "section": "Sample & Powder", "flags": "", "note": "e.g. COMPLETED/03.07.2026.", "aliases": []}, {"db": "sample_id", "label": "Sample ID", "type": "text", "section": "Sample & Powder", "flags": "", "note": "", "aliases": []}, {"db": "powder_status", "label": "Powder Status", "type": "text", "section": "Sample & Powder", "flags": "", "note": "", "aliases": []}];
 const COL_BY_DB = {}; COLS.forEach(c => COL_BY_DB[c.db] = c);
 const T = 'pjpb_rake_records';
+// Area codes; IB and CKP are shown with (MCL) in every label
 let AREAS = ['SECL', 'IB', 'CKP', 'CCL', 'NCL'];
+const AREA_LABEL = a => (a === 'IB' || a === 'CKP') ? `${a} (MCL)` : a;
 
 const $ = id => document.getElementById(id);
 const pad2 = n => String(n).padStart(2, '0');
@@ -617,7 +542,6 @@ function toast(msg, err) {
 }
 
 /* ==================== PARSING HELPERS ==================== */
-/* @@PARSE_START */
 const norm = s => String(s ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
 const HEADER_ALIASES = {};
 COLS.forEach(c => {
@@ -678,7 +602,6 @@ function recordKey(d) {
 }
 const monthOf = ymd => String(ymd || '').slice(0, 7);
 const minutesText = m => (m == null || isNaN(m)) ? '-' : `${pad2(Math.floor(m / 60))}:${pad2(Math.round(m % 60))} hrs`;
-/* @@PARSE_END */
 
 /* ==================== PASSWORD + VIEWS ==================== */
 const PROTECTED = ['upload', 'log', 'entry', 'formulas'];
@@ -748,7 +671,7 @@ async function loadAreas() {
   } catch (e) { console.warn('Areas not loaded, using defaults', e); }
 }
 
-/* ==================== FORMULAS (editable rules, table pjpb_settings) ==================== */
+/* ==================== FORMULAS ==================== */
 let FORMULAS = { dayQty: 15000, pctLow: 100 };
 async function loadFormulas() {
   try {
@@ -776,38 +699,45 @@ $('saveFormulas').addEventListener('click', async () => {
   loadDashboard();
 });
 
-/* ==================== PERIODS ==================== */
-const FISCAL = { 1: { start: 4, label: 'Apr\u2013Jun' }, 2: { start: 7, label: 'Jul\u2013Sep' }, 3: { start: 10, label: 'Oct\u2013Dec' }, 4: { start: 1, label: 'Jan\u2013Mar' } };
-const PERIOD_KEYS = ['2026-Q1', '2026-Q2', '2026-Q3', '2026-Q4', '2027-Q1', '2027-Q2', '2027-Q3', '2027-Q4'];
-const qYear = (fy, q) => q === 4 ? fy + 1 : fy;
-const periodLabel = k => { const [fy, q] = k.split('-Q').map(Number); return `Q${q} (${FISCAL[q].label} ${qYear(fy, q)})`; };
+/* ==================== PERIODS (MONTH WISE) ==================== */
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const DAY = 86400000;
 const U = s => Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10));
 const ymd = ms => new Date(ms).toISOString().slice(0, 10);
 const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; };
-function currentPeriodKey() {
-  const d = new Date(), m = d.getMonth() + 1, y = d.getFullYear();
-  const fy = m >= 4 ? y : y - 1, q = m >= 4 && m <= 6 ? 1 : m >= 7 && m <= 9 ? 2 : m >= 10 ? 3 : 4;
-  return `${fy}-Q${q}`;
-}
-let PERIOD = new URLSearchParams(location.search).get('period');
-if (!PERIOD_KEYS.includes(PERIOD)) PERIOD = currentPeriodKey();
-if (!PERIOD_KEYS.includes(PERIOD)) PERIOD = PERIOD_KEYS[0];
 
-function quarterRange(key) {
-  const [fy, q] = key.split('-Q').map(Number);
-  const sy = qYear(fy, q), sm = FISCAL[q].start, em = sm + 3;
-  const ey = sy + (em > 12 ? 1 : 0), emm = em > 12 ? em - 12 : em;
-  return { from: `${sy}-${pad2(sm)}-01`, to: `${ey}-${pad2(emm)}-01` };
+// Month keys are "YYYY-MM". The picker lists Apr-2026 to Mar-2027 (FY 2026-27), extendable.
+function buildMonthKeys() {
+  const keys = [];
+  for (let i = 0; i < 24; i++) {
+    const d = new Date(Date.UTC(2026, 3 + i, 1));
+    keys.push(`${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}`);
+  }
+  return keys;
+}
+const MONTH_KEYS = buildMonthKeys();
+const monthLabel = k => { const [y, m] = k.split('-').map(Number); return `${MONTHS[m - 1]}-${y}`; };
+function currentMonthKey() { const d = new Date(); return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}`; }
+let PERIOD = new URLSearchParams(location.search).get('period');
+if (!MONTH_KEYS.includes(PERIOD)) PERIOD = currentMonthKey();
+if (!MONTH_KEYS.includes(PERIOD)) PERIOD = MONTH_KEYS[0];
+
+function monthRange(key) {
+  const [y, m] = key.split('-').map(Number);
+  const from = `${y}-${pad2(m)}-01`;
+  const next = new Date(Date.UTC(y, m, 1));
+  const to = ymd(next.getTime());
+  return { from, to };
 }
 function periodInfo(key) {
-  const { from, to } = quarterRange(key);
+  const { from, to } = monthRange(key);
   const totalDays = Math.round((U(to) - U(from)) / DAY);
+  const endIncl = ymd(U(to) - DAY);
   const daysPassed = Math.min(totalDays, Math.max(0, Math.round((U(todayStr()) - U(from)) / DAY) + 1));
-  return { from, to, endIncl: ymd(U(to) - DAY), totalDays, daysPassed };
+  return { from, to, endIncl, totalDays, daysPassed };
 }
 async function loadPeriodData(period) {
-  const { from, to } = quarterRange(period);
+  const { from, to } = monthRange(period);
   const [recs, tgtRes, perRes] = await Promise.all([
     fetchAll(() => db.from(T).select('*').gte('loading_date', from).lt('loading_date', to).order('loading_date').order('id')),
     db.from('pjpb_rake_targets').select('*').eq('period_key', period),
@@ -859,7 +789,6 @@ function computeDashboard(period, data) {
   const rem = daysRemaining(info, cutoff);
   const all = stats(recs);
 
-  // Area targets
   let tTarget = 0, tLoaded = 0, tAsk = 0;
   AREAS.forEach(a => {
     const target = sum(tgts.filter(t => t.area === a), t => t.qtr_target);
@@ -870,16 +799,14 @@ function computeDashboard(period, data) {
   });
   put('tgt_TOTAL', tTarget); put('load_TOTAL', tLoaded); put('bal_TOTAL', tTarget - tLoaded); put('ask_TOTAL', round2(tAsk), 'd2');
 
-  // Key performance
-  const qtrTargetQty = FORMULAS.dayQty * info.totalDays;
-  const balQty = all.rr - qtrTargetQty;
+  const monthTargetQty = FORMULAS.dayQty * info.totalDays;
+  const balQty = all.rr - monthTargetQty;
   put('k_perDayRake', round2(tAsk), 'd2');
   put('k_rakeMat', tTarget ? tLoaded / tTarget * 100 : 0, 'pct');
-  put('k_qtrTarget', qtrTargetQty); put('k_achieved', all.rr); put('k_balQty', balQty);
+  put('k_qtrTarget', monthTargetQty); put('k_achieved', all.rr); put('k_balQty', balQty);
   put('k_perDayReqQty', (rem > 0 && balQty < 0) ? -balQty / rem : 0);
   put('k_gcv', all.gcv);
 
-  // Weight variance
   put('wv_perRake', all.varN ? all.varS / all.varN : 0, 'd2');
   put('wv_pct', all.varNet ? all.varS / all.varNet * 100 : 0, 'pct');
   const perMt = v => all.rr ? v / all.rr : 0;
@@ -888,7 +815,6 @@ function computeDashboard(period, data) {
     put('aw_rr_' + a, s.avgRr, 'd1'); put('aw_fr_' + a, s.fpm, 'd2');
   });
 
-  // Freight summary
   put('fr_base', all.base); put('fr_baseMt', perMt(all.base), 'd2');
   put('fr_pen', all.pen); put('fr_penMt', perMt(all.pen), 'd2');
   put('fr_gst', all.gst); put('fr_gstMt', perMt(all.gst), 'd2');
@@ -896,14 +822,12 @@ function computeDashboard(period, data) {
   put('fr_penPct', all.frt ? all.pen / all.frt * 100 : 0, 'pct');
   put('fr_exp', info.daysPassed ? all.frt / info.daysPassed * info.totalDays : 0);
 
-  // Rake performance
   put('pd_rakeAch', info.daysPassed ? all.n / info.daysPassed : 0, 'd2'); put('pd_rakeTgt', round2(tAsk), 'd2');
   put('pd_qtyAch', info.daysPassed ? all.rr / info.daysPassed : 0); put('pd_qtyTgt', FORMULAS.dayQty);
   put('pd_fcAch', all.fpm, 'd2'); put('pd_fcTgt', num(per.freight_cost_target), 'd2');
   put('t_avgNet', all.avgNet, 'd1'); put('t_avgChg', all.avgChg, 'd1'); put('t_avgRr', all.avgRr, 'd1');
   put('t_avgLoad', minutesText(all.avgLm), 'str'); put('t_totalRr', all.rr, 'd1'); put('t_rakes', all.n);
 
-  // Penalties
   put('pn_pun', all.pun); put('pn_punMt', perMt(all.pun), 'd2');
   put('pn_ehbc', all.eh); put('pn_ehbcMt', perMt(all.eh), 'd2');
   put('pn_enhc', all.enhc); put('pn_enhcMt', perMt(all.enhc), 'd2');
@@ -911,7 +835,6 @@ function computeDashboard(period, data) {
   put('pn_total', all.pen); put('pn_totalMt', perMt(all.pen), 'd2');
   put('pn_ul', all.ul, 'd2'); put('pn_ol', all.ol, 'd2'); put('pn_chbl', all.chbl, 'd2');
 
-  // Area wise table (+ TOTAL)
   [...AREAS, 'TOTAL'].forEach(a => {
     const s = a === 'TOTAL' ? all : stats(recs.filter(r => r.area === a));
     put('a_rakes_' + a, s.n); put('a_rr_' + a, s.rr, 'd1'); put('a_avgrr_' + a, s.avgRr, 'd1');
@@ -953,12 +876,12 @@ const AREA_PERF_ROWS = [
 ];
 function buildAreaDom() {
   const cols = [...AREAS, 'TOTAL'];
-  $('areaTargetsBox').innerHTML = `<table class="area-table five"><thead><tr><th></th>${cols.map(a => `<th>${a}</th>`).join('')}</tr></thead><tbody>` +
-    [['Target of Qtr', 'tgt_'], ['Rake Loaded Till', 'load_'], ['Balance Rake', 'bal_'], ['Asking Per Day', 'ask_']].map(([l, p]) =>
+  $('areaTargetsBox').innerHTML = `<table class="area-table five"><thead><tr><th></th>${cols.map(a => `<th>${a === 'TOTAL' ? 'TOTAL' : AREA_LABEL(a)}</th>`).join('')}</tr></thead><tbody>` +
+    [['Target of Month', 'tgt_'], ['Rake Loaded Till', 'load_'], ['Balance Rake', 'bal_'], ['Asking Per Day', 'ask_']].map(([l, p]) =>
       `<tr><td class="row-label">${l}</td>${cols.map(a => `<td${a === 'TOTAL' ? ' class="tot"' : ''}><input id="${p}${a}" readonly></td>`).join('')}</tr>`).join('') + '</tbody></table>';
   $('areaWtBox').innerHTML = AREAS.map(a =>
-    `<div class="metric-row"><span class="metric-label">(${a})</span><div class="pair"><input class="metric-value" id="aw_rr_${a}" readonly><input class="metric-value" id="aw_fr_${a}" readonly></div></div>`).join('');
-  $('areaPerfTbl').innerHTML = `<thead><tr><th>AREA</th>${cols.map(a => `<th>${a}</th>`).join('')}</tr></thead><tbody>` +
+    `<div class="metric-row"><span class="metric-label">(${AREA_LABEL(a)})</span><div class="pair"><input class="metric-value" id="aw_rr_${a}" readonly><input class="metric-value" id="aw_fr_${a}" readonly></div></div>`).join('');
+  $('areaPerfTbl').innerHTML = `<thead><tr><th>AREA</th>${cols.map(a => `<th>${a === 'TOTAL' ? 'TOTAL' : AREA_LABEL(a)}</th>`).join('')}</tr></thead><tbody>` +
     AREA_PERF_ROWS.map(([l, p]) => `<tr><td class="row-label">${l}</td>${cols.map(a => `<td><input id="${p}${a}" readonly></td>`).join('')}</tr>`).join('') + '</tbody>';
 }
 
@@ -971,40 +894,33 @@ function renderSources(recs) {
     return { name, area, s: stats(rs) };
   }).sort((a, b) => b.s.n - a.s.n || a.name.localeCompare(b.name));
   const f = (n, k) => formatCell(n, k);
-  $('srcBody').innerHTML = rows.map(r => `<tr><td class="txt left">${esc(r.name)}</td><td class="txt">${esc(r.area)}</td><td class="txt">${r.s.n}</td>
+  $('srcBody').innerHTML = rows.map(r => `<tr><td class="txt left">${esc(r.name)}</td><td class="txt">${esc(AREA_LABEL(r.area))}</td><td class="txt">${r.s.n}</td>
     <td class="txt">${f(r.s.rr, 'd1')}</td><td class="txt">${f(r.s.avgRr, 'd1')}</td><td class="txt">${f(r.s.pun, 'int')}</td>
     <td class="txt">${f(r.s.frt, 'int')}</td><td class="txt">${f(r.s.fpm, 'd2')}</td><td class="txt">${minutesText(r.s.avgLm)}</td></tr>`).join('')
-    || '<tr><td class="txt" colspan="9">No rakes in this quarter.</td></tr>';
+    || '<tr><td class="txt" colspan="9">No rakes in this month.</td></tr>';
 }
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+/* Month-wise trend: one row per month of the financial year that holds the selected month */
 async function loadTrend() {
-  const fy = +PERIOD.split('-Q')[0];
+  const [sy, sm] = PERIOD.split('-').map(Number);
+  const fy = sm >= 4 ? sy : sy - 1;
   const recsFy = await fetchAll(() => db.from(T).select('*').gte('loading_date', `${fy}-04-01`).lt('loading_date', `${fy + 1}-04-01`).order('loading_date').order('id'));
   const today = todayStr();
-  const money = (n, d) => (n == null || !n) ? '-' : '\u20b9 ' + n.toLocaleString('en-IN', { minimumFractionDigits: d, maximumFractionDigits: d });
   const int = n => (n == null || !n) ? '-' : Math.round(n).toLocaleString('en-IN');
+  const money = (n, d) => (n == null || !n) ? '-' : '\u20b9 ' + n.toLocaleString('en-IN', { minimumFractionDigits: d, maximumFractionDigits: d });
   let html = '';
-  [1, 2, 3, 4].forEach(q => {
-    const key = `${fy}-Q${q}`, info = periodInfo(key);
-    const rs = recsFy.filter(r => r.loading_date >= info.from && r.loading_date < info.to);
-    const qs = stats(rs);
+  for (let i = 0; i < 12; i++) {
+    const mm = ((3 + i) % 12) + 1, yy = mm >= 4 ? fy : fy + 1;
+    const key = `${yy}-${pad2(mm)}`, info = periodInfo(key);
+    const mr = recsFy.filter(r => monthOf(r.loading_date) === key), s = stats(mr);
     const target = FORMULAS.dayQty * info.totalDays;
-    const pct = (rs.length && target) ? Math.min(100, qs.rr / target * 100) : null;
-    const qCls = pct != null && pct < FORMULAS.pctLow ? 'qtr low' : 'qtr';
-    const start = new Date(Date.UTC(+info.from.slice(0, 4), +info.from.slice(5, 7) - 1, 1));
-    [0, 1, 2].forEach(i => {
-      const ms = Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + i, 1), me = Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + i + 1, 1);
-      const mk = ymd(ms).slice(0, 7), mr = rs.filter(r => monthOf(r.loading_date) === mk), s = stats(mr);
-      const days = Math.min(Math.round((me - ms) / DAY), Math.max(0, Math.round((U(today) - ms) / DAY) + 1));
-      html += `<tr><td>${MONTHS[new Date(ms).getUTCMonth()]}-${String(new Date(ms).getUTCFullYear()).slice(2)}</td><td>${int(s.n)}</td><td>${int(s.rr)}</td>
-        <td>${days && s.rr ? int(s.rr / days) : '-'}</td><td>${s.rr ? money(s.fpm, 2) : '-'}</td>`;
-      if (i === 0) html += `<td class="qtr" rowspan="3">${periodLabel(key)}</td><td class="qtr" rowspan="3">${int(qs.n)}</td>
-        <td class="qtr" rowspan="3">${int(qs.rr)}</td><td class="qtr" rowspan="3">${info.daysPassed && qs.rr ? int(qs.rr / info.daysPassed) : '-'}</td>
-        <td class="qtr" rowspan="3">${qs.rr ? money(qs.fpm, 2) : '-'}</td><td class="${qCls}" rowspan="3">${pct == null ? '-' : pct.toFixed(2) + '%'}</td>`;
-      html += '</tr>';
-    });
-  });
+    const pct = (mr.length && target) ? Math.min(100, s.rr / target * 100) : null;
+    const cls = pct != null && pct < FORMULAS.pctLow ? 'low' : '';
+    const days = info.daysPassed;
+    html += `<tr><td>${monthLabel(key)}</td><td>${int(s.n)}</td><td>${int(s.rr)}</td>
+      <td>${days && s.rr ? int(s.rr / days) : '-'}</td><td>${s.rr ? money(s.fpm, 2) : '-'}</td>
+      <td>${int(target)}</td><td class="${cls}">${pct == null ? '-' : pct.toFixed(2) + '%'}</td></tr>`;
+  }
   $('trendBody').innerHTML = html;
 }
 
@@ -1029,11 +945,11 @@ async function loadDashboard() {
 function setPeriod(key) {
   PERIOD = key;
   $('periodPick').value = key; $('periodPick2').value = key;
-  $('periodLabel').textContent = `AMM PJPB \u2022 ${periodLabel(PERIOD)}`;
+  $('periodLabel').textContent = `AMM PJPB \u2022 ${monthLabel(PERIOD)}`;
   subscribeLive();
 }
 function fillPeriodPickers() {
-  const opts = PERIOD_KEYS.map(k => `<option value="${k}">${periodLabel(k)}</option>`).join('');
+  const opts = MONTH_KEYS.map(k => `<option value="${k}">${monthLabel(k)}</option>`).join('');
   ['periodPick', 'periodPick2', 'rakePeriod'].forEach(id => $(id).innerHTML = opts);
   $('periodPick').value = PERIOD; $('periodPick2').value = PERIOD; $('rakePeriod').value = PERIOD;
   $('periodPick').addEventListener('change', e => { setPeriod(e.target.value); loadDashboard(); });
@@ -1054,44 +970,45 @@ function subscribeLive() {
 }
 
 $('reloadBtn').addEventListener('click', loadDashboard);
+
+/* PNG export: captures the dashboard without the Source Wise card */
 $('pdfBtn').addEventListener('click', async () => {
   const btn = $('pdfBtn'); btn.disabled = true;
+  const src = $('capSource');
   try {
     await loadDashboard();
-    const canvas = await html2canvas(document.querySelector('#view-dashboard'), { scale: 2, backgroundColor: '#eeedf8', useCORS: true, windowWidth: 1500 });
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ orientation: canvas.width >= canvas.height ? 'landscape' : 'portrait', unit: 'mm', format: 'a4' });
-    const pw = pdf.internal.pageSize.getWidth(), ph = pdf.internal.pageSize.getHeight(), m = 6;
-    const ratio = Math.min((pw - 2 * m) / canvas.width, (ph - 2 * m) / canvas.height);
-    const w = canvas.width * ratio, h = canvas.height * ratio;
-    pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', (pw - w) / 2, (ph - h) / 2, w, h);
-    pdf.save(`PJPB-Performance-Meter-${PERIOD}.pdf`);
-  } catch (e) { console.error(e); toast('PDF failed', true); }
+    src.classList.add('hidden');
+    const canvas = await html2canvas(document.querySelector('#view-dashboard'), {
+      scale: 2, backgroundColor: '#eeedf8', useCORS: true, windowWidth: 1500
+    });
+    src.classList.remove('hidden');
+    const a = document.createElement('a');
+    a.href = canvas.toDataURL('image/png');
+    a.download = `PJPB-Performance-Meter-${PERIOD}.png`;
+    document.body.appendChild(a); a.click(); a.remove();
+    toast('PNG downloaded');
+  } catch (e) {
+    src.classList.remove('hidden');
+    console.error(e); toast('PNG failed', true);
+  }
   btn.disabled = false;
 });
 
 /* ==================== REPORTS ==================== */
 let repData = null;
 async function loadReports() {
-  $('repPeriod').textContent = `Month and area summary \u2022 ${periodLabel(PERIOD)}`;
+  $('repPeriod').textContent = `Month and area summary \u2022 ${monthLabel(PERIOD)}`;
   try {
     const { recs } = await loadPeriodData(PERIOD);
-    const info = periodInfo(PERIOD), today = todayStr();
+    const info = periodInfo(PERIOD);
     const f = formatCell;
     const head = first => `<thead><tr><th>${first}</th><th>Rakes</th><th>RR Qty (MT)</th><th>Avg. RR Wt.</th><th>Per Day Qty</th><th>Punitive Sum</th><th>Total Penalty</th><th>Total Freight</th><th>Freight / MT</th></tr></thead>`;
     const rowHtml = (label, s, days) => `<tr><td>${esc(label)}</td><td>${f(s.n, 'int')}</td><td>${f(s.rr, 'd1')}</td><td>${f(s.avgRr, 'd1')}</td><td>${days ? f(s.rr / days, 'int') : '-'}</td><td>${f(s.pun, 'int')}</td><td>${f(s.pen, 'int')}</td><td>${f(s.frt, 'int')}</td><td>${f(s.fpm, 'd2')}</td></tr>`;
-    const start = new Date(Date.UTC(+info.from.slice(0, 4), +info.from.slice(5, 7) - 1, 1));
-    const months = [0, 1, 2].map(i => {
-      const ms = Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + i, 1), me = Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + i + 1, 1);
-      const mk = ymd(ms).slice(0, 7);
-      const days = Math.min(Math.round((me - ms) / DAY), Math.max(0, Math.round((U(today) - ms) / DAY) + 1));
-      return { label: `${MONTHS[new Date(ms).getUTCMonth()]}-${new Date(ms).getUTCFullYear()}`, s: stats(recs.filter(r => monthOf(r.loading_date) === mk)), days };
-    });
     const all = stats(recs);
-    $('repMonth').innerHTML = head('Month') + '<tbody>' + months.map(m => rowHtml(m.label, m.s, m.days)).join('') + '</tbody><tfoot>' + rowHtml('Quarter total', all, info.daysPassed) + '</tfoot>';
-    const areas = AREAS.map(a => ({ label: a, s: stats(recs.filter(r => r.area === a)) }));
+    $('repMonth').innerHTML = head('Month') + '<tbody></tbody><tfoot>' + rowHtml(monthLabel(PERIOD), all, info.daysPassed) + '</tfoot>';
+    const areas = AREAS.map(a => ({ label: AREA_LABEL(a), s: stats(recs.filter(r => r.area === a)) }));
     $('repArea').innerHTML = head('Area') + '<tbody>' + areas.map(a => rowHtml(a.label, a.s, info.daysPassed)).join('') + '</tbody><tfoot>' + rowHtml('Total', all, info.daysPassed) + '</tfoot>';
-    repData = { recs, months, areas, all, info };
+    repData = { recs, areas, all, info };
     $('repStatus').textContent = '';
   } catch (e) { console.error(e); $('repStatus').textContent = 'Could not load report: ' + e.message; $('repStatus').className = 'status err'; }
 }
@@ -1099,7 +1016,7 @@ $('repXlsx').addEventListener('click', () => {
   if (!repData) { toast('Report not loaded yet', true); return; }
   const mk = (label, s) => ({ [label]: '', Rakes: s.n, 'RR Qty (MT)': round2(s.rr), 'Avg RR Wt': round2(s.avgRr), 'Punitive Sum': round2(s.pun), 'Total Penalty': round2(s.pen), 'Total Freight': Math.round(s.frt), 'Freight / MT': round2(s.fpm) });
   const wb = XLSX.utils.book_new();
-  const monthRows = repData.months.map(m => { const o = mk('Month', m.s); o.Month = m.label; return o; });
+  const monthRows = [{ ...mk('Month', repData.all), Month: monthLabel(PERIOD) }];
   const areaRows = repData.areas.map(a => { const o = mk('Area', a.s); o.Area = a.label; return o; });
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(monthRows), 'Monthly');
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(areaRows), 'Area');
@@ -1108,9 +1025,9 @@ $('repXlsx').addEventListener('click', () => {
   XLSX.writeFile(wb, `PJPB-Report-${PERIOD}.xlsx`);
 });
 
-/* ==================== ALERTS (data checks) ==================== */
+/* ==================== ALERTS ==================== */
 async function loadAlerts() {
-  $('alPeriod').textContent = `Data checks \u2022 ${periodLabel(PERIOD)}`;
+  $('alPeriod').textContent = `Data checks \u2022 ${monthLabel(PERIOD)}`;
   try {
     const data = await loadPeriodData(PERIOD);
     const { recs } = data, items = [];
@@ -1134,10 +1051,10 @@ async function loadAlerts() {
     const tgtTotal = sum(data.tgts, t => t.qtr_target);
     if (tgtTotal) {
       const loaded = recs.filter(r => r.loading_date <= cutoff).length;
-      items.push({ lvl: 'info', title: `Rake target: ${loaded} of ${tgtTotal} loaded`, text: rem > 0 ? `${round2((tgtTotal - loaded) / rem)} rakes per day needed for the remaining ${rem} days.` : 'No days remain in this quarter.', time: `As on ${cutoff}` });
-    } else items.push({ lvl: 'info', title: 'No quarter target rakes entered', text: 'Enter targets in Data Entry > Target Rake to see Asking Per Day.', time: periodLabel(PERIOD) });
-    if (recs.length) items.push({ lvl: 'info', title: `Last rake loaded on ${recs[recs.length - 1].loading_date}`, text: `${recs.length} rakes in ${periodLabel(PERIOD)}.`, time: 'From the database' });
-    else items.push({ lvl: 'info', title: 'No rakes in this quarter yet', text: 'Upload an Excel sheet or add rakes in Data Entry.', time: periodLabel(PERIOD) });
+      items.push({ lvl: 'info', title: `Month target: ${loaded} of ${tgtTotal} loaded`, text: rem > 0 ? `${round2((tgtTotal - loaded) / rem)} rakes per day needed for the remaining ${rem} days.` : 'No days remain in this month.', time: `As on ${cutoff}` });
+    } else items.push({ lvl: 'info', title: 'No month target rakes entered', text: 'Enter targets in Data Entry > Target Rake to see Asking Per Day.', time: monthLabel(PERIOD) });
+    if (recs.length) items.push({ lvl: 'info', title: `Last rake loaded on ${recs[recs.length - 1].loading_date}`, text: `${recs.length} rakes in ${monthLabel(PERIOD)}.`, time: 'From the database' });
+    else items.push({ lvl: 'info', title: 'No rakes in this month yet', text: 'Upload an Excel sheet or add rakes in Data Entry.', time: monthLabel(PERIOD) });
     if (recs.length && !dups.length) items.push({ lvl: 'success', title: 'All RR numbers are unique', text: `${recs.length} rakes checked.`, time: 'No duplicate RR numbers' });
     const cnt = l => items.filter(i => i.lvl === l).length;
     $('alCrit').textContent = cnt('critical'); $('alWarn').textContent = cnt('warning'); $('alInfo').textContent = cnt('info'); $('alCount').textContent = recs.length;
@@ -1198,7 +1115,7 @@ function parseSheet(ws) {
     if (row.every(c => String(c).trim() === '')) continue;
     const data = {};
     colMap.forEach((dbc, i) => { if (!dbc || dupHdr[i] || isCalc(dbc)) return; data[dbc] = toDbValue(dbc, row[i]); });
-    if (!data.loading_date && !data.source) continue;          // summary / total / blank rows
+    if (!data.loading_date && !data.source) continue;
     const errors = [];
     if (!data.loading_date) errors.push('no valid loading date');
     if (!data.area) errors.push('no area'); else if (!AREAS.includes(data.area)) errors.push('unknown area ' + data.area);
@@ -1246,7 +1163,6 @@ $('cancelImport').addEventListener('click', () => {
 });
 
 async function nextSrNos(rows) {
-  // fills a missing Sr No per month (Sr No restarts every month)
   const next = {};
   for (const m of [...new Set(rows.map(r => monthOf(r.data.loading_date)))]) {
     const from = `${m}-01`, d = new Date(Date.UTC(+m.slice(0, 4), +m.slice(5, 7), 1)).toISOString().slice(0, 10);
@@ -1271,7 +1187,7 @@ $('importBtn').addEventListener('click', async () => {
       const chunk = good.slice(i, i + 100);
       const { error } = await db.from(T).upsert(chunk.map(full), { onConflict: 'record_key' });
       if (!error) { ok += chunk.length; continue; }
-      for (const r of chunk) {                       // batch failed: find the bad row(s)
+      for (const r of chunk) {
         const { error: e2 } = await db.from(T).upsert(full(r), { onConflict: 'record_key' });
         if (e2) fail.push(`row ${r.rowNo}: ${e2.message}`); else ok++;
       }
@@ -1295,7 +1211,7 @@ async function loadLog() {
   } catch (error) { toast('Could not load records: ' + error.message, true); return; }
   const months = [...new Set(logRecords.map(r => monthOf(r.loading_date)))].sort().reverse();
   const keep = $('logMonth').value;
-  $('logMonth').innerHTML = '<option value="">All months</option>' + months.map(m => `<option value="${m}">${m}</option>`).join('');
+  $('logMonth').innerHTML = '<option value="">All months</option>' + months.map(m => `<option value="${m}">${monthLabel(m)}</option>`).join('');
   $('logMonth').value = months.includes(keep) ? keep : (months[0] || '');
   renderLog();
 }
@@ -1347,7 +1263,7 @@ $('logTbl').addEventListener('click', async e => {
   }
 });
 
-/* ==================== DATA ENTRY (new record + target rake) ==================== */
+/* ==================== DATA ENTRY ==================== */
 const SECTION_ICONS = { 'Basic Details': 'fa-circle-info', 'Allotment': 'fa-file-signature', 'Loading Time': 'fa-clock', 'Wagon Details': 'fa-train',
   'Weight & Quality': 'fa-weight-scale', 'Railway Receipt': 'fa-receipt', 'Underload / Overload': 'fa-arrow-down-wide-short',
   'Punitive Charges': 'fa-gavel', 'Other Railway Charges': 'fa-file-invoice-dollar', 'Freight': 'fa-indian-rupee-sign', 'Sample & Powder': 'fa-flask' };
@@ -1375,7 +1291,7 @@ function buildEntryForm() {
         return `<div class="form-group">${label}${input}</div>`;
       }).join('')}</div>
     </div>`).join('');
-  $('f_area').innerHTML += AREAS.map(a => `<option value="${a}">${a}</option>`).join('');
+  $('f_area').innerHTML += AREAS.map(a => `<option value="${a}">${AREA_LABEL(a)}</option>`).join('');
   ['supply_wagons', 'load_wagons', 'time_pt', 'time_ct', 'pol1', 'pol2', 'pola', 'krba', 'ladc', 'pcla', 'dcla', 'sd', 'sdcc', 'st', 'tc', 'fauc',
     'gst', 'enhc', 'ehbc', 'rr_freight_base'].forEach(k => $('f_' + k).addEventListener('input', recalcForm));
   $('f_railway_total_freight').addEventListener('input', e => { e.target.dataset.touched = e.target.value === '' ? '' : '1'; });
@@ -1456,9 +1372,8 @@ $('entryForm').addEventListener('submit', async e => {
   await resetEntryForm();
 });
 
-/* ---- Target rake (table pjpb_rake_targets + pjpb_periods) ---- */
+/* ---- Target rake (table pjpb_rake_targets + pjpb_periods, keyed by month) ---- */
 let rake = [];
-let rakeInfo = null;
 const fmtDay = v => Number(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 });
 const fmtPct = v => Number(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 1 }) + '%';
 const askingPct = (l, t) => t ? Math.round(l / t * 1000) / 10 : 0;
@@ -1477,7 +1392,7 @@ function renderRake() {
     t += +r.target || 0; l += +r.loaded || 0; ask += apd;
     return `<tr>
       <td><input readonly value="${i + 1}"></td>
-      <td><input readonly value="${esc(r.area)}"></td>
+      <td><input readonly value="${esc(AREA_LABEL(r.area))}"></td>
       <td><input type="number" min="0" data-i="${i}" value="${r.target}"></td>
       <td><input readonly value="${r.loaded}"></td>
       <td><input readonly value="${bal}"></td>
@@ -1502,12 +1417,13 @@ async function refreshLoaded() {
   } catch (e) { console.error(e); toast('Could not count loaded rakes', true); }
   renderRake();
 }
-function prevPeriod(key) {
-  const [fy, q] = key.split('-Q').map(Number);
-  return q === 1 ? `${fy - 1}-Q4` : `${fy}-Q${q - 1}`;
+function prevMonth(key) {
+  const [y, m] = key.split('-').map(Number);
+  const d = new Date(Date.UTC(y, m - 2, 1));
+  return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}`;
 }
 async function carryForward() {
-  const key = $('rakePeriod').value, p = prevPeriod(key), pinfo = periodInfo(p);
+  const key = $('rakePeriod').value, p = prevMonth(key), pinfo = periodInfo(p);
   const { data } = await db.from('pjpb_rake_targets').select('area, qtr_target').eq('period_key', p);
   if (!data || !data.length) return false;
   for (const r of rake) {
@@ -1541,8 +1457,8 @@ $('rakePeriod').addEventListener('change', loadRake);
 $('rakeReportDate').addEventListener('change', async () => { await refreshLoaded(); scheduleSaveRake(); });
 $('fcTarget').addEventListener('input', scheduleSaveRake);
 $('carryFwd').addEventListener('click', async () => {
-  if (!confirm("Replace Qtr Target with the previous quarter's balance?")) return;
-  if (!(await carryForward())) { toast('No saved targets for previous quarter', true); return; }
+  if (!confirm("Replace Month Target with the previous month's balance?")) return;
+  if (!(await carryForward())) { toast('No saved targets for previous month', true); return; }
   renderRake(); await saveRake(false);
 });
 
