@@ -302,7 +302,7 @@ async function parseSheet(){const sheet=$('#x-s').value,ws=S.xl.wb.Sheets[sheet]
 function xMsg(m){S.xl.rows=[];$('#t-x').innerHTML=`<tbody><tr><td class="empty">${esc(m)}</td></tr></tbody>`;$('#x-i').textContent=m;cntX()}
 function cntX(){$('#c-ok').textContent=fI(S.xl.rows.length);$('#c-dup').textContent='0';$('#c-err').textContent='0';$('#x-imp').disabled=!S.xl.rows.length||S.xl.busy}
 function drawX(){cntX();const t=$('#x-t').value,T=TB[t],r=S.xl.rows;$('#x-i').textContent=`${r.length} rows · blank lines skipped · showing first 150`;
- $('#t-x').innerHTML=`<thead><tr><th>Row</th><th>Dir</th>${T.f.map(f=>`<th>${f[1]}</th>`).join('')}</tr></thead><tbody>`+r.slice(0,150).map(o=>`<tr><td class="muted">${o._row}</td><td>${o.direction}</td>${FIELDS.map(k=>`<td>${o[k]==null?'–':esc(o[k])}</td>`).join('')}</tr>`).join('')+'</tbody>'}
+ $('#t-x').innerHTML=`<thead><tr><th>Row</th><th>Dir</th>${T.f.map(f=>`<th>${f[1]}</th>`).join('')}</tr></thead><tbody>`+r.slice(0,150).map(o=>`<tr><td class="muted">${o._row}</td><td>${o.direction}</td>${T.f.map(([k,,ty])=>`<td>${o[k]==null?'–':ty=='n'?fQ(o[k]):esc(o[k])}</td>`).join('')}</tr>`).join('')+'</tbody>'}
 function loadX(file){const rd=new FileReader();rd.onload=e=>{try{S.xl.wb=XLSX.read(e.target.result,{type:'array'})}catch(x){return toast('Cannot read file: '+x.message,true)}
  const n=S.xl.wb.SheetNames,s=$('#x-s');s.disabled=false;s.innerHTML=n.map(x=>`<option>${esc(x)}</option>`).join('');guess();parseSheet().catch(x=>toast(exErr(x),true))};rd.readAsArrayBuffer(file)}
 const guess=()=>{const n=S.xl.wb.SheetNames;$('#x-s').value=n[0]};
