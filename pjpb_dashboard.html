@@ -505,7 +505,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(58,55,150,.35)
 
 <div class="toast" id="toast"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.13/dist/html-to-image.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
@@ -971,19 +971,25 @@ function subscribeLive() {
 
 $('reloadBtn').addEventListener('click', loadDashboard);
 
-/* PNG export: captures the dashboard exactly as it appears on screen */
+/* PNG export: captures the dashboard exactly as it appears on screen (browser-rendered, so gradients and shadows are kept) */
 $('pdfBtn').addEventListener('click', async () => {
   const btn = $('pdfBtn'); btn.disabled = true;
+  const el = document.querySelector('#view-dashboard');
+  const oldBg = el.style.background;
   try {
     await loadDashboard();
-    const canvas = await html2canvas(document.querySelector('#view-dashboard'), { scale: 2, useCORS: true });
+    // same page background as on screen: gradient glows over the base colour
+    el.style.background = 'radial-gradient(900px 480px at 95% -8%,#ddd9ff 0,transparent 70%),radial-gradient(800px 460px at -5% 105%,#ffe8cc 0,transparent 70%),var(--bg)';
+    const dataUrl = await htmlToImage.toPng(el, { pixelRatio: 2, cacheBust: true });
     const a = document.createElement('a');
-    a.href = canvas.toDataURL('image/png');
+    a.href = dataUrl;
     a.download = `PJPB-Performance-Meter-${PERIOD}.png`;
     document.body.appendChild(a); a.click(); a.remove();
     toast('PNG downloaded');
   } catch (e) {
     console.error(e); toast('PNG failed', true);
+  } finally {
+    el.style.background = oldBg;
   }
   btn.disabled = false;
 });
