@@ -105,7 +105,7 @@ dialog{border:1px solid var(--line);border-radius:18px;padding:20px;width:min(76
  <div class="toolbar"><button id="l-go" class="btn primary small">Apply</button><button id="l-clr" class="btn ghost small">Clear</button><button id="l-exp" class="btn small">⬇ Export Excel</button><button id="l-pv" class="btn small">‹ Prev</button><button id="l-nx" class="btn small">Next ›</button></div>
  <div class="glass"><div class="info" id="l-info"></div><div class="sc"><table id="t-log"></table></div></div>
 </section>
-<section id="v-excel" class="view hidden"><div class="xg"><div><div class="glass xs"><select id="x-t"><option value="ksk_inward">Inward</option><option value="ksk_dispatch">Dispatch</option></select>
+<section id="v-excel" class="view hidden"><div class="xg"><div><div class="glass xs"><select id="x-t"><option value="ksk_inward">Inward</option><option value="ksk_dispatch">Dispatch</option><option value="ksk_dashboard_values">D.O. list (Summary)</option></select>
  <div class="drop" id="drop"><b>Drop an Excel file here</b><br><small class="muted">or click (.xlsx, .xlsm, .xls)</small><input type="file" id="x-f" accept=".xlsx,.xlsm,.xls" hidden></div>
  <select id="x-s" disabled><option>Choose a file first</option></select><div class="cnt"><div><b id="c-ok">0</b>Rows</div><div><b id="c-dup">0</b>Skipped</div><div><b id="c-err">0</b>Error</div></div><div class="prog"><i id="x-p"></i></div><button id="x-imp" class="btn primary" disabled>Replace all data with these rows</button>
  <small class="muted">Every upload deletes all existing inward/dispatch rows and loads every non-empty row of the chosen sheet exactly as it appears. Manual entries are deleted too. Rows with a Direction/Type column are sorted by it; otherwise the dropdown above is used.</small></div></div>
@@ -282,33 +282,70 @@ const nk=s=>String(s??'').toLowerCase().replace(/[^a-z0-9]/g,'');
 const AL={snno:'sn_no',srno:'sn_no',chdate:'ch_date',dono:'do_no',grosswt:'gross_wt',tarewt:'tare_wt',netwt:'net_wt',recwt:'rec_wt',partyname:'party_name',uniqueno:'unique_no',vehicleno:'vehicle_no',excisesrno:'excise_sr_no',gatepass:'gate_pass',rptpno:'rptp_no',recdate:'rec_date',dispdate:'disp_date'};
 const FIELDS=['sn_no','rec_date','ch_date','disp_date','excise_sr_no','unique_no','do_no','gate_pass','grade','vehicle_no','gross_wt','tare_wt','net_wt','rec_wt','party_name','mines','item','rptp_no'];
 async function parseSheet(){const sheet=$('#x-s').value,ws=S.xl.wb.Sheets[sheet];
- const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:false,defval:null,blankrows:false});
+ const isDo=$('#x-t').value=='ksk_dashboard_values';
+ const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:isDo,defval:null,blankrows:false});
  const h=rows.findIndex(r=>r.some(c=>nk(c)=='dono'));
  if(h<0)return xMsg('No header row with "D.O. No" found in this sheet.');
  const heads=rows[h].map((c,i)=>({i,key:nk(c)})).filter(x=>x.key);
- const map={};heads.forEach(({i,key})=>{const f=FIELDS.find(f=>nk(f)==key)||AL[key];if(f&&!(f in map))map[f]=i});
- const dflt=$('#x-t').value==='ksk_inward'?'IN':'OUT';
+ if(isDo)return parseDoList(rows,h,heads,sheet);
+ const keys=heads.map(x=>x.key);
+ /* direction comes from the sheet's own headers, so an Inward sheet can never be saved as Dispatch */
+ const sheetDir=keys.some(k=>k=='rptpno'||k=='dispdate')?'OUT':keys.some(k=>k=='excisesrno'||k=='recdate'||k=='gatepass')?'IN':null;
+ if(sheetDir)$('#x-t').value=sheetDir=='IN'?'ksk_inward':'ksk_dispatch';
+ const dir=sheetDir||($('#x-t').value==='ksk_inward'?'IN':'OUT');
+ S.xl.dir=dir;
+ const map={};heads.forEach(({i,key})=>{const f=FIELDS.find(f=>nk(f)==key)||AL[key]||(key=='date'&&dir=='OUT'?'disp_date':null);if(f&&!(f in map))map[f]=i});
  const out=[];
  for(let i=h+1;i<rows.length;i++){const r=rows[i];
   if(r.every(c=>c==null||String(c).trim()===''))continue;
   if(nk(r[map.do_no])=='dono')continue;
   const raw={};heads.forEach(({i:j,key})=>raw[key]=r[j]==null?null:String(r[j]).trim());
-  const dv=String(raw.direction??raw.type??'');
-  const direction=/out|disp/i.test(dv)?'OUT':/in|rec/i.test(dv)?'IN':dflt;
-  const o={_row:i+1,_s:'ok',_err:'',direction,source_sheet:sheet,source_row:i+1,raw};
+  const o={_row:i+1,_s:'ok',_err:'',direction:dir,source_sheet:sheet,source_row:i+1,raw};
   FIELDS.forEach(f=>{const j=map[f];o[f]=j==null||r[j]==null||String(r[j]).trim()===''?null:String(r[j]).trim()});
   out.push(o)}
  S.xl.rows=out;S.xl.skip=0;drawX()}
+function parseDoList(rows,h,heads,sheet){
+ const DOF={snno:'sn_no',colliery:'colliery',partyname:'party_name',issuedate:'issue_date',issuedt:'issue_date',sized:'sized',lapsingdate:'lapsing_date',lapsingdt:'lapsing_date',dono:'do_no',doqty:'do_qty',asking:'asking',dailylift:'daily_lift',dailydispatch:'daily_dispatch',section:'section'};
+ const map={};heads.forEach(({i,key})=>{const f=DOF[key];if(f&&!(f in map))map[f]=i});
+ if(map.do_no==null)return xMsg('No "D.O. No" column found.');
+ const num=x=>{if(x==null||x==='')return null;const n=Number(String(x).replace(/,/g,''));return Number.isFinite(n)?n:null};
+ const txt=x=>x instanceof Date?iso(x):(x==null||String(x).trim()===''?null:String(x).trim());
+ const out=[];
+ for(let i=h+1;i<rows.length;i++){const r=rows[i],v=f=>map[f]==null?null:r[map[f]];
+  const dn=v('do_no');if(dn==null||String(dn).trim()==='')continue;
+  const dnum=Number(String(dn).replace(/,/g,''));
+  const sec=String(v('section')??'WASHERY').toUpperCase().trim();
+  const ok=Number.isInteger(dnum);
+  out.push({_row:i+1,_s:ok?'ok':'er',_err:ok?'':'D.O. No is not a whole number',
+   do_no:ok?dnum:null,section:['WASHERY','RCR','ROAD'].includes(sec)?sec:'WASHERY',
+   sn_no:num(v('sn_no')),colliery:txt(v('colliery')),party_name:txt(v('party_name')),
+   issue_date:txt(v('issue_date')),sized:txt(v('sized')),lapsing_date:txt(v('lapsing_date')),
+   do_qty:num(v('do_qty')),asking:num(v('asking')),daily_lift:num(v('daily_lift')),daily_dispatch:num(v('daily_dispatch')),
+   direction:'',source_sheet:sheet,source_row:i+1});
+ }
+ S.xl.rows=out;S.xl.skip=0;drawX()}
 function xMsg(m){S.xl.rows=[];$('#t-x').innerHTML=`<tbody><tr><td class="empty">${esc(m)}</td></tr></tbody>`;$('#x-i').textContent=m;cntX()}
-function cntX(){$('#c-ok').textContent=fI(S.xl.rows.length);$('#c-dup').textContent='0';$('#c-err').textContent='0';$('#x-imp').disabled=!S.xl.rows.length||S.xl.busy}
+function cntX(){const ok=S.xl.rows.filter(r=>r._s=='ok').length;$('#c-ok').textContent=fI(ok);$('#c-dup').textContent='0';$('#c-err').textContent=fI(S.xl.rows.length-ok);$('#x-imp').disabled=!ok||S.xl.busy}
 function drawX(){cntX();const t=$('#x-t').value,T=TB[t],r=S.xl.rows;$('#x-i').textContent=`${r.length} rows · blank lines skipped · showing first 150`;
  $('#t-x').innerHTML=`<thead><tr><th>Row</th><th>Dir</th>${T.f.map(f=>`<th>${f[1]}</th>`).join('')}</tr></thead><tbody>`+r.slice(0,150).map(o=>`<tr><td class="muted">${o._row}</td><td>${o.direction}</td>${T.f.map(([k,,ty])=>`<td>${o[k]==null?'–':ty=='n'?fQ(o[k]):esc(o[k])}</td>`).join('')}</tr>`).join('')+'</tbody>'}
 function loadX(file){const rd=new FileReader();rd.onload=e=>{try{S.xl.wb=XLSX.read(e.target.result,{type:'array'})}catch(x){return toast('Cannot read file: '+x.message,true)}
  const n=S.xl.wb.SheetNames,s=$('#x-s');s.disabled=false;s.innerHTML=n.map(x=>`<option>${esc(x)}</option>`).join('');guess();parseSheet().catch(x=>toast(exErr(x),true))};rd.readAsArrayBuffer(file)}
 const guess=()=>{const n=S.xl.wb.SheetNames;$('#x-s').value=n[0]};
-async function impX(){
- const rows=S.xl.rows; if(!rows.length||S.xl.busy)return;
- const dir=$('#x-t').value==='ksk_inward'?'IN':'OUT';
+async function impX(){const all=S.xl.rows;if(!all.length||S.xl.busy)return;
+ const rows=all.filter(r=>r._s=='ok');
+ if(!rows.length)return toast('No valid rows to load',true);
+ if($('#x-t').value=='ksk_dashboard_values'){
+  if(!confirm(`Add or update ${fI(rows.length)} D.O.s in the D.O. list from this sheet? Asking, RR details and manual overrides already saved are kept.`))return;
+  S.xl.busy=true;$('#x-imp').disabled=true;let n=0;
+  try{for(let i=0;i<rows.length;i+=500){
+    const ch=rows.slice(i,i+500).map(({_row,_s,_err,direction,source_sheet,source_row,...r})=>r);
+    const{error}=await db.from('ksk_dashboard_values').upsert(ch,{onConflict:'do_no'});if(error)throw error;
+    n+=ch.length;$('#x-p').style.width=(n/rows.length*100)+'%'}
+   toast(`D.O. list updated: ${fI(n)} D.O.s`);S.xl.rows=[];$('#t-x').innerHTML='';$('#x-i').textContent='Upload a file to preview'}
+  catch(e){toast(`Stopped after ${fI(n)} D.O.s: ${exErr(e)}`,true)}
+  finally{S.xl.busy=false;await load();setTimeout(()=>$('#x-p').style.width='0',1200);cntX()}
+  return}
+ const dir=S.xl.dir||($('#x-t').value==='ksk_inward'?'IN':'OUT');
  const label=dir=='IN'?'Inward':'Dispatch';
  if(!confirm(`Delete all current ${label} rows and load the ${fI(rows.length)} rows from this sheet?`))return;
  S.xl.busy=true;$('#x-imp').disabled=true;let n=0;
