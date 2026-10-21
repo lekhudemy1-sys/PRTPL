@@ -971,36 +971,18 @@ function subscribeLive() {
 
 $('reloadBtn').addEventListener('click', loadDashboard);
 
-/* PNG export: captures the dashboard without the Source Wise card */
+/* PNG export: captures the dashboard exactly as it appears on screen */
 $('pdfBtn').addEventListener('click', async () => {
   const btn = $('pdfBtn'); btn.disabled = true;
-  const src = $('capSource');
-  const acts = document.querySelector('#view-dashboard .topbar-actions');
   try {
     await loadDashboard();
-    src.classList.add('hidden');
-    acts.style.visibility = 'hidden';
-    // Use the same background as the on-screen page (gradients + base colour) for the capture
-    const target = document.querySelector('#view-dashboard');
-    const oldBg = target.style.background;
-    // html2canvas does not draw radial-gradient backgrounds (it falls back to white), so use the solid base colour
-    target.style.background = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#eeedf8';
-    let canvas;
-    try {
-      canvas = await html2canvas(target, { scale: 2, useCORS: true, windowWidth: 1500 });
-    } finally {
-      target.style.background = oldBg;
-    }
-    src.classList.remove('hidden');
-    acts.style.visibility = '';
+    const canvas = await html2canvas(document.querySelector('#view-dashboard'), { scale: 2, useCORS: true });
     const a = document.createElement('a');
     a.href = canvas.toDataURL('image/png');
     a.download = `PJPB-Performance-Meter-${PERIOD}.png`;
     document.body.appendChild(a); a.click(); a.remove();
     toast('PNG downloaded');
   } catch (e) {
-    src.classList.remove('hidden');
-    acts.style.visibility = '';
     console.error(e); toast('PNG failed', true);
   }
   btn.disabled = false;
