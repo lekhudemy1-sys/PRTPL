@@ -935,7 +935,7 @@ async function loadDashboard() {
     renderSources(calc.recs);
     $('reportUpdatedUpto').textContent = calc.lastRake
       ? new Date(calc.lastRake + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : '-';
-    loadTrend().catch(console.error);
+    await loadTrend();
   } catch (err) {
     console.error(err);
     toast('Could not calculate dashboard: ' + (err.message || 'Supabase error'), true);
@@ -975,9 +975,11 @@ $('reloadBtn').addEventListener('click', loadDashboard);
 $('pdfBtn').addEventListener('click', async () => {
   const btn = $('pdfBtn'); btn.disabled = true;
   const src = $('capSource');
+  const acts = document.querySelector('#view-dashboard .topbar-actions');
   try {
     await loadDashboard();
     src.classList.add('hidden');
+    acts.style.visibility = 'hidden';
     // Use the same background as the on-screen page (gradients + base colour) for the capture
     const target = document.querySelector('#view-dashboard');
     const oldBg = target.style.background;
@@ -990,6 +992,7 @@ $('pdfBtn').addEventListener('click', async () => {
       target.style.background = oldBg;
     }
     src.classList.remove('hidden');
+    acts.style.visibility = '';
     const a = document.createElement('a');
     a.href = canvas.toDataURL('image/png');
     a.download = `PJPB-Performance-Meter-${PERIOD}.png`;
@@ -997,6 +1000,7 @@ $('pdfBtn').addEventListener('click', async () => {
     toast('PNG downloaded');
   } catch (e) {
     src.classList.remove('hidden');
+    acts.style.visibility = '';
     console.error(e); toast('PNG failed', true);
   }
   btn.disabled = false;
