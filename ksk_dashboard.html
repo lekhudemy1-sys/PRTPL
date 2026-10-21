@@ -200,12 +200,12 @@ function renderAll(){const W=filt(['WASHERY']),R=filt(['RCR']),O=filt(['ROAD']),
  $('#c-r').innerHTML=card('D.O. quantity',sum(ar,'do_qty'),'r',ar.length+' RCR + Road D.O.s')+card('Lifted',sum(ar,'rec_qty'),'r','RCR + Road')+card('Balance in mines',sum(ar,'mines_bal'),'x','Not yet lifted')+card('RCR balance at IUIK',sum(ar.filter(x=>x.section=='RCR'),'washery_bal'),'o','Lifted − rake dispatch')+card('Active D.O.s',ar.filter(x=>!isClosed(x)).length,'s','Balance above zero','i');
  const n=[drawT('w',W),drawT('r',R),drawT('o',O)];$('#n-w').textContent=`${W.length} of ${aw.length} shown`;$('#n-r').textContent=`${R.length} shown`;$('#n-o').textContent=`${O.length} shown`;
  const known=new Set(S.vals.map(x=>String(x.do_no))),un=[...new Set([...Object.keys(S.inS),...Object.keys(S.dsS)])].filter(d=>!known.has(String(d)));
- $('#alert').classList.toggle('hidden',!un.length);$('#alert').innerHTML=`<b>Check D.O. numbers:</b> entries exist for D.O.s not in the list, so they are not shown: ${un.join(', ')}. Add them under Data entry → D.O. &amp; values.`}
+ $('#alert').classList.toggle('hidden',!un.length);$('#alert').innerHTML=un.length?`<b>${un.length} D.O. number(s) in the Excel data are not in the D.O. list, so they are not shown:</b> ${esc(un.slice(0,25).join(', '))}${un.length>25?' … and '+(un.length-25)+' more':''}. Add them under Data entry → D.O. &amp; values.`:''}
 function setPage(p){S.page=p;$$('.seg button').forEach(b=>b.classList.toggle('active',b.dataset.p==p));['w','r','s'].forEach(x=>$('#p-'+x).classList.toggle('hidden',x!=p));$('#flt').classList.toggle('hidden',p=='s');p=='s'?loadSum():renderAll()}
 async function loadSum(){const d=S.rows.find(x=>x.do_no==$('#s-do').value)||S.rows[0];if(!d)return;$('#s-do').value=d.do_no;$('#h-do').textContent=d.do_no;
  $('#h-sub').textContent=`${d.colliery||'–'} · ${d.party_name||'–'} · Issued ${fD(d.issue_date)} · Lapses ${fD(d.lapsing_date)}`;$('#h-st').innerHTML=stPill(d);
  const w=d.section=='WASHERY';
- const{data}=await db.from('ksk_sheet_rows').select('direction,rec_date,disp_date,vehicle_no,net_wt,unique_no').eq('do_no',String(d.do_no)).order('id',{ascending:false}).limit(50);
+ const{data}=await db.from('ksk_sheet_rows').select('direction,rec_date,disp_date,vehicle_no,net_wt,unique_no').eq('do_key',String(d.do_no)).order('id',{ascending:false}).limit(50);
  const rc=(data||[]).map(x=>x.direction=='IN'?[x.rec_date,'IN',x.vehicle_no,x.net_wt,x.unique_no]:[x.disp_date,'OUT',x.vehicle_no,x.net_wt,x.unique_no]);
  $('#s-body').innerHTML=`<div class="cards">${card('D.O. quantity',d.do_qty,w?'':'r',d.section)}${card('Received / lifted',d.rec_qty,'',`${d.trips} trips`,'q')}${card('Mines balance',d.mines_bal,'r','D.O. qty − received')}${w?card('Wash coal 85%',d.wash_coal,'s','Reject 15%: '+fQ(d.reject)):''}${card('Dispatched',d.disp_qty,'k',d.disp_trips+' trips')}${card(w?'Washery balance':'Balance at IUIK',d.washery_bal,'o','')}</div>
  <div class="glass"><div class="glass-h"><h2>Recent movements</h2><span class="sub">latest entries</span></div><div class="sc"><table><thead><tr><th>Date</th><th>Type</th><th>Vehicle</th><th class="num">Net (MT)</th><th>Unique no.</th></tr></thead><tbody>${rc.map(r=>`<tr><td>${esc(r[0]||'–')}</td><td><span class="badge">${r[1]}</span></td><td>${esc(r[2])}</td><td class="num">${esc(r[3]??'–')}</td><td class="muted">${esc(r[4]||'')}</td></tr>`).join('')||'<tr><td colspan="5" class="empty">No entries for this D.O.</td></tr>'}</tbody></table></div></div>`}
@@ -263,7 +263,7 @@ function fillDoForm(){const f=$('#do-f');if(!f)return;pickOpts();const pk=$('#do
 function logQ(sel,opt){const t=$('#l-t').value,T=TB[t];let q=db.from(SRC(t)).select(sel,opt);const g=id=>$(id).value;
  if(DIR[t])q=q.eq('direction',DIR[t]);
  if(T.dc){g('#l-from')&&(q=q.gte(T.dc,g('#l-from')));g('#l-to')&&(q=q.lte(T.dc,g('#l-to')))}
- g('#l-do')&&(q=q.eq('do_no',g('#l-do')));t=='ksk_dashboard_values'&&g('#l-sec')&&(q=q.eq('section',g('#l-sec')));
+ g('#l-do')&&(q=q.eq(DIR[t]?'do_key':'do_no',g('#l-do')));t=='ksk_dashboard_values'&&g('#l-sec')&&(q=q.eq('section',g('#l-sec')));
  T.x.forEach(k=>{const v=$('#lx-'+k)?.value.trim().replace(/[,()*%]/g,' ');v&&(q=q.ilike(k,`%${v}%`))});return q}
 function setupLog(){const t=$('#l-t').value,T=TB[t];$('#l-x').innerHTML=T.x.map(k=>`<input id="lx-${k}" placeholder="${lab(t,k)}" style="width:140px">`).join('');
  $$('#l-from,#l-to').forEach(e=>e.classList.toggle('hidden',!T.dc));$('#l-sec').classList.toggle('hidden',t!='ksk_dashboard_values');$('#l-ord').value=t=='ksk_dashboard_values'?'0':'1';$('#l-x').onkeydown=e=>e.key=='Enter'&&(S.pg=0,renderLog())}
