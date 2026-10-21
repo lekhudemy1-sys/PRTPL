@@ -69,7 +69,6 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(58,55,150,.35)
 .card-header{display:flex;align-items:center;justify-content:space-between;gap:.6rem;margin-bottom:.7rem;flex-wrap:wrap}
 .card-header h3{font:700 1rem var(--head);letter-spacing:-.01em;display:flex;align-items:center;gap:.6rem}
 .card-header h3 i{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-size:.9rem;color:#fff;background:linear-gradient(135deg,var(--c),var(--d));box-shadow:0 8px 14px -6px var(--c)}
-.c-key{--c:var(--violet);--t:#efeafe;--l:#cbbef9;--d:#4a3790;--h:#f4f1fe;--b:#e7e2fc}
 .c-area{--c:var(--sky);--t:#e0f6f8;--l:#9ddde4;--d:#0a6470;--h:#ebf9fb;--b:#d1eff3}
 .c-short{--c:var(--pink);--t:#fbe7f3;--l:#eba9d2;--d:#7a1f55;--h:#fdf0f8;--b:#f6d8ea}
 .c-bill{--c:var(--blue);--t:#e9ecfc;--l:#b3bdf0;--d:#27358f;--h:#f1f3fd;--b:#dce1f8}
@@ -78,6 +77,8 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(58,55,150,.35)
 .mines-card{--c:var(--navy2);--t:#e9e8f7;--l:#a9a7d2;--d:#1f1b4d;--h:#f0effa;--b:#d9d8ea}
 .trend-card{--c:var(--amber);--t:#fdeedc;--l:#f8cd9d;--d:#8a4a0a}
 .grid-3 .card{margin-bottom:0}
+.grid-2{grid-template-columns:1fr 1fr}
+@media (max-width:800px){.grid-2{grid-template-columns:1fr}}
 
 .metric-row{display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.42rem .25rem;border-bottom:1px dashed var(--line);border-radius:10px;transition:background .2s}
 .metric-row:last-child{border-bottom:0}
@@ -267,18 +268,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(58,55,150,.35)
     </div>
   </div>
 
-  <div class="grid-3">
-    <div class="card c-key">
-      <div class="card-header"><h3><i class="fas fa-chart-line"></i> Key Performance</h3></div>
-      <div class="metric-row"><span class="metric-label">Per Day Required Rake for Target</span><input class="metric-value neg" id="k_perDayRake" readonly></div>
-      <div class="metric-row"><span class="metric-label">Performance on Rake Materialization</span><input class="metric-value" id="k_rakeMat" readonly></div>
-      <div class="metric-row"><span class="metric-label">Month Target Qty (MT)</span><input class="metric-value" id="k_qtrTarget" readonly></div>
-      <div class="metric-row"><span class="metric-label">Achieved Qty - RR Weight (MT)</span><input class="metric-value" id="k_achieved" readonly></div>
-      <div class="metric-row"><span class="metric-label">Bal. Qty (Achieve &minus; Target)</span><input class="metric-value" id="k_balQty" readonly></div>
-      <div class="metric-row"><span class="metric-label">Per Day Required Qty (MT)</span><input class="metric-value" id="k_perDayReqQty" readonly></div>
-      <div class="metric-row"><span class="metric-label">Plant End GCV (RR-weighted avg)</span><input class="metric-value" id="k_gcv" readonly></div>
-    </div>
-
+  <div class="grid-3 grid-2">
     <div class="card c-area">
       <div class="card-header"><h3><i class="fas fa-map-marker-alt"></i> Area Targets (Month)</h3></div>
       <div id="areaTargetsBox"></div>
@@ -798,14 +788,6 @@ function computeDashboard(period, data) {
     tTarget += target; tLoaded += loaded; tAsk += ask;
   });
   put('tgt_TOTAL', tTarget); put('load_TOTAL', tLoaded); put('bal_TOTAL', tTarget - tLoaded); put('ask_TOTAL', round2(tAsk), 'd2');
-
-  const monthTargetQty = FORMULAS.dayQty * info.totalDays;
-  const balQty = all.rr - monthTargetQty;
-  put('k_perDayRake', round2(tAsk), 'd2');
-  put('k_rakeMat', tTarget ? tLoaded / tTarget * 100 : 0, 'pct');
-  put('k_qtrTarget', monthTargetQty); put('k_achieved', all.rr); put('k_balQty', balQty);
-  put('k_perDayReqQty', (rem > 0 && balQty < 0) ? -balQty / rem : 0);
-  put('k_gcv', all.gcv);
 
   put('wv_perRake', all.varN ? all.varS / all.varN : 0, 'd2');
   put('wv_pct', all.varNet ? all.varS / all.varNet * 100 : 0, 'pct');
