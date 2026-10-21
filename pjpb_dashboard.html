@@ -978,9 +978,16 @@ $('pdfBtn').addEventListener('click', async () => {
   try {
     await loadDashboard();
     src.classList.add('hidden');
-    const canvas = await html2canvas(document.querySelector('#view-dashboard'), {
-      scale: 2, backgroundColor: '#eeedf8', useCORS: true, windowWidth: 1500
-    });
+    // Use the same background as the on-screen page (gradients + base colour) for the capture
+    const target = document.querySelector('#view-dashboard');
+    const oldBg = target.style.background;
+    target.style.background = 'radial-gradient(900px 480px at 95% -8%,#ddd9ff 0,transparent 70%),radial-gradient(800px 460px at -5% 105%,#ffe8cc 0,transparent 70%),var(--bg)';
+    let canvas;
+    try {
+      canvas = await html2canvas(target, { scale: 2, useCORS: true, windowWidth: 1500 });
+    } finally {
+      target.style.background = oldBg;
+    }
     src.classList.remove('hidden');
     const a = document.createElement('a');
     a.href = canvas.toDataURL('image/png');
