@@ -301,15 +301,23 @@ function drawX(){cntX();const t=$('#x-t').value,T=TB[t],r=S.xl.rows;$('#x-i').te
 function loadX(file){const rd=new FileReader();rd.onload=e=>{try{S.xl.wb=XLSX.read(e.target.result,{type:'array'})}catch(x){return toast('Cannot read file: '+x.message,true)}
  const n=S.xl.wb.SheetNames,s=$('#x-s');s.disabled=false;s.innerHTML=n.map(x=>`<option>${esc(x)}</option>`).join('');guess();parseSheet().catch(x=>toast(exErr(x),true))};rd.readAsArrayBuffer(file)}
 const guess=()=>{const n=S.xl.wb.SheetNames;$('#x-s').value=n[0]};
-async function impX(){const rows=S.xl.rows;if(!rows.length||S.xl.busy)return;
- if(!confirm(`Delete ALL current inward/dispatch rows and load the ${fI(rows.length)} rows from this file?`))return;
+async function impX(){
+ const rows=S.xl.rows; if(!rows.length||S.xl.busy)return;
+ const dir=$('#x-t').value==='ksk_inward'?'IN':'OUT';
+ const label=dir=='IN'?'Inward':'Dispatch';
+ if(!confirm(`Delete all current ${label} rows and load the ${fI(rows.length)} rows from this sheet?`))return;
  S.xl.busy=true;$('#x-imp').disabled=true;let n=0;
- try{const{error:e0}=await db.rpc('ksk_replace_upload',{p:[]});if(e0)throw e0;
-  for(let i=0;i<rows.length;i+=500){const ch=rows.slice(i,i+500).map(({_row,_s,_err,...r})=>r);
-   const{error}=await db.from('ksk_sheet_rows').insert(ch);if(error)throw error;n+=ch.length;$('#x-p').style.width=(n/rows.length*100)+'%'}
-  toast(`Replaced data: ${fI(n)} rows loaded`);S.xl.rows=[];$('#t-x').innerHTML='';$('#x-i').textContent='Upload a file to preview'}
- catch(e){toast(`Stopped after ${fI(n)} rows: ${exErr(e)}`,true)}
- finally{S.xl.busy=false;await load();setTimeout(()=>$('#x-p').style.width='0',1200);cntX()}}
+ try{
+  for(let i=0;i<rows.length;i+=500){
+   const ch=rows.slice(i,i+500).map(({_row,_s,_err,...r})=>({...r,direction:dir}));
+   const{error}=await db.rpc('ksk_upload_rows',{p_direction:dir,p:ch,p_clear:i==0});
+   if(error)throw error;
+   n+=ch.length;$('#x-p').style.width=(n/rows.length*100)+'%';
+  }
+  toast(`${label} replaced: ${fI(n)} rows loaded`);S.xl.rows=[];$('#t-x').innerHTML='';$('#x-i').textContent='Upload a file to preview';
+ }catch(e){toast(`Stopped after ${fI(n)} rows: ${exErr(e)}`,true)}
+ finally{S.xl.busy=false;await load();setTimeout(()=>$('#x-p').style.width='0',1200);cntX()}
+}
 
 /* ---- events ---- */
 const IC={dashboard:'<rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/>',entry:'<path d="M12 5v14M5 12h14"/>',log:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',excel:'<path d="M12 15V3m0 0l-4 4m4-4l4 4M4 15v4a2 2 0 002 2h12a2 2 0 002-2v-4"/>'};
