@@ -136,7 +136,12 @@ const fD=s=>{const d=pd(s);return d?d.toLocaleDateString('en-GB',{day:'2-digit',
 const normD=s=>{s=(s||'').trim();if(!s)return null;const d=pd(s);return d?iso(d):s};
 function toast(m,e){const t=$('#toast');t.textContent=m;t.className='toast'+(e?' err':'');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.add('hidden'),3800)}
 function setSt(t,c){const s=$('#status');s.innerHTML='<span class="dot"></span>'+esc(t);s.className='pill '+(c||'')}
-const exErr=e=>!e?'Unknown error':/row-level|42501/.test(e.message+e.code)?'Blocked by database security rules':/does not exist|42P01/.test(e.message+e.code)?'Table missing: run ksk_setup.sql in Supabase first':e.message||String(e);
+const exErr=e=>{if(!e)return'Unknown error';const s=(e.message||'')+' '+(e.code||'')+' '+(e.details||'');
+ if(/row-level|42501|permission denied/i.test(s))return'Blocked by database security rules: run ksk_setup_v3.sql';
+ if(/does not exist|42P01|schema cache|could not find the table/i.test(s))return'Table missing: run ksk_setup_v3.sql in Supabase (then reload)';
+ if(/23505|duplicate key/i.test(s))return'Duplicate: this D.O. or row already exists';
+ if(/22P02|22007|22008|invalid input/i.test(s))return'Invalid value in a number or date field';
+ return e.message||String(e)};
 async function fetchAll(b){let o=[];for(let f=0;;f+=1000){const{data,error}=await b().range(f,f+999);if(error)throw error;o=o.concat(data||[]);if(!data||data.length<1000)break}return o}
 
 /* ---- tables ---- */
