@@ -42,10 +42,13 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 .view.active{display:block;animation:rise .55s var(--ease) backwards}
 @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 
-/* Back button (shown on every non-dashboard view and on the dashboard) */
-.back-row{display:flex;justify-content:flex-start;margin-bottom:.8rem}
+/* Back row: back button top-left, report stamp top-right (shown on every view) */
+.back-row{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:.8rem}
 .back-btn{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;border:0;padding:.6rem 1.1rem;border-radius:12px;font:700 .85rem var(--body);cursor:pointer;display:inline-flex;align-items:center;gap:.45rem;box-shadow:0 10px 18px -10px rgba(15,33,66,.6);transition:.2s}
 .back-btn:hover{transform:translateY(-2px)}
+.report-stamp{font-size:.85rem;font-weight:600;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:.5rem 1.2rem;box-shadow:var(--sh);display:inline-flex;align-items:center;gap:.5rem;margin-left:auto}
+.report-stamp::before{content:"";width:8px;height:8px;border-radius:50%;background:#16a870;box-shadow:0 0 0 3px rgba(22,168,112,.25)}
+.report-stamp strong{color:var(--ink)}
 
 /* Hero title bar */
 .topbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:.8rem;margin-bottom:1.2rem;padding:1.1rem 1.5rem;border-radius:22px;color:#fff;
@@ -54,7 +57,6 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 .topbar h1{font:700 clamp(1.3rem,1.4vw + .8rem,2rem) var(--head);letter-spacing:-.02em}
 .period{font-size:.85rem;font-weight:500;color:#b8d3ee;margin-top:.1rem}
 .topbar-actions{display:flex;gap:.55rem;flex-wrap:wrap;align-items:center;margin-left:auto}
-.topbar .back-btn{flex-shrink:0;margin-right:.4rem}
 .month-pick{padding:.55rem .9rem;border-radius:12px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.12);color:#fff;font-weight:600;cursor:pointer}
 .month-pick option{color:var(--ink)}
 .btn{display:inline-flex;align-items:center;gap:.45rem;padding:.55rem 1.1rem;font:600 .85rem var(--body);border:1px solid transparent;border-radius:12px;cursor:pointer;transition:.2s}
@@ -102,6 +104,11 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 .total-row .metric-label{color:#fff;font-weight:700}
 .total-row .metric-value{background:rgba(154,212,255,.14);color:#9ad4ff;border:0}
 .total-row .metric-value.neg{color:#ffb3bd}
+/* Hover on TOTAL rows: switch to a deep dark shade with bright white figures so values stay readable */
+.metric-row.total-row:hover{background:linear-gradient(120deg,#050d1f,#0a1d3f)}
+.metric-row.total-row:hover .metric-label{color:#fff}
+.total-row:hover .metric-value,
+.total-row:hover .metric-value.neg{background:#13305e;color:#fff;border-color:#34d3a6;box-shadow:0 0 0 1px rgba(52,211,166,.35)}
 .dead-grey{background:#eceef2;border-radius:12px}
 .dead-grey .metric-label{color:#5b6475}
 .dead-grey .metric-value{background:#d5dae3;color:#4b5563}
@@ -138,10 +145,6 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 .trend-table td{background:#c6efb0;color:var(--ink);font-weight:700;font-size:.85rem;padding:.5rem .5rem;text-align:center;border:1px solid #3b5d2a}
 .trend-table td.qtr{background:#b5e79c}
 .trend-table td.low{background:#ffc7ce;color:#b3162b}
-
-.report-footer{display:flex;align-items:center;justify-content:center;gap:.5rem;width:max-content;max-width:100%;margin:0 auto;padding:.5rem 1.2rem;font-size:.85rem;font-weight:600;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:999px;box-shadow:var(--sh)}
-.report-footer::before{content:"";width:8px;height:8px;border-radius:50%;background:#16a870;box-shadow:0 0 0 3px rgba(22,168,112,.25)}
-.report-footer strong{color:var(--ink)}
 
 /* Panels, forms, tables */
 .panel{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:1.2rem 1.3rem;box-shadow:var(--sh);margin-bottom:1.2rem}
@@ -191,7 +194,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 .unit-wrap input{padding-right:3rem}
 .unit{position:absolute;right:.7rem;font-size:.72rem;font-weight:700;color:var(--mute);pointer-events:none}
 
-/* Password page: back button on the left, password sheet on the right, both centred */
+/* Password page */
 .lock-row{display:flex;align-items:center;justify-content:center;gap:1.5rem;flex-wrap:wrap;min-height:70vh;padding:1rem}
 .lock-back{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;border:0;padding:.75rem 1.2rem;border-radius:14px;font:700 .9rem var(--body);cursor:pointer;display:inline-flex;align-items:center;gap:.5rem;box-shadow:0 12px 22px -12px rgba(15,33,66,.7);transition:.2s}
 .lock-back:hover{transform:translateY(-2px)}
@@ -227,6 +230,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
   .grid-3{grid-template-columns:1fr}.grid-3>.card:nth-child(3){grid-column:auto}
   .sidebar{left:.5rem;right:.5rem;transform:none;flex-wrap:wrap;justify-content:center;border-radius:18px;max-width:none}
   .main{padding:7rem .8rem 1rem}.topbar{justify-content:center;text-align:center}
+  .report-stamp{margin-left:0}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -252,15 +256,18 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 
 <!-- ============ DASHBOARD VIEW ============ -->
 <section class="view active" id="view-dashboard">
-  <div class="topbar">
+  <div class="back-row">
     <button class="back-btn" data-back="dashboard"><i class="fas fa-arrow-left"></i> Back</button>
+    <div class="report-stamp">Performance Report updated upto <strong id="reportUpdatedUpto"></strong></div>
+  </div>
+  <div class="topbar">
     <div>
       <h1>Performance Meter</h1>
       <div class="period" id="periodLabel">AMM HZL</div>
     </div>
     <div class="topbar-actions">
       <select id="periodPick" class="month-pick" aria-label="Period"></select>
-      <button class="btn btn-secondary" id="resetDemo"><i class="fas fa-rotate"></i> Reload from Database</button>
+      <button class="btn btn-secondary" id="resetDemo"><i class="fas fa-rotate"></i> Refresh</button>
       <button class="btn btn-primary" id="saveDemo"><i class="fas fa-save"></i> Save Overload</button>
     </div>
   </div>
@@ -378,13 +385,12 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
       </table>
     </div>
   </div>
-
-  <div class="report-footer">Performance Report updated upto <strong id="reportUpdatedUpto"></strong></div>
 </section>
 
 <!-- ============ REPORTS VIEW ============ -->
 <section class="view" id="view-reports">
-  <div class="topbar"><button class="back-btn" data-back="reports"><i class="fas fa-arrow-left"></i> Back</button><div><h1>Reports</h1><div class="period">Generate, view &amp; download operational reports</div></div></div>
+  <div class="back-row"><button class="back-btn" data-back="reports"><i class="fas fa-arrow-left"></i> Back</button></div>
+  <div class="topbar"><div><h1>Reports</h1><div class="period">Generate, view &amp; download operational reports</div></div></div>
   <div class="panel">
     <table class="rep-table">
       <thead><tr><th>Report Name</th><th>Type</th><th>Period</th><th>Status</th></tr></thead>
@@ -401,7 +407,8 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 
 <!-- ============ ALERTS VIEW ============ -->
 <section class="view" id="view-alerts">
-  <div class="topbar"><button class="back-btn" data-back="alerts"><i class="fas fa-arrow-left"></i> Back</button><div><h1>Alerts</h1><div class="period">Real-time monitoring &amp; notifications</div></div></div>
+  <div class="back-row"><button class="back-btn" data-back="alerts"><i class="fas fa-arrow-left"></i> Back</button></div>
+  <div class="topbar"><div><h1>Alerts</h1><div class="period">Real-time monitoring &amp; notifications</div></div></div>
   <div class="stats-grid">
     <div class="stat-card" style="border-top-color:#d1344a"><div class="label">Critical</div><div class="value" style="color:#d1344a">2</div></div>
     <div class="stat-card" style="border-top-color:#c27a0a"><div class="label">Warning</div><div class="value" style="color:#c27a0a">3</div></div>
@@ -434,7 +441,8 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 
 <!-- ============ UPLOAD EXCEL VIEW ============ -->
 <section class="view" id="view-upload">
-  <div class="topbar"><button class="back-btn" data-back="upload"><i class="fas fa-arrow-left"></i> Back</button><div><h1>Upload Excel</h1><div class="period">Import rake records into the database</div></div></div>
+  <div class="back-row"><button class="back-btn" data-back="upload"><i class="fas fa-arrow-left"></i> Back</button></div>
+  <div class="topbar"><div><h1>Upload Excel</h1><div class="period">Import rake records into the database</div></div></div>
   <div class="panel">
     <h2><i class="fas fa-file-excel"></i> Choose workbook</h2>
     <div class="drop" id="drop"><i class="fas fa-cloud-arrow-up"></i><p>Drop an .xlsx / .xls / .csv file here or click to browse</p><input type="file" id="fileInput" accept=".xlsx,.xls,.csv" hidden></div>
@@ -458,7 +466,8 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 
 <!-- ============ RECORDS LOG VIEW ============ -->
 <section class="view" id="view-log">
-  <div class="topbar"><button class="back-btn" data-back="log"><i class="fas fa-arrow-left"></i> Back</button><div><h1>Records Log</h1><div class="period">Edit or delete saved rake records</div></div></div>
+  <div class="back-row"><button class="back-btn" data-back="log"><i class="fas fa-arrow-left"></i> Back</button></div>
+  <div class="topbar"><div><h1>Records Log</h1><div class="period">Edit or delete saved rake records</div></div></div>
   <div class="panel">
     <div class="toolbar">
       <input class="search" id="logSearch" placeholder="Search by RR no, siding, area, FSA...">
@@ -472,7 +481,8 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 
 <!-- ============ DATA ENTRY VIEW ============ -->
 <section class="view" id="view-entry">
-  <div class="topbar"><button class="back-btn" data-back="entry"><i class="fas fa-arrow-left"></i> Back</button><div><h1>Data Entry</h1><div class="period">Record coal rake loading, receipt, freight &amp; cost data</div></div></div>
+  <div class="back-row"><button class="back-btn" data-back="entry"><i class="fas fa-arrow-left"></i> Back</button></div>
+  <div class="topbar"><div><h1>Data Entry</h1><div class="period">Record coal rake loading, receipt, freight &amp; cost data</div></div></div>
   <div class="panel">
     <h2><i class="fas fa-plus-circle"></i> New Rake Record</h2>
     <form id="entryForm" novalidate>
@@ -509,8 +519,8 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 
 <!-- ============ FORMULAS VIEW ============ -->
 <section class="view" id="view-formulas">
+  <div class="back-row"><button class="back-btn" data-back="formulas"><i class="fas fa-arrow-left"></i> Back</button></div>
   <div class="topbar">
-    <button class="back-btn" data-back="formulas"><i class="fas fa-arrow-left"></i> Back</button>
     <div><h1>Formulas</h1><div class="period">Change the calculation rules here. The dashboard uses the new values as soon as you save.</div></div>
     <div class="topbar-actions"><button class="btn btn-secondary" id="saveFormulas"><i class="fas fa-save"></i> Save Formulas</button></div>
   </div>
@@ -622,7 +632,6 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
@@ -1422,7 +1431,7 @@ async function computeDashboard(period = PERIOD) {
   return out;
 }
 
-/* Display: zero shows "-", money in whole rupees with en-IN grouping */
+/* Display: zero shows "-", money in whole rupees with en-IN grouping, decimals also get commas */
 const INT_FIELDS = new Set(['billQty','billGcv','svcSecl','svcCcl','svcMcl','pen5','totalBill','expBill','ulChg','olChg',
   'punSum','ehbc','enhc','deadFr','totalPen','pen5b','tgtSecl','tgtCcl','tgtMcl','loadSecl','loadCcl','loadMcl',
   'balSecl','balCcl','balMcl','askSecl','askCcl','askMcl']);
@@ -1431,7 +1440,10 @@ function formatCell(id, n) {
   const isInt = INT_FIELDS.has(id);
   if (isInt ? Math.round(n) === 0 : Math.abs(n) < 0.005) return '-';
   const sign = n < 0 ? '-' : '';
-  return sign + (isInt ? Math.round(Math.abs(n)).toLocaleString('en-IN') : Math.abs(n).toFixed(2));
+  const body = isInt
+    ? Math.round(Math.abs(n)).toLocaleString('en-IN')
+    : Math.abs(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return sign + body;
 }
 function renderCalculated(values) {
   Object.entries(values).forEach(([id, val]) => {
@@ -1534,14 +1546,16 @@ $('saveDemo').addEventListener('click', async () => {
   await loadDashboard();
   try {
     const canvas = await html2canvas(document.querySelector('#view-dashboard'), { scale: 2, backgroundColor: '#e9eff8', useCORS: true, windowWidth: 1500 });
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ orientation: canvas.width >= canvas.height ? 'landscape' : 'portrait', unit: 'mm', format: 'a4' });
-    const pw = pdf.internal.pageSize.getWidth(), ph = pdf.internal.pageSize.getHeight(), m = 6;
-    const ratio = Math.min((pw - 2 * m) / canvas.width, (ph - 2 * m) / canvas.height);
-    const w = canvas.width * ratio, h = canvas.height * ratio;
-    pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', (pw - w) / 2, (ph - h) / 2, w, h);
-    pdf.save(`HZL-Performance-Meter-${PERIOD}.pdf`);
-  } catch (e) { console.error(e); toast('Saved, but PDF failed', true); }
+    canvas.toBlob(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `HZL-Performance-Meter-${PERIOD}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    }, 'image/png');
+  } catch (e) { console.error(e); toast('Saved, but PNG download failed', true); }
 });
 $('resetDemo').addEventListener('click', loadDashboard);
 document.querySelectorAll('#view-dashboard input[id]').forEach(i => { i.readOnly = true; });
