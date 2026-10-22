@@ -322,6 +322,12 @@
   table.logt tr:hover td{background:#faf7fe}
   table.logt tr.dirty td{background:#f3e9ff}
   table.logt tr.dirty:hover td{background:#ead8fb}
+  .s-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:16px 18px;background:linear-gradient(115deg,#f3edfb,#e6d8f7);border-bottom:1px solid #e6def2}
+  .s-head-text{min-width:0;flex:1 1 360px}
+  .s-title{font:800 16px/1.3 Inter,system-ui,sans-serif;color:var(--brand-deep);letter-spacing:.03em}
+  .s-filters{font-size:12.5px;color:#4d5870;margin-top:4px;font-weight:600}
+  .s-filters span{color:var(--brand);font-weight:700}
+  #s-table tbody tr:nth-child(even) td{background:#fcfaff}
 </style>
 </head>
 <body>
@@ -349,6 +355,9 @@
       <button data-tab="log">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16"/></svg>
         Log</button>
+      <button data-tab="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        Search</button>
       <button data-tab="upload">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg>
         Upload</button>
@@ -529,6 +538,50 @@
   <datalist id="dl-ltype"></datalist>
 </section>
 
+<!-- ================= SEARCH ================= -->
+<section id="tab-search" class="hidden">
+  <div class="card pop">
+    <div class="card-h" style="justify-content:center;text-align:center">
+      <div>
+        <div class="eyebrow">Search</div>
+        <h2>Find rake dispatches</h2>
+        <p>Choose one day or a date range, then narrow by subsidiary, area, siding, destination or type. Leave a filter on All to skip it.</p>
+      </div>
+    </div>
+    <div class="chipset" id="s-modes" style="margin-bottom:14px">
+      <button data-smode="day" class="active">Single day</button>
+      <button data-smode="range">Date range</button>
+    </div>
+    <div class="filters fauto">
+      <div id="s-day-wrap"><label for="s-day">Date</label><input type="date" id="s-day"></div>
+      <div id="s-from-wrap" class="hidden"><label for="s-from">From date</label><input type="date" id="s-from"></div>
+      <div id="s-to-wrap" class="hidden"><label for="s-to">To date</label><input type="date" id="s-to"></div>
+      <div><label for="s-sub">Subsidiary</label>
+        <select id="s-sub"><option value="">All subsidiaries</option><option>SECL</option><option>MCFL</option><option>CCL</option><option>NCL</option><option>WCF</option></select></div>
+      <div><label for="s-area">Area</label><select id="s-area"><option value="">All areas</option></select></div>
+      <div><label for="s-siding">Siding</label><select id="s-siding"><option value="">All sidings</option></select></div>
+      <div><label for="s-dest">Destination</label><select id="s-dest"><option value="">All destinations</option></select></div>
+      <div><label for="s-type">Type</label>
+        <select id="s-type"><option value="">All types</option><option value="POWER">Power</option><option value="NON-POWER">Non-power</option></select></div>
+      <button class="btn primary" id="s-go">Search</button>
+    </div>
+    <div id="s-msg"></div>
+  </div>
+  <div class="kpis hidden" id="s-kpis"></div>
+  <div class="card pop pop-d1 hidden" id="s-card" style="padding:0;overflow:hidden">
+    <div class="s-head">
+      <div class="s-head-text">
+        <div class="s-title" id="s-title"></div>
+        <div class="s-filters" id="s-note"></div>
+      </div>
+      <button class="btn sm" id="s-img" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+        Download image</button>
+    </div>
+    <div class="logwrap"><table class="ptable" id="s-table"></table></div>
+  </div>
+</section>
+
 <!-- ================= UPLOAD ================= -->
 <section id="tab-upload" class="hidden">
   <div class="card pop">
@@ -601,7 +654,7 @@ function syncHeader(){
   $("m-month").classList.toggle("hidden", !(onDash && monthly));
   $("m-refresh").classList.toggle("hidden", !(onDash && monthly));
 }
-const NAVTABS = ["dashboard","entry","type","log","upload"];
+const NAVTABS = ["dashboard","entry","type","log","search","upload"];
 document.querySelectorAll("nav.tabs button").forEach(b => b.onclick = () => {
   document.querySelectorAll("nav.tabs button").forEach(x => x.classList.toggle("active", x === b));
   NAVTABS.forEach(t => $("tab-"+t).classList.toggle("hidden", t !== b.dataset.tab));
@@ -1056,6 +1109,7 @@ async function loadCatalog() {
   fillTypeLists();
   refreshArea(true);
   renderTypeTab();
+  refreshSearchOpts();
   setSync(true, "Live");
 }
 
@@ -1366,6 +1420,158 @@ $("l-saveall").onclick = async () => {
   updateSaveAll();
   if (ok) refreshAll();
 };
+
+/* ======== SEARCH TAB ======== */
+let SMODE = "day", sToken = 0, SR_ROWS = [], SR_META = null;
+const yesterdayISO = () => { const y = new Date(); y.setDate(y.getDate() - 1); return `${y.getFullYear()}-${p2(y.getMonth()+1)}-${p2(y.getDate())}`; };
+const ddmmm = iso => { const [, mo, d] = iso.split("-"); return (+d) + " " + MONTHS[+mo - 1].slice(0, 3); };
+
+(function initSearch() {
+  const yest = yesterdayISO();
+  $("s-day").value = yest;
+  $("s-from").value = yest.slice(0, 8) + "01";
+  $("s-to").value = yest;
+})();
+
+function setSMode(m) {
+  SMODE = m;
+  document.querySelectorAll("#s-modes button").forEach(b => b.classList.toggle("active", b.dataset.smode === m));
+  $("s-day-wrap").classList.toggle("hidden", m !== "day");
+  $("s-from-wrap").classList.toggle("hidden", m !== "range");
+  $("s-to-wrap").classList.toggle("hidden", m !== "range");
+}
+document.querySelectorAll("#s-modes button").forEach(b => b.onclick = () => setSMode(b.dataset.smode));
+
+// Fills area / siding / destination lists from the catalog, narrowing each one by the choices above it.
+function sfOpts(id, values, allLabel) {
+  const sel = $(id), prev = sel.value;
+  const items = uniqNk(values.filter(Boolean));
+  const keep = items.find(v => nk(v) === nk(prev));
+  sel.innerHTML = `<option value="">${allLabel}</option>` + items.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join("");
+  sel.value = keep || "";
+}
+function refreshSearchOpts() {
+  const sub = $("s-sub").value;
+  let p = CAT.filter(r => !sub || r.sub === sub);
+  sfOpts("s-area", p.map(r => r.area), "All areas");
+  p = p.filter(r => !$("s-area").value || nk(r.area) === nk($("s-area").value));
+  sfOpts("s-siding", p.map(r => r.siding), "All sidings");
+  p = p.filter(r => !$("s-siding").value || nk(r.siding) === nk($("s-siding").value));
+  sfOpts("s-dest", p.map(r => r.dest), "All destinations");
+}
+
+function matchSearch(r, f) {
+  if (f.sub && r.sub !== f.sub) return false;
+  if (f.area && nk(r.area) !== nk(f.area)) return false;
+  if (f.siding && nk(r.siding) !== nk(f.siding)) return false;
+  if (f.dest && nk(r.destination) !== nk(f.dest)) return false;
+  if (f.type === "POWER" && catOf(nk(r.type)) !== "p") return false;
+  if (f.type === "NON-POWER" && !isNonPower(r)) return false;
+  return true;
+}
+
+function filterParts(f) {
+  return [
+    ["Subsidiary", f.sub || "All"],
+    ["Area", f.area || "All"],
+    ["Siding", f.siding || "All"],
+    ["Destination", f.dest || "All"],
+    ["Type", f.type ? (f.type === "POWER" ? "Power" : "Non-power") : "All"]
+  ];
+}
+// Plain text for the PNG header and screen summary
+function filterText(f) {
+  return filterParts(f).map(([k, v]) => `${k}: ${v}`).join("   |   ");
+}
+// Screen version: label muted, value emphasised
+function filterHtml(f) {
+  return filterParts(f).map(([k, v]) => `${esc(k)} <span>${esc(v)}</span>`).join("  ·  ");
+}
+function reportTitle(m) {
+  return m.mode === "day"
+    ? `RAKE DISPATCH REPORT FOR ${ddmmm(m.from)}`
+    : `RAKE DISPATCH REPORT FROM ${ddmmm(m.from)} TO ${ddmmm(m.to)}`;
+}
+
+async function runSearch() {
+  const from = SMODE === "day" ? $("s-day").value : $("s-from").value;
+  const to   = SMODE === "day" ? $("s-day").value : $("s-to").value;
+  if (!from || !to) return msg("s-msg", "Choose a date.", "err");
+  if (from > to) return msg("s-msg", "Start date is after end date.", "err");
+  const f = { sub: $("s-sub").value, area: $("s-area").value, siding: $("s-siding").value, dest: $("s-dest").value, type: $("s-type").value };
+  const token = ++sToken;
+  msg("s-msg", "");
+  $("s-go").disabled = true;
+  try {
+    const rows = await fetchRows(from, to, "id,entry_date,subsidiary,area,siding,destination,type");
+    if (token !== sToken) return;
+    SR_ROWS = rows.map(r => ({ ...r, sub: effSub(r) })).filter(r => matchSearch(r, f))
+      .sort((a, b) => (b.entry_date || "").localeCompare(a.entry_date || "") || a.sub.localeCompare(b.sub) ||
+        (a.area || "").localeCompare(b.area || "") || (a.siding || "").localeCompare(b.siding || "") ||
+        (a.destination || "").localeCompare(b.destination || ""));
+    SR_META = { from, to, f, mode: SMODE };
+    renderSearch();
+  } catch (e) {
+    if (token === sToken) msg("s-msg", "Could not load: " + esc(e.message), "err");
+  } finally { $("s-go").disabled = false; }
+}
+
+function renderSearch() {
+  const rows = SR_ROWS, m = SR_META;
+  const total = rows.length;
+  const power = rows.filter(r => catOf(nk(r.type)) === "p").length;
+  const nonp = rows.filter(isNonPower).length;
+  const days = new Set(rows.map(r => r.entry_date)).size;
+  const pct = n => total ? Math.round(n / total * 100) + "% of results" : "No rakes";
+  $("s-kpis").classList.remove("hidden");
+  setKpis("s-kpis", [
+    { l:"Total rakes", v:fmt(total), s: m.mode === "day" ? ddmmm(m.from) : `${ddmmm(m.from)} to ${ddmmm(m.to)}` },
+    { l:"Power rakes", v:fmt(power), s:pct(power) },
+    { l:"Non-power rakes", v:fmt(nonp), s:pct(nonp) },
+    { l:"Days with rakes", v:fmt(days), s:"In selected period" }
+  ]);
+  $("s-card").classList.remove("hidden");
+  $("s-title").textContent = reportTitle(m);
+  $("s-note").innerHTML = filterHtml(m.f) + `  ·  <span>${fmt(total)}</span> rakes`;
+  $("s-img").disabled = !total;
+  if (!total) {
+    $("s-table").innerHTML = `<tr><td style="padding:40px;color:#6b7385">No rakes match this search.</td></tr>`;
+    return;
+  }
+  $("s-table").innerHTML = `<thead><tr><th>Sr No.</th><th>Date</th><th>Subsidiary</th><th>Area</th><th>Siding</th><th>Destination</th><th>Type</th></tr></thead><tbody>` +
+    rows.map((r, i) => `<tr><td>${i+1}</td><td>${dmy(r.entry_date)}</td><td>${esc(r.sub)}</td><td>${esc(r.area)}</td><td>${esc(r.siding)}</td><td>${esc(r.destination)}</td><td>${esc(r.type)}</td></tr>`).join("") +
+    `</tbody>`;
+}
+
+async function downloadSearchImage() {
+  if (!SR_ROWS.length || !SR_META) return;
+  if (typeof html2canvas === "undefined") return noLib("s-note");
+  const btn = $("s-img"), m = SR_META;
+  const power = SR_ROWS.filter(r => catOf(nk(r.type)) === "p").length;
+  const nonp = SR_ROWS.filter(isNonPower).length;
+  const stage = document.createElement("div");
+  const bannerBox = `display:inline-block;padding:9px 16px;border-radius:12px;background:#fff;border:1px solid #e6def2;margin:0 6px 6px`;
+  stage.innerHTML =
+    `<div style="text-align:center;margin-bottom:16px;padding:18px 16px;border-radius:16px;background:linear-gradient(115deg,#3b1665,#6a2fa0 55%,#9b59d6);color:#fff">` +
+      `<div style="font:800 22px/1.25 Inter,Arial,sans-serif;letter-spacing:.04em">${reportTitle(m)}</div>` +
+      `<div style="margin-top:12px;font:600 12px Arial,sans-serif;color:#eadcf9">${filterParts(m.f).map(([k, v]) => `<span style="${bannerBox};color:#4a1d7a">${esc(k)}: <b>${esc(v)}</b></span>`).join("")}</div>` +
+      `<div style="margin-top:6px;font:700 13px Arial,sans-serif">Total ${fmt(SR_ROWS.length)} rakes &nbsp;·&nbsp; Power ${fmt(power)} &nbsp;·&nbsp; Non-power ${fmt(nonp)}</div>` +
+    `</div>`;
+  stage.appendChild(plainClone($("s-table")));
+  btn.disabled = true;
+  try {
+    const fname = reportTitle(m).replace("RAKE DISPATCH REPORT ", "RAKE_DISPATCH_").replace(/ /g, "_") + ".png";
+    await saveStageAsPng(stage, "max-content", fname);
+  } catch (e) { $("s-note").textContent = "Could not create image: " + e.message; }
+  finally { btn.disabled = !SR_ROWS.length; }
+}
+
+$("s-go").onclick = runSearch;
+$("s-sub").onchange = refreshSearchOpts;
+$("s-area").onchange = refreshSearchOpts;
+$("s-siding").onchange = refreshSearchOpts;
+$("s-img").onclick = downloadSearchImage;
+refreshSearchOpts();
 
 /* ======== EXCEL / CSV UPLOAD ======== */
 let PARSED = [];
