@@ -1,0 +1,1704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gujarat Performance | AMM Gujarat</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Instrument+Sans:wght@400;500;600;700&display=swap");
+:root{
+  --bg:#f3f1fa; --card:#fff; --line:#e0def0; --ink:#1a1840; --mute:#1a1840; --navy:#1b2559; --navy2:#3b3f9e;
+  --teal:#0f9d8a; --blue:#4a4fb0; --amber:#e9a120; --violet:#7a4fd0; --rose:#c2334a; --sky:#2b8fa3;
+  --gold:#e0b03c; --saffron:#ff9f5a;
+  --head:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --body:"Instrument Sans","Segoe UI",system-ui,sans-serif;
+  --ease:cubic-bezier(.2,.8,.2,1);
+  --sh:0 1px 2px rgba(27,37,89,.06),0 10px 24px -12px rgba(27,37,89,.22);
+  --sh-hi:0 2px 4px rgba(27,37,89,.06),0 22px 38px -16px rgba(27,37,89,.36);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{font-size:clamp(12px,.55vw + 8px,15px)}
+body{font-family:var(--body);color:var(--ink);min-height:100vh;line-height:1.4;overflow-x:hidden;
+  background:radial-gradient(900px 480px at 95% -8%,#ffdcc2 0,transparent 70%),radial-gradient(800px 460px at -5% 105%,#d9d6f5 0,transparent 70%),var(--bg);background-attachment:fixed}
+a{text-decoration:none;color:inherit}
+input,select,textarea{font-family:inherit;color-scheme:light;outline:none}
+input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(59,63,158,.35)!important}
+
+/* Floating nav */
+.sidebar{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:100;display:flex;align-items:center;gap:1rem;
+  background:rgba(27,37,89,.95);backdrop-filter:blur(12px);color:#eef0fb;border-radius:999px;padding:.35rem .5rem .35rem 1rem;
+  box-shadow:0 12px 32px -10px rgba(27,37,89,.55),0 0 0 1px rgba(255,255,255,.08);max-width:calc(100% - 1.5rem)}
+.party-name{font:700 1.05rem var(--head);display:flex;align-items:center;gap:.45rem;color:#fff;white-space:nowrap}
+.party-name .dot{width:8px;height:8px;border-radius:50%;background:var(--saffron);box-shadow:0 0 0 3px rgba(255,159,90,.25)}
+.sidebar-nav{display:flex;gap:.2rem;flex-wrap:wrap}
+.nav-item{display:flex;align-items:center;gap:.4rem;padding:.45rem .85rem;border-radius:999px;color:#c5c8ee;font-weight:500;font-size:.85rem;white-space:nowrap;transition:.2s;cursor:pointer;background:none;border:0;font-family:inherit}
+.nav-item:hover{background:rgba(255,255,255,.12);color:#fff}
+.nav-item.active{background:rgba(255,159,90,.25);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,159,90,.45)}
+.user-chip{display:flex;align-items:center;gap:.5rem;color:#d8dbf5;font-size:.8rem;font-weight:600;padding:.3rem .6rem}
+.user-chip button{border:0;background:rgba(255,255,255,.14);color:#fff;border-radius:999px;padding:.3rem .75rem;cursor:pointer;font:inherit}
+
+.main{max-width:1600px;margin:0 auto;padding:4.8rem 1.4rem 1.4rem}
+.view{display:none}
+.view.active{display:block;animation:rise .55s var(--ease) backwards}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+.back-btn{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;border:0;padding:.6rem 1.1rem;border-radius:12px;font:700 .85rem var(--body);cursor:pointer;display:inline-flex;align-items:center;gap:.45rem;box-shadow:0 10px 18px -10px rgba(27,37,89,.6);transition:.2s;flex-shrink:0}
+.back-btn:hover{transform:translateY(-2px)}
+
+.topbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:.8rem;margin-bottom:1.2rem;padding:1.1rem 1.5rem;border-radius:22px;color:#fff;
+  background:radial-gradient(500px 200px at 90% 0,rgba(255,159,90,.35),transparent 70%),linear-gradient(120deg,var(--navy) 0%,var(--navy2) 60%,#5a5fc4 100%);
+  box-shadow:0 18px 36px -18px rgba(27,37,89,.65)}
+.topbar h1{font:700 clamp(1.3rem,1.4vw + .8rem,2rem) var(--head);letter-spacing:-.02em}
+.period{font-size:.85rem;font-weight:500;color:#d3d6f5;margin-top:.1rem}
+.topbar-actions{display:flex;gap:.55rem;flex-wrap:wrap;align-items:center;margin-left:auto}
+.month-pick{padding:.55rem .9rem;border-radius:12px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.12);color:#fff;font-weight:600;cursor:pointer}
+.month-pick option{color:var(--ink)}
+.btn{display:inline-flex;align-items:center;gap:.45rem;padding:.55rem 1.1rem;font:600 .85rem var(--body);border:1px solid transparent;border-radius:12px;cursor:pointer;transition:.2s}
+.btn:hover{transform:translateY(-2px)}.btn:active{transform:scale(.97)}
+.btn-secondary{background:rgba(255,255,255,.14);color:#fff;border-color:rgba(255,255,255,.3)}
+.btn-secondary:hover{background:rgba(255,255,255,.24)}
+.btn-primary{background:var(--saffron);color:#3a1a00;box-shadow:0 10px 18px -8px rgba(255,159,90,.7)}
+.btn:disabled{opacity:.6;cursor:wait}
+
+/* Cards */
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.2rem;margin-bottom:1.2rem;align-items:stretch}
+.card{--c:var(--blue);--t:#ebe9f8;--l:#c3c0ec;--d:#2e3290;--h:#f3f2fc;--b:#dcd9f3;position:relative;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:1.1rem 1.15rem 1rem;box-shadow:var(--sh);overflow:hidden;transition:transform .25s var(--ease),box-shadow .25s;margin-bottom:1.2rem}
+.card::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,var(--c),var(--l))}
+.card:hover{transform:translateY(-3px);box-shadow:var(--sh-hi)}
+.card-header{display:flex;align-items:center;justify-content:space-between;gap:.6rem;margin-bottom:.7rem;flex-wrap:wrap}
+.card-header h3{font:700 1rem var(--head);letter-spacing:-.01em;display:flex;align-items:center;gap:.6rem}
+.card-header h3 i{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-size:.9rem;color:#fff;background:linear-gradient(135deg,var(--c),var(--d));box-shadow:0 8px 14px -6px var(--c)}
+.c-key{--c:var(--violet);--t:#f1ecfd;--l:#cdbff6;--d:#4a2f95}
+.c-area{--c:var(--sky);--t:#e2f3f7;--l:#a6d9e6;--d:#1b6378}
+.c-short{--c:var(--teal);--t:#e0f3ef;--l:#9fd6cc;--d:#0b6b5d}
+.c-rake{--c:var(--gold);--t:#fbf2d9;--l:#f1d98f;--d:#7d5c10}
+.c-bill{--c:#c96a1b;--t:#fbeedf;--l:#f0c49a;--d:#7a3d0c}
+.c-pen{--c:var(--rose);--t:#fbe9ec;--l:#f1b3bd;--d:#7f1f32}
+.mines-card{--c:#4a4fb0;--t:#ebe9f8;--l:#c3c0ec;--d:#2e3290}
+.trend-card{--c:var(--gold);--t:#fbf2d9;--l:#f1d98f;--d:#7d5c10}
+.grid-3 .card{margin-bottom:0}
+
+.metric-row{display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.42rem .25rem;border-bottom:1px dashed var(--line);border-radius:10px;transition:background .2s}
+.metric-row:last-child{border-bottom:0}
+.metric-row:hover{background:var(--h)}
+.metric-label{flex:1;font-size:.8rem;font-weight:700;color:var(--ink);text-align:left}
+.metric-value{width:7.8rem;min-width:0;border:1px solid transparent;border-radius:11px;background:var(--t);color:var(--ink);font:700 .95rem var(--body);font-variant-numeric:tabular-nums;text-align:right;padding:.4rem .7rem;transition:.2s}
+.metric-value.neg{color:#a3142b;background:#fbe6ea}
+.metric-value.pos{color:#0c6b4a}
+.pair{display:flex;gap:.35rem}
+.pair input:first-child{width:7.8rem}.pair input:last-child{width:5.6rem}
+.wide{width:9.5rem!important}
+.dual-head{display:flex;justify-content:flex-end;gap:.35rem;padding:0 .25rem .25rem;margin-bottom:.15rem}
+.dual-head span{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink);text-align:center}
+.dual-head span:first-child{width:7.8rem}.dual-head span:last-child{width:5.6rem}
+.sub-title{margin:.7rem 0 .35rem;padding:.35rem .7rem;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--c);background:var(--t);border-radius:999px;display:inline-block}
+.total-row{margin-top:.4rem;padding:.55rem .7rem;border:0;border-radius:14px;background:linear-gradient(120deg,var(--navy),var(--navy2));box-shadow:0 10px 18px -10px rgba(27,37,89,.6)}
+.total-row .metric-label{color:#fff;font-weight:700}
+.total-row .metric-value{background:rgba(255,159,90,.2);color:#ffd2a8;border:0}
+.total-row .metric-value.neg{color:#ffb3bd}
+/* Grade Difference row */
+.grade-diff{background:#fff3d6!important;color:#b36b00!important;border:1px solid #f0c26a!important}
+.dead-grey{background:#efeef7;border-radius:12px}
+.dead-grey .metric-label{color:#5b5f7a}
+.dead-grey .metric-value{background:#dddeea;color:#4b4f6a}
+
+.area-table,.party-table{width:100%;border-collapse:separate;border-spacing:6px}
+.area-table th,.party-table th{font:700 .72rem var(--body);text-transform:uppercase;letter-spacing:.5px;color:#fff;background:var(--d);border-radius:10px;padding:.5rem;text-align:center}
+.area-table th:first-child,.party-table th:first-child{background:none}
+.area-table .row-label,.party-table .row-label{font-size:.78rem;font-weight:700;color:var(--ink);text-align:left;padding:0 .3rem}
+/* Avg GCV total row inside table: readable label + proper background */
+.area-table tr.total-row td{background:linear-gradient(120deg,var(--navy),var(--navy2));padding:.3rem .4rem}
+.area-table tr.total-row td:first-child{border-radius:12px 0 0 12px}
+.area-table tr.total-row td:last-child{border-radius:0 12px 12px 0}
+.area-table tr.total-row .row-label{color:#fff}
+.area-table tr.total-row input{background:rgba(255,159,90,.2);color:#ffd2a8}
+.area-table td,.party-table td{padding:0}
+.area-table input,.party-table input{width:100%;border:1px solid transparent;border-radius:12px;background:var(--t);color:var(--ink);font:700 1rem var(--head);font-variant-numeric:tabular-nums;text-align:center;padding:.6rem .2rem;transition:.2s}
+.area-table input.neg,.party-table input.neg{color:#a3142b;background:#fbe6ea}
+.avg-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:.7rem}
+.highlight-box{background:var(--t);border-radius:14px;padding:.55rem .6rem;text-align:center;border:1px solid var(--b)}
+.highlight-box .label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--ink);margin-bottom:.2rem}
+.highlight-box .metric-value{width:100%;background:transparent;border:0;text-align:center;font:700 1.15rem var(--head);color:var(--ink);padding:.1rem}
+.hb-steel{background:#e6eef0}.hb-lav{background:#f1ecfb}
+
+.mines-wrap{overflow-x:auto;border-radius:14px;border:1px solid var(--line)}
+.mines-table{width:100%;border-collapse:separate;border-spacing:0;min-width:820px}
+.mines-table th{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;font-size:.72rem;letter-spacing:.5px;text-transform:uppercase;font-weight:700;padding:.6rem .5rem;white-space:nowrap}
+.mines-table td{border-bottom:1px solid var(--line);padding:0;text-align:center}
+.mines-table tbody tr:nth-child(even) td{background:#f5f4fc}
+.mines-table tbody tr:last-child td{border-bottom:0}
+.mines-table .row-label{text-align:left;font-size:.78rem;font-weight:700;color:var(--ink);padding:.5rem .8rem;min-width:12rem;white-space:nowrap;position:sticky;left:0;z-index:1;background:#f5f4fc;border-right:1px solid var(--line)}
+.mines-table input{width:100%;min-width:4.8rem;border:0;background:transparent;color:var(--ink);font:700 .85rem var(--body);font-variant-numeric:tabular-nums;text-align:center;padding:.55rem .3rem}
+.mines-table input.neg{color:#a3142b}
+
+.trend-wrap{overflow-x:auto;border-radius:14px;border:1px solid #c9b25c}
+.trend-table{width:100%;min-width:720px;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.trend-table th{background:#f3dc8a;color:var(--ink);font-weight:700;font-size:.78rem;padding:.6rem .5rem;text-align:center;border:1px solid #c9b25c}
+.trend-table td{background:#fbf1cf;color:var(--ink);font-weight:700;font-size:.85rem;padding:.5rem .5rem;text-align:center;border:1px solid #c9b25c}
+.trend-table td.neg{color:#a3142b}
+
+.report-footer{display:flex;align-items:center;justify-content:center;gap:.5rem;width:max-content;max-width:100%;margin:0 auto;padding:.5rem 1.2rem;font-size:.85rem;font-weight:600;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:999px;box-shadow:var(--sh)}
+.report-footer::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--saffron);box-shadow:0 0 0 3px rgba(255,159,90,.3)}
+
+.dash{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.2rem;align-items:start;margin-bottom:1.2rem}
+.dash-col{display:flex;flex-direction:column;gap:1.2rem;min-width:0}
+.dash-col .card{margin-bottom:0}
+@media (max-width:1150px){.dash{grid-template-columns:1fr 1fr}}
+@media (max-width:800px){.dash{grid-template-columns:1fr}}
+
+/* Panels, forms, tables */
+.panel{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:1.2rem 1.3rem;box-shadow:var(--sh);margin-bottom:1.2rem}
+.panel h2{font:700 1.15rem var(--head);margin-bottom:.8rem;display:flex;align-items:center;gap:.6rem}
+.panel h2 i{color:var(--navy2)}
+.muted{color:var(--mute);font-size:.85rem;font-weight:500}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1rem}
+.form-group{display:flex;flex-direction:column;gap:.35rem;min-width:0}
+.form-group label{font-size:.8rem;font-weight:700;color:var(--ink)}
+.form-group input,.form-group select,.field{padding:.6rem .8rem;font-size:.92rem;border:1px solid var(--line);border-radius:11px;background:#f6f5fc;color:var(--ink);width:100%}
+.form-group input[readonly]{background:#ecebf8}
+.form-actions{margin-top:1rem;display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
+.btn-go{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;border:0;padding:.6rem 1.1rem;border-radius:12px;font:700 .85rem var(--body);cursor:pointer;display:inline-flex;align-items:center;gap:.45rem;transition:.2s}
+.btn-go:hover{transform:translateY(-2px);box-shadow:0 10px 18px -10px rgba(27,37,89,.6)}
+.btn-go:disabled{opacity:.55;cursor:not-allowed;transform:none}
+.btn-soft{background:#fbfbfe;color:var(--navy);border:1px solid #d3d0ea;padding:.55rem .95rem;border-radius:12px;font:600 .82rem var(--body);cursor:pointer;display:inline-flex;align-items:center;gap:.4rem}
+.btn-soft:hover{border-color:var(--saffron)}
+.btn-soft.btn-danger{background:#fbe6ea;color:#a3142b;border-color:#f1c2cb}
+.btn-sm{padding:.3rem .55rem;font-size:.75rem}
+.status{font-size:.85rem;font-weight:600;margin-top:.7rem;min-height:1.2em}
+.status.err{color:#a3142b}
+.status.ok{color:#0c6b4a}
+.tbl-wrap{overflow:auto;max-height:520px;border:1px solid var(--line);border-radius:14px}
+.tbl{width:100%;border-collapse:collapse;font-size:.82rem}
+.tbl th{position:sticky;top:0;z-index:1;background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;padding:.5rem .6rem;font-size:.7rem;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;text-align:center}
+.tbl td{padding:.4rem .5rem;border-bottom:1px solid var(--line);white-space:nowrap;text-align:center;font-weight:600;color:var(--ink)}
+.tbl tbody tr:nth-child(even) td{background:#f5f4fc}
+.tbl td input{width:100%;min-width:7rem;border:1px solid var(--line);border-radius:8px;padding:.3rem .4rem;font:600 .8rem var(--body);background:#fff;text-align:center}
+.tbl td input[readonly]{background:#f0f0f6;color:#4b4f6a}
+.tbl td.act{white-space:nowrap}
+.tbl .empty{padding:1.5rem;color:var(--mute)}
+.mapping{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.6rem}
+.chip{font-size:.72rem;font-weight:700;padding:.25rem .6rem;border-radius:999px;background:#ebe9f8;color:#2e3290}
+.chip.skip{background:#fbe6ea;color:#a3142b}
+.toolbar{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.8rem}
+.toolbar input.search{flex:1;min-width:200px;border:1px solid var(--line);border-radius:11px;padding:.5rem .8rem;background:#f6f5fc}
+.hidden{display:none!important}
+.formula-list{margin-top:.5rem;padding-left:1.1rem;font-size:.88rem;font-weight:600;line-height:1.7;color:var(--ink)}
+.section{margin-bottom:1rem}
+.section-title{font:700 .95rem var(--head);margin-bottom:.5rem;display:flex;align-items:center;gap:.5rem;color:var(--navy)}
+.req{color:#a3142b;margin-left:.15rem}
+.tag{font-size:.6rem;font-weight:700;text-transform:uppercase;margin-left:.4rem;padding:.1rem .4rem;border-radius:999px;background:#ebe9f8;color:#2e3290}
+.unit-wrap{position:relative;display:flex;align-items:center}
+.unit-wrap input{padding-right:3rem}
+.unit{position:absolute;right:.7rem;font-size:.72rem;font-weight:700;color:var(--mute);pointer-events:none}
+
+/* Password page */
+.lock-row{display:flex;align-items:center;justify-content:center;gap:1.5rem;flex-wrap:wrap;min-height:70vh;padding:1rem}
+.lock-back{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;border:0;padding:.75rem 1.2rem;border-radius:14px;font:700 .9rem var(--body);cursor:pointer;display:inline-flex;align-items:center;gap:.5rem;box-shadow:0 12px 22px -12px rgba(27,37,89,.7);transition:.2s}
+.lock-back:hover{transform:translateY(-2px)}
+.lock-card{width:min(380px,92vw);text-align:center;margin:0}
+.lock-card input{margin:.8rem 0;width:100%;border:1px solid var(--line);border-radius:11px;padding:.6rem .8rem;font-size:1rem;text-align:center;letter-spacing:.3em;background:#f6f5fc}
+.lock-card .btn-go{justify-content:center;width:100%}
+
+.drop{border:2px dashed #aaa8dc;border-radius:16px;padding:1.6rem;text-align:center;background:#f6f5fd;cursor:pointer;transition:.2s}
+.drop:hover,.drop.over{border-color:var(--navy2);background:#ecebfa}
+.drop i{font-size:1.8rem;color:var(--navy2)}
+.drop p{margin-top:.4rem;font-weight:600}
+
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--navy);color:#fff;border-left:4px solid var(--saffron);padding:.8rem 1.3rem;border-radius:12px;box-shadow:0 18px 34px -12px rgba(27,37,89,.5);z-index:1000;transform:translateY(100px);opacity:0;transition:.25s}
+.toast.show{transform:none;opacity:1}.toast.error{border-left-color:#ff7a8c}
+
+@media (max-width:1150px){.grid-3{grid-template-columns:1fr 1fr}.grid-3>.card:nth-child(3){grid-column:1/-1}}
+@media (max-width:800px){
+  .grid-3{grid-template-columns:1fr}.grid-3>.card:nth-child(3){grid-column:auto}
+  .sidebar{left:.5rem;right:.5rem;transform:none;flex-wrap:wrap;justify-content:center;border-radius:18px;max-width:none}
+  .main{padding:7rem .8rem 1rem}.topbar{justify-content:center;text-align:center}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* GREEN THEME */
+:root{
+  --bg:#f1f8f2; --card:#ffffff; --line:#d5e7d8; --ink:#183323; --mute:#486452;
+  --navy:#14532d; --navy2:#218447; --teal:#198754; --blue:#2d8a57;
+  --amber:#b7a747; --violet:#39875a; --rose:#c2334a; --sky:#438f78;
+  --gold:#d6c56b; --saffron:#8fd19e;
+  --sh:0 1px 2px rgba(20,83,45,.06),0 10px 24px -12px rgba(20,83,45,.18);
+  --sh-hi:0 2px 4px rgba(20,83,45,.06),0 22px 38px -16px rgba(20,83,45,.28);
+}
+body{
+  background:radial-gradient(900px 480px at 95% -8%,#d9f0df 0,transparent 70%),
+             radial-gradient(800px 460px at -5% 105%,#e1f2e4 0,transparent 70%),var(--bg);
+}
+input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(33,132,71,.25)!important}
+.sidebar{background:rgba(20,83,45,.96);box-shadow:0 12px 32px -10px rgba(20,83,45,.45),0 0 0 1px rgba(255,255,255,.08)}
+.party-name .dot,.report-footer::before{background:#8fd19e;box-shadow:0 0 0 3px rgba(143,209,158,.25)}
+.nav-item.active{background:rgba(143,209,158,.22);box-shadow:inset 0 0 0 1px rgba(143,209,158,.45)}
+.topbar{background:radial-gradient(500px 200px at 90% 0,rgba(143,209,158,.28),transparent 70%),linear-gradient(120deg,var(--navy) 0%,var(--navy2) 60%,#3b9a62 100%);box-shadow:0 18px 36px -18px rgba(20,83,45,.45)}
+.btn-primary{background:var(--saffron);color:#12351f;box-shadow:0 10px 18px -8px rgba(143,209,158,.55)}
+.total-row{background:linear-gradient(120deg,var(--navy),var(--navy2));box-shadow:0 10px 18px -10px rgba(20,83,45,.4)}
+.total-row .metric-value{background:rgba(143,209,158,.2);color:#d7f5df}
+.area-table tr.total-row td{background:linear-gradient(120deg,var(--navy),var(--navy2))}
+.area-table tr.total-row input{background:rgba(143,209,158,.2);color:#d7f5df}
+.mines-table th,.tbl th{background:linear-gradient(120deg,var(--navy),var(--navy2))}
+.mines-table tbody tr:nth-child(even) td,.mines-table .row-label,.tbl tbody tr:nth-child(even) td{background:#f0f7f1}
+.trend-wrap{border-color:#b9d7bf}
+.trend-table th{background:#d9ecd9;border-color:#b9d7bf}
+.trend-table td{background:#eff7ed;border-color:#b9d7bf}
+.form-group input,.form-group select,.field,.toolbar input.search,.lock-card input{background:#f5faf5}
+.form-group input[readonly]{background:#e7f1e8}
+.btn-soft{background:#f8fcf8;color:var(--navy);border-color:#cfe2d2}
+.btn-soft:hover{border-color:var(--saffron)}
+.chip{background:#e2f2e5;color:#21633a}
+.drop{border-color:#a8d4b2;background:#f5fbf5}
+.drop:hover,.drop.over{border-color:var(--navy2);background:#e6f4e8}
+.panel h2 i,.drop i{color:var(--navy2)}
+.section-title{color:var(--navy)}
+
+/* HOME BUTTON (top left) + REPORT DATE (top right) */
+.home-btn{position:fixed;top:10px;left:12px;z-index:100;width:2.8rem;height:2.8rem;border-radius:50%;display:grid;place-items:center;background:rgba(20,83,45,.96);color:#fff;border:0;cursor:pointer;box-shadow:0 12px 32px -10px rgba(20,83,45,.45),0 0 0 1px rgba(255,255,255,.08);transition:transform .2s,background .2s}
+.home-btn:hover{transform:translateY(-2px);background:var(--navy2)}
+.home-btn:focus-visible,.top-pill:focus-visible{outline:3px solid rgba(143,209,158,.8);outline-offset:2px}
+.top-pill{position:fixed;top:10px;right:12px;z-index:100;margin:0;height:2.8rem;padding:0 1.2rem;white-space:nowrap}
+/* shown only inside the exported PNG */
+.export-stamp{display:none;justify-content:flex-end;margin-bottom:.9rem}
+.export-stamp .report-footer{margin:0}
+
+/* keep the three top items from overlapping on smaller screens */
+@media (min-width:1301px) and (max-width:1750px){
+  .sidebar{left:4.6rem;transform:none}   /* nav sits next to the home button so the date pill has room */
+}
+@media (max-width:1300px){
+  .sidebar{top:3.9rem}
+  .main{padding-top:8.6rem}
+}
+@media (max-width:800px){
+  .main{padding-top:11rem}
+  .home-btn{top:.5rem;left:.5rem}
+  .top-pill{top:.5rem;right:.5rem;font-size:.72rem;padding:0 .8rem}
+}
+</style>
+</head>
+<body>
+<a class="home-btn" href="amm_home.html" aria-label="Back to AMM Home" title="AMM Home"><i class="fas fa-house"></i></a>
+<div class="report-footer top-pill" id="topPill">Performance Report updated upto <strong id="reportUpdatedUpto">-</strong></div>
+
+<aside class="sidebar">
+  <div class="party-name"><span class="dot"></span> Gujarat</div>
+  <nav class="sidebar-nav">
+    <button class="nav-item active" data-view="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</button>
+    <button class="nav-item" data-view="upload"><i class="fas fa-file-excel"></i> Upload Excel</button>
+    <button class="nav-item" data-view="log"><i class="fas fa-list"></i> Records Log</button>
+    <button class="nav-item" data-view="entry"><i class="fas fa-keyboard"></i> Data Entry</button>
+    <button class="nav-item" data-view="formulas"><i class="fas fa-calculator"></i> Formulas</button>
+  </nav>
+  <div class="user-chip"><span id="userLabel">Locked</span><button id="lockBtn"><i class="fas fa-lock"></i></button></div>
+</aside>
+
+<main class="main">
+
+<!-- ============ DASHBOARD ============ -->
+<section class="view active" id="view-dashboard">
+  <div class="export-stamp" id="exportStamp"><div class="report-footer">Performance Report updated upto <strong id="reportUpdatedUpto2">-</strong></div></div>
+  <div class="topbar">
+    <div>
+      <h1>Performance Meter</h1>
+      <div class="period" id="periodLabel">AMM Gujarat</div>
+    </div>
+    <div class="topbar-actions">
+      <select id="periodPick" class="month-pick" aria-label="Month"></select>
+      <button class="btn btn-secondary" id="reloadDash"><i class="fas fa-rotate"></i> Reload</button>
+      <button class="btn btn-primary" id="pngDash"><i class="fas fa-image"></i> Export PNG</button>
+    </div>
+  </div>
+
+  <div class="dash">
+    <div class="dash-col">
+      <div class="card c-bill">
+        <div class="card-header"><h3><i class="fas fa-rupee-sign"></i> Particulars</h3></div>
+        <div class="dual-head"><span>Billings</span><span>Per MT</span></div>
+        <div class="metric-row"><span class="metric-label">Performance on Quantity Reco</span><div class="pair"><input class="metric-value" id="b-qty" readonly><input class="metric-value" id="b-qty-mt" readonly></div></div>
+        <div class="metric-row"><span class="metric-label">Performance on GCV Reco</span><div class="pair"><input class="metric-value" id="b-gcv" readonly><input class="metric-value" id="b-gcv-mt" readonly></div></div>
+        <div class="metric-row"><span class="metric-label">Performance on Service Charge SECL</span><div class="pair"><input class="metric-value" id="b-svc-secl" readonly><input class="metric-value" id="b-svc-secl-mt" readonly></div></div>
+        <div class="metric-row"><span class="metric-label">Performance on Service Charge WCL</span><div class="pair"><input class="metric-value" id="b-svc-wcl" readonly><input class="metric-value" id="b-svc-wcl-mt" readonly></div></div>
+        <div class="metric-row"><span class="metric-label">Total Railway Penalty</span><div class="pair"><input class="metric-value" id="b-pen" readonly><input class="metric-value" id="b-pen-mt" readonly></div></div>
+        <div class="metric-row total-row"><span class="metric-label">TOTAL BILLING</span><div class="pair"><input class="metric-value" id="b-total" readonly><input class="metric-value" id="b-total-mt" readonly></div></div>
+        <div class="metric-row"><span class="metric-label">Expected Billing of the Month</span><input class="metric-value wide" id="b-exp" readonly></div>
+      </div>
+
+      <div class="card c-rake">
+        <div class="card-header"><h3><i class="fas fa-train"></i> Rake Performance</h3></div>
+        <table class="area-table">
+          <thead><tr><th></th><th>Achieve</th><th>Target</th></tr></thead>
+          <tbody id="rakePerfBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="dash-col">
+      <div class="card c-area">
+        <div class="card-header"><h3><i class="fas fa-map-marker-alt"></i> Plants</h3></div>
+        <table class="party-table">
+          <thead><tr><th></th><th>GETS SECL</th><th>GETS WCL</th><th>TPHS SECL</th><th>TPHS WCL</th></tr></thead>
+          <tbody id="plantsBody"></tbody>
+        </table>
+      </div>
+
+      <div class="card c-short">
+        <div class="card-header"><h3><i class="fas fa-weight-scale"></i> Weights</h3></div>
+        <div class="metric-row"><span class="metric-label">Avg. CH.Wt.</span><input class="metric-value" id="w-ch" readonly></div>
+        <div class="metric-row"><span class="metric-label">Avg. RR.Wt.</span><input class="metric-value" id="w-rr" readonly></div>
+        <div class="metric-row"><span class="metric-label">Avg. Plant Rec. Wt.</span><input class="metric-value" id="w-recv" readonly></div>
+        <div class="metric-row total-row"><span class="metric-label">TOTAL RR WEIGHT</span><input class="metric-value" id="w-totrr" readonly></div>
+        <div class="metric-row total-row"><span class="metric-label">PLANT RECEIVE</span><input class="metric-value" id="w-totrecv" readonly></div>
+      </div>
+    </div>
+
+    <div class="dash-col">
+      <div class="card c-short">
+        <div class="card-header"><h3><i class="fas fa-balance-scale"></i> Shortage / Excess Coal</h3></div>
+        <div class="metric-row"><span class="metric-label">Avg Shrt / Excess (%)</span><input class="metric-value" id="s-pct" readonly></div>
+        <div class="metric-row"><span class="metric-label">Shortage / Excess MT per rake</span><input class="metric-value" id="s-mt" readonly></div>
+        <table class="area-table" style="margin-top:.6rem">
+          <thead><tr><th></th><th>SECL</th><th>WCL</th></tr></thead>
+          <tbody id="shortAreaBody"></tbody>
+        </table>
+      </div>
+
+      <div class="card c-pen">
+        <div class="card-header"><h3><i class="fas fa-exclamation-triangle"></i> Railway Freight Penalties</h3></div>
+        <div class="dual-head"><span>Amount</span><span>Per MT</span></div>
+        <div class="metric-row"><span class="metric-label">Underload Charge</span><div class="pair"><input class="metric-value" id="p-ul" readonly><input class="metric-value" id="p-ul-mt" readonly></div></div>
+        <div class="metric-row"><span class="metric-label">Overload Charge</span><div class="pair"><input class="metric-value" id="p-ol" readonly><input class="metric-value" id="p-ol-mt" readonly></div></div>
+        <div class="metric-row"><span class="metric-label">Punitive Sum (POL)</span><div class="pair"><input class="metric-value" id="p-pun" readonly><input class="metric-value" id="p-pun-mt" readonly></div></div>
+        <div class="metric-row"><span class="metric-label">EHBC / FAUC / TC</span><div class="pair"><input class="metric-value" id="p-ehbc" readonly><input class="metric-value" id="p-ehbc-mt" readonly></div></div>
+        <div class="metric-row"><span class="metric-label">ENHC Charges</span><div class="pair"><input class="metric-value" id="p-enhc" readonly><input class="metric-value" id="p-enhc-mt" readonly></div></div>
+        <div class="metric-row"><span class="metric-label">Dead Freight (typed in Data Entry)</span><div class="pair"><input class="metric-value" id="p-dead" readonly><input class="metric-value" id="p-dead-mt" readonly></div></div>
+        <div class="metric-row total-row"><span class="metric-label">TOTAL PENALTY</span><div class="pair"><input class="metric-value" id="p-total" readonly><input class="metric-value" id="p-total-mt" readonly></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mines-card">
+    <div class="card-header"><h3><i class="fas fa-industry"></i> Mines Wise Performance</h3></div>
+    <div class="mines-wrap">
+      <table class="mines-table">
+        <thead><tr><th>MINES</th><th>BGCK</th><th>BGWK</th><th>GGS</th><th>MNOG</th><th>RJCB</th><th>UMSG</th></tr></thead>
+        <tbody id="minesBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card trend-card">
+    <div class="card-header"><h3><i class="fas fa-calendar-alt"></i> Monthly Performance</h3></div>
+    <div class="trend-wrap">
+      <table class="trend-table">
+        <thead><tr><th>Month</th><th>Total Qty</th><th>Billing</th><th>Deduction</th><th>Amount</th></tr></thead>
+        <tbody id="trendBody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PASSWORD ============ -->
+<section class="view" id="view-lock">
+  <div class="lock-row">
+    <button class="lock-back" id="lockBack"><i class="fas fa-arrow-left"></i> Back to Dashboard</button>
+    <div class="panel lock-card">
+      <h2 style="justify-content:center"><i class="fas fa-lock"></i> <span id="lockTitle">Enter password</span></h2>
+      <p class="muted">Enter the password to continue.</p>
+      <input type="password" id="pwdInput" placeholder="••••" autocomplete="off">
+      <button class="btn-go" id="unlockBtn"><i class="fas fa-unlock"></i> Unlock</button>
+      <div class="status err" id="pwdErr"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ UPLOAD ============ -->
+<section class="view" id="view-upload">
+  <div class="topbar"><div><h1>Upload Excel</h1><div class="period">Import rake records from the MIS RAKE DISPATCH sheet</div></div></div>
+  <div class="panel">
+    <h2><i class="fas fa-file-excel"></i> Choose workbook</h2>
+    <div class="drop" id="drop"><i class="fas fa-cloud-arrow-up"></i><p>Drop an .xlsx / .xls / .csv file here or click to browse</p><input type="file" id="fileInput" accept=".xlsx,.xls,.csv" hidden></div>
+    <div class="form-group" style="margin-top:.8rem;max-width:320px">
+      <label for="sheetPick">Sheet</label>
+      <select id="sheetPick" class="field"></select>
+    </div>
+    <div class="status" id="uploadStatus"></div>
+    <div class="mapping" id="mapping"></div>
+  </div>
+  <div class="panel hidden" id="previewPanel">
+    <h2><i class="fas fa-eye"></i> Preview (<span id="previewCount">0</span> rows)</h2>
+    <div class="tbl-wrap"><table class="tbl" id="previewTbl"></table></div>
+    <div class="form-actions">
+      <button class="btn-go" id="importBtn"><i class="fas fa-database"></i> Save to database</button>
+      <button class="btn-soft" id="cancelImport">Cancel</button>
+      <span class="muted" id="importNote"></span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ RECORDS LOG ============ -->
+<section class="view" id="view-log">
+  <div class="topbar"><div><h1>Records Log</h1><div class="period">Edit or delete saved rake records</div></div></div>
+  <div class="panel">
+    <div class="toolbar">
+      <input class="search" id="logSearch" placeholder="Search by RR no, siding, area, date...">
+      <button class="btn-soft" id="logReload"><i class="fas fa-rotate"></i> Reload</button>
+      <span class="muted" id="logCount"></span>
+    </div>
+    <div class="tbl-wrap"><table class="tbl" id="logTbl"></table></div>
+    <div class="status" id="logStatus"></div>
+  </div>
+</section>
+
+<!-- ============ DATA ENTRY ============ -->
+<section class="view" id="view-entry">
+  <div class="topbar"><div><h1>Data Entry</h1><div class="period">Type rake records, monthly targets and rates. Everything else is calculated.</div></div></div>
+  <div class="panel">
+    <h2><i class="fas fa-plus-circle"></i> New Rake Record</h2>
+    <form id="entryForm" novalidate>
+      <div id="formSections"></div>
+      <div class="form-actions">
+        <button type="submit" class="btn-go"><i class="fas fa-save"></i> Save Record</button>
+        <button type="button" class="btn-soft" id="clearForm">Clear Form</button>
+      </div>
+    </form>
+  </div>
+  <div class="panel">
+    <h2><i class="fas fa-bullseye"></i> Monthly Targets &amp; Rates</h2>
+    <div class="toolbar">
+      <input type="month" id="entryMonth" class="field" style="max-width:200px" aria-label="Month">
+      <input type="date" id="reportDate" class="field" style="max-width:200px" aria-label="Report updated upto">
+      <button class="btn-soft" id="carryFwd"><i class="fas fa-forward"></i> Carry Forward</button>
+    </div>
+    <div class="tbl-wrap" style="max-height:none">
+      <table class="tbl">
+        <thead><tr><th>Party</th><th>Area</th><th>Month Target</th><th>Loaded Till</th><th>Balance Rake</th><th>Asking Per Day</th></tr></thead>
+        <tbody id="tgtBody"></tbody>
+        <tfoot><tr><td colspan="2">Total</td><td id="tTarget">0</td><td id="tLoaded">0</td><td id="tBalance">0</td><td id="tAsk">0</td></tr></tfoot>
+      </table>
+    </div>
+    <div class="form-grid" style="margin-top:1rem">
+      <div class="form-group"><label for="svcSecl">Service Charge SECL (₹ / MT)</label><input type="number" id="svcSecl" min="0" step="0.01" placeholder="30"></div>
+      <div class="form-group"><label for="svcWcl">Service Charge WCL (₹ / MT)</label><input type="number" id="svcWcl" min="0" step="0.01" placeholder="30"></div>
+      <div class="form-group"><label for="qtyRate">Quantity Reco Base Rate (₹ / MT)</label><input type="number" id="qtyRate" min="0" step="0.01" placeholder="30"></div>
+      <div class="form-group"><label for="gcvBase">GCV Reco Base Rate (₹ / MT)</label><input type="number" id="gcvBase" min="0" step="0.01" placeholder="30"></div>
+      <div class="form-group"><label for="deadFreight">Dead Freight for the month (₹)</label><input type="number" id="deadFreight" min="0" step="0.01" placeholder="0"></div>
+    </div>
+    <div class="status" id="entryStatus"></div>
+  </div>
+</section>
+
+<!-- ============ FORMULAS ============ -->
+<section class="view" id="view-formulas">
+  <div class="topbar">
+    <div><h1>Formulas</h1><div class="period">Change the calculation rules here. The dashboard uses the new values as soon as you save.</div></div>
+    <div class="topbar-actions"><button class="btn btn-secondary" id="saveFormulas"><i class="fas fa-save"></i> Save Formulas</button></div>
+  </div>
+  <div class="panel">
+    <h2><i class="fas fa-bullseye"></i> Quantity Reco: Materialisation Tiers</h2>
+    <p class="muted">Each row says: if rake materialisation is at least this %, the rate is changed by this % of the base rate. Rows are checked from top to bottom, so keep the limits in decreasing order. Below the last row the "below" rate applies.</p>
+    <div class="tbl-wrap" style="max-height:none;margin-top:.8rem"><table class="tbl" id="tierTbl"></table></div>
+    <div class="form-grid" style="margin-top:1rem">
+      <div class="form-group"><label for="fMatTop">Rate change when materialisation is above 100 (%)</label><input type="number" step="0.01" id="fMatTop"></div>
+      <div class="form-group"><label for="fMatBelow">Rate change below the last tier (%)</label><input type="number" step="0.01" id="fMatBelow"></div>
+    </div>
+  </div>
+  <div class="panel">
+    <h2><i class="fas fa-scale-balanced"></i> GCV Reco: Grade Slippage</h2>
+    <p class="muted">Slippage = unloading grade minus loading grade. Each row is the % of the GCV base rate paid or deducted per MT of RR weight. Negative slippage pays nothing. The database recalculates every record when you save new values here.</p>
+    <div class="tbl-wrap" style="max-height:none;margin-top:.8rem"><table class="tbl" id="slipTbl"></table></div>
+    <div class="form-grid" style="margin-top:1rem">
+      <div class="form-group"><label for="fSlipAbove">Rate for slippage above 3 grades (%)</label><input type="number" step="0.01" id="fSlipAbove"></div>
+    </div>
+  </div>
+  <div class="panel">
+    <h2><i class="fas fa-info-circle"></i> How every dashboard value is calculated</h2>
+    <p class="muted">RR = RR weight, Recv = received weight, GETS / TPHS = party type on the record. "Month" means the selected month. Materialisation uses rakes loaded up to the report date.</p>
+    <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Plants and Weights</h4>
+    <ul class="formula-list">
+      <li>Target of Month, Rake Loaded Till, Balance Rake, Asking Per Day = per party (GETS, TPHS) and area (SECL, WCL) from Data Entry targets; loaded counts rakes up to the report date; asking per day = balance ÷ days from report date to the 3rd of the next month</li>
+      <li>Avg. CH.Wt., Avg. RR.Wt., Avg. Plant Rec. Wt. = simple averages of the rakes; TOTAL RR WEIGHT = RR of rakes with received weight; PLANT RECEIVE = sum of received weight</li>
+    </ul>
+    <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Rake Performance</h4>
+    <ul class="formula-list">
+      <li>GETS / TPHS achieve = materialisation (loaded ÷ target × 100) against 100%; Rakes per day = total loaded ÷ days passed, against total asking per day</li>
+    </ul>
+    <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Billing</h4>
+    <ul class="formula-list">
+      <li>Materialisation % (GETS, TPHS) = loaded ÷ target × 100; tier % comes from the tiers above</li>
+      <li>Quantity Reco = Σ over party of (Quantity base rate × tier %) × RR weight of that party's rakes</li>
+      <li>Grade Slippage = Unloading Grade − Loading Grade (both read from the record). GCV Bonus/Penalty (₹/MT) = GCV Base Rate × slippage % ÷ 100. Bonus/Penalty (₹) = RR weight × that ₹/MT. The database calculates these three whenever a record is saved or the base rate / slippage % change; the page only reads them.</li>
+      <li>Performance on GCV Reco = sum of the saved Bonus/Penalty (₹) of the month's rakes. Slippage 0 = +2%; 1 = −5%; 2 = −40%; 3 = −60%; above 3 = −100%. Blank or negative slippage is excluded.</li>
+      <li>Service Charge SECL / WCL = RR weight of that area × rate (Data Entry)</li>
+      <li>Total Railway Penalty = Underload + Overload + Punitive + EHBC/FAUC/SD/TC + ENHC + Dead Freight (typed per month in Data Entry)</li>
+      <li>TOTAL BILLING = Quantity Reco + GCV Reco + Service SECL + Service WCL − Total Railway Penalty. Per MT: quantity reco ÷ plant receive, GCV reco ÷ RR weight of rakes with non-negative slippage, service ÷ area RR, penalty ÷ total RR; TOTAL per MT = quantity + GCV + average of the two service per MT + penalty per MT (as in the workbook)</li>
+      <li>Expected Billing = TOTAL BILLING ÷ days passed in month × days in month</li>
+    </ul>
+    <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Shortage / Excess</h4>
+    <ul class="formula-list">
+      <li>Shortage % = (sum RR − sum Recv) × 100 ÷ sum RR, over rakes with received weight (positive = shortage)</li>
+      <li>Shortage MT per rake = (sum RR − sum Recv) ÷ number of rakes with received weight</li>
+      <li>Grade Difference (SECL / WCL) = Unloading Grade − Loading Grade, shown as G-xx</li>
+    </ul>
+    <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Mines Wise (matched by siding code)</h4>
+    <ul class="formula-list">
+      <li>GCV = RR-weighted GCV ARB; Quantity = sum RR; penalties = sums of the matching charge columns; Cost per MT = penalties ÷ RR of that mine</li>
+    </ul>
+  </div>
+</section>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+/*CALC-START*/
+const isNum = v => v !== null && v !== undefined && v !== '' && !isNaN(Number(v));
+const num = v => (isNum(v) ? Number(v) : 0);
+const pad2 = n => String(n).padStart(2, '0');
+const up = v => String(v ?? '').trim().toUpperCase();
+const AREAS = ['SECL', 'WCL', 'MCL'];
+const PARTIES = ['GETS', 'TPHS'];
+const MINES = ['BGCK', 'BGWK', 'GGS', 'MNOG', 'RJCB', 'UMSG'];
+const DEFAULT_FORMULAS = {
+  matTop: 2,
+  matTiers: [[85, 0], [80, -5], [75, -7.5], [70, -10], [65, -20]],
+  matBelow: -40,
+  gcvSlip: [2, -5, -40, -60],
+  gcvSlipAbove: -100
+};
+const DEFAULT_SETTINGS = { svcSecl: 30, svcWcl: 30, qtyRate: 30, gcvBase: 30, deadFreight: 0 };
+const GRADE_BANDS = [[7000,1],[6700,2],[6400,3],[6100,4],[5800,5],[5500,6],[5200,7],[4900,8],[4600,9],[4300,10],[4000,11],[3700,12],[3400,13],[3100,14],[2800,15],[2500,16],[2200,17]];
+
+function sumField(arr, key) { return arr.reduce((s, r) => s + (isNum(r[key]) ? Number(r[key]) : 0), 0); }
+// Return the saved GCV bonus/penalty amount for mine-level dashboard totals.
+function bonusOf(r) { return isNum(r && r.bonus_penalty_rs) ? Number(r.bonus_penalty_rs) : 0; }
+function wAvg(arr, vKey, wKey) {
+  const f = arr.filter(r => isNum(r[vKey]) && isNum(r[wKey]));
+  const den = f.reduce((s, r) => s + Number(r[wKey]), 0);
+  return den ? f.reduce((s, r) => s + Number(r[vKey]) * Number(r[wKey]), 0) / den : 0;
+}
+function avgField(arr, key) { const v = arr.filter(r => isNum(r[key])); return v.length ? v.reduce((s, r) => s + Number(r[key]), 0) / v.length : 0; }
+function ratio(a, b) { return b ? a / b : 0; }
+function daysBetween(a, b) { const d = Math.round((new Date(b + 'T00:00:00Z') - new Date(a + 'T00:00:00Z')) / 86400000); return d > 0 ? d : 0; }
+function monthInfo(period) {
+  const [Y, M] = period.split('-').map(Number);
+  const dim = new Date(Date.UTC(Y, M, 0)).getUTCDate();
+  return { start: `${period}-01`, end: `${period}-${pad2(dim)}`, dim };
+}
+function shiftMonth(period, k) {
+  const [Y, M] = period.split('-').map(Number);
+  const d = new Date(Date.UTC(Y, M - 1 + k, 1));
+  return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}`;
+}
+function gradeNo(text) { const m = String(text ?? '').match(/\d+/); return m ? Number(m[0]) : null; }
+// Used only for the dashboard's weighted-GCV grade display (not for Grade Slippage).
+function unloadingGradeNo(gcv) {
+  if (!isNum(gcv)) return null;
+  for (const [t, n] of GRADE_BANDS) if (Number(gcv) > t) return n;
+  return null;
+}
+const gradeText = n => (n == null ? '' : 'G-' + pad2(n));
+// Grade Slippage = unloading_grade - loading_grade (both read from the record, no other formula).
+function gradeSlip(rec) {
+  const l = gradeNo(rec.loading_grade);
+  const u = gradeNo(rec.unloading_grade);
+  return (u == null || l == null) ? null : u - l;
+}
+function slipPct(slip, F) {
+  if (slip == null || slip < 0) return 0;
+  if (slip > 3) return F.gcvSlipAbove;
+  return F.gcvSlip[slip] ?? 0;
+}
+function matPct(mat, F) {
+  if (mat > 100) return F.matTop;
+  for (const [min, p] of F.matTiers) if (mat >= min) return p;
+  return F.matBelow;
+}
+
+function computeMonth({ period, recs, targets, settings, formulas, reportDate }) {
+  const mi = monthInfo(period);
+  const S = Object.assign({}, DEFAULT_SETTINGS, settings || {});
+  const F = Object.assign({}, DEFAULT_FORMULAS, formulas || {});
+  const mrecs = (recs || []).filter(r => r.date >= mi.start && r.date <= mi.end);
+  const lastDate = mrecs.reduce((m, r) => (r.date > m ? r.date : m), '');
+  const rep = (reportDate && reportDate >= mi.start && reportDate <= mi.end) ? reportDate : (lastDate || mi.end);
+  const daysPassed = Math.min(mi.dim, daysBetween(mi.start, rep) + 1);
+  // Asking Per Day runs through the 3rd of the following month (e.g. Oct 1 to Nov 3 = 33 days).
+  const askingEnd = `${shiftMonth(period, 1)}-03`;
+  const daysRemaining = daysBetween(rep, askingEnd);
+  const upto = mrecs.filter(r => r.date <= rep);
+  const withRecv = mrecs.filter(r => isNum(r.recv_wt));
+  const rrAll = sumField(mrecs, 'rr_wt');
+  const rrWithRecv = sumField(withRecv, 'rr_wt');
+  const recvTotal = sumField(withRecv, 'recv_wt');
+
+  const rows = [];
+  PARTIES.forEach(p => AREAS.forEach(a => {
+    const t = (targets || []).find(x => x.period === period && up(x.party) === p && up(x.area) === a);
+    const target = t ? num(t.qtr_target) : 0;
+    const loaded = upto.filter(r => up(r.dstn) === p && up(r.area) === a).length;
+    const bal = target - loaded;
+    rows.push({ party: p, area: a, target, loaded, bal, ask: daysRemaining ? bal / daysRemaining : 0 });
+  }));
+  const plants = {};
+  PARTIES.forEach(p => AREAS.forEach(a => {
+    const r = rows.find(x => x.party === p && x.area === a);
+    plants[p + '|' + a] = r;
+  }));
+
+  // Quantity Reco is calculated independently for GETS and TPHS:
+  // materialisation = rakes loaded up to report date / monthly target * 100.
+  // The applicable tier determines the penalty rate per MT; billing = RR quantity * that rate.
+  const parties = {};
+  PARTIES.forEach(p => {
+    const rs = rows.filter(r => r.party === p);
+    const target = sumField(rs, 'target');
+    const loaded = sumField(rs, 'loaded');
+    const materialisation = target > 0 ? (loaded / target) * 100 : 0;
+    const penaltyPct = target > 0 ? matPct(materialisation, F) : 0;
+    const quantity = sumField(mrecs.filter(r => up(r.dstn) === p), 'rr_wt');
+    const penaltyRate = S.qtyRate * penaltyPct / 100;
+    const amount = quantity * penaltyRate;
+    parties[p] = {
+      target, loaded, mat: materialisation, tier: penaltyPct,
+      qty: quantity, rate: penaltyRate, amount
+    };
+  });
+  const tgtAll = sumField(rows, 'target'), loadAll = sumField(rows, 'loaded');
+
+  const sRR = rrWithRecv, sRecv = recvTotal;
+  const shortPct = sRR ? (sRR - sRecv) * 100 / sRR : 0;
+  const shortMt = withRecv.length ? (sRR - sRecv) / withRecv.length : 0;
+
+  const areas = {};
+  AREAS.forEach(a => {
+    const rs = rows.filter(r => r.area === a);
+    const aRecs = mrecs.filter(r => up(r.area) === a);
+    const target = sumField(rs, 'target'), loaded = sumField(rs, 'loaded');
+    areas[a] = {
+      target, loaded, balance: target - loaded, ask: sumField(rs, 'ask'),
+      rr: sumField(aRecs, 'rr_wt'),
+      gcv: wAvg(aRecs, 'gcv_arb', 'rr_wt'),
+      loadingGcv: wAvg(aRecs, 'loading_gcv', 'rr_wt'),
+      unloadGrade: gradeText(unloadingGradeNo(wAvg(aRecs, 'gcv_arb', 'rr_wt'))),
+      loadGrade: gradeText(unloadingGradeNo(wAvg(aRecs, 'loading_gcv', 'rr_wt')))
+    };
+  });
+
+  // Dashboard GCV Reco is the sum of the database-calculated bonus_penalty_rs values.
+  const gcvReco = sumField(mrecs, 'bonus_penalty_rs');
+  const gcvRR = mrecs.filter(r => isNum(r.rr_wt) && isNum(r.bonus_penalty_rs)).reduce((s, r) => s + Number(r.rr_wt), 0);
+  // Total Quantity Reco billing is GETS amount + TPHS amount.
+  const qtyReco = parties.GETS.amount + parties.TPHS.amount;
+
+  const rrSecl = sumField(mrecs.filter(r => up(r.area) === 'SECL'), 'rr_wt');
+  const rrWcl = sumField(mrecs.filter(r => up(r.area) === 'WCL'), 'rr_wt');
+  const svcSecl = rrSecl * S.svcSecl, svcWcl = rrWcl * S.svcWcl;
+
+  const pen = {
+    ul: sumField(mrecs, 'ul_ch'), ol: sumField(mrecs, 'ol_ch'), pun: sumField(mrecs, 'pol_group'),
+    ehbc: sumField(mrecs, 'ehbc_group'), enhc: sumField(mrecs, 'enhc_charge'), dead: num(S.deadFreight)
+  };
+  const penTotal = pen.ul + pen.ol + pen.pun + pen.ehbc + pen.enhc + pen.dead;
+  const grossBill = qtyReco + gcvReco + svcSecl + svcWcl;
+  const totalBill = grossBill - penTotal;
+  const expBill = daysPassed ? totalBill / daysPassed * mi.dim : 0;
+
+  const perMt = {
+    qty: recvTotal ? qtyReco / recvTotal : 0,
+    gcv: gcvRR ? gcvReco / gcvRR : 0,
+    svcSecl: rrSecl ? svcSecl / rrSecl : 0,
+    svcWcl: rrWcl ? svcWcl / rrWcl : 0,
+    pen: rrAll ? -penTotal / rrAll : 0
+  };
+  perMt.total = perMt.qty + perMt.gcv + (perMt.svcSecl + perMt.svcWcl) / 2 + perMt.pen;
+
+  const mines = MINES.map(code => {
+    const ms = mrecs.filter(r => up(r.siding) === code);
+    const rr = sumField(ms, 'rr_wt');
+    const gcv = wAvg(ms, 'gcv_arb', 'rr_wt');
+    const loadG = wAvg(ms, 'loading_gcv', 'rr_wt');
+    const un = unloadingGradeNo(gcv), ld = unloadingGradeNo(loadG);
+    const pun = sumField(ms, 'pol_group'), ehbc = sumField(ms, 'ehbc_group'), enhc = sumField(ms, 'enhc_charge'), ul = sumField(ms, 'ul_ch');
+    return {
+      code, rr, gcv,
+      unloadGrade: gradeText(un), loadGrade: gradeText(ld),
+      slip: (un != null && ld != null) ? un - ld : null,
+      pun, ehbc, enhc, ul,
+      perTon: rr ? (pun + ehbc + enhc) / rr : 0,
+      bonus: ms.reduce((s, r) => s + bonusOf(r), 0)
+    };
+  });
+
+  const weights = {
+    avgCh: avgField(mrecs, 'ch_wt'), avgRr: avgField(mrecs, 'rr_wt'), avgRecv: avgField(withRecv, 'recv_wt'),
+    totalRr: rrWithRecv, totalRecv: recvTotal
+  };
+
+  const askTotal = sumField(rows, 'ask');
+
+  return {
+    period, S, F, rep, lastDate, daysPassed, daysRemaining, dim: mi.dim, nRecs: mrecs.length,
+    rows, plants, areas, parties, matAll: tgtAll ? loadAll * 100 / tgtAll : 0,
+    shortPct, shortMt, weights,
+    askTotal, perDayRakes: daysPassed ? loadAll / daysPassed : 0,
+    qtyReco, gcvReco, gcvRR, svcSecl, svcWcl, rrSecl, rrWcl,
+    pen, penTotal, grossBill, totalBill, expBill, perMt, mines,
+    rrAll, recvTotal
+  };
+}
+/*CALC-END*/
+
+
+/* ==================== CONFIG (same Supabase project as HZL) ==================== */
+const SUPABASE_URL = 'https://pycmkjrmdieaqsbgrher.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5Y21ranJtZGllYXFzYmdyaGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwMjMxNzAsImV4cCI6MjEwNjU5OTE3MH0.9IE2c2FZ4BPv6Rvhfa_VniQ7LJvQ_c4EGDXFihYR4Lc';
+const APP_PASSWORD = '1234';
+const TBL = 'gujarat_rake_records', TGT = 'gujarat_rake_targets', VAL = 'gujarat_dashboard_values';
+
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+let toastTimer;
+function toast(msg, err) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.toggle('error', !!err);
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+const unwrap = res => { if (res.error) throw res.error; return res.data || []; };
+const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; };
+const currentMonthKey = () => todayISO().slice(0, 7);
+const periodLabel = p => { const [Y, M] = p.split('-').map(Number); return `${MONTHS[M - 1]}-${Y}`; };
+
+const fInt = n => { if (!Number.isFinite(n)) return '-'; const r = Math.round(n); return r === 0 ? '-' : (r < 0 ? '-' : '') + Math.abs(r).toLocaleString('en-IN'); };
+const f2 = n => { if (!Number.isFinite(n) || Math.abs(n) < 0.005) return '-'; return (n < 0 ? '-' : '') + Math.abs(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+const f3 = n => { if (!Number.isFinite(n) || Math.abs(n) < 0.0005) return '-'; return n.toFixed(3); };
+const fPct = n => { if (!Number.isFinite(n) || Math.abs(n) < 0.005) return '-'; return n.toFixed(2) + '%'; };
+
+/* ==================== STATE ==================== */
+let FORMULAS = structuredClone(DEFAULT_FORMULAS);
+let SETTINGS_BY_PERIOD = {};
+
+function mergeFormulas(obj) {
+  const f = Object.assign(structuredClone(DEFAULT_FORMULAS), obj || {});
+  f.matTiers = (f.matTiers || DEFAULT_FORMULAS.matTiers).map(t => [Number(t[0]), Number(t[1])]);
+  f.gcvSlip = (f.gcvSlip || DEFAULT_FORMULAS.gcvSlip).map(Number);
+  ['matTop', 'matBelow', 'gcvSlipAbove'].forEach(k => f[k] = Number(f[k]));
+  FORMULAS = f;
+}
+
+function settingsFor(period) {
+  const s = SETTINGS_BY_PERIOD[period] || {};
+  const n = (v, d) => (isNum(v) ? Number(v) : d);
+  return {
+    svcSecl: n(s.svcSecl, DEFAULT_SETTINGS.svcSecl), svcWcl: n(s.svcWcl, DEFAULT_SETTINGS.svcWcl),
+    qtyRate: n(s.qtyRate, DEFAULT_SETTINGS.qtyRate), gcvBase: n(s.gcvBase, DEFAULT_SETTINGS.gcvBase),
+    deadFreight: n(s.deadFreight, 0), reportDate: s.reportDate || ''
+  };
+}
+
+async function loadValues(periods) {
+  const rows = unwrap(await db.from(VAL).select('period_key, field_key, field_value').in('period_key', [...periods, 'global']));
+  rows.forEach(r => {
+    if (r.period_key === 'global') {
+      if (r.field_key === 'formulas') { try { mergeFormulas(JSON.parse(r.field_value)); } catch (e) { console.warn(e); } }
+    } else {
+      (SETTINGS_BY_PERIOD[r.period_key] = SETTINGS_BY_PERIOD[r.period_key] || {})[r.field_key] = r.field_value;
+    }
+  });
+}
+
+async function fetchAll(table, build) {
+  const out = [];
+  const PAGE = 1000;
+  for (let from = 0; ; from += PAGE) {
+    const q = build(db.from(table).select('*').order('id', { ascending: true }).range(from, from + PAGE - 1));
+    const { data, error } = await q;
+    if (error) throw error;
+    out.push(...(data || []));
+    if (!data || data.length < PAGE) break;
+  }
+  return out;
+}
+
+async function fetchState(period) {
+  const periods = [shiftMonth(period, -2), shiftMonth(period, -1), period];
+  const from = monthInfo(periods[0]).start, to = monthInfo(period).end;
+  const [recs, tgts] = await Promise.all([
+    fetchAll(TBL, q => q.gte('date', from).lte('date', to)),
+    db.from(TGT).select('*').in('period', periods).then(unwrap)
+  ]);
+  await loadValues(periods);
+  return { periods, recs, tgts };
+}
+
+function periodArgs(p, st) {
+  const s = settingsFor(p);
+  return { period: p, recs: st.recs, targets: st.tgts, settings: s, formulas: FORMULAS, reportDate: s.reportDate };
+}
+
+/* ==================== DASHBOARD ==================== */
+let PERIOD = currentMonthKey();
+const urlPeriod = new URLSearchParams(location.search).get('period');
+if (/^\d{4}-\d{2}$/.test(urlPeriod || '')) PERIOD = urlPeriod;
+
+function periodOptions() {
+  const list = [];
+  for (let i = 0; i < 12; i++) list.push(shiftMonth('2026-04', i));
+  if (!list.includes(PERIOD)) list.push(PERIOD);
+  return list.sort();
+}
+function fillPeriodPicker() {
+  const sel = $('periodPick');
+  sel.innerHTML = periodOptions().map(k => `<option value="${k}">${periodLabel(k)}</option>`).join('');
+  sel.value = PERIOD;
+  sel.addEventListener('change', () => {
+    PERIOD = sel.value;
+    setPeriodLabel();
+    loadDashboard();
+    subscribeLive();
+  });
+}
+function setPeriodLabel() { $('periodLabel').textContent = `AMM Gujarat • ${periodLabel(PERIOD)}`; }
+
+let loadSeq = 0;
+async function loadDashboard() {
+  const seq = ++loadSeq;
+  try {
+    const st = await fetchState(PERIOD);
+    if (seq !== loadSeq) return;
+    const cur = computeMonth(periodArgs(PERIOD, st));
+    const trend = st.periods.map(p => computeMonth(periodArgs(p, st)));
+    renderDashboard(cur, trend);
+  } catch (err) {
+    console.error(err);
+    toast('Could not calculate dashboard: ' + (err.message || 'Supabase error'), true);
+  }
+}
+
+function putVal(id, v, fmt) {
+  const el = $(id);
+  if (!el) return;
+  el.value = fmt(v);
+  el.classList.toggle('neg', Number.isFinite(v) && v < 0);
+  el.classList.toggle('pos', Number.isFinite(v) && v > 0);
+}
+const cellIn = (v, fmt) => `<td><input class="metric-value ${v < 0 ? 'neg' : ''}" readonly value="${fmt(v)}"></td>`;
+
+function renderDashboard(o, trend) {
+  const pm = o.perMt;
+  const bill = (id, v, mt) => { putVal(id, v, fInt); putVal(id + '-mt', mt, f2); };
+
+  bill('b-qty', o.qtyReco, pm.qty);
+  bill('b-gcv', o.gcvReco, pm.gcv);
+  putVal('b-svc-secl', o.svcSecl, fInt); putVal('b-svc-secl-mt', pm.svcSecl, f2);
+  putVal('b-svc-wcl', o.svcWcl, fInt); putVal('b-svc-wcl-mt', pm.svcWcl, f2);
+  bill('b-pen', -o.penTotal, pm.pen);
+  bill('b-total', o.totalBill, pm.total);
+  putVal('b-exp', o.expBill, fInt);
+
+  const rp = (label, ach, tgt, fa, ft) => `<tr><td class="row-label">${label}</td>${cellIn(ach, fa)}${cellIn(tgt, ft)}</tr>`;
+  $('rakePerfBody').innerHTML =
+    rp('GETS', o.parties.GETS.mat, 100, fPct, fPct) +
+    rp('TPHS', o.parties.TPHS.mat, 100, fPct, fPct) +
+    rp('Rakes per day', o.perDayRakes, o.askTotal, f2, f2);
+
+  const P = o.plants;
+  const cols = PARTIES.flatMap(p => AREAS.filter(a => a !== 'MCL').map(a => P[p + '|' + a]));
+  const pl = (label, key, fmt) => `<tr><td class="row-label">${label}</td>${cols.map(c => cellIn(c[key], fmt)).join('')}</tr>`;
+  $('plantsBody').innerHTML = pl('Target of Month', 'target', fInt) + pl('Rake Loaded Till', 'loaded', fInt)
+    + pl('Balance Rake', 'bal', fInt) + pl('Asking Per Day', 'ask', f2);
+
+  putVal('w-ch', o.weights.avgCh, f2);
+  putVal('w-rr', o.weights.avgRr, f2);
+  putVal('w-recv', o.weights.avgRecv, f2);
+  putVal('w-totrr', o.weights.totalRr, f2);
+  putVal('w-totrecv', o.weights.totalRecv, f2);
+
+  putVal('s-pct', o.shortPct, f2);
+  putVal('s-mt', o.shortMt, f2);
+  const A = o.areas;
+  const ar = (label, fn, fmt) => `<tr><td class="row-label">${label}</td>${['SECL', 'WCL'].map(a => `<td><input class="metric-value ${fn(A[a]) < 0 ? 'neg' : ''}" readonly value="${fmt(fn(A[a]))}"></td>`).join('')}</tr>`;
+
+  // Grade Difference = Unloading Grade - Loading Grade, shown as G-xx
+  const gradeDiff = a => {
+    const lg = gradeNo(a.loadGrade);
+    const ug = gradeNo(a.unloadGrade);
+    if (lg == null || ug == null) return '';
+    const d = ug - lg;
+    return (d < 0 ? '-' : '') + 'G-' + pad2(Math.abs(d));
+  };
+
+  const orangeRow = (label, fn) => `
+    <tr>
+      <td class="row-label">${label}</td>
+      ${['SECL', 'WCL'].map(a => {
+        const v = fn(A[a]);
+        return `<td><input class="metric-value grade-diff" readonly value="${v === '' ? '-' : v}"></td>`;
+      }).join('')}
+    </tr>`;
+
+  const avgGcv = (Number(A.SECL.gcv) + Number(A.WCL.gcv)) / 2;
+
+  $('shortAreaBody').innerHTML =
+    ar('Wt. GCV (ARB)', x => x.gcv, f2) +
+    ar('Unloading Grade', x => x.unloadGrade, s => s || '-') +
+    ar('Loading Grade', x => x.loadGrade, s => s || '-') +
+    orangeRow('Grade Difference', gradeDiff) +
+    `<tr class="total-row">
+      <td class="row-label">Avg GCV</td>
+      <td colspan="2"><input class="metric-value" readonly value="${f2(avgGcv)}"></td>
+    </tr>`;
+
+  const penLine = (id, v) => { putVal(id, v, fInt); putVal(id + '-mt', o.rrAll ? v / o.rrAll : 0, f2); };
+  penLine('p-ul', o.pen.ul);
+  penLine('p-ol', o.pen.ol);
+  penLine('p-pun', o.pen.pun);
+  penLine('p-ehbc', o.pen.ehbc);
+  penLine('p-enhc', o.pen.enhc);
+  penLine('p-dead', o.pen.dead);
+  penLine('p-total', o.penTotal);
+
+  const M = o.mines;
+  const mrow = (label, fn, fmt) => `<tr><td class="row-label">${label}</td>${M.map(m => { const v = fn(m); return `<td><input class="metric-value ${typeof v === 'number' && v < 0 ? 'neg' : ''}" readonly value="${typeof v === 'number' ? fmt(v) : (v || '-')}"></td>`; }).join('')}</tr>`;
+  $('minesBody').innerHTML =
+    mrow('GCV (ARB)', m => m.gcv, f2) +
+    mrow('Quantity (RR)', m => m.rr, fInt) +
+    mrow('Unloading End Grade', m => m.unloadGrade, s => s) +
+    mrow('Loading End Grade', m => m.loadGrade, s => s) +
+    mrow('Grade Slippage', m => (m.slip == null ? '' : m.slip), n => String(n)) +
+    mrow('Punitive Sum', m => m.pun, fInt) +
+    mrow('EHBC / FAUC / SD / TC', m => m.ehbc, fInt) +
+    mrow('ENHC Charges', m => m.enhc, fInt) +
+    mrow('Per Ton Cost', m => m.perTon, f2) +
+    mrow('Underload Charges', m => m.ul, fInt);
+
+  $('trendBody').innerHTML = trend.map(t => {
+    const ded = -t.penTotal;
+    return `<tr><td>${periodLabel(t.period)}</td><td>${fInt(t.recvTotal)}</td><td>${fInt(t.grossBill)}</td>`
+      + `<td class="${ded < 0 ? 'neg' : ''}">${fInt(ded)}</td><td>${fInt(t.totalBill)}</td></tr>`;
+  }).join('');
+
+  const uptoTxt = o.rep ? new Date(o.rep + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : '-';
+  $('reportUpdatedUpto').textContent = uptoTxt;
+  $('reportUpdatedUpto2').textContent = uptoTxt;
+}
+
+// Realtime events can arrive in bursts (e.g. the database recalculating a whole month), so reload once after they settle.
+let liveChannel = null, liveTimer;
+const liveReload = () => { clearTimeout(liveTimer); liveTimer = setTimeout(loadDashboard, 500); };
+function subscribeLive() {
+  try {
+    if (liveChannel) db.removeChannel(liveChannel);
+    liveChannel = db.channel('gujarat-live-' + PERIOD)
+      .on('postgres_changes', { event: '*', schema: 'public', table: TBL }, liveReload)
+      .on('postgres_changes', { event: '*', schema: 'public', table: TGT }, liveReload)
+      .on('postgres_changes', { event: '*', schema: 'public', table: VAL }, liveReload)
+      .subscribe();
+  } catch (err) { console.warn('Realtime unavailable', err); }
+}
+
+$('reloadDash').addEventListener('click', loadDashboard);
+
+/* ==================== EXPORT PNG ==================== */
+const EXPORT_W = 1500, EXPORT_ROOT_PX = 15, EXPORT_BG = '#f1f8f2';
+
+// Runs on the hidden copy that html2canvas draws; the live page is not touched.
+function prepareExportClone(doc, srcRoot, k) {
+  const el = doc.getElementById('view-dashboard');
+  if (!el) return null;
+  const st = doc.createElement('style');
+  st.textContent = `
+    html{font-size:${EXPORT_ROOT_PX}px!important}
+    *,*::before,*::after{animation:none!important;transition:none!important}
+    .view,.card{opacity:1!important;transform:none!important}
+    .mines-wrap,.trend-wrap{overflow:visible!important}
+    .mines-table .row-label{position:static!important}
+    .topbar-actions{display:none!important}
+    #exportStamp{display:flex!important}`;
+  doc.head.appendChild(st);
+  el.style.background = EXPORT_BG;   // solid theme colour, no tint
+  el.style.padding = '20px';
+
+  // html2canvas draws <input> text badly, so swap each one for a div with the same look
+  const srcInputs = srcRoot.querySelectorAll('input');
+  const dstInputs = el.querySelectorAll('input');
+  const px = v => (parseFloat(v) * k) + 'px';
+  srcInputs.forEach((s, i) => {
+    const d = dstInputs[i];
+    if (!d) return;
+    const cs = getComputedStyle(s);
+    const pw = s.parentElement.getBoundingClientRect().width;
+    const sw = s.getBoundingClientRect().width;
+    const a = cs.textAlign;
+    const div = doc.createElement('div');
+    Object.assign(div.style, {
+      display: 'flex', alignItems: 'center',
+      justifyContent: (a === 'right' || a === 'end') ? 'flex-end' : (a === 'left' || a === 'start') ? 'flex-start' : 'center',
+      boxSizing: 'border-box', overflow: 'hidden', whiteSpace: 'nowrap',
+      width: (pw && sw / pw > 0.95) ? '100%' : px(sw),
+      fontFamily: cs.fontFamily, fontWeight: cs.fontWeight, fontSize: px(cs.fontSize), lineHeight: '1.25',
+      fontVariantNumeric: 'tabular-nums',
+      color: cs.color, backgroundColor: cs.backgroundColor,
+      borderStyle: cs.borderTopStyle, borderColor: cs.borderTopColor, borderWidth: px(cs.borderTopWidth),
+      borderRadius: px(cs.borderTopLeftRadius),
+      padding: [cs.paddingTop, cs.paddingRight, cs.paddingBottom, cs.paddingLeft].map(px).join(' ')
+    });
+    div.textContent = s.value;
+    d.replaceWith(div);
+  });
+  return el;
+}
+
+async function exportPng() {
+  const btn = $('pngDash');
+  const src = document.querySelector('#view-dashboard');
+  const prevY = window.scrollY;
+  btn.disabled = true;
+  try {
+    toast('Preparing image...');
+    await loadDashboard();                                   // make sure the latest data is shown
+    if (document.fonts && document.fonts.ready) await document.fonts.ready;
+    window.scrollTo(0, 0);
+    const liveRoot = parseFloat(getComputedStyle(document.documentElement).fontSize) || EXPORT_ROOT_PX;
+    const k = EXPORT_ROOT_PX / liveRoot;
+
+    let canvas = null, blob = null, clipped = false;
+    for (const scale of [3, 2, 1.5]) {                       // fall back if the browser cannot make a huge canvas
+      try {
+        canvas = await html2canvas(src, {
+          scale, backgroundColor: null, useCORS: true, logging: false,
+          windowWidth: EXPORT_W, scrollX: 0, scrollY: 0,
+          onclone: doc => {
+            const el = prepareExportClone(doc, src, k);
+            clipped = !!el && el.scrollWidth > el.clientWidth + 1;   // coverage check
+          }
+        });
+        blob = await new Promise(res => canvas.toBlob(res, 'image/png'));   // lossless PNG
+        if (blob) break;
+      } catch (e) { console.warn('Export failed at scale', scale, e); }
+    }
+    if (!blob) throw new Error('browser could not build the image');
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `Gujarat-Performance-Meter-${PERIOD}.png`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    toast(`PNG saved (${canvas.width} × ${canvas.height}px)` + (clipped ? ' - some content may be cut at the right edge' : ''), clipped);
+  } catch (e) {
+    console.error(e);
+    toast('PNG export failed: ' + (e.message || e), true);
+  } finally {
+    window.scrollTo(0, prevY);
+    btn.disabled = false;
+  }
+}
+$('pngDash').addEventListener('click', exportPng);
+
+/* ==================== DB COLUMNS, CONVERSION, AUTO FIELDS ==================== */
+const DB_COLS = [
+  'sr_no','area','date','siding','unit','tranch','fsa','loading_gcv','loading_grade','unloading_grade',
+  'time_pt','time_ct','time_dot','duration','supply_box','load_box','sick_box','box_type','dstn',
+  'gross_wt','tare_wt','net_wt','recv_wt','grn_qty','gcv_arb','ch_wt','rr_wt','rr_no','rr_date',
+  'ul_qty','ul_paid_cil','ul_paid_secl','ul_on_us','ul_ch','ol_ch','push_back_ch',
+  'pol_group','ehbc_group','enhc_charge','total_fright','dead_fr_qty','dead_fr_chg',
+  'declared_grade','landed_cost','remarks','grade_slippage','gcv_bonus_penalty_per_mt','bonus_penalty_rs'
+];
+// Calculated by the database trigger (gujarat_calc_gcv); the page only reads them.
+const GCV_CALC_COLS = ['grade_slippage', 'gcv_bonus_penalty_per_mt', 'bonus_penalty_rs'];
+const NUMERIC_COLS = new Set(['sr_no','loading_gcv','supply_box','load_box','sick_box','gross_wt','tare_wt','net_wt','recv_wt',
+  'grn_qty','gcv_arb','ch_wt','rr_wt','ul_qty','ul_paid_cil','ul_paid_secl','ul_on_us','ul_ch','ol_ch','push_back_ch',
+  'pol_group','ehbc_group','enhc_charge','total_fright','dead_fr_qty','dead_fr_chg','landed_cost','grade_slippage','gcv_bonus_penalty_per_mt','bonus_penalty_rs']);
+const DATE_COLS = new Set(['date','rr_date']);
+const TIME_COLS = new Set(['time_pt','time_ct','time_dot']);
+const BOX_TYPES = ['MIX','BOXN','BOXNHL','BCN','N+NHL'];
+const GRADES = Array.from({ length: 17 }, (_, i) => 'G-' + pad2(i + 1));
+
+function toDbValue(col, v) {
+  if (v === '' || v == null) return null;
+  if (NUMERIC_COLS.has(col)) { const n = Number(String(v).replace(/[,₹\s]/g, '')); return isNaN(n) ? null : n; }
+  if (DATE_COLS.has(col)) return excelDate(v);
+  if (TIME_COLS.has(col)) return excelTime(v);
+  return String(v).trim();
+}
+// Date objects from a spreadsheet library can land a few seconds before midnight (e.g. in IST),
+// which would turn into the previous day, so round to the nearest minute first.
+const nearestMinute = d => new Date(Math.round(d.getTime() / 60000) * 60000);
+function excelDate(v) {
+  if (v instanceof Date) { if (isNaN(v)) return null; const r = nearestMinute(v); return `${r.getFullYear()}-${pad2(r.getMonth() + 1)}-${pad2(r.getDate())}`; }
+  if (typeof v === 'number') return new Date(Math.round((v - 25569) * 86400 * 1000)).toISOString().slice(0, 10);
+  const s = String(v).trim();
+  const m = s.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})$/);
+  if (m) { const y = m[3].length === 2 ? '20' + m[3] : m[3]; return `${y}-${pad2(m[2])}-${pad2(m[1])}`; }
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+  const d = new Date(s); return isNaN(d) ? null : `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+}
+function excelTime(v) {
+  if (v instanceof Date) { if (isNaN(v)) return null; const r = nearestMinute(v); return `${pad2(r.getHours())}:${pad2(r.getMinutes())}:00`; }
+  if (typeof v === 'number') {
+    const total = Math.round(v * 24 * 60);
+    return `${pad2(Math.floor(total / 60) % 24)}:${pad2(total % 60)}:00`;
+  }
+  const s = String(v).trim();
+  const m = s.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+  return m ? `${pad2(m[1])}:${m[2]}:${pad2(m[3] || 0)}` : null;
+}
+function durationText(pt, ct) {
+  const toM = t => { if (!t) return null; const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+  const p = toM(pt), c = toM(ct);
+  if (p == null || c == null) return null;
+  const d = Math.abs(c - p);
+  return `${pad2(Math.floor(d / 60))}:${pad2(d % 60)} hrs`;
+}
+function enrichRecord(row) {
+  row.duration = durationText(row.time_pt, row.time_ct);
+  if (row.supply_box != null && row.load_box != null) row.sick_box = row.supply_box - row.load_box;
+  if (row.gross_wt != null && row.tare_wt != null) row.net_wt = +(row.gross_wt - row.tare_wt).toFixed(2);
+  if (row.ch_wt != null && row.rr_wt != null) row.dead_fr_qty = +(row.ch_wt - row.rr_wt).toFixed(2);
+  // Grade Slippage, GCV Bonus/Penalty (Rs/MT) and Bonus/Penalty (Rs) are calculated by the database trigger.
+  return row;
+}
+
+/* ==================== VIEWS + PASSWORD ==================== */
+const PROTECTED = ['upload', 'log', 'entry', 'formulas'];
+const VIEW_NAMES = { upload: 'Upload Excel', log: 'Records Log', entry: 'Data Entry', formulas: 'Formulas' };
+let isUnlocked = false;
+let pendingView = 'dashboard';
+
+function showView(name) {
+  if (PROTECTED.includes(name) && !isUnlocked) {
+    pendingView = name;
+    $('lockTitle').textContent = 'Enter password to open ' + VIEW_NAMES[name];
+    $('pwdInput').value = '';
+    $('pwdErr').textContent = '';
+    name = 'lock';
+    setTimeout(() => $('pwdInput').focus(), 50);
+  }
+  $('topPill').classList.toggle('hidden', name !== 'dashboard');
+  document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
+  const navKey = name === 'lock' ? pendingView : name;
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.view === navKey));
+  if (name === 'dashboard') loadDashboard();
+  if (name === 'log') loadLog();
+  if (name === 'entry') initEntry();
+  if (name === 'formulas') renderFormulas();
+}
+function tryUnlock() {
+  if ($('pwdInput').value === APP_PASSWORD) {
+    isUnlocked = true;
+    $('pwdInput').value = '';
+    $('pwdErr').textContent = '';
+    $('userLabel').textContent = 'Unlocked';
+    showView(pendingView);
+  } else {
+    $('pwdErr').textContent = 'Wrong password';
+    $('pwdInput').select();
+  }
+}
+$('unlockBtn').addEventListener('click', tryUnlock);
+$('pwdInput').addEventListener('keydown', e => { if (e.key === 'Enter') tryUnlock(); });
+$('lockBack').addEventListener('click', () => showView('dashboard'));
+$('lockBtn').addEventListener('click', () => {
+  isUnlocked = false;
+  $('userLabel').textContent = 'Locked';
+  showView('dashboard');
+});
+document.querySelectorAll('.nav-item').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
+
+function setStatus(id, msg, cls) { const el = $(id); el.textContent = msg; el.className = 'status ' + (cls || ''); }
+
+/* ==================== UPLOAD EXCEL ==================== */
+const HEADER_LABELS = {
+  sr_no: ['Sr No'], area: ['Area'], date: ['Date'], siding: ['Siding'], unit: ['Unit'], tranch: ['Tranch'], fsa: ['FSA'],
+  loading_gcv: ['LOADING GCV'], loading_grade: ['Loading Grade'], unloading_grade: ['UNLOADING GRADE'],
+  duration: ['MINES LOADING DURATION'], supply_box: ['Supply Box'], load_box: ['Load Box'], sick_box: ['Sick Box'],
+  box_type: ['Box Type'], dstn: ['DSTN'], gross_wt: ['Gross wt'], tare_wt: ['tare wt'], net_wt: ['Net Wt.'],
+  recv_wt: ['Received Wt.'], grn_qty: ['GRN Qty. (MT)'], gcv_arb: ['GCV ARB'], ch_wt: ['Ch Weight'], rr_wt: ['RR Weight'],
+  rr_no: ['RR Number'], rr_date: ['RR Date'], ul_qty: ['UNDERLoad Quantity'], ul_paid_cil: ['UNDERLOAD QTY PAID COAL INDIA'],
+  ul_paid_secl: ['PAID BY SECL'], ul_on_us: ['UNDERLOAD QTY ON US'], ul_ch: ['UNDERLOAD CHRGES'],
+  ol_ch: ['Overload Charge'], push_back_ch: ['Push Back Charge'], pol_group: ['POL1/PO2/POLA/PCLA/DCLA'],
+  ehbc_group: ['EHBC/FAUC/TC/ST'], enhc_charge: ['ENHC Charge'], total_fright: ['Total Fright'],
+  dead_fr_qty: ['Dead Freight Qty'], dead_fr_chg: ['Dead Freight Charges'], declared_grade: ['DECLARED GRADE'],
+  landed_cost: ['Landed cost'], remarks: ['Remarks'],
+  time_pt: ['P/T'], time_ct: ['C/T'], time_dot: ['D/O/T']
+};
+const normH = s => String(s ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
+const HEADER_ALIASES = {};
+Object.entries(HEADER_LABELS).forEach(([col, labels]) => labels.forEach(l => HEADER_ALIASES[normH(l)] = col));
+
+let parsedRows = [];
+let workbook = null;
+
+$('drop').addEventListener('click', () => $('fileInput').click());
+$('drop').addEventListener('dragover', e => { e.preventDefault(); $('drop').classList.add('over'); });
+$('drop').addEventListener('dragleave', () => $('drop').classList.remove('over'));
+$('drop').addEventListener('drop', e => {
+  e.preventDefault(); $('drop').classList.remove('over');
+  if (e.dataTransfer.files[0]) readFile(e.dataTransfer.files[0]);
+});
+$('fileInput').addEventListener('change', e => { if (e.target.files[0]) readFile(e.target.files[0]); });
+
+function readFile(file) {
+  setStatus('uploadStatus', 'Reading ' + file.name + '...');
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      // cellDates is off on purpose: dates and times arrive as raw Excel serial numbers,
+      // which excelDate / excelTime convert without any time-zone shift.
+      workbook = XLSX.read(new Uint8Array(e.target.result), { type: 'array', cellDates: false });
+      $('sheetPick').innerHTML = workbook.SheetNames.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
+      const pick = workbook.SheetNames.find(n => /dispatch/i.test(n)) || workbook.SheetNames[0];
+      $('sheetPick').value = pick;
+      loadSheet(pick);
+      setStatus('uploadStatus', `Loaded ${file.name}`, 'ok');
+    } catch (err) {
+      console.error(err);
+      setStatus('uploadStatus', 'Could not read this file: ' + err.message, 'err');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+$('sheetPick').addEventListener('change', e => loadSheet(e.target.value));
+
+function loadSheet(name) {
+  const ws = workbook.Sheets[name];
+  const aoa = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: true });
+  if (!aoa.length) { setStatus('uploadStatus', 'Sheet is empty', 'err'); return; }
+  let hdr = aoa.findIndex(r => r.filter(c => String(c).trim() !== '').length >= 3);
+  if (hdr < 0) hdr = 0;
+  const headers = aoa[hdr].map(h => String(h).trim());
+  const colMap = headers.map(h => HEADER_ALIASES[normH(h)] || null);
+  const ignored = headers.filter((h, i) => h && !colMap[i]);
+  const mapped = headers.map((h, i) => ({ h, db: colMap[i] })).filter(x => x.h);
+  $('mapping').innerHTML = mapped.map(x => x.db
+    ? `<span class="chip">${esc(x.h)} → ${x.db}</span>`
+    : `<span class="chip skip">${esc(x.h)} (not in DB, skipped)</span>`).join('');
+
+  parsedRows = [];
+  for (let r = hdr + 1; r < aoa.length; r++) {
+    const row = aoa[r];
+    if (row.every(c => String(c).trim() === '')) continue;
+    const data = {};
+    const errors = [];
+    colMap.forEach((db, i) => { if (db) data[db] = toDbValue(db, row[i]); });
+    if (!data.date) errors.push('no date');
+    if (!data.area) errors.push('no area');
+    enrichRecord(data);
+    GCV_CALC_COLS.forEach(c => delete data[c]);   // the database trigger fills these in
+    parsedRows.push({ rowNo: r + 1, data, errors });
+  }
+  renderPreview(ignored);
+}
+
+function renderPreview(ignored) {
+  const cols = DB_COLS.filter(c => parsedRows.some(r => r.data[c] != null));
+  const head = `<thead><tr><th>Row</th>${cols.map(c => `<th>${c}</th>`).join('')}<th>Check</th></tr></thead>`;
+  const body = parsedRows.slice(0, 300).map(r => `<tr>
+    <td>${r.rowNo}</td>
+    ${cols.map(c => `<td>${esc(r.data[c] ?? '')}</td>`).join('')}
+    <td>${r.errors.length ? `<span class="badge">${esc(r.errors.join(', '))}</span>` : 'OK'}</td>
+  </tr>`).join('');
+  $('previewTbl').innerHTML = head + `<tbody>${body || '<tr><td class="empty">No data rows found.</td></tr>'}</tbody>`;
+  $('previewCount').textContent = parsedRows.length;
+  $('previewPanel').classList.toggle('hidden', !parsedRows.length);
+  const bad = parsedRows.filter(r => r.errors.length).length;
+  $('importNote').textContent = (ignored.length ? `Ignored columns: ${ignored.join(', ')}. ` : '') +
+    (bad ? `${bad} row(s) missing date or area will be skipped.` : '');
+}
+$('cancelImport').addEventListener('click', () => {
+  parsedRows = []; $('previewPanel').classList.add('hidden'); $('mapping').innerHTML = '';
+  setStatus('uploadStatus', 'Import cancelled');
+});
+$('importBtn').addEventListener('click', async () => {
+  const good = parsedRows.filter(r => !r.errors.length);
+  if (!good.length) { toast('Nothing to import', true); return; }
+  if (!confirm(`Save ${good.length} rows to the database?`)) return;
+  const btn = $('importBtn');
+  btn.disabled = true;
+  let ok = 0; const fail = [];
+  try {
+    const { data: maxRow } = await db.from(TBL).select('sr_no').order('sr_no', { ascending: false }).limit(1);
+    let next = maxRow && maxRow.length ? maxRow[0].sr_no + 1 : 1;
+    for (const r of good) {
+      const row = { ...r.data, sr_no: r.data.sr_no ?? next++ };
+      const q = row.rr_no ? db.from(TBL).upsert(row, { onConflict: 'rr_no' }) : db.from(TBL).insert(row);
+      const { error } = await q;
+      if (error) fail.push(`row ${r.rowNo}: ${error.message}`); else ok++;
+    }
+    toast(`Saved ${ok} rows${fail.length ? `, ${fail.length} failed` : ''}`, !!fail.length);
+    setStatus('uploadStatus', `Saved ${ok} of ${good.length} rows.` + (fail.length ? ' Failed: ' + fail.slice(0, 5).join('; ') : ''), fail.length ? 'err' : 'ok');
+    if (!fail.length) { parsedRows = []; $('previewPanel').classList.add('hidden'); }
+  } catch (err) {
+    console.error(err);
+    toast('Import failed: ' + err.message, true);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+/* ==================== RECORDS LOG ==================== */
+const LOG_MAX = 300;
+let logRecords = [];
+async function loadLog() {
+  try {
+    logRecords = await fetchAll(TBL, q => q);
+    logRecords.sort((a, b) => (a.sr_no || 0) - (b.sr_no || 0));
+    renderLog();
+  } catch (err) { toast('Could not load records: ' + err.message, true); }
+}
+function renderLog() {
+  const q = $('logSearch').value.toLowerCase();
+  const rows = logRecords.filter(r => !q || JSON.stringify(r).toLowerCase().includes(q));
+  // Only the latest rows are drawn (thousands of editable inputs would freeze the page); search narrows the list.
+  const shown = rows.length > LOG_MAX ? rows.slice(-LOG_MAX) : rows;
+  $('logCount').textContent = `${rows.length} of ${logRecords.length} records` + (rows.length > LOG_MAX ? ` (showing the latest ${LOG_MAX}, search to narrow)` : '');
+  // Put the three GCV calculation columns near the grade fields so they are easy to find.
+  const cols = ['id', ...DB_COLS.filter(c => !GCV_CALC_COLS.includes(c)).flatMap(c =>
+    c === 'unloading_grade' ? [c, ...GCV_CALC_COLS] : [c]
+  )];
+  const readonlyCols = new Set(['id', ...GCV_CALC_COLS]);
+  const logLabels = {
+    grade_slippage: 'Grade Slippage',
+    gcv_bonus_penalty_per_mt: 'GCV Bonus/Penalty (₹/MT)',
+    bonus_penalty_rs: 'Bonus/Penalty (₹)'
+  };
+  const head = `<thead><tr><th>Actions</th>${cols.map(c => `<th>${logLabels[c] || c}</th>`).join('')}</tr></thead>`;
+  const body = shown.map(r => `<tr data-id="${esc(r.id)}">
+    <td class="act">
+      <button class="btn-soft btn-sm" data-save="${esc(r.id)}"><i class="fas fa-floppy-disk"></i></button>
+      <button class="btn-soft btn-sm btn-danger" data-del="${esc(r.id)}"><i class="fas fa-trash"></i></button>
+    </td>
+    ${cols.map(c => `<td><input data-col="${c}" value="${esc(r[c] ?? '')}" ${readonlyCols.has(c) ? 'readonly' : ''}></td>`).join('')}
+  </tr>`).join('');
+  $('logTbl').innerHTML = head + `<tbody>${body || '<tr><td class="empty" colspan="' + (cols.length + 1) + '">No records.</td></tr>'}</tbody>`;
+}
+$('logSearch').addEventListener('input', renderLog);
+$('logReload').addEventListener('click', loadLog);
+$('logTbl').addEventListener('click', async e => {
+  const saveBtn = e.target.closest('[data-save]');
+  const delBtn = e.target.closest('[data-del]');
+  if (saveBtn) {
+    const tr = saveBtn.closest('tr');
+    const patch = {};
+    tr.querySelectorAll('input[data-col]').forEach(inp => {
+      const col = inp.dataset.col;
+      if (col === 'id' || GCV_CALC_COLS.includes(col)) return;   // calculated by the database
+      patch[col] = toDbValue(col, inp.value);
+    });
+    enrichRecord(patch);
+    const { error } = await db.from(TBL).update(patch).eq('id', saveBtn.dataset.save);
+    if (error) { setStatus('logStatus', 'Update failed: ' + error.message, 'err'); return; }
+    setStatus('logStatus', 'Record updated', 'ok');
+    toast('Record updated');
+    loadLog();
+  }
+  if (delBtn) {
+    if (!confirm('Delete this record permanently?')) return;
+    const { error } = await db.from(TBL).delete().eq('id', delBtn.dataset.del);
+    if (error) { setStatus('logStatus', 'Delete failed: ' + error.message, 'err'); return; }
+    setStatus('logStatus', 'Record deleted', 'ok');
+    toast('Record deleted');
+    loadLog();
+  }
+});
+
+/* ==================== DATA ENTRY: NEW RECORD ==================== */
+const ENTRY_SECTIONS = [
+  { title: 'Basic Details', icon: 'fa-circle-info', fields: [
+    { key: 'sr_no', label: 'Sr No', type: 'number', tag: 'auto' },
+    { key: 'area', label: 'Area', type: 'select', options: AREAS, req: 1 },
+    { key: 'date', label: 'Date', type: 'date', req: 1 },
+    { key: 'siding', label: 'Siding (mine code)', type: 'text', req: 1 },
+    { key: 'unit', label: 'Unit', type: 'text' },
+    { key: 'tranch', label: 'Tranch', type: 'text' },
+    { key: 'fsa', label: 'FSA', type: 'text' } ]},
+  { title: 'Mines Loading', icon: 'fa-clock', fields: [
+    { key: 'loading_gcv', label: 'Loading GCV', type: 'number', step: 0.01, unit: 'kcal' },
+    { key: 'loading_grade', label: 'Loading Grade', type: 'select', options: GRADES, req: 1 },
+    { key: 'time_pt', label: 'P/T', type: 'time' }, { key: 'time_ct', label: 'C/T', type: 'time' },
+    { key: 'time_dot', label: 'D/O/T', type: 'time' },
+    { key: 'duration', label: 'Mines Loading Duration', type: 'calc', tag: 'auto' } ]},
+  { title: 'Box Details', icon: 'fa-box', fields: [
+    { key: 'supply_box', label: 'Supply Box', type: 'number' }, { key: 'load_box', label: 'Load Box', type: 'number' },
+    { key: 'sick_box', label: 'Sick Box', type: 'calc', tag: 'auto' },
+    { key: 'box_type', label: 'Box Type', type: 'select', options: BOX_TYPES } ]},
+  { title: 'Party & Weights', icon: 'fa-weight-scale', fields: [
+    { key: 'dstn', label: 'DSTN (party)', type: 'select', options: PARTIES, req: 1 },
+    { key: 'gross_wt', label: 'Gross Wt.', type: 'number', step: 0.01, unit: 'MT' },
+    { key: 'tare_wt', label: 'Tare Wt.', type: 'number', step: 0.01, unit: 'MT' },
+    { key: 'net_wt', label: 'Net Wt.', type: 'calc', unit: 'MT', tag: 'auto' },
+    { key: 'recv_wt', label: 'Received Wt.', type: 'number', step: 0.01, unit: 'MT' },
+    { key: 'grn_qty', label: 'GRN Qty.', type: 'number', step: 0.01, unit: 'MT' },
+    { key: 'ch_wt', label: 'Ch Weight', type: 'number', step: 0.01, unit: 'MT' },
+    { key: 'rr_wt', label: 'RR Weight', type: 'number', step: 0.01, unit: 'MT' },
+    { key: 'dead_fr_qty', label: 'Dead Freight Qty', type: 'calc', unit: 'MT', tag: 'auto' } ]},
+  { title: 'GCV & Grade', icon: 'fa-medal', fields: [
+    { key: 'gcv_arb', label: 'GCV ARB', type: 'number', unit: 'kcal' },
+    { key: 'unloading_grade', label: 'Unloading Grade', type: 'select', options: GRADES },
+    { key: 'grade_slippage', label: 'Grade Slippage (Unloading − Loading)', type: 'calc', tag: 'auto' },
+    { key: 'gcv_bonus_penalty_per_mt', label: 'GCV Bonus/Penalty (₹ per MT)', type: 'calc', tag: 'auto' },
+    { key: 'bonus_penalty_rs', label: 'Bonus/Penalty (₹ = RR Weight × ₹/MT)', type: 'calc', tag: 'auto' },
+    { key: 'declared_grade', label: 'Declared Grade', type: 'select', options: GRADES },
+    { key: 'landed_cost', label: 'Landed cost', type: 'number', step: 0.01, unit: '₹' } ]},
+  { title: 'Railway Receipt', icon: 'fa-train', fields: [
+    { key: 'rr_no', label: 'RR Number', type: 'text' }, { key: 'rr_date', label: 'RR Date', type: 'date' } ]},
+  { title: 'Underload & Overload', icon: 'fa-arrow-down-wide-short', fields: [
+    { key: 'ul_qty', label: 'Underload Quantity', type: 'number', step: 0.01 },
+    { key: 'ul_paid_cil', label: 'Underload Qty Paid Coal India', type: 'number', step: 0.01 },
+    { key: 'ul_paid_secl', label: 'Underload Paid by SECL', type: 'number', step: 0.01 },
+    { key: 'ul_on_us', label: 'Underload Qty On Us', type: 'number', step: 0.01 },
+    { key: 'ul_ch', label: 'Underload Charge', type: 'number', step: 0.01, unit: '₹' },
+    { key: 'ol_ch', label: 'Overload Charge', type: 'number', step: 0.01, unit: '₹' },
+    { key: 'push_back_ch', label: 'Push Back Charge', type: 'number', step: 0.01, unit: '₹' } ]},
+  { title: 'Freight & Charges', icon: 'fa-indian-rupee-sign', fields: [
+    { key: 'pol_group', label: 'POL1/PO2/POLA/PCLA/DCLA', type: 'number', step: 0.01, unit: '₹' },
+    { key: 'ehbc_group', label: 'EHBC/FAUC/TC/ST', type: 'number', step: 0.01, unit: '₹' },
+    { key: 'enhc_charge', label: 'ENHC Charge', type: 'number', step: 0.01, unit: '₹' },
+    { key: 'total_fright', label: 'Total Fright', type: 'number', step: 0.01, unit: '₹' },
+    ]},
+  { title: 'Remarks', icon: 'fa-note-sticky', fields: [ { key: 'remarks', label: 'Remarks', type: 'text' } ]}
+];
+const CALC_KEYS = ['duration', 'sick_box', 'net_wt', 'dead_fr_qty', 'dead_fr_chg', 'grade_slippage', 'gcv_bonus_penalty_per_mt', 'bonus_penalty_rs'];
+
+function buildEntryForm() {
+  $('formSections').innerHTML = ENTRY_SECTIONS.map(s => `
+    <div class="section">
+      <div class="section-title"><i class="fas ${s.icon}"></i> ${s.title}</div>
+      <div class="form-grid">${s.fields.map(f => {
+        const label = `<label for="f_${f.key}">${f.label}${f.req ? '<span class="req">*</span>' : ''}${f.tag ? `<span class="tag">${f.tag}</span>` : ''}</label>`;
+        let input;
+        if (f.type === 'select') input = `<select class="field" id="f_${f.key}" name="${f.key}" ${f.req ? 'required' : ''}><option value="">Select</option>${f.options.map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('')}</select>`;
+        else if (f.type === 'calc') input = `<input id="f_${f.key}" name="${f.key}" readonly placeholder="Auto">`;
+        else {
+          input = `<input id="f_${f.key}" name="${f.key}" type="${f.type}" ${f.step ? `step="${f.step}"` : ''} ${f.req ? 'required' : ''}>`;
+          if (f.unit) input = `<div class="unit-wrap">${input}<span class="unit">${f.unit}</span></div>`;
+        }
+        return `<div class="form-group">${label}${input}</div>`;
+      }).join('')}</div>
+    </div>`).join('');
+  ['time_pt', 'time_ct', 'supply_box', 'load_box', 'gross_wt', 'tare_wt', 'ch_wt', 'rr_wt', 'gcv_arb', 'loading_grade', 'unloading_grade', 'dstn']
+    .forEach(k => { const e = $('f_' + k); if (e) e.addEventListener('input', recalcForm); e && e.addEventListener('change', recalcForm); });
+}
+
+function formRow() {
+  const row = {};
+  DB_COLS.forEach(c => { const el = $('f_' + c); if (el) row[c] = toDbValue(c, el.value); });
+  return row;
+}
+// Live preview only; the saved values are calculated by the database trigger with the same rule.
+function recalcForm() {
+  const row = enrichRecord(formRow());
+  $('f_duration').value = row.duration || '';
+  $('f_sick_box').value = row.sick_box ?? '';
+  $('f_net_wt').value = row.net_wt ?? '';
+  $('f_dead_fr_qty').value = row.dead_fr_qty ?? '';
+  const slip = gradeSlip({ loading_grade: row.loading_grade, unloading_grade: row.unloading_grade });
+  const pct = slipPct(slip, FORMULAS);
+  const ratePerMt = slip == null || slip < 0 ? null : settingsFor(ENTRY_PERIOD).gcvBase * pct / 100;
+  const totalBonusPenalty = ratePerMt == null || row.rr_wt == null ? null : num(row.rr_wt) * ratePerMt;
+  $('f_grade_slippage').value = slip == null ? '' : slip;
+  $('f_gcv_bonus_penalty_per_mt').value = ratePerMt == null ? '' : ratePerMt.toFixed(2);
+  $('f_bonus_penalty_rs').value = totalBonusPenalty == null ? '' : totalBonusPenalty.toFixed(2);
+}
+
+let entryReady = false;
+let ENTRY_PERIOD = currentMonthKey();
+let ENTRY_TGTS = [], ENTRY_RECS = [], ENTRY_OUT = null;
+
+async function initEntry() {
+  if (!entryReady) {
+    entryReady = true;
+    buildEntryForm();
+    $('entryMonth').value = ENTRY_PERIOD;
+    $('entryMonth').addEventListener('change', () => { ENTRY_PERIOD = $('entryMonth').value || currentMonthKey(); loadEntryPeriod(); });
+    $('reportDate').addEventListener('change', async () => { await saveSetting('reportDate', $('reportDate').value); renderEntryTargets(); });
+    ['svcSecl', 'svcWcl', 'qtyRate', 'gcvBase', 'deadFreight'].forEach(k => {
+      let timer;
+      $(k).addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(() => saveSetting(k, $(k).value), 600); });
+    });
+    $('carryFwd').addEventListener('click', carryForward);
+    $('clearForm').addEventListener('click', resetEntryForm);
+    $('entryForm').addEventListener('submit', saveRecord);
+    $('tgtBody').addEventListener('change', onTargetInput);
+  }
+  await resetEntryForm();
+  await loadEntryPeriod();
+}
+
+async function resetEntryForm() {
+  $('entryForm').reset();
+  $('f_date').value = todayISO();
+  const { data } = await db.from(TBL).select('sr_no').order('sr_no', { ascending: false }).limit(1);
+  $('f_sr_no').value = data && data.length ? data[0].sr_no + 1 : 1;
+  recalcForm();
+}
+
+async function saveRecord(e) {
+  e.preventDefault();
+  const f = $('entryForm');
+  if (!f.checkValidity()) { f.reportValidity(); toast('Please fill the required fields', true); return; }
+  const row = enrichRecord(formRow());
+  row.sr_no = +$('f_sr_no').value || null;
+  GCV_CALC_COLS.forEach(c => delete row[c]);   // the database trigger calculates these on insert
+  const { error } = await db.from(TBL).insert(row);
+  if (error) { toast('Save failed: ' + error.message, true); return; }
+  toast('Record saved');
+  await resetEntryForm();
+  if (row.date && row.date.slice(0, 7) === ENTRY_PERIOD) await loadEntryPeriod();
+}
+
+/* ==================== DATA ENTRY: MONTHLY TARGETS + RATES ==================== */
+async function loadEntryPeriod() {
+  try {
+    const periods = [ENTRY_PERIOD];
+    const [recs, tgts] = await Promise.all([
+      fetchAll(TBL, q => q.gte('date', monthInfo(ENTRY_PERIOD).start).lte('date', monthInfo(ENTRY_PERIOD).end)),
+      db.from(TGT).select('*').eq('period', ENTRY_PERIOD).then(unwrap)
+    ]);
+    await loadValues(periods);
+    ENTRY_RECS = recs;
+    ENTRY_TGTS = tgts;
+    const s = settingsFor(ENTRY_PERIOD);
+    $('svcSecl').value = s.svcSecl;
+    $('svcWcl').value = s.svcWcl;
+    $('qtyRate').value = s.qtyRate;
+    $('gcvBase').value = s.gcvBase;
+    $('deadFreight').value = s.deadFreight;
+    $('reportDate').value = s.reportDate || todayISO();
+    renderEntryTargets();
+  } catch (err) { toast('Could not load month: ' + err.message, true); }
+}
+
+function renderEntryTargets() {
+  const res = computeMonth({
+    period: ENTRY_PERIOD, recs: ENTRY_RECS, targets: ENTRY_TGTS,
+    settings: settingsFor(ENTRY_PERIOD), formulas: FORMULAS, reportDate: $('reportDate').value
+  });
+  ENTRY_OUT = res;
+  $('tgtBody').innerHTML = res.rows.map(r => {
+    const t = ENTRY_TGTS.find(x => x.party === r.party && x.area === r.area);
+    return `<tr>
+      <td><input readonly value="${r.party}"></td><td><input readonly value="${r.area}"></td>
+      <td><input type="number" min="0" data-party="${r.party}" data-area="${r.area}" value="${t ? t.qtr_target : 0}"></td>
+      <td><input readonly value="${r.loaded}"></td><td><input readonly value="${fInt(r.bal)}"></td>
+      <td><input readonly value="${f2(r.ask)}"></td></tr>`;
+  }).join('');
+  $('tTarget').textContent = res.rows.reduce((s, r) => s + r.target, 0);
+  $('tLoaded').textContent = res.rows.reduce((s, r) => s + r.loaded, 0);
+  $('tBalance').textContent = res.rows.reduce((s, r) => s + r.bal, 0);
+  $('tAsk').textContent = f2(res.askTotal);
+}
+
+let targetTimer;
+function onTargetInput(e) {
+  const inp = e.target;
+  if (!inp.dataset.party) return;
+  const party = inp.dataset.party, area = inp.dataset.area;
+  let t = ENTRY_TGTS.find(x => x.party === party && x.area === area);
+  if (!t) { t = { period: ENTRY_PERIOD, party, area, qtr_target: 0 }; ENTRY_TGTS.push(t); }
+  t.qtr_target = Number(inp.value) || 0;
+  renderEntryTargets();
+  clearTimeout(targetTimer);
+  targetTimer = setTimeout(saveTargets, 600);
+}
+async function saveTargets() {
+  const rows = PARTIES.flatMap(p => AREAS.map(a => {
+    const t = ENTRY_TGTS.find(x => x.party === p && x.area === a);
+    return { period: ENTRY_PERIOD, party: p, area: a, qtr_target: t ? Number(t.qtr_target) || 0 : 0 };
+  }));
+  const { error } = await db.from(TGT).upsert(rows, { onConflict: 'period,party,area' });
+  if (error) { toast('Target save failed: ' + error.message, true); return; }
+  setStatus('entryStatus', 'Targets saved', 'ok');
+}
+
+async function saveSetting(key, value) {
+  const period = ENTRY_PERIOD;
+  const { error } = await db.from(VAL).upsert([{ period_key: period, field_key: key, field_value: String(value ?? ''), sort_order: 0 }],
+    { onConflict: 'period_key,field_key' });
+  if (error) { toast('Save failed: ' + error.message, true); return; }
+  (SETTINGS_BY_PERIOD[period] = SETTINGS_BY_PERIOD[period] || {})[key] = String(value ?? '');
+  setStatus('entryStatus', 'Saved', 'ok');
+  renderEntryTargets();
+}
+
+async function carryForward() {
+  if (!confirm("Replace this month's targets with the previous month's balance?")) return;
+  const prev = shiftMonth(ENTRY_PERIOD, -1);
+  const pi = monthInfo(prev);
+  try {
+    const [recs, tgts] = await Promise.all([
+      fetchAll(TBL, q => q.gte('date', pi.start).lte('date', pi.end)),
+      db.from(TGT).select('*').eq('period', prev).then(unwrap)
+    ]);
+    if (!tgts.length) { toast('No saved targets for previous month', true); return; }
+    const res = computeMonth({ period: prev, recs, targets: tgts, settings: settingsFor(prev), formulas: FORMULAS, reportDate: pi.end });
+    res.rows.forEach(r => {
+      let t = ENTRY_TGTS.find(x => x.party === r.party && x.area === r.area);
+      if (!t) { t = { period: ENTRY_PERIOD, party: r.party, area: r.area, qtr_target: 0 }; ENTRY_TGTS.push(t); }
+      t.qtr_target = Math.max(0, r.target - r.loaded);
+    });
+    renderEntryTargets();
+    await saveTargets();
+  } catch (err) { toast('Carry forward failed: ' + err.message, true); }
+}
+
+/* ==================== FORMULAS ==================== */
+function renderFormulas() {
+  $('tierTbl').innerHTML = `<thead><tr><th>If materialisation is at least (%)</th><th>Rate change (% of base)</th></tr></thead><tbody>` +
+    FORMULAS.matTiers.map((t, i) => `<tr>
+      <td><input type="number" step="0.01" data-tier="${i}" data-k="min" value="${t[0]}"></td>
+      <td><input type="number" step="0.01" data-tier="${i}" data-k="pct" value="${t[1]}"></td></tr>`).join('') + '</tbody>';
+  $('slipTbl').innerHTML = `<thead><tr><th>Grade slippage</th><th>GCV reco change (% of base)</th></tr></thead><tbody>` +
+    FORMULAS.gcvSlip.map((p, i) => `<tr><td>${i}</td><td><input type="number" step="0.01" data-slip="${i}" value="${p}"></td></tr>`).join('') + '</tbody>';
+  $('fMatTop').value = FORMULAS.matTop;
+  $('fMatBelow').value = FORMULAS.matBelow;
+  $('fSlipAbove').value = FORMULAS.gcvSlipAbove;
+}
+
+async function saveFormulas() {
+  const tiers = [];
+  document.querySelectorAll('#tierTbl input[data-tier]').forEach(inp => {
+    const i = +inp.dataset.tier;
+    tiers[i] = tiers[i] || [0, 0];
+    tiers[i][inp.dataset.k === 'min' ? 0 : 1] = Number(inp.value);
+  });
+  const slip = [];
+  document.querySelectorAll('#slipTbl input[data-slip]').forEach(inp => { slip[+inp.dataset.slip] = Number(inp.value); });
+  const next = {
+    matTop: Number($('fMatTop').value), matTiers: tiers, matBelow: Number($('fMatBelow').value),
+    gcvSlip: slip, gcvSlipAbove: Number($('fSlipAbove').value),
+  };
+  const { error } = await db.from(VAL).upsert([{ period_key: 'global', field_key: 'formulas', field_value: JSON.stringify(next), sort_order: 0 }],
+    { onConflict: 'period_key,field_key' });
+  if (error) { toast('Save failed: ' + error.message, true); return; }
+  mergeFormulas(next);
+  toast('Formulas saved');
+  loadDashboard();
+}
+$('saveFormulas').addEventListener('click', saveFormulas);
+
+/* ==================== INIT ==================== */
+setInterval(() => { if (!document.hidden && $('view-dashboard').classList.contains('active')) loadDashboard(); }, 20000);
+(async () => {
+  setPeriodLabel();
+  fillPeriodPicker();
+  try { await loadValues([PERIOD]); } catch (e) { console.warn('Values not loaded, using defaults', e); }
+  loadDashboard();
+  subscribeLive();
+})();
+</script>
+</body>
+</html>
