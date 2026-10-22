@@ -1545,7 +1545,49 @@ $('saveDemo').addEventListener('click', async () => {
   toast('Overload saved');
   await loadDashboard();
   try {
-    const canvas = await html2canvas(document.querySelector('#view-dashboard'), { scale: 2, backgroundColor: '#e9eff8', useCORS: true, windowWidth: 1500 });
+    await document.fonts.ready;
+    const liveEl = document.querySelector('#view-dashboard');
+    const liveInputs = [...liveEl.querySelectorAll('input')];
+    const COPY = ['background-color', 'color', 'font-family', 'font-size', 'font-weight', 'font-variant-numeric',
+      'text-align', 'border', 'border-radius', 'padding', 'width', 'height', 'line-height'];
+    const canvas = await html2canvas(liveEl, {
+      scale: 2, backgroundColor: '#e9eff8', useCORS: true, logging: false,
+      windowWidth: 1500, height: liveEl.scrollHeight, windowHeight: liveEl.scrollHeight,
+      onclone: doc => {
+        // Let scrollable tables draw in full instead of being cut at their box
+        doc.querySelectorAll('.trend-wrap, .mines-wrap, .tbl-wrap, .card, .main').forEach(n => {
+          n.style.overflow = 'visible';
+          n.style.maxHeight = 'none';
+        });
+        doc.querySelectorAll('.trend-table, .mines-table').forEach(t => { t.style.minWidth = '0'; });
+        // Solid base colour so the page never falls back to white
+        doc.documentElement.style.background = '#e9eff8';
+        doc.body.style.background = '#e9eff8';
+        doc.body.style.backgroundAttachment = 'scroll';
+        // Freeze entrance animations, transforms and filters that html2canvas cannot draw
+        doc.querySelectorAll('*').forEach(n => {
+          n.style.animation = 'none';
+          n.style.transition = 'none';
+          n.style.transform = 'none';
+          n.style.backdropFilter = 'none';
+        });
+        // html2canvas does not paint <input> values, so swap each input for a div with the same look
+        const root = doc.querySelector('#view-dashboard');
+        [...root.querySelectorAll('input')].forEach((inp, i) => {
+          const cs = getComputedStyle(liveInputs[i]);
+          const box = doc.createElement('div');
+          box.textContent = inp.value;
+          box.className = inp.className;
+          COPY.forEach(p => box.style.setProperty(p, cs.getPropertyValue(p)));
+          box.style.display = 'flex';
+          box.style.alignItems = 'center';
+          box.style.boxSizing = 'border-box';
+          box.style.justifyContent = cs.textAlign === 'center' ? 'center' : 'flex-end';
+          box.style.whiteSpace = 'nowrap';
+          inp.replaceWith(box);
+        });
+      }
+    });
     canvas.toBlob(blob => {
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
