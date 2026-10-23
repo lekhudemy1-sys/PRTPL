@@ -3,21 +3,29 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>KSK Mahanadi</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Instrument+Sans:wght@400;500;600;700&display=swap">
 <style>
 :root{--line:rgba(15,23,42,.11);--txt:#0f172a;--mut:#5b6785;--teal:#0d9488;--amber:#d97706;--violet:#7c3aed;--sky:#0284c7;--gh:31px;--glass:rgba(255,255,255,.82)}
 *{box-sizing:border-box}html,body{margin:0;height:100%}
 body{font:14px Inter,system-ui,sans-serif;color:var(--txt);background:linear-gradient(135deg,#f8fafc,#eef2fb 55%,#f3eefb);display:grid;grid-template-rows:auto minmax(0,1fr) auto;height:100dvh;overflow:hidden}
 .hidden{display:none!important}.muted{color:var(--mut)}.num{text-align:right;font-variant-numeric:tabular-nums}.neg{color:#dc2626;font-weight:700}
-.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 20px;background:rgba(255,255,255,.78);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
-.brand{display:flex;align-items:center;gap:12px}.brand h1{margin:0;font-size:18px;background:linear-gradient(90deg,#0f172a,#0d9488 50%,#b45309);-webkit-background-clip:text;background-clip:text;color:transparent}
-.brand small{color:var(--mut);font-size:12px}.back{text-decoration:none}
-.logo{height:44px;width:84px;flex:none;border-radius:10px;background:#fff;border:1px solid var(--line);display:grid;place-items:center;padding:2px;overflow:hidden;font-weight:800;font-size:18px;color:var(--teal);box-shadow:0 4px 14px rgba(15,23,42,.1)}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:14px 18px 0;padding:14px 20px;border-radius:22px;background:linear-gradient(120deg,#0f2142 0%,#1b3a6b 60%,#1f6f8f 100%);color:#fff;box-shadow:0 18px 36px -18px rgba(15,33,66,.65)}
+.brand{display:flex;align-items:center;gap:12px}
+.brand h1{margin:0;font:700 clamp(1.2rem,1.2vw + .8rem,1.7rem) "Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;letter-spacing:-.02em;color:#fff;background:none;-webkit-text-fill-color:#fff}
+.brand small{color:#b8d3ee;font-size:.85rem;font-weight:500;display:block;margin-top:.1rem}
+.back{background:linear-gradient(120deg,#0f2142,#1b3a6b);color:#fff;border:1px solid rgba(255,255,255,.2);padding:.6rem 1.1rem;border-radius:12px;font:700 .85rem "Instrument Sans","Segoe UI",system-ui,sans-serif;text-decoration:none;display:inline-flex;align-items:center;gap:.45rem;box-shadow:0 10px 18px -10px rgba(0,0,0,.5);transition:.2s;cursor:pointer}
+.back:hover{transform:translateY(-2px)}
+.logo{height:44px;width:84px;flex:none;border-radius:10px;background:#fff;border:1px solid rgba(255,255,255,.3);display:grid;place-items:center;padding:2px;overflow:hidden;font-weight:800;font-size:18px;color:#0f9d7a;box-shadow:0 4px 14px rgba(0,0,0,.2)}
 .logo img{width:100%;height:100%;object-fit:contain;display:block}
-.top-r{display:flex;align-items:center;gap:10px}
-.pill{font-size:12px;padding:5px 11px;border-radius:999px;background:rgba(15,23,42,.05);color:var(--mut);font-weight:700;border:1px solid var(--line)}
-.pill.live{background:rgba(5,150,105,.12);color:#047857;border-color:rgba(5,150,105,.35)}.pill.err{background:rgba(220,38,38,.1);color:#b91c1c}
-.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:currentColor;margin-right:6px}
+.top-r{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-left:auto}
+.pill{font:600 .85rem "Instrument Sans","Segoe UI",system-ui,sans-serif;padding:.5rem 1.1rem;border-radius:999px;background:#fff;color:#0a1530;border:1px solid #e1e8f3;box-shadow:0 1px 2px rgba(15,33,66,.06),0 10px 24px -12px rgba(15,33,66,.22);display:inline-flex;align-items:center}
+.pill.live{background:#fff;color:#0a1530}
+.pill.err{background:#fbebee;color:#b3162b;border-color:#f2c4cb}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#16a870;box-shadow:0 0 0 3px rgba(22,168,112,.25);margin-right:6px}
+.pill.err .dot{background:#d1344a;box-shadow:0 0 0 3px rgba(209,52,74,.25)}
+#updated{color:#b8d3ee!important;font-size:.8rem!important;font-weight:500}
+#refresh{background:rgba(255,255,255,.14)!important;color:#fff!important;border:1px solid rgba(255,255,255,.3)!important;border-radius:12px!important;font:600 .85rem "Instrument Sans","Segoe UI",system-ui,sans-serif!important;padding:.5rem 1rem!important}
+#refresh:hover{background:rgba(255,255,255,.24)!important}
 .dock{justify-self:center;margin:0 0 14px;display:flex;gap:6px;padding:6px;background:rgba(255,255,255,.88);backdrop-filter:blur(16px);border:1px solid var(--line);border-radius:999px;box-shadow:0 12px 34px rgba(15,23,42,.14)}
 .dock button{display:flex;align-items:center;gap:8px;border:0;background:transparent;color:var(--mut);padding:10px 18px;border-radius:999px;font:inherit;font-weight:600;cursor:pointer}
 .dock svg{width:18px;height:18px}.dock button.active{color:#fff;background:linear-gradient(135deg,#0d9488,#14b8a6);box-shadow:0 6px 18px rgba(13,148,136,.3)}
@@ -80,8 +88,7 @@ dialog{border:1px solid var(--line);border-radius:18px;padding:20px;width:min(76
 @media(max-width:1100px){.eg{grid-template-columns:1fr 1fr}.xg{grid-template-columns:1fr}}
 @media(max-width:860px){body{height:auto;overflow:auto;display:flex;flex-direction:column}main{overflow:visible}.view{height:auto}.page,.glass{flex:none}.sc{max-height:62vh}.eg,.form{grid-template-columns:1fr}.dock{position:sticky;bottom:10px}.dock span{display:none}.brand small{display:none}}
 </style></head><body>
-<header class="top"><div class="brand"><a class="btn small back" href="amm_home.html">← Back</a><div class="logo"><img src="https://www.financialexpress.com/wp-content/uploads/2025/01/jswenergy.FB_.jpg" alt="KSK Mahanadi" onerror="this.parentNode.textContent='K'"></div><div><h1>KSK Mahanadi</h1><small>Washery · RCR · Road sale</small></div></div>
-<div class="top-r"><span id="status" class="pill">Starting…</span><span id="updated" class="muted" style="font-size:12px"></span><button id="refresh" class="btn small">Refresh</button></div></header>
+<header class="top"><a class="back" href="amm_home.html"><span>←</span> Back</a><div class="brand"><div class="logo"><img src="https://www.financialexpress.com/wp-content/uploads/2025/01/jswenergy.FB_.jpg" alt="KSK Mahanadi" onerror="this.parentNode.textContent='K'"></div><div><h1>KSK Mahanadi</h1><small>Washery · RCR · Road sale</small></div></div><div class="top-r"><span id="status" class="pill">Starting…</span><span id="updated"></span><button id="refresh" class="btn">Refresh</button></div></header>
 <main>
 <section id="v-dashboard" class="view">
  <div class="bar2"><div class="seg"><button data-p="w" class="active">Washery</button><button data-p="r">RCR &amp; Road sale</button><button data-p="s">D.O. Summary</button></div>
