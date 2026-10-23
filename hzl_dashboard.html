@@ -474,6 +474,17 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
       <button class="btn-soft" id="logReload"><i class="fas fa-rotate"></i> Reload</button>
       <span class="muted" id="logCount"></span>
     </div>
+    <div class="toolbar" id="logFilters">
+      <select class="field" id="lfArea" style="max-width:150px"><option value="">All Areas</option><option>SECL</option><option>WCL</option><option>CCL</option><option>MCL</option></select>
+      <select class="field" id="lfUnit" style="max-width:130px"><option value="">All Units</option><option>CPP</option><option>IPP</option><option>EAC</option></select>
+      <select class="field" id="lfTranch" style="max-width:130px"><option value="">All Tranch</option><option>I</option><option>II</option><option>III</option><option>IV</option><option>V</option><option>VI</option><option>VII</option><option>VIII</option><option>IX</option></select>
+      <select class="field" id="lfGrade" style="max-width:130px"><option value="">All Grades</option><option>G-07</option><option>G-08</option><option>G-09</option><option>G-10</option><option>G-11</option><option>G-12</option><option>G-13</option><option>G-14</option><option>G-15</option></select>
+      <select class="field" id="lfBox" style="max-width:140px"><option value="">All Box Types</option><option>N+NHL</option><option>BOXN</option><option>BOXNHL</option><option>BCN</option></select>
+      <input class="field" id="lfSiding" placeholder="Siding contains..." style="max-width:170px">
+      <input type="date" class="field" id="lfFrom" title="Date from" style="max-width:160px">
+      <input type="date" class="field" id="lfTo" title="Date to" style="max-width:160px">
+      <button class="btn-soft" id="lfClear"><i class="fas fa-xmark"></i> Clear Filters</button>
+    </div>
     <div class="tbl-wrap"><table class="tbl" id="logTbl"></table></div>
     <div class="status" id="logStatus"></div>
   </div>
@@ -485,10 +496,16 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
   <div class="topbar"><div><h1>Data Entry</h1><div class="period">Record coal rake loading, receipt, freight &amp; cost data</div></div></div>
   <div class="panel">
     <h2><i class="fas fa-plus-circle"></i> New Rake Record</h2>
+    <div class="toolbar">
+      <input type="number" class="field" id="searchSr" min="1" placeholder="Sr No" style="max-width:160px">
+      <button type="button" class="btn-soft" id="searchRecord"><i class="fas fa-magnifying-glass"></i> Search</button>
+      <span class="muted" id="searchNote"></span>
+    </div>
     <form id="entryForm" novalidate>
       <div id="formSections"></div>
       <div class="form-actions">
-        <button type="submit" class="btn-go"><i class="fas fa-save"></i> Save Record</button>
+        <button type="submit" class="btn-go"><i class="fas fa-save"></i> Save</button>
+        <button type="button" class="btn-go" id="updateRecord"><i class="fas fa-pen-to-square"></i> Update</button>
         <button type="button" class="btn-soft" id="clearForm">Clear Form</button>
       </div>
     </form>
@@ -977,7 +994,21 @@ async function loadLog() {
 
 function renderLog() {
   const q = $('logSearch').value.toLowerCase();
-  const rows = logRecords.filter(r => !q || JSON.stringify(r).toLowerCase().includes(q));
+  const lf = {
+    area: $('lfArea').value, unit: $('lfUnit').value, tranch: $('lfTranch').value,
+    grade: $('lfGrade').value, box: $('lfBox').value, siding: $('lfSiding').value.trim().toUpperCase(),
+    from: $('lfFrom').value, to: $('lfTo').value
+  };
+  const rows = logRecords.filter(r =>
+    (!q || JSON.stringify(r).toLowerCase().includes(q)) &&
+    (!lf.area || r.area === lf.area) &&
+    (!lf.unit || r.unit === lf.unit) &&
+    (!lf.tranch || r.tranch === lf.tranch) &&
+    (!lf.grade || r.grade === lf.grade) &&
+    (!lf.box || r.box_type === lf.box) &&
+    (!lf.siding || String(r.siding || '').toUpperCase().includes(lf.siding)) &&
+    (!lf.from || String(r.date || '').slice(0, 10) >= lf.from) &&
+    (!lf.to || String(r.date || '').slice(0, 10) <= lf.to));
   $('logCount').textContent = `${rows.length} of ${logRecords.length} records`;
   const head = `<thead><tr><th>Actions</th>${LOG_COLS.map(c => `<th>${c}</th>`).join('')}</tr></thead>`;
   const body = rows.map(r => `<tr data-id="${esc(r.id)}">
@@ -991,6 +1022,14 @@ function renderLog() {
 }
 $('logSearch').addEventListener('input', renderLog);
 $('logReload').addEventListener('click', loadLog);
+document.querySelectorAll('#logFilters input, #logFilters select').forEach(el => {
+  el.addEventListener('input', renderLog);
+  el.addEventListener('change', renderLog);
+});
+$('lfClear').addEventListener('click', () => {
+  document.querySelectorAll('#logFilters input, #logFilters select').forEach(el => el.value = '');
+  renderLog();
+});
 
 $('logTbl').addEventListener('click', async e => {
   const saveBtn = e.target.closest('[data-save]');
@@ -1030,11 +1069,11 @@ const ENTRY_SECTIONS = [
     { key: 'area', label: 'Area', type: 'select', options: ENTRY_OPT.area, req: 1 },
     { key: 'date', label: 'Date', type: 'date', req: 1 },
     { key: 'siding', label: 'Siding', type: 'text', req: 1 },
-    { key: 'unit', label: 'Unit', type: 'select', options: ENTRY_OPT.unit, req: 1 },
-    { key: 'tranch', label: 'Tranch', type: 'select', options: ENTRY_OPT.tranch, req: 1 } ]},
+    { key: 'unit', label: 'Unit', type: 'select', options: ENTRY_OPT.unit },
+    { key: 'tranch', label: 'Tranch', type: 'select', options: ENTRY_OPT.tranch } ]},
   { title: 'Allotment', icon: 'fa-file-signature', fields: [
-    { key: 'fsa', label: 'FSA', type: 'text', req: 1 },
-    { key: 'allot_date', label: 'Date Of Allotment', type: 'date', req: 1 },
+    { key: 'fsa', label: 'FSA', type: 'text' },
+    { key: 'allot_date', label: 'Date Of Allotment', type: 'date' },
     { key: 'seniority_no', label: 'Seniority No', type: 'number' } ]},
   { title: 'Mines Loading Time', icon: 'fa-clock', fields: [
     { key: 'time_pt', label: 'P/T', type: 'time' }, { key: 'time_ct', label: 'C/T', type: 'time' },
@@ -1044,7 +1083,7 @@ const ENTRY_SECTIONS = [
     { key: 'sick_box', label: 'Sick Box', type: 'calc', tag: 'auto' },
     { key: 'box_type', label: 'Box Type', type: 'select', options: ENTRY_OPT.box } ]},
   { title: 'Weight & Quality', icon: 'fa-weight-scale', fields: [
-    { key: 'net_wt', label: 'Net Wt.', type: 'number', step: 0.01, unit: 'MT', req: 1 },
+    { key: 'net_wt', label: 'Net Wt.', type: 'number', step: 0.01, unit: 'MT' },
     { key: 'recv_wt', label: 'Received Wt.', type: 'number', step: 0.01, unit: 'MT' },
     { key: 'grn_qty', label: 'GRN Qty. (MT)', type: 'number', step: 0.01, unit: 'MT' },
     { key: 'gcv_adb', label: 'GCV ADB', type: 'number', unit: 'kcal' },
@@ -1069,7 +1108,7 @@ const ENTRY_SECTIONS = [
     { key: 'dead_fr_qty', label: 'Dead Freight Qty', type: 'number', step: 0.01 },
     { key: 'dead_fr_chg', label: 'Dead Freight Charges', type: 'number', step: 0.01, unit: '₹' } ]},
   { title: 'Grade & Cost', icon: 'fa-medal', fields: [
-    { key: 'grade', label: 'Grade', type: 'select', options: ENTRY_OPT.grade, req: 1 },
+    { key: 'grade', label: 'Grade', type: 'select', options: ENTRY_OPT.grade },
     { key: 'landed_cost', label: 'Landed cost', type: 'number', step: 0.01, unit: '₹' },
     { key: 'declared_grade', label: 'Loading Declared Grade', type: 'select', options: ENTRY_OPT.grade } ]}
 ];
@@ -1140,6 +1179,67 @@ $('entryForm').addEventListener('submit', async e => {
   await syncRakeLoaded(row.date);
   await resetEntryForm();
 });
+
+/* ---- Search / Update existing record by Sr No ---- */
+function formRow() {
+  const row = {};
+  DB_COLS.forEach(col => {
+    const el = $('f_' + col);
+    if (!el || el.readOnly) return;
+    row[col] = toDbValue(col, el.value);
+  });
+  row.duration = durationText($('f_time_pt').value, $('f_time_ct').value);
+  row.sick_box = $('f_sick_box').value === '' ? null : +$('f_sick_box').value;
+  row.sr_no = +$('f_sr_no').value || null;
+  return row;
+}
+
+function fillForm(r) {
+  DB_COLS.forEach(col => {
+    const el = $('f_' + col);
+    if (!el || el.readOnly) return;
+    let v = r[col] == null ? '' : r[col];
+    if (TIME_COLS.has(col) && v) v = String(v).slice(0, 5);
+    if (DATE_COLS.has(col) && v) v = String(v).slice(0, 10);
+    el.value = v;
+  });
+  recalcForm();
+}
+
+async function searchRecord() {
+  const sr = +$('searchSr').value;
+  if (!sr) { toast('Enter a Sr No to search', true); return; }
+  const { data, error } = await db.from('hzl_rake_records').select('*').eq('sr_no', sr).limit(1);
+  if (error) { toast('Search failed: ' + error.message, true); return; }
+  if (!data || !data.length) {
+    $('searchNote').textContent = 'No record with Sr No ' + sr;
+    toast('No record with Sr No ' + sr, true);
+    return;
+  }
+  fillForm(data[0]);
+  $('searchNote').textContent = 'Loaded Sr No ' + sr;
+}
+$('searchRecord').addEventListener('click', searchRecord);
+$('searchSr').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); searchRecord(); } });
+
+async function updateRecord() {
+  const f = $('entryForm');
+  if (!f.checkValidity()) { f.reportValidity(); toast('Please fill the required fields', true); return; }
+  const sr = +$('f_sr_no').value;
+  if (!sr) { toast('Enter the Sr No of the record to update', true); return; }
+  const { data: found, error: findErr } = await db.from('hzl_rake_records').select('id').eq('sr_no', sr).limit(1);
+  if (findErr) { toast('Update failed: ' + findErr.message, true); return; }
+  if (!found || !found.length) { toast('No record with Sr No ' + sr + ' to update', true); return; }
+  const row = formRow();
+  delete row.sr_no;
+  Object.keys(row).forEach(k => { if (READONLY_DB.has(k)) delete row[k]; });
+  const { error } = await db.from('hzl_rake_records').update(row).eq('id', found[0].id);
+  if (error) { toast('Update failed: ' + error.message, true); return; }
+  toast('Record ' + sr + ' updated');
+  $('searchNote').textContent = 'Updated Sr No ' + sr;
+  await syncRakeLoaded(row.date);
+}
+$('updateRecord').addEventListener('click', updateRecord);
 
 /* ---- Target rake ---- */
 const RAKE_TYPES = ['SECL','CCL','MCL'];
