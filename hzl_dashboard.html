@@ -592,11 +592,11 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
     <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Billing Performance</h4>
     <ul class="formula-list">
       <li>Rate per MT (used below) = band rate from the Formulas table, chosen by "Shortage / Excess MT per rake" value</li>
-      <li>Performance on Quantity Reco = rate per MT × sum of Recv; the per-MT box shows the rate</li>
+      <li>Performance on Quantity Reco = rate per MT × sum of RR; the per-MT box shows the rate</li>
       <li>Performance on GCV Reco = sum of bonus_penalty from the database; per-MT box = that sum ÷ sum of RR</li>
-      <li>Service Charge SECL / CCL / MCL = area sum of Recv × fixed service charge (Data Entry); per-MT box = charge ÷ area sum of Recv</li>
-      <li>5% of Total Railway Penalty = Total Penalty × penalty share % (Formulas); per-MT box = ÷ sum of Recv</li>
-      <li>TOTAL BILLING = Quantity Reco + GCV Reco + Service SECL + Service CCL + Service MCL − 5% penalty (the 5% line is negative, shown red); per-MT box = ÷ sum of Recv</li>
+      <li>Service Charge SECL / CCL / MCL = area sum of RR × fixed service charge (Data Entry); per-MT box = charge ÷ area sum of RR</li>
+      <li>5% of Total Railway Penalty = Total Penalty × penalty share % (Formulas); per-MT box = ÷ sum of RR</li>
+      <li>TOTAL BILLING = Quantity Reco + GCV Reco + Service SECL + Service CCL + Service MCL − 5% penalty (the 5% line is negative, shown red); per-MT box = ÷ sum of RR</li>
       <li>Expected Billing of the Qtr = TOTAL BILLING ÷ days passed in the quarter × total days in the quarter</li>
     </ul>
 
@@ -612,10 +612,10 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 
     <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Railway Freight Penalties</h4>
     <ul class="formula-list">
-      <li>Underload Charge = sum of ul_ch (Data Entry) for the quarter; per-MT box = charge ÷ sum of Recv</li>
-      <li>Overload Charge = sum of ol_ch (Data Entry) for the quarter; per-MT box = charge ÷ sum of Recv</li>
+      <li>Underload Charge = sum of ul_ch (Data Entry) for the quarter; per-MT box = charge ÷ sum of RR</li>
+      <li>Overload Charge = sum of ol_ch (Data Entry) for the quarter; per-MT box = charge ÷ sum of RR</li>
       <li>Punitive Sum = sum of POL group charges; EHBC / FAUC / TC = sum of EHBC group; ENHC = sum of ENHC charge; Dead Freight = sum of dead freight charges</li>
-      <li>TOTAL PENALTY = Overload + Punitive + EHBC + ENHC (Dead Freight is shown in grey and is NOT included); per-MT box = ÷ sum of Recv</li>
+      <li>TOTAL PENALTY = Overload + Punitive + EHBC + ENHC (Dead Freight is shown in grey and is NOT included); per-MT box = ÷ sum of RR</li>
       <li>5% of Total Penalty = TOTAL PENALTY × penalty share % (Formulas)</li>
     </ul>
 
@@ -1515,8 +1515,9 @@ async function computeDashboard(period = PERIOD) {
     out['tgt' + key] = target; out['load' + key] = loaded; out['bal' + key] = target - loaded;
     out['ask' + key] = sumOf(aT, t => t.asking_per_day);
     const areaRecv = sumOf(aR, r => r.recv_wt);
+    const areaRr = sumOf(aR, r => r.rr_wt);
     out['svc' + key] = areaRecv * SERVICE_RATE;
-    out['svc' + key + 'Mt'] = areaRecv ? out['svc' + key] / areaRecv : 0;
+    out['svc' + key + 'Mt'] = areaRr ? out['svc' + key] / areaRr : 0;
     out['gcvPos' + key] = sumOf(aR, r => r.gcv_adb) - sumOf(aR, r => r.gcv_arb);
     const arb = aR.filter(r => r.gcv_arb != null);
     out[key.toLowerCase() + 'Gcv'] = arb.length ? sumOf(arb, r => r.gcv_arb) / arb.length : 0;
@@ -1524,7 +1525,7 @@ async function computeDashboard(period = PERIOD) {
     out[key.toLowerCase() + 'GcvCost'] = arbT ? sumOf(aR, r => r.landed_cost) / arbT : 0;
   });
 
-  const perMt = v => recvTotal ? v / recvTotal : 0;
+  const perMt = v => rrTotal ? v / rrTotal : 0;
   const punSum = sumOf(recs, r => r.pol_group), ehbcSum = sumOf(recs, r => r.ehbc_group);
   const enhcSum = sumOf(recs, r => r.enhc_charge), deadSum = sumOf(recs, r => r.dead_fr_chg);
   const ulChgSum = sumOf(recs, r => r.ul_ch), olChgSum = sumOf(recs, r => r.ol_ch);
