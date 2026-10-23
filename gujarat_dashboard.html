@@ -261,6 +261,13 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(33,132,71,.25)
 .report-stamp::before{content:"";width:8px;height:8px;border-radius:50%;background:#16a870;box-shadow:0 0 0 3px rgba(22,168,112,.25)}
 .report-stamp strong{color:var(--ink)}
 @media (max-width:800px){.report-stamp{margin-left:0}}
+
+/* TOTAL ROWS: stay dark green (darker shade) on hover; Avg GCV as one continuous bar */
+.metric-row.total-row:hover{background:linear-gradient(120deg,#0b3a1e,#145c32)}
+.avg-bar{display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.45rem .8rem;border-radius:14px;background:linear-gradient(120deg,var(--navy),var(--navy2));box-shadow:0 10px 18px -10px rgba(20,83,45,.4);transition:background .2s}
+.avg-bar:hover{background:linear-gradient(120deg,#0b3a1e,#145c32)}
+.avg-bar .row-label{color:#fff;font-size:.85rem;font-weight:700;padding:0}
+.area-table .avg-bar input{width:9rem;background:rgba(143,209,158,.2);color:#d7f5df;text-align:right;font:700 1rem var(--body);padding:.4rem .7rem}
 </style>
 </head>
 <body>
@@ -355,7 +362,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(33,132,71,.25)
         <div class="metric-row"><span class="metric-label">Punitive Sum (POL)</span><div class="pair"><input class="metric-value" id="p-pun" readonly><input class="metric-value" id="p-pun-mt" readonly></div></div>
         <div class="metric-row"><span class="metric-label">EHBC / FAUC / TC</span><div class="pair"><input class="metric-value" id="p-ehbc" readonly><input class="metric-value" id="p-ehbc-mt" readonly></div></div>
         <div class="metric-row"><span class="metric-label">ENHC Charges</span><div class="pair"><input class="metric-value" id="p-enhc" readonly><input class="metric-value" id="p-enhc-mt" readonly></div></div>
-        <div class="metric-row"><span class="metric-label">Dead Freight (typed in Data Entry)</span><div class="pair"><input class="metric-value" id="p-dead" readonly><input class="metric-value" id="p-dead-mt" readonly></div></div>
+        <div class="metric-row"><span class="metric-label">Dead Freight</span><div class="pair"><input class="metric-value" id="p-dead" readonly><input class="metric-value" id="p-dead-mt" readonly></div></div>
         <div class="metric-row total-row"><span class="metric-label">TOTAL PENALTY</span><div class="pair"><input class="metric-value" id="p-total" readonly><input class="metric-value" id="p-total-mt" readonly></div></div>
       </div>
     </div>
@@ -428,6 +435,12 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(33,132,71,.25)
   <div class="panel">
     <div class="toolbar">
       <input class="search" id="logSearch" placeholder="Search by RR no, siding, area, date...">
+      <select id="fltArea" class="field" style="max-width:130px" aria-label="Area"></select>
+      <select id="fltSiding" class="field" style="max-width:140px" aria-label="Siding"></select>
+      <select id="fltDstn" class="field" style="max-width:130px" aria-label="Party"></select>
+      <input type="date" id="fltFrom" class="field" style="max-width:160px" aria-label="From date" title="From date">
+      <input type="date" id="fltTo" class="field" style="max-width:160px" aria-label="To date" title="To date">
+      <button class="btn-soft" id="fltClear"><i class="fas fa-filter-circle-xmark"></i> Clear</button>
       <button class="btn-soft" id="logReload"><i class="fas fa-rotate"></i> Reload</button>
       <span class="muted" id="logCount"></span>
     </div>
@@ -442,10 +455,16 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(33,132,71,.25)
   <div class="topbar"><div><h1>Data Entry</h1><div class="period">Type rake records, monthly targets and rates. Everything else is calculated.</div></div></div>
   <div class="panel">
     <h2><i class="fas fa-plus-circle"></i> New Rake Record</h2>
+    <div class="toolbar">
+      <input class="search" id="recSearch" placeholder="Sr No" aria-label="Sr No" style="max-width:260px">
+      <button type="button" class="btn-soft" id="recSearchBtn"><i class="fas fa-search"></i> Search</button>
+      <span class="muted" id="editBadge"></span>
+    </div>
     <form id="entryForm" novalidate>
       <div id="formSections"></div>
       <div class="form-actions">
-        <button type="submit" class="btn-go"><i class="fas fa-save"></i> Save Record</button>
+        <button type="submit" class="btn-go" id="submitBtn"><i class="fas fa-paper-plane"></i> Submit</button>
+        <button type="button" class="btn-go" id="updateBtn" disabled><i class="fas fa-pen"></i> Update</button>
         <button type="button" class="btn-soft" id="clearForm">Clear Form</button>
       </div>
     </form>
@@ -453,13 +472,14 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(33,132,71,.25)
   <div class="panel">
     <h2><i class="fas fa-bullseye"></i> Monthly Targets &amp; Rates</h2>
     <div class="toolbar">
+      <select id="entryScope" class="field" style="max-width:140px" aria-label="View"><option value="m">Month</option><option value="q">Quarter</option></select>
       <input type="month" id="entryMonth" class="field" style="max-width:200px" aria-label="Month">
       <input type="date" id="reportDate" class="field" style="max-width:200px" aria-label="Report updated upto">
       <button class="btn-soft" id="carryFwd"><i class="fas fa-forward"></i> Carry Forward</button>
     </div>
     <div class="tbl-wrap" style="max-height:none">
       <table class="tbl">
-        <thead><tr><th>Party</th><th>Area</th><th>Month Target</th><th>Loaded Till</th><th>Balance Rake</th><th>Asking Per Day</th></tr></thead>
+        <thead><tr><th>Party</th><th>Area</th><th id="thTarget">Month Target</th><th>Loaded Till</th><th>Balance Rake</th><th>Asking Per Day</th></tr></thead>
         <tbody id="tgtBody"></tbody>
         <tfoot><tr><td colspan="2">Total</td><td id="tTarget">0</td><td id="tLoaded">0</td><td id="tBalance">0</td><td id="tAsk">0</td></tr></tfoot>
       </table>
@@ -526,7 +546,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(33,132,71,.25)
     <ul class="formula-list">
       <li>Shortage % = (sum RR − sum Recv) × 100 ÷ sum RR, over rakes with received weight (positive = shortage)</li>
       <li>Shortage MT per rake = (sum RR − sum Recv) ÷ number of rakes with received weight</li>
-      <li>Grade Difference (SECL / WCL) = Unloading Grade − Loading Grade, shown as G-xx</li>
+      <li>Grade Difference (SECL / WCL) = Unloading Grade − Loading Grade, shown as a number</li>
     </ul>
     <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Mines Wise (matched by siding code)</h4>
     <ul class="formula-list">
@@ -777,6 +797,7 @@ const fPct = n => { if (!Number.isFinite(n) || Math.abs(n) < 0.005) return '-'; 
 /* ==================== STATE ==================== */
 let FORMULAS = structuredClone(DEFAULT_FORMULAS);
 let SETTINGS_BY_PERIOD = {};
+let CUSTOM_OPTS = {};   // extra dropdown options added from Data Entry ("Add new option")
 
 function mergeFormulas(obj) {
   const f = Object.assign(structuredClone(DEFAULT_FORMULAS), obj || {});
@@ -800,6 +821,7 @@ async function loadValues(periods) {
   const rows = unwrap(await db.from(VAL).select('period_key, field_key, field_value').in('period_key', [...periods, 'global']));
   rows.forEach(r => {
     if (r.period_key === 'global') {
+      if (r.field_key === 'options') { try { CUSTOM_OPTS = JSON.parse(r.field_value) || {}; } catch (e) { console.warn(e); } }
       if (r.field_key === 'formulas') { try { mergeFormulas(JSON.parse(r.field_value)); } catch (e) { console.warn(e); } }
     } else {
       (SETTINGS_BY_PERIOD[r.period_key] = SETTINGS_BY_PERIOD[r.period_key] || {})[r.field_key] = r.field_value;
@@ -919,13 +941,12 @@ function renderDashboard(o, trend) {
   const A = o.areas;
   const ar = (label, fn, fmt) => `<tr><td class="row-label">${label}</td>${['SECL', 'WCL'].map(a => `<td><input class="metric-value ${fn(A[a]) < 0 ? 'neg' : ''}" readonly value="${fmt(fn(A[a]))}"></td>`).join('')}</tr>`;
 
-  // Grade Difference = Unloading Grade - Loading Grade, shown as G-xx
+  // Grade Difference = Unloading Grade - Loading Grade, shown as a plain number (no "G")
   const gradeDiff = a => {
     const lg = gradeNo(a.loadGrade);
     const ug = gradeNo(a.unloadGrade);
     if (lg == null || ug == null) return '';
-    const d = ug - lg;
-    return (d < 0 ? '-' : '') + 'G-' + pad2(Math.abs(d));
+    return String(ug - lg);
   };
 
   const orangeRow = (label, fn) => `
@@ -944,10 +965,7 @@ function renderDashboard(o, trend) {
     ar('Unloading Grade', x => x.unloadGrade, s => s || '-') +
     ar('Loading Grade', x => x.loadGrade, s => s || '-') +
     orangeRow('Grade Difference', gradeDiff) +
-    `<tr class="total-row">
-      <td class="row-label">Avg GCV</td>
-      <td colspan="2"><input class="metric-value" readonly value="${f2(avgGcv)}"></td>
-    </tr>`;
+    `<tr><td colspan="3"><div class="avg-bar"><span class="row-label">Avg GCV</span><input class="metric-value" readonly value="${f2(avgGcv)}"></div></td></tr>`;
 
   const penLine = (id, v) => { putVal(id, v, fInt); putVal(id + '-mt', o.rrAll ? v / o.rrAll : 0, f2); };
   penLine('p-ul', o.pen.ul);
@@ -978,8 +996,9 @@ function renderDashboard(o, trend) {
       + `<td class="${ded < 0 ? 'neg' : ''}">${fInt(ded)}</td><td>${fInt(t.totalBill)}</td></tr>`;
   }).join('');
 
-  const uptoTxt = o.rep ? new Date(o.rep + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : '-';
-  $('reportUpdatedUpto').textContent = uptoTxt;
+  // "Performance Report updated upto" is always yesterday (today - 1)
+  const yd = new Date(); yd.setDate(yd.getDate() - 1);
+  $('reportUpdatedUpto').textContent = yd.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
 }
 
 // Realtime events can arrive in bursts (e.g. the database recalculating a whole month), so reload once after they settle.
@@ -1154,6 +1173,7 @@ function enrichRecord(row) {
   if (row.supply_box != null && row.load_box != null) row.sick_box = row.supply_box - row.load_box;
   if (row.gross_wt != null && row.tare_wt != null) row.net_wt = +(row.gross_wt - row.tare_wt).toFixed(2);
   if (row.ch_wt != null && row.rr_wt != null) row.dead_fr_qty = +(row.ch_wt - row.rr_wt).toFixed(2);
+  if (row.ch_wt != null && row.rr_wt != null) row.ul_qty = +(row.ch_wt - row.rr_wt).toFixed(2);
   // Grade Slippage, GCV Bonus/Penalty (Rs/MT) and Bonus/Penalty (Rs) are calculated by the database trigger.
   return row;
 }
@@ -1341,12 +1361,21 @@ async function loadLog() {
   try {
     logRecords = await fetchAll(TBL, q => q);
     logRecords.sort((a, b) => (a.sr_no || 0) - (b.sr_no || 0));
+    fillLogFilters();
     renderLog();
   } catch (err) { toast('Could not load records: ' + err.message, true); }
 }
 function renderLog() {
   const q = $('logSearch').value.toLowerCase();
-  const rows = logRecords.filter(r => !q || JSON.stringify(r).toLowerCase().includes(q));
+  const fA = $('fltArea').value, fS = $('fltSiding').value, fD = $('fltDstn').value;
+  const fF = $('fltFrom').value, fT = $('fltTo').value;
+  const rows = logRecords.filter(r =>
+    (!q || JSON.stringify(r).toLowerCase().includes(q)) &&
+    (!fA || up(r.area) === up(fA)) &&
+    (!fS || up(r.siding) === up(fS)) &&
+    (!fD || up(r.dstn) === up(fD)) &&
+    (!fF || (r.date && r.date >= fF)) &&
+    (!fT || (r.date && r.date <= fT)));
   // Only the latest rows are drawn (thousands of editable inputs would freeze the page); search narrows the list.
   const shown = rows.length > LOG_MAX ? rows.slice(-LOG_MAX) : rows;
   $('logCount').textContent = `${rows.length} of ${logRecords.length} records` + (rows.length > LOG_MAX ? ` (showing the latest ${LOG_MAX}, search to narrow)` : '');
@@ -1370,6 +1399,22 @@ function renderLog() {
   </tr>`).join('');
   $('logTbl').innerHTML = head + `<tbody>${body || '<tr><td class="empty" colspan="' + (cols.length + 1) + '">No records.</td></tr>'}</tbody>`;
 }
+function fillLogFilters() {
+  const set = (id, key, label) => {
+    const el = $(id), cur = el.value;
+    const vals = [...new Set(logRecords.map(r => String(r[key] ?? '').trim()).filter(Boolean))].sort();
+    el.innerHTML = `<option value="">${label}</option>` + vals.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+    el.value = vals.includes(cur) ? cur : '';
+  };
+  set('fltArea', 'area', 'All Areas');
+  set('fltSiding', 'siding', 'All Sidings');
+  set('fltDstn', 'dstn', 'All Parties');
+}
+['fltArea', 'fltSiding', 'fltDstn', 'fltFrom', 'fltTo'].forEach(id => $(id).addEventListener('change', renderLog));
+$('fltClear').addEventListener('click', () => {
+  ['logSearch', 'fltArea', 'fltSiding', 'fltDstn', 'fltFrom', 'fltTo'].forEach(id => $(id).value = '');
+  renderLog();
+});
 $('logSearch').addEventListener('input', renderLog);
 $('logReload').addEventListener('click', loadLog);
 $('logTbl').addEventListener('click', async e => {
@@ -1401,6 +1446,7 @@ $('logTbl').addEventListener('click', async e => {
 });
 
 /* ==================== DATA ENTRY: NEW RECORD ==================== */
+// Validation (req) is kept only on Area, Date and Siding.
 const ENTRY_SECTIONS = [
   { title: 'Basic Details', icon: 'fa-circle-info', fields: [
     { key: 'sr_no', label: 'Sr No', type: 'number', tag: 'auto' },
@@ -1412,16 +1458,16 @@ const ENTRY_SECTIONS = [
     { key: 'fsa', label: 'FSA', type: 'text' } ]},
   { title: 'Mines Loading', icon: 'fa-clock', fields: [
     { key: 'loading_gcv', label: 'Loading GCV', type: 'number', step: 0.01, unit: 'kcal' },
-    { key: 'loading_grade', label: 'Loading Grade', type: 'select', options: GRADES, req: 1 },
-    { key: 'time_pt', label: 'P/T', type: 'time' }, { key: 'time_ct', label: 'C/T', type: 'time' },
-    { key: 'time_dot', label: 'D/O/T', type: 'time' },
+    { key: 'loading_grade', label: 'Loading Grade', type: 'select', options: GRADES },
+    { key: 'time_pt', label: 'P/T (24 hrs)', type: 'time' }, { key: 'time_ct', label: 'C/T (24 hrs)', type: 'time' },
+    { key: 'time_dot', label: 'D/O/T (24 hrs)', type: 'time' },
     { key: 'duration', label: 'Mines Loading Duration', type: 'calc', tag: 'auto' } ]},
   { title: 'Box Details', icon: 'fa-box', fields: [
     { key: 'supply_box', label: 'Supply Box', type: 'number' }, { key: 'load_box', label: 'Load Box', type: 'number' },
     { key: 'sick_box', label: 'Sick Box', type: 'calc', tag: 'auto' },
     { key: 'box_type', label: 'Box Type', type: 'select', options: BOX_TYPES } ]},
   { title: 'Party & Weights', icon: 'fa-weight-scale', fields: [
-    { key: 'dstn', label: 'DSTN (party)', type: 'select', options: PARTIES, req: 1 },
+    { key: 'dstn', label: 'DSTN (party)', type: 'select', options: PARTIES },
     { key: 'gross_wt', label: 'Gross Wt.', type: 'number', step: 0.01, unit: 'MT' },
     { key: 'tare_wt', label: 'Tare Wt.', type: 'number', step: 0.01, unit: 'MT' },
     { key: 'net_wt', label: 'Net Wt.', type: 'calc', unit: 'MT', tag: 'auto' },
@@ -1441,7 +1487,7 @@ const ENTRY_SECTIONS = [
   { title: 'Railway Receipt', icon: 'fa-train', fields: [
     { key: 'rr_no', label: 'RR Number', type: 'text' }, { key: 'rr_date', label: 'RR Date', type: 'date' } ]},
   { title: 'Underload & Overload', icon: 'fa-arrow-down-wide-short', fields: [
-    { key: 'ul_qty', label: 'Underload Quantity', type: 'number', step: 0.01 },
+    { key: 'ul_qty', label: 'Underload Quantity (Ch Wt − RR Wt)', type: 'calc', step: 0.01, tag: 'auto' },
     { key: 'ul_paid_cil', label: 'Underload Qty Paid Coal India', type: 'number', step: 0.01 },
     { key: 'ul_paid_secl', label: 'Underload Paid by SECL', type: 'number', step: 0.01 },
     { key: 'ul_on_us', label: 'Underload Qty On Us', type: 'number', step: 0.01 },
@@ -1465,10 +1511,10 @@ function buildEntryForm() {
       <div class="form-grid">${s.fields.map(f => {
         const label = `<label for="f_${f.key}">${f.label}${f.req ? '<span class="req">*</span>' : ''}${f.tag ? `<span class="tag">${f.tag}</span>` : ''}</label>`;
         let input;
-        if (f.type === 'select') input = `<select class="field" id="f_${f.key}" name="${f.key}" ${f.req ? 'required' : ''}><option value="">Select</option>${f.options.map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('')}</select>`;
+        if (f.type === 'select') input = `<select class="field" id="f_${f.key}" name="${f.key}" ${f.req ? 'required' : ''}><option value="">Select</option>${[...f.options, ...(CUSTOM_OPTS[f.key] || [])].map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('')}<option value="__add__">➕ Add new option…</option></select>`;
         else if (f.type === 'calc') input = `<input id="f_${f.key}" name="${f.key}" readonly placeholder="Auto">`;
         else {
-          input = `<input id="f_${f.key}" name="${f.key}" type="${f.type}" ${f.step ? `step="${f.step}"` : ''} ${f.req ? 'required' : ''}>`;
+          input = `<input id="f_${f.key}" name="${f.key}" type="${f.type === 'time' ? 'text' : f.type}" ${f.type === 'time' ? 'inputmode="numeric" maxlength="5" placeholder="HH:MM"' : ''} ${f.type === 'number' ? 'step="any"' : ''} ${f.req ? 'required' : ''}>`;
           if (f.unit) input = `<div class="unit-wrap">${input}<span class="unit">${f.unit}</span></div>`;
         }
         return `<div class="form-group">${label}${input}</div>`;
@@ -1476,11 +1522,45 @@ function buildEntryForm() {
     </div>`).join('');
   ['time_pt', 'time_ct', 'supply_box', 'load_box', 'gross_wt', 'tare_wt', 'ch_wt', 'rr_wt', 'gcv_arb', 'loading_grade', 'unloading_grade', 'dstn']
     .forEach(k => { const e = $('f_' + k); if (e) e.addEventListener('input', recalcForm); e && e.addEventListener('change', recalcForm); });
+
+  // Dropdowns: "Add new option" saves the new value for everyone
+  $('formSections').addEventListener('change', async e => {
+    const s = e.target;
+    if (s.tagName !== 'SELECT' || s.value !== '__add__') return;
+    const v = (prompt('Enter the new option:') || '').trim();
+    if (!v) { s.value = ''; recalcForm(); return; }
+    const have = [...s.options].find(o => o.value.toLowerCase() === v.toLowerCase());
+    if (have) { s.value = have.value; recalcForm(); return; }
+    s.insertBefore(new Option(v, v), s.querySelector('option[value="__add__"]'));
+    s.value = v;
+    (CUSTOM_OPTS[s.name] = CUSTOM_OPTS[s.name] || []).push(v);
+    const { error } = await db.from(VAL).upsert([{ period_key: 'global', field_key: 'options', field_value: JSON.stringify(CUSTOM_OPTS), sort_order: 0 }], { onConflict: 'period_key,field_key' });
+    if (error) toast('Option added here but not saved: ' + error.message, true);
+    recalcForm();
+  });
+
+  // Time fields: 24-hour HH:MM typing with auto colon
+  ['time_pt', 'time_ct', 'time_dot'].forEach(k => {
+    const el = $('f_' + k);
+    el.addEventListener('input', () => {
+      const d = el.value.replace(/\D/g, '').slice(0, 4);
+      el.value = d.length > 2 ? d.slice(0, 2) + ':' + d.slice(2) : d;
+    });
+    el.addEventListener('blur', () => {
+      let d = el.value.replace(/\D/g, '');
+      if (!d) return;
+      if (d.length <= 2) d = d.padStart(2, '0') + '00'; else if (d.length === 3) d = '0' + d;
+      const h = +d.slice(0, 2), m = +d.slice(2);
+      if (h > 23 || m > 59) { el.value = ''; toast('Enter time as 00:00 to 23:59', true); }
+      else el.value = d.slice(0, 2) + ':' + d.slice(2);
+      recalcForm();
+    });
+  });
 }
 
 function formRow() {
   const row = {};
-  DB_COLS.forEach(c => { const el = $('f_' + c); if (el) row[c] = toDbValue(c, el.value); });
+  DB_COLS.forEach(c => { const el = $('f_' + c); if (el) row[c] = toDbValue(c, el.value === '__add__' ? '' : el.value); });
   return row;
 }
 // Live preview only; the saved values are calculated by the database trigger with the same rule.
@@ -1490,6 +1570,7 @@ function recalcForm() {
   $('f_sick_box').value = row.sick_box ?? '';
   $('f_net_wt').value = row.net_wt ?? '';
   $('f_dead_fr_qty').value = row.dead_fr_qty ?? '';
+  $('f_ul_qty').value = row.ul_qty ?? '';
   const slip = gradeSlip({ loading_grade: row.loading_grade, unloading_grade: row.unloading_grade });
   const pct = slipPct(slip, FORMULAS);
   const ratePerMt = slip == null || slip < 0 ? null : settingsFor(ENTRY_PERIOD).gcvBase * pct / 100;
@@ -1509,6 +1590,7 @@ async function initEntry() {
     buildEntryForm();
     $('entryMonth').value = ENTRY_PERIOD;
     $('entryMonth').addEventListener('change', () => { ENTRY_PERIOD = $('entryMonth').value || currentMonthKey(); loadEntryPeriod(); });
+    $('entryScope').addEventListener('change', renderEntryTargets);
     $('reportDate').addEventListener('change', async () => { await saveSetting('reportDate', $('reportDate').value); renderEntryTargets(); });
     ['svcSecl', 'svcWcl', 'qtyRate', 'gcvBase', 'deadFreight'].forEach(k => {
       let timer;
@@ -1517,24 +1599,72 @@ async function initEntry() {
     $('carryFwd').addEventListener('click', carryForward);
     $('clearForm').addEventListener('click', resetEntryForm);
     $('entryForm').addEventListener('submit', saveRecord);
+    $('updateBtn').addEventListener('click', updateRecord);
+    $('recSearchBtn').addEventListener('click', searchRecord);
+    $('recSearch').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); searchRecord(); } });
     $('tgtBody').addEventListener('change', onTargetInput);
   }
   await resetEntryForm();
   await loadEntryPeriod();
 }
 
+let EDIT_ID = null;
+function setEditMode(id) {
+  EDIT_ID = id;
+  $('submitBtn').disabled = !!id;
+  $('updateBtn').disabled = !id;
+  $('editBadge').textContent = id ? 'Editing saved record (Sr No ' + $('f_sr_no').value + ') - press Update to save changes' : '';
+}
 async function resetEntryForm() {
   $('entryForm').reset();
   $('f_date').value = todayISO();
   const { data } = await db.from(TBL).select('sr_no').order('sr_no', { ascending: false }).limit(1);
   $('f_sr_no').value = data && data.length ? data[0].sr_no + 1 : 1;
+  setEditMode(null);
   recalcForm();
+}
+
+async function searchRecord() {
+  const q = $('recSearch').value.trim();
+  if (!q) { toast('Enter Sr No', true); return; }
+  if (!isNum(q)) { toast('Sr No must be a number', true); return; }
+  const { data, error } = await db.from(TBL).select('*').eq('sr_no', Number(q)).limit(1);
+  if (error) { toast('Search failed: ' + error.message, true); return; }
+  if (!data.length) { toast('No record found for Sr No ' + q, true); return; }
+  const rec = data[0];
+  $('entryForm').reset();
+  DB_COLS.forEach(c => {
+    const el = $('f_' + c);
+    if (!el) return;
+    let v = rec[c];
+    if (v == null) { el.value = ''; return; }
+    if (TIME_COLS.has(c)) v = String(v).slice(0, 5);
+    if (el.tagName === 'SELECT' && ![...el.options].some(o => o.value === String(v))) el.insertBefore(new Option(v, v), el.querySelector('option[value="__add__"]'));
+    el.value = v;
+  });
+  setEditMode(rec.id);
+  recalcForm();
+  toast('Record loaded');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function updateRecord() {
+  if (!EDIT_ID) return;
+  const f = $('entryForm');
+  if (!f.checkValidity()) { f.reportValidity(); toast('Please fill Area, Date and Siding', true); return; }
+  const row = enrichRecord(formRow());
+  GCV_CALC_COLS.forEach(c => delete row[c]);   // calculated by the database trigger
+  const { error } = await db.from(TBL).update(row).eq('id', EDIT_ID);
+  if (error) { toast('Update failed: ' + error.message, true); return; }
+  toast('Record updated');
+  await resetEntryForm();
+  await loadEntryPeriod();
 }
 
 async function saveRecord(e) {
   e.preventDefault();
   const f = $('entryForm');
-  if (!f.checkValidity()) { f.reportValidity(); toast('Please fill the required fields', true); return; }
+  if (!f.checkValidity()) { f.reportValidity(); toast('Please fill Area, Date and Siding', true); return; }
   const row = enrichRecord(formRow());
   row.sr_no = +$('f_sr_no').value || null;
   GCV_CALC_COLS.forEach(c => delete row[c]);   // the database trigger calculates these on insert
@@ -1567,7 +1697,37 @@ async function loadEntryPeriod() {
   } catch (err) { toast('Could not load month: ' + err.message, true); }
 }
 
+// Quarter view (financial-year quarters: Apr-Jun, Jul-Sep, Oct-Dec, Jan-Mar): read-only totals of the 3 months
+async function renderQuarter() {
+  const [Y, M] = ENTRY_PERIOD.split('-').map(Number);
+  const s0 = [4, 7, 10, 1][Math.floor(((M + 8) % 12) / 3)];
+  const qm = [0, 1, 2].map(i => `${Y}-${pad2(s0 + i)}`);
+  try {
+    const [recs, tgts] = await Promise.all([
+      fetchAll(TBL, q => q.gte('date', monthInfo(qm[0]).start).lte('date', monthInfo(qm[2]).end)),
+      db.from(TGT).select('*').in('period', qm).then(unwrap)
+    ]);
+    await loadValues(qm);
+    const acc = {};
+    qm.forEach(p => {
+      const o = computeMonth({ period: p, recs, targets: tgts, settings: settingsFor(p), formulas: FORMULAS, reportDate: settingsFor(p).reportDate });
+      o.rows.forEach(x => {
+        const a = acc[x.party + x.area] = acc[x.party + x.area] || { party: x.party, area: x.area, t: 0, l: 0 };
+        a.t += x.target; a.l += x.loaded;
+      });
+    });
+    const L = Object.values(acc);
+    $('tgtBody').innerHTML = L.map(a => `<tr><td>${a.party}</td><td>${a.area}</td><td>${a.t}</td><td>${a.l}</td><td>${a.t - a.l}</td><td>-</td></tr>`).join('');
+    $('tTarget').textContent = L.reduce((s, a) => s + a.t, 0);
+    $('tLoaded').textContent = L.reduce((s, a) => s + a.l, 0);
+    $('tBalance').textContent = L.reduce((s, a) => s + a.t - a.l, 0);
+    $('tAsk').textContent = '-';
+  } catch (err) { toast('Could not load quarter: ' + err.message, true); }
+}
+
 function renderEntryTargets() {
+  $('thTarget').textContent = $('entryScope').value === 'q' ? 'Quarter Target' : 'Month Target';
+  if ($('entryScope').value === 'q') { renderQuarter(); return; }
   const res = computeMonth({
     period: ENTRY_PERIOD, recs: ENTRY_RECS, targets: ENTRY_TGTS,
     settings: settingsFor(ENTRY_PERIOD), formulas: FORMULAS, reportDate: $('reportDate').value
