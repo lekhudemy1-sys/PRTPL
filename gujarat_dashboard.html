@@ -254,33 +254,16 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(33,132,71,.25)
 .panel h2 i,.drop i{color:var(--navy2)}
 .section-title{color:var(--navy)}
 
-/* HOME BUTTON (top left) + REPORT DATE (top right) */
-.home-btn{position:fixed;top:10px;left:12px;z-index:100;width:2.8rem;height:2.8rem;border-radius:50%;display:grid;place-items:center;background:rgba(20,83,45,.96);color:#fff;border:0;cursor:pointer;box-shadow:0 12px 32px -10px rgba(20,83,45,.45),0 0 0 1px rgba(255,255,255,.08);transition:transform .2s,background .2s}
-.home-btn:hover{transform:translateY(-2px);background:var(--navy2)}
-.home-btn:focus-visible,.top-pill:focus-visible{outline:3px solid rgba(143,209,158,.8);outline-offset:2px}
-.top-pill{position:fixed;top:10px;right:12px;z-index:100;margin:0;height:2.8rem;padding:0 1.2rem;white-space:nowrap}
-/* shown only inside the exported PNG */
-.export-stamp{display:none;justify-content:flex-end;margin-bottom:.9rem}
-.export-stamp .report-footer{margin:0}
-
-/* keep the three top items from overlapping on smaller screens */
-@media (min-width:1301px) and (max-width:1750px){
-  .sidebar{left:4.6rem;transform:none}   /* nav sits next to the home button so the date pill has room */
-}
-@media (max-width:1300px){
-  .sidebar{top:3.9rem}
-  .main{padding-top:8.6rem}
-}
-@media (max-width:800px){
-  .main{padding-top:11rem}
-  .home-btn{top:.5rem;left:.5rem}
-  .top-pill{top:.5rem;right:.5rem;font-size:.72rem;padding:0 .8rem}
-}
+/* BACK ROW: back button top-left, report stamp top-right (same as HZL) */
+.back-row{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:.8rem}
+.back-btn{text-decoration:none}
+.report-stamp{font-size:.85rem;font-weight:600;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:.5rem 1.2rem;box-shadow:var(--sh);display:inline-flex;align-items:center;gap:.5rem;margin-left:auto}
+.report-stamp::before{content:"";width:8px;height:8px;border-radius:50%;background:#16a870;box-shadow:0 0 0 3px rgba(22,168,112,.25)}
+.report-stamp strong{color:var(--ink)}
+@media (max-width:800px){.report-stamp{margin-left:0}}
 </style>
 </head>
 <body>
-<a class="home-btn" href="amm_home.html" aria-label="Back to AMM Home" title="AMM Home"><i class="fas fa-house"></i></a>
-<div class="report-footer top-pill" id="topPill">Performance Report updated upto <strong id="reportUpdatedUpto">-</strong></div>
 
 <aside class="sidebar">
   <div class="party-name"><span class="dot"></span> Gujarat</div>
@@ -298,7 +281,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(33,132,71,.25)
 
 <!-- ============ DASHBOARD ============ -->
 <section class="view active" id="view-dashboard">
-  <div class="export-stamp" id="exportStamp"><div class="report-footer">Performance Report updated upto <strong id="reportUpdatedUpto2">-</strong></div></div>
+  <div class="back-row"><a class="back-btn" href="amm_home.html"><i class="fas fa-arrow-left"></i> Back</a><div class="report-stamp">Performance Report updated upto <strong id="reportUpdatedUpto">-</strong></div></div>
   <div class="topbar">
     <div>
       <h1>Performance Meter</h1>
@@ -415,6 +398,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(33,132,71,.25)
 
 <!-- ============ UPLOAD ============ -->
 <section class="view" id="view-upload">
+  <div class="back-row"><a class="back-btn" href="amm_home.html"><i class="fas fa-arrow-left"></i> Back</a></div>
   <div class="topbar"><div><h1>Upload Excel</h1><div class="period">Import rake records from the MIS RAKE DISPATCH sheet</div></div></div>
   <div class="panel">
     <h2><i class="fas fa-file-excel"></i> Choose workbook</h2>
@@ -439,6 +423,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(33,132,71,.25)
 
 <!-- ============ RECORDS LOG ============ -->
 <section class="view" id="view-log">
+  <div class="back-row"><a class="back-btn" href="amm_home.html"><i class="fas fa-arrow-left"></i> Back</a></div>
   <div class="topbar"><div><h1>Records Log</h1><div class="period">Edit or delete saved rake records</div></div></div>
   <div class="panel">
     <div class="toolbar">
@@ -453,6 +438,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(33,132,71,.25)
 
 <!-- ============ DATA ENTRY ============ -->
 <section class="view" id="view-entry">
+  <div class="back-row"><a class="back-btn" href="amm_home.html"><i class="fas fa-arrow-left"></i> Back</a></div>
   <div class="topbar"><div><h1>Data Entry</h1><div class="period">Type rake records, monthly targets and rates. Everything else is calculated.</div></div></div>
   <div class="panel">
     <h2><i class="fas fa-plus-circle"></i> New Rake Record</h2>
@@ -491,6 +477,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(33,132,71,.25)
 
 <!-- ============ FORMULAS ============ -->
 <section class="view" id="view-formulas">
+  <div class="back-row"><a class="back-btn" href="amm_home.html"><i class="fas fa-arrow-left"></i> Back</a></div>
   <div class="topbar">
     <div><h1>Formulas</h1><div class="period">Change the calculation rules here. The dashboard uses the new values as soon as you save.</div></div>
     <div class="topbar-actions"><button class="btn btn-secondary" id="saveFormulas"><i class="fas fa-save"></i> Save Formulas</button></div>
@@ -993,7 +980,6 @@ function renderDashboard(o, trend) {
 
   const uptoTxt = o.rep ? new Date(o.rep + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : '-';
   $('reportUpdatedUpto').textContent = uptoTxt;
-  $('reportUpdatedUpto2').textContent = uptoTxt;
 }
 
 // Realtime events can arrive in bursts (e.g. the database recalculating a whole month), so reload once after they settle.
@@ -1027,7 +1013,7 @@ function prepareExportClone(doc, srcRoot, k) {
     .mines-wrap,.trend-wrap{overflow:visible!important}
     .mines-table .row-label{position:static!important}
     .topbar-actions{display:none!important}
-    #exportStamp{display:flex!important}`;
+    .back-btn{display:none!important}.back-row{justify-content:flex-end!important}`;
   doc.head.appendChild(st);
   el.style.background = EXPORT_BG;   // solid theme colour, no tint
   el.style.padding = '20px';
@@ -1187,7 +1173,6 @@ function showView(name) {
     name = 'lock';
     setTimeout(() => $('pwdInput').focus(), 50);
   }
-  $('topPill').classList.toggle('hidden', name !== 'dashboard');
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
   const navKey = name === 'lock' ? pendingView : name;
   document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.view === navKey));
