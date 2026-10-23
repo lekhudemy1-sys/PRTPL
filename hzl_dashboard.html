@@ -475,11 +475,11 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
       <span class="muted" id="logCount"></span>
     </div>
     <div class="toolbar" id="logFilters">
-      <select class="field" id="lfArea" style="max-width:150px"><option value="">All Areas</option><option>SECL</option><option>WCL</option><option>CCL</option><option>MCL</option></select>
-      <select class="field" id="lfUnit" style="max-width:130px"><option value="">All Units</option><option>CPP</option><option>IPP</option><option>EAC</option></select>
-      <select class="field" id="lfTranch" style="max-width:130px"><option value="">All Tranch</option><option>I</option><option>II</option><option>III</option><option>IV</option><option>V</option><option>VI</option><option>VII</option><option>VIII</option><option>IX</option></select>
-      <select class="field" id="lfGrade" style="max-width:130px"><option value="">All Grades</option><option>G-07</option><option>G-08</option><option>G-09</option><option>G-10</option><option>G-11</option><option>G-12</option><option>G-13</option><option>G-14</option><option>G-15</option></select>
-      <select class="field" id="lfBox" style="max-width:140px"><option value="">All Box Types</option><option>N+NHL</option><option>BOXN</option><option>BOXNHL</option><option>BCN</option></select>
+      <select class="field" data-addnew="area" id="lfArea" style="max-width:150px"><option value="">All Areas</option><option>SECL</option><option>WCL</option><option>CCL</option><option>MCL</option></select>
+      <select class="field" data-addnew="unit" id="lfUnit" style="max-width:130px"><option value="">All Units</option><option>CPP</option><option>IPP</option><option>EAC</option></select>
+      <select class="field" data-addnew="tranch" id="lfTranch" style="max-width:130px"><option value="">All Tranch</option><option>I</option><option>II</option><option>III</option><option>IV</option><option>V</option><option>VI</option><option>VII</option><option>VIII</option><option>IX</option></select>
+      <select class="field" data-addnew="grade" id="lfGrade" style="max-width:130px"><option value="">All Grades</option><option>G-07</option><option>G-08</option><option>G-09</option><option>G-10</option><option>G-11</option><option>G-12</option><option>G-13</option><option>G-14</option><option>G-15</option></select>
+      <select class="field" data-addnew="box_type" id="lfBox" style="max-width:140px"><option value="">All Box Types</option><option>N+NHL</option><option>BOXN</option><option>BOXNHL</option><option>BCN</option></select>
       <input class="field" id="lfSiding" placeholder="Siding contains..." style="max-width:170px">
       <input type="date" class="field" id="lfFrom" title="Date from" style="max-width:160px">
       <input type="date" class="field" id="lfTo" title="Date to" style="max-width:160px">
@@ -994,9 +994,10 @@ async function loadLog() {
 
 function renderLog() {
   const q = $('logSearch').value.toLowerCase();
+  const sv = id => ($(id).value === '__new__' ? '' : $(id).value);
   const lf = {
-    area: $('lfArea').value, unit: $('lfUnit').value, tranch: $('lfTranch').value,
-    grade: $('lfGrade').value, box: $('lfBox').value, siding: $('lfSiding').value.trim().toUpperCase(),
+    area: sv('lfArea'), unit: sv('lfUnit'), tranch: sv('lfTranch'),
+    grade: sv('lfGrade'), box: sv('lfBox'), siding: $('lfSiding').value.trim().toUpperCase(),
     from: $('lfFrom').value, to: $('lfTo').value
   };
   const rows = logRecords.filter(r =>
@@ -1094,7 +1095,7 @@ const ENTRY_SECTIONS = [
   { title: 'Railway Receipt', icon: 'fa-train', fields: [
     { key: 'rr_no', label: 'RR Number', type: 'text' }, { key: 'rr_date', label: 'RR Date', type: 'date' } ]},
   { title: 'Underload & Overload', icon: 'fa-arrow-down-wide-short', fields: [
-    { key: 'ul_qty', label: 'Underload Quantity', type: 'number', step: 0.01 },
+    { key: 'ul_qty', label: 'Underload Quantity', type: 'calc', tag: 'auto' },
     { key: 'ul_paid_cil', label: 'Underload Qty Paid Coal India', type: 'number', step: 0.01 },
     { key: 'ul_on_us', label: 'Underload Qty On Us', type: 'number', step: 0.01 },
     { key: 'ol_qty', label: 'Overload Quantity', type: 'number', step: 0.01, unit: 'MT' },
@@ -1110,7 +1111,7 @@ const ENTRY_SECTIONS = [
   { title: 'Grade & Cost', icon: 'fa-medal', fields: [
     { key: 'grade', label: 'Grade', type: 'select', options: ENTRY_OPT.grade },
     { key: 'landed_cost', label: 'Landed cost', type: 'number', step: 0.01, unit: '₹' },
-    { key: 'declared_grade', label: 'Loading Declared Grade', type: 'select', options: ENTRY_OPT.grade } ]}
+    { key: 'declared_grade', label: 'Loading Declared Grade', type: 'select', options: ENTRY_OPT.grade, optname: 'grade' } ]}
 ];
 
 function buildEntryForm() {
@@ -1120,22 +1121,25 @@ function buildEntryForm() {
       <div class="form-grid">${s.fields.map(f => {
         const label = `<label for="f_${f.key}">${f.label}${f.req ? '<span class="req">*</span>' : ''}${f.tag ? `<span class="tag">${f.tag}</span>` : ''}</label>`;
         let input;
-        if (f.type === 'select') input = `<select class="field" id="f_${f.key}" name="${f.key}" ${f.req ? 'required' : ''}><option value="">Select</option>${f.options.map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('')}</select>`;
+        if (f.type === 'select') input = `<select class="field" id="f_${f.key}" name="${f.key}" data-addnew="${f.optname || f.key}" ${f.req ? 'required' : ''}><option value="">Select</option>${f.options.map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('')}</select>`;
         else if (f.type === 'calc') input = `<input id="f_${f.key}" name="${f.key}" readonly placeholder="Auto">`;
         else {
-          input = `<input id="f_${f.key}" name="${f.key}" type="${f.type}" ${f.step ? `step="${f.step}"` : ''} ${f.req ? 'required' : ''}>`;
+          if (f.type === 'time') input = `<input id="f_${f.key}" name="${f.key}" type="text" inputmode="numeric" maxlength="5" pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]" placeholder="HH:MM" title="24-hour time, HH:MM">`;
+          else input = `<input id="f_${f.key}" name="${f.key}" type="${f.type}" ${f.step ? `step="${f.step}"` : ''} ${f.req ? 'required' : ''}>`;
           if (f.unit) input = `<div class="unit-wrap">${input}<span class="unit">${f.unit}</span></div>`;
         }
         return `<div class="form-group">${label}${input}</div>`;
       }).join('')}</div>
     </div>`).join('');
-  ['time_pt','time_ct','supply_box','load_box'].forEach(k => { const e = $('f_' + k); if (e) e.addEventListener('input', recalcForm); });
+  ['time_pt','time_ct','supply_box','load_box','ch_wt','rr_wt'].forEach(k => { const e = $('f_' + k); if (e) e.addEventListener('input', recalcForm); });
 }
 
 function recalcForm() {
   $('f_duration').value = durationText($('f_time_pt').value, $('f_time_ct').value) || '';
   const s = $('f_supply_box').value, l = $('f_load_box').value;
   $('f_sick_box').value = (s === '' || l === '') ? '' : (+s - +l);
+  const ch = $('f_ch_wt').value, rr = $('f_rr_wt').value;
+  $('f_ul_qty').value = (ch === '' || rr === '') ? '' : Math.round((+ch - +rr) * 100) / 100;
 }
 
 let entryReady = false;
@@ -1143,9 +1147,10 @@ async function initEntry() {
   if (entryReady) return;
   entryReady = true;
   buildEntryForm();
+  enhanceSelects();
   const now = new Date(), m = now.getMonth() + 1;
   $('rakeQuarter').value = m >= 4 && m <= 6 ? 'Q1' : m >= 7 && m <= 9 ? 'Q2' : m >= 10 ? 'Q3' : 'Q4';
-  $('rakeReportDate').value = now.toISOString().slice(0, 10);
+  $('rakeReportDate').value = todayStr();
   await loadRake();
   await loadSettings();
   await resetEntryForm();
@@ -1153,7 +1158,7 @@ async function initEntry() {
 
 async function resetEntryForm() {
   $('entryForm').reset();
-  $('f_date').value = new Date().toISOString().slice(0, 10);
+  $('f_date').value = todayStr();
   const { data } = await db.from('hzl_rake_records').select('sr_no').order('sr_no', { ascending: false }).limit(1);
   $('f_sr_no').value = data && data.length ? data[0].sr_no + 1 : 1;
   recalcForm();
@@ -1173,12 +1178,46 @@ $('entryForm').addEventListener('submit', async e => {
   row.duration = durationText($('f_time_pt').value, $('f_time_ct').value);
   row.sick_box = $('f_sick_box').value === '' ? null : +$('f_sick_box').value;
   row.sr_no = +$('f_sr_no').value || null;
+  row.ul_qty = $('f_ul_qty').value === '' ? null : +$('f_ul_qty').value;
   const { error } = await db.from('hzl_rake_records').insert(row);
   if (error) { toast('Save failed: ' + error.message, true); return; }
   toast('Record saved');
   await syncRakeLoaded(row.date);
   await resetEntryForm();
 });
+
+/* ---- Helpers: today's local date, ADD NEW dropdown options ---- */
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+}
+let CUSTOM_OPTS = {};
+try { CUSTOM_OPTS = JSON.parse(localStorage.getItem('hzl_custom_opts') || '{}'); } catch (e) { CUSTOM_OPTS = {}; }
+function saveCustomOpts() { try { localStorage.setItem('hzl_custom_opts', JSON.stringify(CUSTOM_OPTS)); } catch (e) {} }
+function enhanceSelects(root = document) {
+  root.querySelectorAll('select[data-addnew]').forEach(sel => {
+    const name = sel.dataset.addnew;
+    const have = new Set([...sel.options].map(o => o.value));
+    (CUSTOM_OPTS[name] || []).forEach(v => {
+      if (!have.has(v)) { sel.insertBefore(new Option(v, v), sel.querySelector('option[value="__new__"]')); have.add(v); }
+    });
+    const old = sel.querySelector('option[value="__new__"]');
+    if (old) old.remove();
+    sel.appendChild(new Option('+ ADD NEW', '__new__'));
+  });
+}
+document.addEventListener('change', e => {
+  const sel = e.target;
+  if (!(sel instanceof HTMLSelectElement) || sel.value !== '__new__') return;
+  const name = sel.dataset.addnew;
+  const v = (prompt('Enter a new ' + name.replace(/_/g, ' ') + ':') || '').trim();
+  if (!v) { sel.value = ''; return; }
+  if (!CUSTOM_OPTS[name]) CUSTOM_OPTS[name] = [];
+  if (!CUSTOM_OPTS[name].includes(v)) CUSTOM_OPTS[name].push(v);
+  saveCustomOpts();
+  enhanceSelects();
+  sel.value = v;
+}, true);
 
 /* ---- Search / Update existing record by Sr No ---- */
 function formRow() {
@@ -1191,6 +1230,7 @@ function formRow() {
   row.duration = durationText($('f_time_pt').value, $('f_time_ct').value);
   row.sick_box = $('f_sick_box').value === '' ? null : +$('f_sick_box').value;
   row.sr_no = +$('f_sr_no').value || null;
+  row.ul_qty = $('f_ul_qty').value === '' ? null : +$('f_ul_qty').value;
   return row;
 }
 
@@ -1201,6 +1241,8 @@ function fillForm(r) {
     let v = r[col] == null ? '' : r[col];
     if (TIME_COLS.has(col) && v) v = String(v).slice(0, 5);
     if (DATE_COLS.has(col) && v) v = String(v).slice(0, 10);
+    if (el.tagName === 'SELECT' && v && ![...el.options].some(o => o.value === String(v)))
+      el.insertBefore(new Option(v, v), el.querySelector('option[value="__new__"]'));
     el.value = v;
   });
   recalcForm();
@@ -1254,7 +1296,7 @@ const quarterKey = () => qKey($('rakeQuarter').value, curYear());
 const quarterEndDate = () => qEnd($('rakeQuarter').value, curYear());
 function fyLabel(monthKey) { const [y, m] = monthKey.split('-').map(Number); return m >= 4 ? `${y}-${String(y + 1).slice(2)}` : `${y - 1}-${String(y).slice(2)}`; }
 function daysBetween(a, b) { const d = Math.round((new Date(b + 'T00:00:00Z') - new Date(a + 'T00:00:00Z')) / 86400000); return d > 0 ? d : 0; }
-function daysRemaining() { return daysBetween($('rakeReportDate').value || new Date().toISOString().slice(0, 10), quarterEndDate()); }
+function daysRemaining() { return daysBetween($('rakeReportDate').value || todayStr(), quarterEndDate()); }
 const askingPerDay = (bal, days) => { const d = days === undefined ? daysRemaining() : days; return d ? Math.round(bal / d * 100) / 100 : 0; };
 const askingPct = (l, t) => t ? Math.round(l / t * 1000) / 10 : 0;
 const fmtDay = v => Number(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 });
@@ -1318,13 +1360,13 @@ async function carryForward() {
   return true;
 }
 async function loadRake() {
+  $('rakeReportDate').value = todayStr();
   const q = $('rakeQuarter').value;
   const { data, error } = await db.from('hzl_rake_targets').select('box_type, qtr_target, report_date')
     .eq('quarter', q).eq('month', quarterKey());
   rake = defaultRake();
   if (!error && data && data.length) {
     data.forEach(row => { const r = rake.find(x => x.type === row.box_type); if (r) r.target = row.qtr_target ?? 0; });
-    if (data[0].report_date) $('rakeReportDate').value = data[0].report_date;
   }
   if (!rake.some(r => r.target > 0)) await carryForward();
   await refreshLoaded();
@@ -1703,6 +1745,7 @@ $('resetDemo').addEventListener('click', loadDashboard);
 document.querySelectorAll('#view-dashboard input[id]').forEach(i => { i.readOnly = true; });
 
 /* ==================== INIT ==================== */
+enhanceSelects();
 setInterval(() => { if (!document.hidden && $('view-dashboard').classList.contains('active')) loadDashboard(); }, 20000);
 (async () => {
   await loadFormulas();
