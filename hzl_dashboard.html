@@ -139,12 +139,16 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 .mines-table input.neg{color:#b3162b}
 .mines-table input.pos{color:#0c7a55}
 
-.trend-wrap{overflow-x:auto;border-radius:14px;border:1px solid #3b5d2a}
-.trend-table{width:100%;min-width:920px;border-collapse:collapse;font-variant-numeric:tabular-nums}
-.trend-table th{background:#92d050;color:var(--ink);font-weight:700;font-size:.78rem;padding:.6rem .5rem;text-align:center;border:1px solid #3b5d2a}
-.trend-table td{background:#c6efb0;color:var(--ink);font-weight:700;font-size:.85rem;padding:.5rem .5rem;text-align:center;border:1px solid #3b5d2a}
-.trend-table td.qtr{background:#b5e79c}
-.trend-table td.low{background:#ffc7ce;color:#b3162b}
+.trend-wrap{overflow-x:auto;border-radius:14px;border:1px solid var(--line)}
+.trend-table{width:100%;min-width:920px;border-collapse:separate;border-spacing:0;font-variant-numeric:tabular-nums}
+.trend-table th{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;font-size:.7rem;letter-spacing:.4px;text-transform:uppercase;font-weight:700;padding:.6rem .5rem;text-align:center;white-space:nowrap}
+.trend-table td{padding:.5rem .6rem;text-align:center;font-size:.85rem;font-weight:700;color:var(--ink);border-bottom:1px solid var(--line);white-space:nowrap}
+.trend-table tbody tr:nth-child(6n+4) td,.trend-table tbody tr:nth-child(6n+5) td,.trend-table tbody tr:nth-child(6n+6) td{background:#f6f9fe}
+.trend-table tbody tr:nth-child(3n) td{border-bottom:2px solid #d6e2f2}
+.trend-table tbody tr:last-child td{border-bottom:0}
+.trend-table td:first-child{text-align:left;font-weight:700;color:var(--navy2)}
+.trend-table td.qtr{background:#e0f5ef;color:#095e49;font-weight:700}
+.trend-table td.low{background:#fdeaec;color:#b3162b}
 
 /* Panels, forms, tables */
 .panel{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:1.2rem 1.3rem;box-shadow:var(--sh);margin-bottom:1.2rem}
@@ -1576,16 +1580,23 @@ async function computeDashboard(period = PERIOD) {
 /* Display: zero shows "-", money in whole rupees with en-IN grouping, decimals also get commas */
 const INT_FIELDS = new Set(['billQty','billGcv','svcSecl','svcCcl','svcMcl','pen5','totalBill','expBill','ulChg','olChg',
   'punSum','ehbc','enhc','deadFr','totalPen','pen5b','tgtSecl','tgtCcl','tgtMcl','loadSecl','loadCcl','loadMcl',
-  'balSecl','balCcl','balMcl','askSecl','askCcl','askMcl']);
+  'balSecl','balCcl','balMcl']);
 function formatCell(id, n) {
   if (!Number.isFinite(n)) return '';
   const isInt = INT_FIELDS.has(id);
-  if (isInt ? Math.round(n) === 0 : Math.abs(n) < 0.005) return '-';
+  if (Math.abs(n) < 0.005) return '-';
   const sign = n < 0 ? '-' : '';
-  const body = isInt
+  const body = isInt && Math.abs(n) >= 1
     ? Math.round(Math.abs(n)).toLocaleString('en-IN')
-    : Math.abs(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    : isInt
+      ? Math.abs(n).toLocaleString('en-IN', { maximumFractionDigits: 2 })
+      : Math.abs(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   return sign + body;
+}
+/* Trend table numbers: whole numbers for 1 and above, real decimals below 1 (e.g. 0.1) */
+function fmtTrendNum(n) {
+  if (n == null) return '-';
+  return Math.abs(n) >= 1 ? Math.round(n).toLocaleString('en-IN') : n.toLocaleString('en-IN', { maximumFractionDigits: 2 });
 }
 function renderCalculated(values) {
   Object.entries(values).forEach(([id, val]) => {
@@ -1610,8 +1621,8 @@ async function loadTrend() {
   const results = await Promise.all(keys.map(k => computeDashboard(k)));
   const DAY = 86400000, today = new Date(); today.setHours(0, 0, 0, 0);
   const inr = n => n == null ? '-' : '₹ ' + n.toFixed(3);
-  const int = n => n == null ? '-' : Math.round(n).toLocaleString('en-IN');
-  const rupee = n => n == null ? '-' : '₹ ' + Math.round(n).toLocaleString('en-IN');
+  const int = fmtTrendNum;
+  const rupee = n => n == null ? '-' : '₹ ' + fmtTrendNum(n);
   let html = '';
   keys.forEach((k, qi) => {
     const o = results[qi], recs = o._recs, start = new Date(o._from + 'T00:00:00');
@@ -1692,9 +1703,14 @@ $('saveDemo').addEventListener('click', async () => {
     const liveInputs = [...liveEl.querySelectorAll('input')];
     const COPY = ['background-color', 'color', 'font-family', 'font-size', 'font-weight', 'font-variant-numeric',
       'text-align', 'border', 'border-radius', 'padding', 'width', 'height', 'line-height'];
+    // Size the capture to the widest part of the dashboard (cards or wide tables), not a fixed width
+    const tableW = Math.max(0, ...[...liveEl.querySelectorAll('.trend-table, .mines-table')].map(t => t.scrollWidth));
+    const W = Math.ceil(Math.max(liveEl.getBoundingClientRect().width, liveEl.scrollWidth, tableW + 120));
+    const H = Math.ceil(Math.max(liveEl.getBoundingClientRect().height, liveEl.scrollHeight));
     const canvas = await html2canvas(liveEl, {
       scale: 2, backgroundColor: '#e9eff8', useCORS: true, logging: false,
-      windowWidth: 1500, height: liveEl.scrollHeight, windowHeight: liveEl.scrollHeight,
+      x: 0, y: 0, scrollX: 0, scrollY: 0,
+      width: W, height: H, windowWidth: W, windowHeight: H,
       onclone: doc => {
         // Let scrollable tables draw in full instead of being cut at their box
         doc.querySelectorAll('.trend-wrap, .mines-wrap, .tbl-wrap, .card, .main').forEach(n => {
@@ -1702,6 +1718,8 @@ $('saveDemo').addEventListener('click', async () => {
           n.style.maxHeight = 'none';
         });
         doc.querySelectorAll('.trend-table, .mines-table').forEach(t => { t.style.minWidth = '0'; });
+        const cloneRoot = doc.querySelector('#view-dashboard');
+        if (cloneRoot) cloneRoot.style.width = W + 'px';
         // Solid base colour so the page never falls back to white
         doc.documentElement.style.background = '#e9eff8';
         doc.body.style.background = '#e9eff8';
