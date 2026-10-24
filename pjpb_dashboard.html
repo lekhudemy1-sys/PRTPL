@@ -24,7 +24,6 @@ a{text-decoration:none;color:inherit}
 input,select,textarea{font-family:inherit;color-scheme:light;outline:none}
 input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(58,55,150,.35)!important}
 
-/* Floating nav */
 .sidebar{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:100;display:flex;align-items:center;gap:1rem;
   background:rgba(31,27,77,.95);backdrop-filter:blur(12px);color:#ebe9ff;border-radius:999px;padding:.35rem .5rem .35rem 1rem;
   box-shadow:0 12px 32px -10px rgba(31,27,77,.55),0 0 0 1px rgba(255,255,255,.08);max-width:calc(100% - 1.5rem)}
@@ -44,7 +43,6 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(58,55,150,.35)
 .view.active{display:block;animation:rise .55s var(--ease) backwards}
 @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 
-/* Hero title bar */
 .topbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.8rem;margin-bottom:1.2rem;padding:1.1rem 1.5rem;border-radius:22px;color:#fff;
   background:radial-gradient(500px 200px at 90% 0,rgba(255,179,71,.38),transparent 70%),linear-gradient(120deg,var(--navy) 0%,var(--navy2) 60%,#7a3fa8 100%);
   box-shadow:0 18px 36px -18px rgba(31,27,77,.65)}
@@ -61,7 +59,6 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(58,55,150,.35)
 .btn-primary{background:var(--gold);color:#3a2300;box-shadow:0 10px 18px -8px rgba(255,179,71,.75)}
 .btn:disabled{opacity:.6;cursor:wait}
 
-/* Grid + cards */
 .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.2rem;margin-bottom:1.2rem;align-items:stretch}
 .card{--c:var(--blue);--t:#e9ecfc;--l:#b3bdf0;--d:#27358f;--h:#f1f3fd;--b:#dce1f8;position:relative;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:1.1rem 1.15rem 1rem;box-shadow:var(--sh);overflow:hidden;transition:transform .25s var(--ease),box-shadow .25s;margin-bottom:1.2rem}
 .card::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,var(--c),var(--l))}
@@ -77,8 +74,6 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(58,55,150,.35)
 .mines-card{--c:var(--navy2);--t:#e9e8f7;--l:#a9a7d2;--d:#1f1b4d;--h:#f0effa;--b:#d9d8ea}
 .trend-card{--c:var(--amber);--t:#fdeedc;--l:#f8cd9d;--d:#8a4a0a}
 .grid-3 .card{margin-bottom:0}
-.grid-2{grid-template-columns:1fr 1fr}
-@media (max-width:800px){.grid-2{grid-template-columns:1fr}}
 
 .metric-row{display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.42rem .25rem;border-bottom:1px dashed var(--line);border-radius:10px;transition:background .2s}
 .metric-row:last-child{border-bottom:0}
@@ -94,6 +89,11 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(58,55,150,.35)
 .dual-head{display:flex;justify-content:flex-end;gap:.35rem;padding:0 .25rem .25rem;margin-bottom:.15rem}
 .dual-head span{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink);text-align:center}
 .dual-head span:first-child{width:7.8rem}.dual-head span:last-child{width:5.6rem}
+.triple-head{display:flex;justify-content:flex-end;gap:.25rem;padding:0 .25rem .25rem;margin-bottom:.15rem}
+.triple-head span{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--ink);text-align:center;width:5.2rem}
+.pair3{display:flex;gap:.25rem}
+.pair3 input{width:5.2rem!important}
+
 .sub-title{margin:.7rem 0 .35rem;padding:.35rem .7rem;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--c);background:var(--t);border-radius:999px;display:inline-block}
 .total-row{margin-top:.4rem;padding:.55rem .7rem;border:0;border-radius:14px;background:linear-gradient(120deg,var(--navy),var(--navy2));box-shadow:0 10px 18px -10px rgba(31,27,77,.6)}
 .total-row .metric-label{color:#fff;font-weight:700}
@@ -139,10 +139,6 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(58,55,150,.35)
 .trend-table td.qtr{background:#ffe2ad}
 .trend-table td.low{background:#ffc7ce;color:#b3162b}
 
-.report-footer{display:flex;align-items:center;justify-content:center;gap:.5rem;width:max-content;max-width:100%;margin:0 auto;padding:.5rem 1.2rem;font-size:.85rem;font-weight:600;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:999px;box-shadow:var(--sh)}
-.report-footer::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--amber);box-shadow:0 0 0 3px rgba(240,138,36,.25)}
-
-/* Panels, forms, tables */
 .panel{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:1.2rem 1.3rem;box-shadow:var(--sh);margin-bottom:1.2rem}
 .panel h2{font:700 1.15rem var(--head);margin-bottom:.8rem;display:flex;align-items:center;gap:.6rem}
 .panel h2 i{color:var(--amber)}
@@ -195,7 +191,6 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(58,55,150,.35)
 .formula-list{margin-top:.5rem;padding-left:1.1rem;font-size:.88rem;font-weight:600;line-height:1.7;color:var(--ink)}
 .formula-list code{background:#f1effc;border-radius:6px;padding:0 .3rem;font-size:.82rem}
 
-/* Password page */
 .lock-row{display:flex;align-items:center;justify-content:center;gap:1.5rem;flex-wrap:wrap;min-height:70vh;padding:1rem}
 .lock-back{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;border:0;padding:.75rem 1.2rem;border-radius:14px;font:700 .9rem var(--body);cursor:pointer;display:inline-flex;align-items:center;gap:.5rem;box-shadow:0 12px 22px -12px rgba(31,27,77,.7);transition:.2s}
 .lock-back:hover{transform:translateY(-2px)}
@@ -203,7 +198,6 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(58,55,150,.35)
 .lock-card input{margin:.8rem 0;width:100%;border:1px solid var(--line);border-radius:11px;padding:.6rem .8rem;font-size:1rem;text-align:center;letter-spacing:.3em;background:#f5f4fd}
 .lock-card .btn-go{justify-content:center;width:100%}
 
-/* Alerts & reports */
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:1.2rem}
 .stat-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:1rem 1.2rem;box-shadow:var(--sh);border-top:4px solid var(--line);text-align:center}
 .stat-card .label{font-size:.8rem;font-weight:700;color:var(--ink)}
@@ -232,13 +226,31 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(58,55,150,.35)
   .main{padding:7rem .8rem 1rem}.topbar{justify-content:center;text-align:center}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* GUJARAT-STYLE DASHBOARD LAYOUT */
+.back-row{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:.8rem}
+.back-row .back-btn{background:linear-gradient(120deg,var(--navy),var(--navy2));padding:.6rem 1.1rem;border-radius:12px;font-weight:700;box-shadow:0 10px 18px -10px rgba(31,27,77,.6)}
+.report-stamp{font-size:.85rem;font-weight:600;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:.5rem 1.2rem;box-shadow:var(--sh);display:inline-flex;align-items:center;gap:.5rem;margin-left:auto}
+.report-stamp::before{content:"";width:8px;height:8px;border-radius:50%;background:#16a870;box-shadow:0 0 0 3px rgba(22,168,112,.25)}
+.dash{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.2rem;align-items:start;margin-bottom:1.2rem}
+.dash-col{display:flex;flex-direction:column;gap:1.2rem;min-width:0}
+.dash-col .card{margin-bottom:0}
+.dash .area-table.five{border-spacing:8px}
+.dash .area-table.five th{font-size:.68rem;padding:.55rem .35rem}
+.dash .area-table.five input{font-size:.82rem;padding:.65rem .2rem}
+.dash .area-table.five .row-label{padding:.2rem .5rem;font-size:.8rem}
+.dash .c-area{padding:1.25rem 1.3rem 1.15rem}
+.dash .c-area .card-header{margin-bottom:.9rem}
+@media (max-width:1150px){.dash{grid-template-columns:1fr 1fr}}
+@media (max-width:800px){.dash{grid-template-columns:1fr}.report-stamp{margin-left:0}}
+.tbl thead tr:first-child th{height:34px}
+.tbl .filter-row th{top:34px;background:#ece9fb;padding:.25rem}
+.tbl .filter-row input{width:100%;min-width:6rem;border:1px solid var(--line);border-radius:8px;padding:.25rem .4rem;font:600 .75rem var(--body)}
 </style>
 </head>
 <body>
 
-<!-- Floating nav -->
 <aside class="sidebar">
-  <a class="back-btn" href="amm_home.html"><i class="fas fa-arrow-left"></i> Back</a>
   <div class="party-name"><span class="dot"></span> PJPB</div>
   <nav class="sidebar-nav">
     <button class="nav-item active" data-view="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</button>
@@ -256,78 +268,78 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(58,55,150,.35)
 
 <!-- ============ DASHBOARD VIEW ============ -->
 <section class="view active" id="view-dashboard">
+  <div class="back-row"><a class="back-btn" href="amm_home.html"><i class="fas fa-arrow-left"></i> Back</a><div class="report-stamp">Performance Report updated upto <strong id="reportUpdatedUpto">-</strong></div></div>
   <div class="topbar">
-    <div>
-      <h1>Performance Meter</h1>
-      <div class="period" id="periodLabel">AMM PJPB</div>
-    </div>
+    <div><h1>Performance Meter</h1><div class="period" id="periodLabel">AMM PJPB</div></div>
     <div class="topbar-actions">
-      <select id="periodPick" class="month-pick" aria-label="Month"></select>
+      <select id="periodPick" class="month-pick" aria-label="Quarter"></select>
       <button class="btn btn-secondary" id="reloadBtn"><i class="fas fa-rotate"></i> Reload from Database</button>
       <button class="btn btn-primary" id="pdfBtn"><i class="fas fa-file-image"></i> Download PNG</button>
     </div>
   </div>
 
-  <div class="grid-3 grid-2">
-    <div class="card c-area">
-      <div class="card-header"><h3><i class="fas fa-map-marker-alt"></i> Area Targets (Month)</h3></div>
-      <div id="areaTargetsBox"></div>
-    </div>
-
-    <div class="card c-short">
-      <div class="card-header"><h3><i class="fas fa-weight-hanging"></i> Weight Variance (RR vs Net)</h3></div>
-      <div class="metric-row"><span class="metric-label">Avg Variance MT per rake (RR &minus; Net)</span><input class="metric-value" id="wv_perRake" readonly></div>
-      <div class="metric-row"><span class="metric-label">Variance (% of Net Wt.)</span><input class="metric-value" id="wv_pct" readonly></div>
-      <div class="sub-title">Area wise Avg. RR Wt. &amp; Freight per MT</div>
-      <div class="dual-head"><span>Avg. RR Wt.</span><span>Freight / MT</span></div>
-      <div id="areaWtBox"></div>
-    </div>
-  </div>
-
-  <div class="grid-3">
-    <div class="card c-bill">
-      <div class="card-header"><h3><i class="fas fa-rupee-sign"></i> Freight Summary</h3></div>
-      <div class="dual-head"><span>Amount</span><span>Per MT</span></div>
-      <div class="metric-row"><span class="metric-label">RR Freight Base Value</span><div class="pair"><input class="metric-value" id="fr_base" readonly><input class="metric-value" id="fr_baseMt" readonly></div></div>
-      <div class="metric-row"><span class="metric-label">Total Railway Penalty</span><div class="pair"><input class="metric-value" id="fr_pen" readonly><input class="metric-value" id="fr_penMt" readonly></div></div>
-      <div class="metric-row"><span class="metric-label">GST</span><div class="pair"><input class="metric-value" id="fr_gst" readonly><input class="metric-value" id="fr_gstMt" readonly></div></div>
-      <div class="metric-row total-row"><span class="metric-label">TOTAL RAILWAY FREIGHT</span><div class="pair"><input class="metric-value" id="fr_total" readonly><input class="metric-value" id="fr_totalMt" readonly></div></div>
-      <div class="metric-row"><span class="metric-label">Penalty as % of Total Freight</span><input class="metric-value" id="fr_penPct" readonly></div>
-      <div class="metric-row"><span class="metric-label">Expected Freight of the Month</span><input class="metric-value wide" id="fr_exp" readonly></div>
-    </div>
-
-    <div class="card c-rake">
-      <div class="card-header"><h3><i class="fas fa-train"></i> Rake Performance</h3></div>
-      <table class="area-table">
-        <thead><tr><th></th><th>Achieve</th><th>Target</th></tr></thead>
-        <tbody>
-          <tr><td class="row-label">Per Day Rakes</td><td><input id="pd_rakeAch" readonly></td><td><input id="pd_rakeTgt" readonly></td></tr>
-          <tr><td class="row-label">Per Day Quantity</td><td><input id="pd_qtyAch" readonly></td><td><input id="pd_qtyTgt" readonly></td></tr>
-          <tr><td class="row-label">Freight Cost / MT</td><td><input id="pd_fcAch" readonly></td><td><input id="pd_fcTgt" readonly></td></tr>
-        </tbody>
-      </table>
-      <div class="avg-grid">
-        <div class="highlight-box"><div class="label">Avg. Net Wt.</div><input class="metric-value" id="t_avgNet" readonly></div>
-        <div class="highlight-box"><div class="label">Avg. Chargeable Wt.</div><input class="metric-value" id="t_avgChg" readonly></div>
-        <div class="highlight-box"><div class="label">Avg. RR Wt.</div><input class="metric-value" id="t_avgRr" readonly></div>
-        <div class="highlight-box"><div class="label">Avg. Loading Time</div><input class="metric-value" id="t_avgLoad" readonly></div>
-        <div class="highlight-box hb-steel"><div class="label">Total RR Weight</div><input class="metric-value" id="t_totalRr" readonly></div>
-        <div class="highlight-box hb-lav"><div class="label">Total Rakes Loaded</div><input class="metric-value" id="t_rakes" readonly></div>
+  <div class="dash">
+    <div class="dash-col">
+      <div class="card c-bill">
+        <div class="card-header"><h3><i class="fas fa-list-check"></i> Particulars</h3></div>
+        <div class="metric-row"><span class="metric-label">Performance on Quantity RECO</span><input class="metric-value wide" id="par_qtyReco" readonly></div>
+        <div class="metric-row"><span class="metric-label">Performance on GCV RECO</span><input class="metric-value wide" id="par_gcvReco" readonly></div>
+        <div class="metric-row"><span class="metric-label">Performance on Service Charge (SECL)</span><input class="metric-value wide" id="par_scSecl" readonly></div>
+        <div class="metric-row"><span class="metric-label">Performance on Service Charge (MCL)</span><input class="metric-value wide" id="par_scMcl" readonly></div>
+        <div class="metric-row"><span class="metric-label">Performance on Service Charge (CCL)</span><input class="metric-value wide" id="par_scCcl" readonly></div>
+        <div class="metric-row"><span class="metric-label">Performance on Service Charge (NCL)</span><input class="metric-value wide" id="par_scNcl" readonly></div>
+        <div class="metric-row"><span class="metric-label">Total Railway Penalty</span><input class="metric-value wide" id="par_pen" readonly></div>
+        <div class="metric-row total-row"><span class="metric-label">TOTAL BILLING</span><input class="metric-value wide" id="par_totalBill" readonly></div>
+        <div class="metric-row"><span class="metric-label">Expected Billing of the Month</span><input class="metric-value wide" id="par_expBill" readonly></div>
+      </div>
+      <div class="card c-rake">
+        <div class="card-header"><h3><i class="fas fa-train"></i> Rake Performance</h3></div>
+        <table class="area-table">
+          <thead><tr><th></th><th>Achieve</th><th>Target</th></tr></thead>
+          <tbody>
+            <tr><td class="row-label">Target Achieved</td><td><input id="pd_tgtAch" readonly></td><td><input id="pd_tgtTgt" readonly></td></tr>
+            <tr><td class="row-label">Asking</td><td><input id="pd_askAch" readonly></td><td><input id="pd_askTgt" readonly></td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
-
-    <div class="card c-pen">
-      <div class="card-header"><h3><i class="fas fa-exclamation-triangle"></i> Railway Freight Penalties</h3></div>
-      <div class="dual-head"><span>Amount</span><span>Per MT</span></div>
-      <div class="metric-row"><span class="metric-label">Punitive Sum (POL1/POL2/POLA/KRBA/LADC/PCLA/DCLA)</span><div class="pair"><input class="metric-value" id="pn_pun" readonly><input class="metric-value" id="pn_punMt" readonly></div></div>
-      <div class="metric-row"><span class="metric-label">EHBC / FAUC / TC / ST group</span><div class="pair"><input class="metric-value" id="pn_ehbc" readonly><input class="metric-value" id="pn_ehbcMt" readonly></div></div>
-      <div class="metric-row"><span class="metric-label">ENHC Charges</span><div class="pair"><input class="metric-value" id="pn_enhc" readonly><input class="metric-value" id="pn_enhcMt" readonly></div></div>
-      <div class="metric-row"><span class="metric-label">EHBC</span><div class="pair"><input class="metric-value" id="pn_ehbcX" readonly><input class="metric-value" id="pn_ehbcXMt" readonly></div></div>
-      <div class="metric-row total-row"><span class="metric-label">TOTAL PENALTY</span><div class="pair"><input class="metric-value" id="pn_total" readonly><input class="metric-value" id="pn_totalMt" readonly></div></div>
-      <div class="sub-title">Quantities (MT)</div>
-      <div class="metric-row"><span class="metric-label">Underload (U/L)</span><input class="metric-value" id="pn_ul" readonly></div>
-      <div class="metric-row"><span class="metric-label">Overload (O/L)</span><input class="metric-value" id="pn_ol" readonly></div>
-      <div class="metric-row"><span class="metric-label">CHBL at Punitive Rate</span><input class="metric-value" id="pn_chbl" readonly></div>
+    <div class="dash-col">
+      <div class="card c-area">
+        <div class="card-header"><h3><i class="fas fa-map-marker-alt"></i> Plants / Target (Quarter)</h3></div>
+        <div id="areaTargetsBox"></div>
+      </div>
+      <div class="card c-rake" id="wtSummaryCard">
+        <div class="card-header"><h3><i class="fas fa-weight-hanging"></i> Weight Summary</h3></div>
+        <div class="avg-grid">
+          <div class="highlight-box"><div class="label">Avg. Plant Receive</div><input class="metric-value" id="t_avgNet" readonly></div>
+          <div class="highlight-box"><div class="label">Avg. Chargeable Wt.</div><input class="metric-value" id="t_avgChg" readonly></div>
+          <div class="highlight-box"><div class="label">Avg. RR Wt.</div><input class="metric-value" id="t_avgRr" readonly></div>
+          <div class="highlight-box"><div class="label">Avg. GCV</div><input class="metric-value" id="t_avgGcv" readonly></div>
+          <div class="highlight-box hb-steel"><div class="label">Total RR Weight</div><input class="metric-value" id="t_totalRr" readonly></div>
+          <div class="highlight-box hb-lav"><div class="label">Total Plant Receive</div><input class="metric-value" id="t_plantRecv" readonly></div>
+        </div>
+      </div>
+    </div>
+    <div class="dash-col">
+      <div class="card c-short">
+        <div class="card-header"><h3><i class="fas fa-weight-hanging"></i> Weight Variance (RR vs Net)</h3></div>
+        <div class="metric-row"><span class="metric-label">Avg Short / Excess</span><input class="metric-value" id="wv_perRake" readonly></div>
+        <div class="metric-row"><span class="metric-label">Normalised Qty</span><input class="metric-value" id="wv_pct" readonly></div>
+        <div class="sub-title">Area wise GCV</div>
+        <div class="triple-head"><span>Loading GCV</span><span>Unloading GCV</span><span>GCV Diff</span></div>
+        <div id="areaWtBox"></div>
+      </div>
+      <div class="card c-pen">
+        <div class="card-header"><h3><i class="fas fa-exclamation-triangle"></i> Railway Freight Penalties</h3></div>
+        <div class="dual-head"><span>Amount</span><span>Per MT</span></div>
+        <div class="metric-row"><span class="metric-label">Underload Charge</span><div class="pair"><input class="metric-value" id="pn_ulChg" readonly><input class="metric-value" id="pn_ulChgMt" readonly></div></div>
+        <div class="metric-row"><span class="metric-label">Overload Charge</span><div class="pair"><input class="metric-value" id="pn_olChg" readonly><input class="metric-value" id="pn_olChgMt" readonly></div></div>
+        <div class="metric-row"><span class="metric-label">Punitive Sum</span><div class="pair"><input class="metric-value" id="pn_pun" readonly><input class="metric-value" id="pn_punMt" readonly></div></div>
+        <div class="metric-row"><span class="metric-label">EHBC / FAUC / TC</span><div class="pair"><input class="metric-value" id="pn_ehbc" readonly><input class="metric-value" id="pn_ehbcMt" readonly></div></div>
+        <div class="metric-row"><span class="metric-label">ENHC Charges</span><div class="pair"><input class="metric-value" id="pn_enhc" readonly><input class="metric-value" id="pn_enhcMt" readonly></div></div>
+        <div class="metric-row"><span class="metric-label">Dead Freight</span><div class="pair"><input class="metric-value" id="pn_dead" readonly><input class="metric-value" id="pn_deadMt" readonly></div></div>
+        <div class="metric-row total-row"><span class="metric-label">TOTAL PENALTY</span><div class="pair"><input class="metric-value" id="pn_total" readonly><input class="metric-value" id="pn_totalMt" readonly></div></div>
+      </div>
     </div>
   </div>
 
@@ -337,38 +349,26 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(58,55,150,.35)
   </div>
 
   <div class="card trend-card" id="capTrend">
-    <div class="card-header"><h3><i class="fas fa-calendar-alt"></i> Monthly Performance</h3></div>
+    <div class="card-header"><h3><i class="fas fa-calendar-alt"></i> Quarterly Performance</h3></div>
     <div class="trend-wrap">
       <table class="trend-table">
-        <thead><tr><th>Month</th><th>Rakes</th><th>RR Qty (MT)</th><th>Per Day Qty.</th><th>Freight / MT</th><th>Month Target (MT)</th><th>% of Target</th></tr></thead>
+        <thead><tr><th>Quarter</th><th>Rakes</th><th>RR Qty (MT)</th><th>Per Day Qty.</th><th>Freight / MT</th><th>Quarter Target (MT)</th><th>% of Target</th></tr></thead>
         <tbody id="trendBody"></tbody>
       </table>
     </div>
   </div>
-
-  <div class="card mines-card" id="capSource">
-    <div class="card-header"><h3><i class="fas fa-warehouse"></i> Source Wise Performance (Siding / Silo)</h3></div>
-    <div class="src-wrap">
-      <table class="mines-table" style="min-width:760px">
-        <thead><tr><th>Source</th><th>Area</th><th>Rakes</th><th>RR Wt. (MT)</th><th>Avg. RR Wt.</th><th>Punitive Sum</th><th>Total Freight</th><th>Freight / MT</th><th>Avg. Loading</th></tr></thead>
-        <tbody id="srcBody"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="report-footer">Performance Report updated upto <strong id="reportUpdatedUpto">-</strong></div>
 </section>
 
 <!-- ============ REPORTS VIEW ============ -->
 <section class="view" id="view-reports">
   <div class="topbar">
-    <div><h1>Reports</h1><div class="period" id="repPeriod">Month and area summary</div></div>
+    <div><h1>Reports</h1><div class="period" id="repPeriod">Quarter and area summary</div></div>
     <div class="topbar-actions">
-      <select id="periodPick2" class="month-pick" aria-label="Month"></select>
+      <select id="periodPick2" class="month-pick" aria-label="Quarter"></select>
       <button class="btn btn-primary" id="repXlsx"><i class="fas fa-file-excel"></i> Download Excel</button>
     </div>
   </div>
-  <div class="panel"><h2><i class="fas fa-calendar-day"></i> Month wise summary</h2><div class="rep-scroll"><table class="rep-table" id="repMonth"></table></div></div>
+  <div class="panel"><h2><i class="fas fa-calendar-day"></i> Quarter wise summary</h2><div class="rep-scroll"><table class="rep-table" id="repMonth"></table></div></div>
   <div class="panel"><h2><i class="fas fa-map-marked-alt"></i> Area wise summary</h2><div class="rep-scroll"><table class="rep-table" id="repArea"></table></div></div>
   <div class="status" id="repStatus"></div>
 </section>
@@ -434,6 +434,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(58,55,150,.35)
       <select id="logMonth" class="field" style="max-width:190px"></select>
       <input class="search" id="logSearch" placeholder="Search by RR no, source, area, FNOT, date (yyyy-mm-dd)...">
       <button class="btn-soft" id="logReload"><i class="fas fa-rotate"></i> Reload</button>
+      <button class="btn-soft" id="logClear"><i class="fas fa-filter-circle-xmark"></i> Clear filters</button>
       <span class="muted" id="logCount"></span>
     </div>
     <div class="tbl-wrap"><table class="tbl" id="logTbl"></table></div>
@@ -445,14 +446,21 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(58,55,150,.35)
 <section class="view" id="view-entry">
   <div class="topbar"><div><h1>Data Entry</h1><div class="period">Record coal rake loading, railway receipt, charges, freight &amp; sample data</div></div></div>
   <div class="panel">
-    <h2><i class="fas fa-plus-circle"></i> New Rake Record</h2>
+    <h2><i class="fas fa-plus-circle"></i> Rake Record — New / Update</h2>
+    <div class="toolbar" style="margin-bottom:1rem">
+      <input type="number" id="searchSr" class="field" style="max-width:160px" placeholder="Sr No" min="1" step="1">
+      <select id="searchMonth" class="field" style="max-width:200px"></select>
+      <button type="button" class="btn-go" id="searchSrBtn"><i class="fas fa-search"></i> Search by Sr No</button>
+      <span class="muted" id="searchSrStatus"></span>
+    </div>
     <form id="entryForm" novalidate>
+      <input type="hidden" id="editRecordId" value="">
       <div id="formSections"></div>
       <datalist id="sourceList"></datalist>
       <datalist id="boxList"><option value="N-BOX"><option value="NS BOX"><option value="MIX BOX"><option value="NHL"><option value="BOSM"></datalist>
       <div class="form-actions">
-        <button type="submit" class="btn-go"><i class="fas fa-save"></i> Save Record</button>
-        <button type="button" class="btn-soft" id="clearForm">Clear Form</button>
+        <button type="submit" class="btn-go" id="entrySubmitBtn"><i class="fas fa-save"></i> Save Record</button>
+        <button type="button" class="btn-soft" id="clearForm">Clear / New</button>
       </div>
     </form>
   </div>
@@ -465,14 +473,23 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(58,55,150,.35)
     </div>
     <div class="tbl-wrap" style="max-height:none">
       <table class="tbl">
-        <thead><tr><th>SL. No.</th><th>Area</th><th>Month Target</th><th>Loaded Till</th><th>Balance Rake</th><th>Asking Per Day</th><th>Asking (%)</th></tr></thead>
+        <thead><tr><th>SL. No.</th><th>Area</th><th>Quarter Target</th><th>Loaded Till</th><th>Balance Rake</th><th>Asking Per Day</th><th>Asking (%)</th></tr></thead>
         <tbody id="rakeBody"></tbody>
         <tfoot><tr><td colspan="2">Total</td><td id="tTarget">0</td><td id="tLoaded">0</td><td id="tBalance">0</td><td id="tAskingDay">0</td><td id="tAskingPct">0</td></tr></tfoot>
       </table>
     </div>
     <div class="form-grid" style="margin-top:1rem">
       <div class="form-group"><label for="fcTarget">Freight Cost Target (&#8377; / MT)</label><input type="number" id="fcTarget" min="0" step="0.01" placeholder="e.g. 1500"></div>
+      <div class="form-group"><label for="cfRake">Carry Forward Rake</label><input type="number" id="cfRake" min="0" step="1" value="233"><span class="muted">Used for Performance on Quantity RECO (rakes placed &times; 100 &divide; this value)</span></div>
     </div>
+    <div class="section-title" style="margin-top:1.2rem"><i class="fas fa-rupee-sign"></i> Service Charge (&#8377; / MT) — permanent until changed</div>
+    <div class="form-grid">
+      <div class="form-group"><label for="scSecl">SECL</label><input type="number" id="scSecl" min="0" step="0.01" placeholder="0"></div>
+      <div class="form-group"><label for="scMcl">MCL (IB + CKP)</label><input type="number" id="scMcl" min="0" step="0.01" placeholder="0"></div>
+      <div class="form-group"><label for="scCcl">CCL</label><input type="number" id="scCcl" min="0" step="0.01" placeholder="0"></div>
+      <div class="form-group"><label for="scNcl">NCL</label><input type="number" id="scNcl" min="0" step="0.01" placeholder="0"></div>
+    </div>
+    <p class="muted" style="margin-top:.4rem">Performance on Service Charge = RR Weight of that area × rate above. Saved permanently until you change it.</p>
   </div>
 </section>
 
@@ -485,7 +502,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(58,55,150,.35)
   <div class="panel">
     <h2><i class="fas fa-calculator"></i> Editable Rules</h2>
     <div class="form-grid">
-      <div class="form-group"><label for="fDayQty">Per Day Quantity target (MT per day)</label><input type="number" step="1" id="fDayQty"><span class="muted">Month Target Qty = this value &times; days in the month</span></div>
+      <div class="form-group"><label for="fDayQty">Per Day Quantity target (MT per day)</label><input type="number" step="1" id="fDayQty"><span class="muted">Quarter Target Qty = this value &times; days in the quarter</span></div>
       <div class="form-group"><label for="fPctLow">Highlight monthly % below</label><input type="number" step="0.1" id="fPctLow"><span class="muted">In Monthly Performance, a month below this % is shown in red</span></div>
     </div>
   </div>
@@ -507,10 +524,29 @@ const APP_PASSWORD = '1234';
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const COLS = [{"db": "sr_no", "label": "Sr No", "type": "int", "section": "Basic Details", "flags": "A", "note": "Running number; restarts every month. Leave blank to auto-number.", "aliases": []}, {"db": "loading_date", "label": "Loading Date", "type": "date", "section": "Basic Details", "flags": "R", "note": "dd.mm.yyyy (text) or a real Excel date.", "aliases": ["Date"]}, {"db": "area", "label": "AREA", "type": "text", "section": "Basic Details", "flags": "RS", "note": "One of SECL, IB, CKP, CCL, NCL.", "aliases": []}, {"db": "source", "label": "Source", "type": "text", "section": "Basic Details", "flags": "R", "note": "Siding / silo name, e.g. BAROUD (BOMK).", "aliases": []}, {"db": "unit", "label": "UNIT", "type": "text", "section": "Basic Details", "flags": "", "note": "Defaults to IPP when blank.", "aliases": []}, {"db": "allotment_date", "label": "Allotment date", "type": "date", "section": "Allotment", "flags": "", "note": "dd.mm.yyyy.", "aliases": []}, {"db": "seq_no", "label": "Sr Seq no.", "type": "text", "section": "Allotment", "flags": "", "note": "Railway sequence number.", "aliases": ["Rlw Seq. No."]}, {"db": "reprogram_month", "label": "Reprogram Month of Loaded Rake", "type": "text", "section": "Allotment", "flags": "", "note": "Carry-forward programme reference, e.g. P/JBPL/SECL/C/OCT2026/1.", "aliases": ["Reprogram Month of Loaded rake, if Carryforward."]}, {"db": "time_pt", "label": "P/T", "type": "time", "section": "Loading Time", "flags": "", "note": "hh:mm (24 h).", "aliases": []}, {"db": "time_ct", "label": "C/T", "type": "time", "section": "Loading Time", "flags": "", "note": "hh:mm. Past-midnight loading is handled.", "aliases": []}, {"db": "time_do", "label": "D/O", "type": "time", "section": "Loading Time", "flags": "", "note": "hh:mm.", "aliases": []}, {"db": "loading_minutes", "label": "Loading Duration", "type": "int", "section": "Loading Time", "flags": "C", "note": "P/T to C/T in minutes. Not in the Excel sheet.", "aliases": []}, {"db": "supply_wagons", "label": "Supply Wagons", "type": "int", "section": "Wagon Details", "flags": "", "note": "", "aliases": []}, {"db": "load_wagons", "label": "Load Wagons", "type": "int", "section": "Wagon Details", "flags": "", "note": "", "aliases": []}, {"db": "sick_wagons", "label": "Sick Wagons", "type": "int", "section": "Wagon Details", "flags": "C", "note": "Supply Wagons - Load Wagons (blank Load counts as 0).", "aliases": []}, {"db": "box_type", "label": "Box Type", "type": "text", "section": "Wagon Details", "flags": "", "note": "e.g. N-BOX, NS BOX, MIX BOX, NHL, BOSM.", "aliases": []}, {"db": "net_wt", "label": "Net wt.", "type": "num", "section": "Weight & Quality", "flags": "", "note": "MT.", "aliases": []}, {"db": "chargeable_wt", "label": "Chargable Wt.", "type": "num", "section": "Weight & Quality", "flags": "", "note": "MT.", "aliases": ["Chargeable Wt."]}, {"db": "rr_weight", "label": "RR Weight", "type": "num", "section": "Weight & Quality", "flags": "", "note": "MT.", "aliases": []}, {"db": "plant_end_gcv", "label": "PLANT END GCV", "type": "num", "section": "Weight & Quality", "flags": "O", "note": "Optional - present in the May-Jul sheets only.", "aliases": []}, {"db": "tm_pct", "label": "TM%", "type": "num", "section": "Weight & Quality", "flags": "O", "note": "Optional.", "aliases": []}, {"db": "rr_number", "label": "RR Number", "type": "text", "section": "Railway Receipt", "flags": "", "note": "", "aliases": []}, {"db": "rr_date", "label": "RR Date", "type": "date", "section": "Railway Receipt", "flags": "", "note": "dd.mm.yyyy.", "aliases": []}, {"db": "fnot_no", "label": "FNOT No.", "type": "text", "section": "Railway Receipt", "flags": "", "note": "Kept as text (e.g. 2804.001).", "aliases": []}, {"db": "invoice_no", "label": "Invoice No.", "type": "text", "section": "Railway Receipt", "flags": "", "note": "", "aliases": []}, {"db": "ul_qty", "label": "U/L", "type": "num", "section": "Underload / Overload", "flags": "", "note": "Blank = 0.", "aliases": []}, {"db": "ol_qty", "label": "O/L", "type": "num", "section": "Underload / Overload", "flags": "", "note": "Blank = 0.", "aliases": []}, {"db": "chbl_pun_qty", "label": "CHBL AT PUN RATE.", "type": "num", "section": "Underload / Overload", "flags": "", "note": "Quantity charged at punitive rate (MT).", "aliases": []}, {"db": "pol1", "label": "POL1", "type": "num", "section": "Punitive Charges", "flags": "", "note": "Rs. Blank = 0.", "aliases": []}, {"db": "pol2", "label": "POL2", "type": "num", "section": "Punitive Charges", "flags": "", "note": "Rs.", "aliases": []}, {"db": "pola", "label": "POLA", "type": "num", "section": "Punitive Charges", "flags": "", "note": "Rs.", "aliases": []}, {"db": "krba", "label": "KRBA", "type": "num", "section": "Punitive Charges", "flags": "", "note": "Rs.", "aliases": []}, {"db": "ladc", "label": "LADC", "type": "num", "section": "Punitive Charges", "flags": "", "note": "Rs.", "aliases": []}, {"db": "pcla", "label": "PCLA", "type": "num", "section": "Punitive Charges", "flags": "", "note": "Rs.", "aliases": []}, {"db": "dcla", "label": "DCLA", "type": "num", "section": "Punitive Charges", "flags": "", "note": "Rs.", "aliases": []}, {"db": "pol_group", "label": "POL1/PO2/POLA/PCLA/DCLA", "type": "num", "section": "Punitive Charges", "flags": "C", "note": "Punitive Sum = POL1 + POL2 + POLA + KRBA + LADC + PCLA + DCLA.", "aliases": ["pun sum", "Punitative Sum"]}, {"db": "sd", "label": "SD", "type": "num", "section": "Other Railway Charges", "flags": "", "note": "Rs.", "aliases": []}, {"db": "sdcc", "label": "SDCC", "type": "num", "section": "Other Railway Charges", "flags": "", "note": "Rs.", "aliases": []}, {"db": "st", "label": "ST", "type": "num", "section": "Other Railway Charges", "flags": "", "note": "Rs.", "aliases": []}, {"db": "tc", "label": "TC", "type": "num", "section": "Other Railway Charges", "flags": "", "note": "Rs.", "aliases": []}, {"db": "fauc", "label": "FAUC", "type": "num", "section": "Other Railway Charges", "flags": "", "note": "Rs.", "aliases": []}, {"db": "ehbc_group", "label": "EHBC/FAUC/TC/ST", "type": "num", "section": "Other Railway Charges", "flags": "C", "note": "Sum of SD + SDCC + ST + TC + FAUC.", "aliases": ["DC SUM"]}, {"db": "gst", "label": "GST", "type": "num", "section": "Other Railway Charges", "flags": "", "note": "Rs.", "aliases": []}, {"db": "enhc", "label": "ENHC", "type": "num", "section": "Other Railway Charges", "flags": "", "note": "Rs.", "aliases": []}, {"db": "ehbc", "label": "EHBC", "type": "num", "section": "Other Railway Charges", "flags": "", "note": "Rs.", "aliases": []}, {"db": "rr_freight_base", "label": "RR Freight Base Value", "type": "num", "section": "Freight", "flags": "", "note": "Rs.", "aliases": []}, {"db": "railway_total_freight", "label": "Railway Total Freight", "type": "num", "section": "Freight", "flags": "", "note": "Rs. In the sheet this equals Base + Punitive Sum + EHBC group + GST + ENHC + EHBC (rounded).", "aliases": []}, {"db": "sample_collection_date", "label": "Date of Sample Collection", "type": "date", "section": "Sample & Powder", "flags": "", "note": "Defaults to Loading Date (as in the sheet).", "aliases": []}, {"db": "sample_rake_no", "label": "Rake No.", "type": "text", "section": "Sample & Powder", "flags": "", "note": "", "aliases": []}, {"db": "prep_commenced_date", "label": "DATE OF SAMPLE PREPARATION COMMENCED", "type": "date", "section": "Sample & Powder", "flags": "", "note": "dd.mm.yyyy.", "aliases": []}, {"db": "prep_50mm", "label": "Preparation for 50 mm ( YES/NO)", "type": "text", "section": "Sample & Powder", "flags": "", "note": "e.g. YES (02.07.2026).", "aliases": []}, {"db": "prep_12_5mm", "label": "Preparation for 12.5 mm ( YES/NO)", "type": "text", "section": "Sample & Powder", "flags": "", "note": "", "aliases": []}, {"db": "prep_3_35mm", "label": "Preparation for 3.35 mm ( YES / NO)", "type": "text", "section": "Sample & Powder", "flags": "", "note": "", "aliases": []}, {"db": "prep_212micron", "label": "Preparation for 212 micron (YES/NO)", "type": "text", "section": "Sample & Powder", "flags": "", "note": "", "aliases": []}, {"db": "prep_completed", "label": "DATE OF SAMPLE PREPARATION COMPLETED", "type": "text", "section": "Sample & Powder", "flags": "", "note": "e.g. COMPLETED/03.07.2026.", "aliases": []}, {"db": "sample_id", "label": "Sample ID", "type": "text", "section": "Sample & Powder", "flags": "", "note": "", "aliases": []}, {"db": "powder_status", "label": "Powder Status", "type": "text", "section": "Sample & Powder", "flags": "", "note": "", "aliases": []}];
+const S=(sec,type,items)=>items.map(s=>{const [db,label,flags='',al='']=s.split('|');return{db,label,type,section:sec,flags,note:'',aliases:al?al.split(';'):[]}});
+const COLS=[
+ ...S('Basic Details','int',['sr_no|Sr No|A']),
+ ...S('Basic Details','date',['loading_date|Loading Date|R|Date']),
+ ...S('Basic Details','text',['area|AREA|RS','source|Source|R','unit|UNIT']),
+ ...S('Loading','num',['loading_gcv|LOADING GCV']),
+ ...S('Loading','text',['loading_grade|Loading Grade']),
+ ...S('Loading','time',['time_pt|P/T','time_ct|C/T','time_do|D/O','loading_minutes|Loading Duration|C']),
+ ...S('Wagon Details','int',['supply_wagons|Supply Wagons','load_wagons|Load Wagons','sick_wagons|Sick Wagons|C']),
+ ...S('Wagon Details','text',['box_type|Box Type','dstn|DSTN']),
+ ...S('Weights','num',['gross_wt|Gross Wt','tare_wt|Tare Wt','net_wt|Net Wt','received_wt|Received Wt','diff_wt|Diff|C','avg_loading|Avg Loading|C','chargeable_wt|Chargable Wt.||Chargeable Wt.','rr_weight|RR Weight']),
+ ...S('Quality','text',['unloading_grade|UNLOADING GRADE']),
+ ...S('Quality','num',['gcv_arb|GCV ARB','grade_slippage|GRADE SLIPPAGE']),
+ ...S('Railway Receipt','text',['rr_number|RR Number']),
+ ...S('Railway Receipt','date',['rr_date|RR Date']),
+ ...S('Underload / Overload','num',['fixed_5pct_qty|5% FIXED OF CHARGEABLE QTY|C','under_load_qty|Under Load Quantity|C','underload_qty_paid_ci|UNDERLOAD QTY PAID COAL INDIA','paid_by_secl|PAID BY SECL','underload_qty_on_us|UNDERLOAD QTY ON US','underload_charges|UNDERLOAD CHARGES','underload_qty|UNDERLOAD Quantity','push_back_charge|Push Back Charge']),
+ ...S('Punitive Charges','num',['pola1|POLA 1','pola2|POLA 2','pola|POLA','ladc|LADC','dcla|DCLA','pcla|PCLA','pol_group|POL1/POL2/POLA/LADC/PCLA/DCLA|C|pun sum;Punitative Sum']),
+ ...S('Other Railway Charges','num',['sd|SD','sdcc|SDCC','st|ST','tc|TC','fauc|FAUC','ehbc_group|EHBC/FAUC/TC/ST|C|DC SUM','enhc|ENHC']),
+ ...S('Freight','num',['freight|FREIGHT','rate|RATE','dead_freight_qty|Dead Freight Qty|C','dead_freight_charges|Dead Freight Charges']),
+ ...S('GCV Bonus / Penalty','num',['gcv_bonus_penalty|GCV BONUS PENALTY (Rs. PER MT)|C','gcv_bonus_penalty_amt|Bonus/Penalty|C'])
+];
 const COL_BY_DB = {}; COLS.forEach(c => COL_BY_DB[c.db] = c);
 const T = 'pjpb_rake_records';
-// Area codes; IB and CKP are shown with (MCL) in every label
 let AREAS = ['SECL', 'IB', 'CKP', 'CCL', 'NCL'];
 const AREA_LABEL = a => (a === 'IB' || a === 'CKP') ? `${a} (MCL)` : a;
 
@@ -539,7 +575,27 @@ COLS.forEach(c => {
   HEADER_ALIASES[norm(c.label)] = c.db;
   (c.aliases || []).forEach(a => HEADER_ALIASES[norm(a)] = c.db);
 });
-const isCalc = db => (COL_BY_DB[db]?.flags || '').includes('C');
+const NOT_IN_DB = new Set(['gcv_bonus_penalty','gcv_bonus_penalty_amt']);
+const isCalc = db => NOT_IN_DB.has(db);
+
+/* ==================== GCV BONUS / PENALTY ====================
+   Per MT  = -MIN( MAX(0, (LOADING GCV - GCV ARB - 200) / 100) * 20% * 4.73 , 75% * 4.73 )
+   Amount  = Per MT * RR Weight
+*/
+const GCV_RATE = 4.73;
+function gcvBonusPerMt(loadGcv, gcvArb) {
+  if (loadGcv == null || gcvArb == null || loadGcv === '' || gcvArb === '') return null;
+  const band = Math.max(0, (Number(loadGcv) - Number(gcvArb) - 200) / 100) * 0.2 * GCV_RATE;
+  return -Math.min(band, 0.75 * GCV_RATE);
+}
+function enrichRecord(r) {
+  const perMt = gcvBonusPerMt(r.loading_gcv, r.gcv_arb);
+  return {
+    ...r,
+    gcv_bonus_penalty: perMt == null ? null : round2(perMt),
+    gcv_bonus_penalty_amt: (perMt == null || r.rr_weight == null) ? null : round2(perMt * Number(r.rr_weight))
+  };
+}
 
 function validYmd(y, m, d) {
   const dt = new Date(Date.UTC(y, m - 1, d));
@@ -661,16 +717,25 @@ async function loadAreas() {
   } catch (e) { console.warn('Areas not loaded, using defaults', e); }
 }
 
-/* ==================== FORMULAS ==================== */
-let FORMULAS = { dayQty: 15000, pctLow: 100 };
+/* ==================== FORMULAS + SERVICE CHARGE RATES ==================== */
+let FORMULAS = { dayQty: 15000, pctLow: 100, scSecl: 0, scMcl: 0, scCcl: 0, scNcl: 0 };
 async function loadFormulas() {
   try {
     const { data } = await db.from('pjpb_settings').select('setting_key, setting_value');
     (data || []).forEach(r => {
       if (r.setting_key === 'day_qty_target' && !isNaN(+r.setting_value)) FORMULAS.dayQty = +r.setting_value;
       if (r.setting_key === 'pct_highlight_below' && !isNaN(+r.setting_value)) FORMULAS.pctLow = +r.setting_value;
+      if (r.setting_key === 'sc_rate_secl' && !isNaN(+r.setting_value)) FORMULAS.scSecl = +r.setting_value;
+      if (r.setting_key === 'sc_rate_mcl' && !isNaN(+r.setting_value)) FORMULAS.scMcl = +r.setting_value;
+      if (r.setting_key === 'sc_rate_ccl' && !isNaN(+r.setting_value)) FORMULAS.scCcl = +r.setting_value;
+      if (r.setting_key === 'sc_rate_ncl' && !isNaN(+r.setting_value)) FORMULAS.scNcl = +r.setting_value;
     });
   } catch (e) { console.warn('Formulas not loaded, using defaults', e); }
+  // Reflect permanent SC rates in Data Entry inputs when present
+  ['scSecl', 'scMcl', 'scCcl', 'scNcl'].forEach(id => {
+    const el = $(id);
+    if (el && document.activeElement !== el) el.value = FORMULAS[id] ?? 0;
+  });
 }
 function renderFormulas() {
   $('fDayQty').value = FORMULAS.dayQty;
@@ -689,53 +754,131 @@ $('saveFormulas').addEventListener('click', async () => {
   loadDashboard();
 });
 
-/* ==================== PERIODS (MONTH WISE) ==================== */
+async function saveServiceCharges(silent) {
+  const keys = [
+    ['scSecl', 'sc_rate_secl'],
+    ['scMcl', 'sc_rate_mcl'],
+    ['scCcl', 'sc_rate_ccl'],
+    ['scNcl', 'sc_rate_ncl']
+  ];
+  const rows = [];
+  keys.forEach(([id, key]) => {
+    const v = $(id).value;
+    const n = v === '' ? 0 : Number(v);
+    if (isNaN(n) || n < 0) return;
+    FORMULAS[id] = n;
+    rows.push({ setting_key: key, setting_value: String(n) });
+  });
+  if (!rows.length) return;
+  const { error } = await db.from('pjpb_settings').upsert(rows, { onConflict: 'setting_key' });
+  if (error) { toast('Service charge save failed: ' + error.message, true); return; }
+  if (!silent) toast('Service charges saved');
+  if ($('view-dashboard').classList.contains('active')) loadDashboard();
+}
+let scTimer;
+function scheduleSaveSC() { clearTimeout(scTimer); scTimer = setTimeout(() => saveServiceCharges(false), 600); }
+
+/* ==================== PERIODS (QUARTER WISE WITH 3-DAY GRACE) ==================== */
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const DAY = 86400000;
 const U = s => Date.UTC(+s.slice(0, 4), +s.slice(5, 7) - 1, +s.slice(8, 10));
 const ymd = ms => new Date(ms).toISOString().slice(0, 10);
 const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; };
 
-// Month keys are "YYYY-MM". The picker lists Apr-2026 to Mar-2027 (FY 2026-27), extendable.
-function buildMonthKeys() {
+/* Quarters: Q1=Aug-Oct, Q2=Nov-Jan, Q3=Feb-Apr, Q4=May-Jul
+   (key year = year of first month)
+   Grace period of 3 days: each quarter starts on the 4th of the first month
+   and ends on the 3rd of the month after the last month.
+   Example: Q1 Aug-Oct 2026 → 04-08-2026 to 03-11-2026
+*/
+function buildQuarterKeys() {
   const keys = [];
-  for (let i = 0; i < 24; i++) {
-    const d = new Date(Date.UTC(2026, 3 + i, 1));
-    keys.push(`${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}`);
+  for (let y = 2025; y <= 2028; y++) {
+    for (let q = 1; q <= 4; q++) keys.push(`${y}-Q${q}`);
   }
   return keys;
 }
-const MONTH_KEYS = buildMonthKeys();
-const monthLabel = k => { const [y, m] = k.split('-').map(Number); return `${MONTHS[m - 1]}-${y}`; };
-function currentMonthKey() { const d = new Date(); return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}`; }
+const QUARTER_KEYS = buildQuarterKeys();
+const quarterLabel = k => {
+  const [ys, qs] = k.split('-Q');
+  const q = +qs, y = +ys;
+  if (q === 1) return `Aug-Sep-Oct ${y}`;
+  if (q === 2) return `Nov-Dec-Jan ${y}/${y + 1}`;
+  if (q === 3) return `Feb-Mar-Apr ${y + 1}`;
+  if (q === 4) return `May-Jun-Jul ${y + 1}`;
+  return k;
+};
+function currentQuarterKey() {
+  const d = new Date();
+  const y = d.getFullYear(), m = d.getMonth() + 1;
+  // Same decision logic (based on calendar month); only the date boundaries change
+  if (m >= 8 && m <= 10) return `${y}-Q1`;
+  if (m === 11 || m === 12) return `${y}-Q2`;
+  if (m === 1) return `${y - 1}-Q2`;
+  if (m >= 2 && m <= 4) return `${y - 1}-Q3`;
+  if (m >= 5 && m <= 7) return `${y - 1}-Q4`;
+  return `${y}-Q1`;
+}
 let PERIOD = new URLSearchParams(location.search).get('period');
-if (!MONTH_KEYS.includes(PERIOD)) PERIOD = currentMonthKey();
-if (!MONTH_KEYS.includes(PERIOD)) PERIOD = MONTH_KEYS[0];
+if (!QUARTER_KEYS.includes(PERIOD)) PERIOD = currentQuarterKey();
+if (!QUARTER_KEYS.includes(PERIOD)) PERIOD = QUARTER_KEYS[0];
 
-function monthRange(key) {
-  const [y, m] = key.split('-').map(Number);
-  const from = `${y}-${pad2(m)}-01`;
-  const next = new Date(Date.UTC(y, m, 1));
+function quarterRange(key) {
+  const [ys, qs] = key.split('-Q');
+  const q = +qs, y = +ys;
+  let startM, startY, endM, endY;
+  if (q === 1) { startY = y; startM = 8; endY = y; endM = 10; }       // Aug-Oct
+  else if (q === 2) { startY = y; startM = 11; endY = y + 1; endM = 1; } // Nov-Jan
+  else if (q === 3) { startY = y + 1; startM = 2; endY = y + 1; endM = 4; } // Feb-Apr
+  else { startY = y + 1; startM = 5; endY = y + 1; endM = 7; }           // May-Jul
+
+  // Grace period: start on 4th of first month
+  const from = `${startY}-${pad2(startM)}-04`;
+
+  // Exclusive upper bound = 4th of the month after the last month
+  // (so inclusive end = 3rd of that month)
+  // JS months are 0-indexed: endM=10 (Oct) → monthIndex 10 = Nov
+  const next = new Date(Date.UTC(endY, endM, 4));
   const to = ymd(next.getTime());
   return { from, to };
 }
+
 function periodInfo(key) {
-  const { from, to } = monthRange(key);
+  const { from, to } = quarterRange(key);
   const totalDays = Math.round((U(to) - U(from)) / DAY);
-  const endIncl = ymd(U(to) - DAY);
+  const endIncl = ymd(U(to) - DAY);          // 3rd of the following month
   const daysPassed = Math.min(totalDays, Math.max(0, Math.round((U(todayStr()) - U(from)) / DAY) + 1));
   return { from, to, endIncl, totalDays, daysPassed };
 }
+function monthRange(key) { return quarterRange(key); } // alias
+const monthLabel = quarterLabel;
+const MONTH_KEYS = QUARTER_KEYS;
+
+/* ---- Quantity RECO (Carry Forward Rake based) ----
+   H = total rakes placed * 100 / carry forward rake
+   factor = IF(H<60,0.25,IF(H<70,0.5,IF(H<80,0.7,IF(H<90,0.8,IF(H<100,0.9,1))))) * 4.73
+   Performance on Quantity RECO = factor * total RR weight */
+const CARRY_FWD_DEFAULT = 233;
+const RECO_RATE = 4.73;
+function recoFactor(h) {
+  const slab = h < 60 ? 0.25 : h < 70 ? 0.5 : h < 80 ? 0.7 : h < 90 ? 0.8 : h < 100 ? 0.9 : 1;
+  return slab * RECO_RATE;
+}
+const cfKey = period => 'carry_fwd_rake_' + period;
+
 async function loadPeriodData(period) {
   const { from, to } = monthRange(period);
-  const [recs, tgtRes, perRes] = await Promise.all([
+  const [recs, tgtRes, perRes, cfRes] = await Promise.all([
     fetchAll(() => db.from(T).select('*').gte('loading_date', from).lt('loading_date', to).order('loading_date').order('id')),
     db.from('pjpb_rake_targets').select('*').eq('period_key', period),
-    db.from('pjpb_periods').select('*').eq('period_key', period).maybeSingle()
+    db.from('pjpb_periods').select('*').eq('period_key', period).maybeSingle(),
+    db.from('pjpb_settings').select('setting_value').eq('setting_key', cfKey(period)).maybeSingle()
   ]);
   if (tgtRes.error) throw tgtRes.error;
   if (perRes.error) throw perRes.error;
-  return { recs, tgts: tgtRes.data || [], per: perRes.data || {} };
+  const cfv = cfRes.data && cfRes.data.setting_value !== '' ? +cfRes.data.setting_value : NaN;
+  const cf = isNaN(cfv) ? CARRY_FWD_DEFAULT : cfv;
+  return { recs, tgts: tgtRes.data || [], per: perRes.data || {}, cf };
 }
 function reportCutoff(info, per) {
   let c = per.report_date || todayStr();
@@ -747,24 +890,29 @@ const daysRemaining = (info, cutoff) => Math.max(0, Math.round((U(info.endIncl) 
 
 /* ==================== STATS + DASHBOARD COMPUTE ==================== */
 function stats(rs) {
-  const s = { n: rs.length, rr: 0, rrN: 0, net: 0, chg: 0, gcvW: 0, gcvR: 0, pun: 0, eh: 0, enhc: 0, ehx: 0, gst: 0, base: 0, frt: 0,
-    ul: 0, ol: 0, chbl: 0, lm: 0, lmN: 0, varS: 0, varNet: 0, varN: 0 };
+  const s = { n: rs.length, rr: 0, rrN: 0, net: 0, netN: 0, chg: 0, chgN: 0, gcvW: 0, gcvR: 0, pun: 0, eh: 0, enhc: 0, ehx: 0, gst: 0, base: 0, frt: 0,
+    ul: 0, ol: 0, chbl: 0, lm: 0, lmN: 0, varS: 0, varNet: 0, varN: 0, rec: 0, recN: 0, lgW: 0, lgR: 0 };
   rs.forEach(r => {
     const rr = num(r.rr_weight);
     s.rr += rr; if (r.rr_weight != null) s.rrN++;
-    s.net += num(r.net_wt); s.chg += num(r.chargeable_wt);
-    if (r.plant_end_gcv != null) { s.gcvW += rr * num(r.plant_end_gcv); s.gcvR += rr; }
+    s.net += num(r.net_wt); if (r.net_wt != null) s.netN++;
+    s.chg += num(r.chargeable_wt); if (r.chargeable_wt != null) s.chgN++;
+    if (r.gcv_arb != null) { s.gcvW += rr * num(r.gcv_arb); s.gcvR += rr; }
+    if (r.loading_gcv != null) { s.lgW += rr * num(r.loading_gcv); s.lgR += rr; }
+    s.rec += num(r.received_wt); if (r.received_wt != null) s.recN++;
     s.pun += num(r.pol_group); s.eh += num(r.ehbc_group); s.enhc += num(r.enhc); s.ehx += num(r.ehbc);
-    s.gst += num(r.gst); s.base += num(r.rr_freight_base); s.frt += num(r.railway_total_freight);
+    s.gst += num(r.gst); s.base += num(r.rr_freight_base); s.frt += num(r.freight);
     s.ul += num(r.ul_qty); s.ol += num(r.ol_qty); s.chbl += num(r.chbl_pun_qty);
     if (r.loading_minutes != null) { s.lm += num(r.loading_minutes); s.lmN++; }
     if (r.rr_weight != null && r.net_wt != null) { s.varS += num(r.rr_weight) - num(r.net_wt); s.varNet += num(r.net_wt); s.varN++; }
   });
   s.pen = s.pun + s.eh + s.enhc + s.ehx;
   s.gcv = s.gcvR ? s.gcvW / s.gcvR : 0;
+  s.lgcv = s.lgR ? s.lgW / s.lgR : 0;
   s.avgRr = s.rrN ? s.rr / s.rrN : 0;
-  s.avgNet = s.n ? s.net / s.n : 0;
-  s.avgChg = s.n ? s.chg / s.n : 0;
+  s.avgNet = s.netN ? s.net / s.netN : 0;
+  s.avgChg = s.chgN ? s.chg / s.chgN : 0;
+  s.avgRec = s.recN ? s.rec / s.recN : 0;
   s.avgLm = s.lmN ? s.lm / s.lmN : null;
   s.fpm = s.rr ? s.frt / s.rr : 0;
   return s;
@@ -793,36 +941,99 @@ function computeDashboard(period, data) {
   put('wv_pct', all.varNet ? all.varS / all.varNet * 100 : 0, 'pct');
   const perMt = v => all.rr ? v / all.rr : 0;
   AREAS.forEach(a => {
-    const s = stats(recs.filter(r => r.area === a));
-    put('aw_rr_' + a, s.avgRr, 'd1'); put('aw_fr_' + a, s.fpm, 'd2');
+    const rs = recs.filter(r => r.area === a);
+    const s = stats(rs);
+    // Unloading GCV = plant_end_gcv weighted avg; Loading GCV not in DB yet → 0
+    const unloadGcv = s.gcv;
+    const loadGcv = s.lgcv;
+    put('aw_lgcv_' + a, loadGcv, 'd1');
+    put('aw_ugcv_' + a, unloadGcv, 'd1');
+    put('aw_gcvd_' + a, loadGcv - unloadGcv, 'd1');
   });
 
-  put('fr_base', all.base); put('fr_baseMt', perMt(all.base), 'd2');
-  put('fr_pen', all.pen); put('fr_penMt', perMt(all.pen), 'd2');
-  put('fr_gst', all.gst); put('fr_gstMt', perMt(all.gst), 'd2');
-  put('fr_total', all.frt); put('fr_totalMt', perMt(all.frt), 'd2');
-  put('fr_penPct', all.frt ? all.pen / all.frt * 100 : 0, 'pct');
-  put('fr_exp', info.daysPassed ? all.frt / info.daysPassed * info.totalDays : 0);
+  // Particulars
+  // Quantity RECO: H = rakes placed * 100 / carry forward rake; value = slab factor * 4.73 * total RR weight
+  const cf = data.cf;
+  const hVal = cf > 0 ? all.n * 100 / cf : 0;
+  const qtyReco = cf > 0 ? recoFactor(hVal) * all.rr : 0;
+  put('par_qtyReco', qtyReco, 'd1');
 
-  put('pd_rakeAch', info.daysPassed ? all.n / info.daysPassed : 0, 'd2'); put('pd_rakeTgt', round2(tAsk), 'd2');
-  put('pd_qtyAch', info.daysPassed ? all.rr / info.daysPassed : 0); put('pd_qtyTgt', FORMULAS.dayQty);
-  put('pd_fcAch', all.fpm, 'd2'); put('pd_fcTgt', num(per.freight_cost_target), 'd2');
-  put('t_avgNet', all.avgNet, 'd1'); put('t_avgChg', all.avgChg, 'd1'); put('t_avgRr', all.avgRr, 'd1');
-  put('t_avgLoad', minutesText(all.avgLm), 'str'); put('t_totalRr', all.rr, 'd1'); put('t_rakes', all.n);
+  // GCV RECO = sum of Bonus/Penalty amount (gcv_bonus_penalty_amt)
+  let gcvReco = 0;
+  recs.forEach(r => {
+    const perMt = gcvBonusPerMt(r.loading_gcv, r.gcv_arb);
+    if (perMt != null && r.rr_weight != null) gcvReco += perMt * Number(r.rr_weight);
+  });
+  gcvReco = round2(gcvReco);
+  put('par_gcvReco', gcvReco, 'd1');
 
+  // Service Charge = RR Weight of area × permanent rate (₹/MT)
+  // MCL = IB + CKP
+  const rrSecl = stats(recs.filter(r => r.area === 'SECL')).rr;
+  const rrMcl = stats(recs.filter(r => r.area === 'IB' || r.area === 'CKP')).rr;
+  const rrCcl = stats(recs.filter(r => r.area === 'CCL')).rr;
+  const rrNcl = stats(recs.filter(r => r.area === 'NCL')).rr;
+  const scSecl = rrSecl * (FORMULAS.scSecl || 0);
+  const scMcl = rrMcl * (FORMULAS.scMcl || 0);
+  const scCcl = rrCcl * (FORMULAS.scCcl || 0);
+  const scNcl = rrNcl * (FORMULAS.scNcl || 0);
+  put('par_scSecl', scSecl, 'd1');
+  put('par_scMcl', scMcl, 'd1');
+  put('par_scCcl', scCcl, 'd1');
+  put('par_scNcl', scNcl, 'd1');
+
+  // Total Railway Penalty shown as negative (cost)
+  const ulSumForPar = sum(recs, r => r.underload_charges);
+  const penTotalPar = ulSumForPar + all.pun + all.eh + all.enhc;
+  const penNeg = -Math.abs(penTotalPar);
+  put('par_pen', penNeg, 'd1');
+
+  // TOTAL BILLING = Qty RECO + GCV RECO + SC (all) + Railway Penalty (already negative)
+  const totalBill = qtyReco + gcvReco + scSecl + scMcl + scCcl + scNcl + penNeg;
+  put('par_totalBill', totalBill, 'd1');
+  put('par_expBill', info.daysPassed ? totalBill / info.daysPassed * info.totalDays : 0, 'd1');
+
+  // Rake Performance: Target Achieved = loaded vs target; Asking = actual per-day vs asking per-day
+  put('pd_tgtAch', tLoaded); put('pd_tgtTgt', tTarget);
+  put('pd_askAch', info.daysPassed ? all.n / info.daysPassed : 0, 'd2');
+  put('pd_askTgt', round2(tAsk), 'd2');
+
+  // Weight Summary (whole numbers)
+  // Avg Net Wt = avg Net wt; Avg Chg Wt = avg Chargeable Wt; Avg RR Wt = avg RR Weight
+  // Total RR Weight = sum of RR Weight; Total Plant Receive = sum of Net wt
+  put('t_avgNet', all.avgRec, 'int'); put('t_avgChg', all.avgChg, 'int'); put('t_avgRr', all.avgRr, 'int');
+  put('t_avgGcv', all.gcv, 'int');
+  put('t_totalRr', all.rr, 'int');
+  put('t_plantRecv', all.rec, 'int');
+
+  // Railway Freight Penalties
+  // Underload = sum of UNDERLOAD charges; Overload = sum of POL group charges;
+  // EHBC/FAUC/TC = sum of EHBC group; ENHC = sum of ENHC
+  const ulSum = sum(recs, r => r.underload_charges);
+  put('pn_ulChg', ulSum); put('pn_ulChgMt', perMt(ulSum), 'd2');
+  put('pn_olChg', 0); put('pn_olChgMt', 0, 'd2');
   put('pn_pun', all.pun); put('pn_punMt', perMt(all.pun), 'd2');
   put('pn_ehbc', all.eh); put('pn_ehbcMt', perMt(all.eh), 'd2');
   put('pn_enhc', all.enhc); put('pn_enhcMt', perMt(all.enhc), 'd2');
-  put('pn_ehbcX', all.ehx); put('pn_ehbcXMt', perMt(all.ehx), 'd2');
-  put('pn_total', all.pen); put('pn_totalMt', perMt(all.pen), 'd2');
-  put('pn_ul', all.ul, 'd2'); put('pn_ol', all.ol, 'd2'); put('pn_chbl', all.chbl, 'd2');
+  put('pn_dead', 0); put('pn_deadMt', 0, 'd2');
+  // Overload (POL group) and Punitive Sum are the same figure, so it is counted once in the total
+  const penTotal = ulSum + all.pun + all.eh + all.enhc;
+  put('pn_total', penTotal); put('pn_totalMt', perMt(penTotal), 'd2');
 
-  [...AREAS, 'TOTAL'].forEach(a => {
-    const s = a === 'TOTAL' ? all : stats(recs.filter(r => r.area === a));
-    put('a_rakes_' + a, s.n); put('a_rr_' + a, s.rr, 'd1'); put('a_avgrr_' + a, s.avgRr, 'd1');
-    put('a_var_' + a, s.varS, 'd1'); put('a_gcv_' + a, s.gcv); put('a_load_' + a, minutesText(s.avgLm), 'str');
-    put('a_pun_' + a, s.pun); put('a_ehbc_' + a, s.eh); put('a_enhc_' + a, s.enhc);
-    put('a_frt_' + a, s.frt); put('a_fpm_' + a, s.fpm, 'd2');
+  AREAS.forEach(a => {
+    const rs = recs.filter(r => r.area === a);
+    const s = stats(rs);
+    const unloadGcv = s.gcv;
+    const loadGcv = s.lgcv; // loading end GCV not in DB yet
+    put('a_rr_' + a, s.rr, 'd1');
+    put('a_ugcv_' + a, unloadGcv, 'd1');
+    put('a_lgcv_' + a, loadGcv, 'd1');
+    put('a_gcvd_' + a, loadGcv - unloadGcv, 'd1');
+    put('a_pun_' + a, s.pun);
+    put('a_ehbc_' + a, s.eh);
+    put('a_enhc_' + a, s.enhc);
+    put('a_fpm_' + a, s.fpm, 'd2');
+    put('a_ulChg_' + a, sum(rs, r => r.underload_charges));
   });
 
   const lastRake = recs.length ? recs[recs.length - 1].loading_date : '';
@@ -851,55 +1062,55 @@ function renderCalculated(values) {
 }
 
 const AREA_PERF_ROWS = [
-  ['Rakes Loaded', 'a_rakes_'], ['RR Weight (MT)', 'a_rr_'], ['Avg. RR Wt. per Rake', 'a_avgrr_'],
-  ['Variance RR \u2212 Net (MT)', 'a_var_'], ['Plant End GCV (avg)', 'a_gcv_'], ['Avg. Loading Time', 'a_load_'],
-  ['Punitive Sum (POL1/POL2/POLA..)', 'a_pun_'], ['EHBC / FAUC / TC / ST', 'a_ehbc_'], ['ENHC Charges', 'a_enhc_'],
-  ['Total Railway Freight', 'a_frt_'], ['Freight Cost / MT', 'a_fpm_']
+  ['Quantity', 'a_rr_'],
+  ['Unloading End GCV', 'a_ugcv_'],
+  ['Loading End GCV', 'a_lgcv_'],
+  ['GCV Diff.', 'a_gcvd_'],
+  ['Punitive Sum (POL1, POL2, POLA..)', 'a_pun_'],
+  ['EHBC / FAUC / SD / TC Charges', 'a_ehbc_'],
+  ['ENHC Charges', 'a_enhc_'],
+  ['Per Ton Cost', 'a_fpm_'],
+  ['Under Load Charges', 'a_ulChg_']
 ];
 function buildAreaDom() {
-  const cols = [...AREAS, 'TOTAL'];
-  $('areaTargetsBox').innerHTML = `<table class="area-table five"><thead><tr><th></th>${cols.map(a => `<th>${a === 'TOTAL' ? 'TOTAL' : AREA_LABEL(a)}</th>`).join('')}</tr></thead><tbody>` +
-    [['Target of Month', 'tgt_'], ['Rake Loaded Till', 'load_'], ['Balance Rake', 'bal_'], ['Asking Per Day', 'ask_']].map(([l, p]) =>
-      `<tr><td class="row-label">${l}</td>${cols.map(a => `<td${a === 'TOTAL' ? ' class="tot"' : ''}><input id="${p}${a}" readonly></td>`).join('')}</tr>`).join('') + '</tbody></table>';
+  const colsPerf = [...AREAS];
+  const colsTgt = [...AREAS];
+  $('areaTargetsBox').innerHTML = `<table class="area-table five"><thead><tr><th></th>${colsTgt.map(a => `<th>${AREA_LABEL(a)}</th>`).join('')}</tr></thead><tbody>` +
+    [['Target of Quarter', 'tgt_'], ['Rake Loaded Till', 'load_'], ['Balance Rake', 'bal_'], ['Asking Per Day', 'ask_']].map(([l, p]) =>
+      `<tr><td class="row-label">${l}</td>${colsTgt.map(a => `<td><input id="${p}${a}" readonly></td>`).join('')}</tr>`).join('') + '</tbody></table>';
   $('areaWtBox').innerHTML = AREAS.map(a =>
-    `<div class="metric-row"><span class="metric-label">(${AREA_LABEL(a)})</span><div class="pair"><input class="metric-value" id="aw_rr_${a}" readonly><input class="metric-value" id="aw_fr_${a}" readonly></div></div>`).join('');
-  $('areaPerfTbl').innerHTML = `<thead><tr><th>AREA</th>${cols.map(a => `<th>${a === 'TOTAL' ? 'TOTAL' : AREA_LABEL(a)}</th>`).join('')}</tr></thead><tbody>` +
-    AREA_PERF_ROWS.map(([l, p]) => `<tr><td class="row-label">${l}</td>${cols.map(a => `<td><input id="${p}${a}" readonly></td>`).join('')}</tr>`).join('') + '</tbody>';
-}
-
-function renderSources(recs) {
-  const g = {};
-  recs.forEach(r => { const k = sourceGroup(r.source) || '-'; (g[k] = g[k] || []).push(r); });
-  const rows = Object.entries(g).map(([name, rs]) => {
-    const areaCount = {}; rs.forEach(r => areaCount[r.area] = (areaCount[r.area] || 0) + 1);
-    const area = Object.entries(areaCount).sort((a, b) => b[1] - a[1])[0][0];
-    return { name, area, s: stats(rs) };
-  }).sort((a, b) => b.s.n - a.s.n || a.name.localeCompare(b.name));
-  const f = (n, k) => formatCell(n, k);
-  $('srcBody').innerHTML = rows.map(r => `<tr><td class="txt left">${esc(r.name)}</td><td class="txt">${esc(AREA_LABEL(r.area))}</td><td class="txt">${r.s.n}</td>
-    <td class="txt">${f(r.s.rr, 'd1')}</td><td class="txt">${f(r.s.avgRr, 'd1')}</td><td class="txt">${f(r.s.pun, 'int')}</td>
-    <td class="txt">${f(r.s.frt, 'int')}</td><td class="txt">${f(r.s.fpm, 'd2')}</td><td class="txt">${minutesText(r.s.avgLm)}</td></tr>`).join('')
-    || '<tr><td class="txt" colspan="9">No rakes in this month.</td></tr>';
+    `<div class="metric-row"><span class="metric-label">${AREA_LABEL(a)}</span><div class="pair3"><input class="metric-value" id="aw_lgcv_${a}" readonly><input class="metric-value" id="aw_ugcv_${a}" readonly><input class="metric-value" id="aw_gcvd_${a}" readonly></div></div>`).join('');
+  $('areaPerfTbl').innerHTML = `<thead><tr><th>AREA</th>${colsPerf.map(a => `<th>${a === 'TOTAL' ? 'TOTAL' : AREA_LABEL(a)}</th>`).join('')}</tr></thead><tbody>` +
+    AREA_PERF_ROWS.map(([l, p]) => `<tr><td class="row-label">${l}</td>${colsPerf.map(a => `<td><input id="${p}${a}" readonly></td>`).join('')}</tr>`).join('') + '</tbody>';
 }
 
 /* Month-wise trend: one row per month of the financial year that holds the selected month */
 async function loadTrend() {
-  const [sy, sm] = PERIOD.split('-').map(Number);
-  const fy = sm >= 4 ? sy : sy - 1;
-  const recsFy = await fetchAll(() => db.from(T).select('*').gte('loading_date', `${fy}-04-01`).lt('loading_date', `${fy + 1}-04-01`).order('loading_date').order('id'));
-  const today = todayStr();
+  // Show the 4 quarters of the cycle (Aug→Jul) that contains the selected quarter
+  // With grace period the cycle runs from 4 Aug to 4 Aug next year
+  const y = +PERIOD.split('-Q')[0];
+  const recsFy = await fetchAll(() =>
+    db.from(T).select('*')
+      .gte('loading_date', `${y}-08-04`)
+      .lt('loading_date', `${y + 1}-08-04`)
+      .order('loading_date').order('id')
+  );
   const int = n => (n == null || !n) ? '-' : Math.round(n).toLocaleString('en-IN');
   const money = (n, d) => (n == null || !n) ? '-' : '\u20b9 ' + n.toLocaleString('en-IN', { minimumFractionDigits: d, maximumFractionDigits: d });
   let html = '';
-  for (let i = 0; i < 12; i++) {
-    const mm = ((3 + i) % 12) + 1, yy = mm >= 4 ? fy : fy + 1;
-    const key = `${yy}-${pad2(mm)}`, info = periodInfo(key);
-    const mr = recsFy.filter(r => monthOf(r.loading_date) === key), s = stats(mr);
+  for (let q = 1; q <= 4; q++) {
+    const key = `${y}-Q${q}`;
+    const info = periodInfo(key);
+    const mr = recsFy.filter(r => {
+      const d = r.loading_date || '';
+      return d >= info.from && d < info.to;
+    });
+    const s = stats(mr);
     const target = FORMULAS.dayQty * info.totalDays;
     const pct = (mr.length && target) ? Math.min(100, s.rr / target * 100) : null;
     const cls = pct != null && pct < FORMULAS.pctLow ? 'low' : '';
     const days = info.daysPassed;
-    html += `<tr><td>${monthLabel(key)}</td><td>${int(s.n)}</td><td>${int(s.rr)}</td>
+    html += `<tr><td>${quarterLabel(key)}</td><td>${int(s.n)}</td><td>${int(s.rr)}</td>
       <td>${days && s.rr ? int(s.rr / days) : '-'}</td><td>${s.rr ? money(s.fpm, 2) : '-'}</td>
       <td>${int(target)}</td><td class="${cls}">${pct == null ? '-' : pct.toFixed(2) + '%'}</td></tr>`;
   }
@@ -914,9 +1125,9 @@ async function loadDashboard() {
     if (seq !== loadSeq) return;
     const calc = computeDashboard(PERIOD, data);
     renderCalculated(calc.out);
-    renderSources(calc.recs);
-    $('reportUpdatedUpto').textContent = calc.lastRake
-      ? new Date(calc.lastRake + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : '-';
+    // "Performance Report updated upto" is always yesterday (same as Gujarat)
+    const yd = new Date(); yd.setDate(yd.getDate() - 1);
+    $('reportUpdatedUpto').textContent = yd.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
     await loadTrend();
   } catch (err) {
     console.error(err);
@@ -927,11 +1138,11 @@ async function loadDashboard() {
 function setPeriod(key) {
   PERIOD = key;
   $('periodPick').value = key; $('periodPick2').value = key;
-  $('periodLabel').textContent = `AMM PJPB \u2022 ${monthLabel(PERIOD)}`;
+  $('periodLabel').textContent = `AMM PJPB • ${quarterLabel(PERIOD)}`;
   subscribeLive();
 }
 function fillPeriodPickers() {
-  const opts = MONTH_KEYS.map(k => `<option value="${k}">${monthLabel(k)}</option>`).join('');
+  const opts = QUARTER_KEYS.map(k => `<option value="${k}">${quarterLabel(k)}</option>`).join('');
   ['periodPick', 'periodPick2', 'rakePeriod'].forEach(id => $(id).innerHTML = opts);
   $('periodPick').value = PERIOD; $('periodPick2').value = PERIOD; $('rakePeriod').value = PERIOD;
   $('periodPick').addEventListener('change', e => { setPeriod(e.target.value); loadDashboard(); });
@@ -953,14 +1164,13 @@ function subscribeLive() {
 
 $('reloadBtn').addEventListener('click', loadDashboard);
 
-/* PNG export: captures the dashboard exactly as it appears on screen (browser-rendered, so gradients and shadows are kept) */
+/* PNG export */
 $('pdfBtn').addEventListener('click', async () => {
   const btn = $('pdfBtn'); btn.disabled = true;
   const el = document.querySelector('#view-dashboard');
   const oldBg = el.style.background;
   try {
     await loadDashboard();
-    // same page background as on screen: gradient glows over the base colour
     el.style.background = 'radial-gradient(900px 480px at 95% -8%,#ddd9ff 0,transparent 70%),radial-gradient(800px 460px at -5% 105%,#ffe8cc 0,transparent 70%),var(--bg)';
     const dataUrl = await htmlToImage.toPng(el, { pixelRatio: 2, cacheBust: true });
     const a = document.createElement('a');
@@ -979,7 +1189,7 @@ $('pdfBtn').addEventListener('click', async () => {
 /* ==================== REPORTS ==================== */
 let repData = null;
 async function loadReports() {
-  $('repPeriod').textContent = `Month and area summary \u2022 ${monthLabel(PERIOD)}`;
+  $('repPeriod').textContent = `Quarter and area summary \u2022 ${monthLabel(PERIOD)}`;
   try {
     const { recs } = await loadPeriodData(PERIOD);
     const info = periodInfo(PERIOD);
@@ -987,7 +1197,7 @@ async function loadReports() {
     const head = first => `<thead><tr><th>${first}</th><th>Rakes</th><th>RR Qty (MT)</th><th>Avg. RR Wt.</th><th>Per Day Qty</th><th>Punitive Sum</th><th>Total Penalty</th><th>Total Freight</th><th>Freight / MT</th></tr></thead>`;
     const rowHtml = (label, s, days) => `<tr><td>${esc(label)}</td><td>${f(s.n, 'int')}</td><td>${f(s.rr, 'd1')}</td><td>${f(s.avgRr, 'd1')}</td><td>${days ? f(s.rr / days, 'int') : '-'}</td><td>${f(s.pun, 'int')}</td><td>${f(s.pen, 'int')}</td><td>${f(s.frt, 'int')}</td><td>${f(s.fpm, 'd2')}</td></tr>`;
     const all = stats(recs);
-    $('repMonth').innerHTML = head('Month') + '<tbody></tbody><tfoot>' + rowHtml(monthLabel(PERIOD), all, info.daysPassed) + '</tfoot>';
+    $('repMonth').innerHTML = head('Quarter') + '<tbody></tbody><tfoot>' + rowHtml(monthLabel(PERIOD), all, info.daysPassed) + '</tfoot>';
     const areas = AREAS.map(a => ({ label: AREA_LABEL(a), s: stats(recs.filter(r => r.area === a)) }));
     $('repArea').innerHTML = head('Area') + '<tbody>' + areas.map(a => rowHtml(a.label, a.s, info.daysPassed)).join('') + '</tbody><tfoot>' + rowHtml('Total', all, info.daysPassed) + '</tfoot>';
     repData = { recs, areas, all, info };
@@ -998,11 +1208,13 @@ $('repXlsx').addEventListener('click', () => {
   if (!repData) { toast('Report not loaded yet', true); return; }
   const mk = (label, s) => ({ [label]: '', Rakes: s.n, 'RR Qty (MT)': round2(s.rr), 'Avg RR Wt': round2(s.avgRr), 'Punitive Sum': round2(s.pun), 'Total Penalty': round2(s.pen), 'Total Freight': Math.round(s.frt), 'Freight / MT': round2(s.fpm) });
   const wb = XLSX.utils.book_new();
-  const monthRows = [{ ...mk('Month', repData.all), Month: monthLabel(PERIOD) }];
+  const monthRows = [{ ...mk('Quarter', repData.all), Quarter: monthLabel(PERIOD) }];
   const areaRows = repData.areas.map(a => { const o = mk('Area', a.s); o.Area = a.label; return o; });
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(monthRows), 'Monthly');
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(areaRows), 'Area');
-  const recRows = repData.recs.map(r => { const o = {}; COLS.forEach(c => o[c.label] = r[c.db] ?? ''); return o; });
+  const enr = repData.recs.map(enrichRecord);
+  const cols = logColumns(enr);
+  const recRows = enr.map(r => { const o = {}; cols.forEach(c => o[c.label] = r[c.db] ?? ''); return o; });
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(recRows), 'Records');
   XLSX.writeFile(wb, `PJPB-Report-${PERIOD}.xlsx`);
 });
@@ -1033,8 +1245,8 @@ async function loadAlerts() {
     const tgtTotal = sum(data.tgts, t => t.qtr_target);
     if (tgtTotal) {
       const loaded = recs.filter(r => r.loading_date <= cutoff).length;
-      items.push({ lvl: 'info', title: `Month target: ${loaded} of ${tgtTotal} loaded`, text: rem > 0 ? `${round2((tgtTotal - loaded) / rem)} rakes per day needed for the remaining ${rem} days.` : 'No days remain in this month.', time: `As on ${cutoff}` });
-    } else items.push({ lvl: 'info', title: 'No month target rakes entered', text: 'Enter targets in Data Entry > Target Rake to see Asking Per Day.', time: monthLabel(PERIOD) });
+      items.push({ lvl: 'info', title: `Quarter target: ${loaded} of ${tgtTotal} loaded`, text: rem > 0 ? `${round2((tgtTotal - loaded) / rem)} rakes per day needed for the remaining ${rem} days.` : 'No days remain in this month.', time: `As on ${cutoff}` });
+    } else items.push({ lvl: 'info', title: 'No quarter target rakes entered', text: 'Enter targets in Data Entry > Target Rake to see Asking Per Day.', time: monthLabel(PERIOD) });
     if (recs.length) items.push({ lvl: 'info', title: `Last rake loaded on ${recs[recs.length - 1].loading_date}`, text: `${recs.length} rakes in ${monthLabel(PERIOD)}.`, time: 'From the database' });
     else items.push({ lvl: 'info', title: 'No rakes in this month yet', text: 'Upload an Excel sheet or add rakes in Data Entry.', time: monthLabel(PERIOD) });
     if (recs.length && !dups.length) items.push({ lvl: 'success', title: 'All RR numbers are unique', text: `${recs.length} rakes checked.`, time: 'No duplicate RR numbers' });
@@ -1164,7 +1376,7 @@ $('importBtn').addEventListener('click', async () => {
   try {
     await nextSrNos(good);
     const keys = [...new Set(good.flatMap(r => Object.keys(r.data)))];
-    const full = r => { const o = {}; keys.forEach(k => o[k] = r.data[k] ?? null); return o; };
+    const full = r => { const o = {}; keys.forEach(k => o[k] = r.data[k] ?? null); o.record_key = recordKey(r.data); return o; };
     for (let i = 0; i < good.length; i += 100) {
       const chunk = good.slice(i, i + 100);
       const { error } = await db.from(T).upsert(chunk.map(full), { onConflict: 'record_key' });
@@ -1186,33 +1398,79 @@ $('importBtn').addEventListener('click', async () => {
 });
 
 /* ==================== RECORDS LOG ==================== */
-let logRecords = [];
+/* Columns = every known form column first, then any other column the database returns */
+const LOG_READONLY = ['id', 'record_key', 'created_at', 'updated_at'];
+const LOG_FORMULA = {
+  gcv_bonus_penalty: 'Per MT = -MIN( MAX(0, (Loading GCV - GCV ARB - 200) / 100) × 20% × 4.73 , 75% × 4.73 ). Auto on load & when Loading GCV / GCV ARB change.',
+  gcv_bonus_penalty_amt: 'Amount = Per MT × RR Weight. Auto on load & when Loading GCV / GCV ARB / RR Weight change.'
+};
+function logColumns(recs) {
+  const seen = new Set(), cols = [];
+  const add = (db, label) => { if (seen.has(db)) return; seen.add(db);
+    cols.push({ db, label, calc: LOG_READONLY.includes(db) || isCalc(db), formula: LOG_FORMULA[db] || '' }); };
+  Object.keys(recs[0] || {}).forEach(k => add(k, COL_BY_DB[k]?.label || k.replace(/_/g, ' ')));
+  COLS.forEach(c => add(c.db, c.label));
+  return cols;
+}
+let logRecords = [], logCols = [], logFilters = {};
 async function loadLog() {
   try {
-    logRecords = await fetchAll(() => db.from(T).select('*').order('loading_date', { ascending: false }).order('sr_no', { ascending: false }).order('id'));
+    const raw = await fetchAll(() => db.from(T).select('*').order('loading_date', { ascending: false }).order('sr_no', { ascending: false }).order('id'));
+    // Always recalculate bonus/penalty from formula on every load / site reload
+    logRecords = raw.map(enrichRecord);
   } catch (error) { toast('Could not load records: ' + error.message, true); return; }
+  logCols = logColumns(logRecords);
   const months = [...new Set(logRecords.map(r => monthOf(r.loading_date)))].sort().reverse();
   const keep = $('logMonth').value;
   $('logMonth').innerHTML = '<option value="">All months</option>' + months.map(m => `<option value="${m}">${monthLabel(m)}</option>`).join('');
   $('logMonth').value = months.includes(keep) ? keep : (months[0] || '');
+  $('logTbl').innerHTML = `<thead><tr><th>Actions</th>${logCols.map(c => `<th${c.formula ? ` title="${esc(c.formula)}"` : ''}>${esc(c.label)}${c.calc && isCalc(c.db) ? ' <span class="tag">auto</span>' : ''}</th>`).join('')}</tr>
+    <tr class="filter-row"><th></th>${logCols.map(c => `<th><input data-f="${c.db}" placeholder="filter" value="${esc(logFilters[c.db] || '')}"></th>`).join('')}</tr></thead><tbody id="logBody"></tbody>`;
   renderLog();
 }
-const LOG_LIMIT = 200;
+const LOG_LIMIT = 500;
 function renderLog() {
   const q = $('logSearch').value.toLowerCase(), m = $('logMonth').value;
-  const rows = logRecords.filter(r => (!m || monthOf(r.loading_date) === m) && (!q || JSON.stringify(r).toLowerCase().includes(q)));
+  const fs = Object.entries(logFilters).filter(([, v]) => v);
+  const rows = logRecords.filter(r => (!m || monthOf(r.loading_date) === m) && (!q || JSON.stringify(r).toLowerCase().includes(q)) &&
+    fs.every(([k, v]) => String(r[k] ?? '').toLowerCase().includes(v.toLowerCase())));
   const shown = rows.slice(0, LOG_LIMIT);
-  $('logCount').textContent = `${rows.length} of ${logRecords.length} records` + (rows.length > LOG_LIMIT ? ` (showing first ${LOG_LIMIT} - filter by month or search)` : '');
-  const head = `<thead><tr><th>Actions</th>${COLS.map(c => `<th>${esc(c.label)}</th>`).join('')}</tr></thead>`;
-  const body = shown.map(r => `<tr data-id="${esc(r.id)}">
-    <td class="act">
-      <button class="btn-soft btn-sm" data-save="${esc(r.id)}" title="Save"><i class="fas fa-floppy-disk"></i></button>
-      <button class="btn-soft btn-sm btn-danger" data-del="${esc(r.id)}" title="Delete"><i class="fas fa-trash"></i></button>
-    </td>
-    ${COLS.map(c => `<td><input data-col="${c.db}" value="${esc(r[c.db] ?? '')}" ${isCalc(c.db) ? 'readonly' : ''}></td>`).join('')}
-  </tr>`).join('');
-  $('logTbl').innerHTML = head + `<tbody>${body || '<tr><td class="empty" colspan="' + (COLS.length + 1) + '">No records.</td></tr>'}</tbody>`;
+  $('logCount').textContent = `${rows.length} of ${logRecords.length} records` + (rows.length > LOG_LIMIT ? ` (showing first ${LOG_LIMIT})` : '');
+  $('logBody').innerHTML = shown.map(r => `<tr data-id="${esc(r.id)}">
+    <td class="act"><button class="btn-soft btn-sm" data-save="${esc(r.id)}" title="Save"><i class="fas fa-floppy-disk"></i></button>
+    <button class="btn-soft btn-sm btn-danger" data-del="${esc(r.id)}" title="Delete"><i class="fas fa-trash"></i></button></td>
+    ${logCols.map(c => `<td><input data-col="${c.db}" value="${esc(r[c.db] ?? '')}" ${c.calc ? 'readonly' : ''}></td>`).join('')}</tr>`).join('')
+    || `<tr><td class="empty" colspan="${logCols.length + 1}">No records.</td></tr>`;
 }
+function recalcLogRow(tr) {
+  if (!tr) return;
+  const get = col => {
+    const el = tr.querySelector(`input[data-col="${col}"]`);
+    if (!el) return null;
+    const v = el.value.trim();
+    return v === '' ? null : v;
+  };
+  const set = (col, val) => {
+    const el = tr.querySelector(`input[data-col="${col}"]`);
+    if (el) el.value = val == null || val === '' ? '' : val;
+  };
+  const loadGcv = get('loading_gcv');
+  const gcvArb = get('gcv_arb');
+  const rrWt = get('rr_weight');
+  const perMt = gcvBonusPerMt(loadGcv, gcvArb);
+  set('gcv_bonus_penalty', perMt == null ? '' : round2(perMt));
+  set('gcv_bonus_penalty_amt', (perMt == null || rrWt == null || isNaN(+rrWt)) ? '' : round2(perMt * Number(rrWt)));
+}
+
+$('logTbl').addEventListener('input', e => {
+  const f = e.target.dataset.f;
+  if (f) { logFilters[f] = e.target.value; renderLog(); return; }
+  const col = e.target.dataset.col;
+  if (col === 'loading_gcv' || col === 'gcv_arb' || col === 'rr_weight') {
+    recalcLogRow(e.target.closest('tr'));
+  }
+});
+$('logClear').addEventListener('click', () => { logFilters = {}; $('logSearch').value = ''; $('logMonth').value = ''; $('logTbl').querySelectorAll('[data-f]').forEach(i => i.value = ''); renderLog(); });
 $('logSearch').addEventListener('input', renderLog);
 $('logMonth').addEventListener('change', renderLog);
 $('logReload').addEventListener('click', loadLog);
@@ -1222,13 +1480,16 @@ $('logTbl').addEventListener('click', async e => {
   const delBtn = e.target.closest('[data-del]');
   if (saveBtn) {
     const tr = saveBtn.closest('tr');
+    // Ensure bonus/penalty is up to date before save (display only; not written to DB)
+    recalcLogRow(tr);
     const patch = {};
     tr.querySelectorAll('input[data-col]').forEach(inp => {
       const col = inp.dataset.col;
-      if (isCalc(col)) return;
+      if (LOG_READONLY.includes(col) || isCalc(col)) return;
       patch[col] = toDbValue(col, inp.value);
     });
     if (!patch.loading_date || !patch.area || !patch.source) { setStatus('logStatus', 'Loading Date, AREA and Source are required', 'err'); return; }
+    patch.record_key = recordKey(patch);
     const { error } = await db.from(T).update(patch).eq('id', saveBtn.dataset.save);
     if (error) { setStatus('logStatus', 'Update failed: ' + error.message, 'err'); return; }
     setStatus('logStatus', 'Record updated', 'ok');
@@ -1248,7 +1509,7 @@ $('logTbl').addEventListener('click', async e => {
 /* ==================== DATA ENTRY ==================== */
 const SECTION_ICONS = { 'Basic Details': 'fa-circle-info', 'Allotment': 'fa-file-signature', 'Loading Time': 'fa-clock', 'Wagon Details': 'fa-train',
   'Weight & Quality': 'fa-weight-scale', 'Railway Receipt': 'fa-receipt', 'Underload / Overload': 'fa-arrow-down-wide-short',
-  'Punitive Charges': 'fa-gavel', 'Other Railway Charges': 'fa-file-invoice-dollar', 'Freight': 'fa-indian-rupee-sign', 'Sample & Powder': 'fa-flask' };
+  'Punitive Charges': 'fa-gavel', 'Other Railway Charges': 'fa-file-invoice-dollar', 'Freight': 'fa-indian-rupee-sign' };
 const UNITS = { net_wt: 'MT', chargeable_wt: 'MT', rr_weight: 'MT', ul_qty: 'MT', ol_qty: 'MT', chbl_pun_qty: 'MT', plant_end_gcv: 'kcal', tm_pct: '%' };
 
 function buildEntryForm() {
@@ -1274,9 +1535,8 @@ function buildEntryForm() {
       }).join('')}</div>
     </div>`).join('');
   $('f_area').innerHTML += AREAS.map(a => `<option value="${a}">${AREA_LABEL(a)}</option>`).join('');
-  ['supply_wagons', 'load_wagons', 'time_pt', 'time_ct', 'pol1', 'pol2', 'pola', 'krba', 'ladc', 'pcla', 'dcla', 'sd', 'sdcc', 'st', 'tc', 'fauc',
-    'gst', 'enhc', 'ehbc', 'rr_freight_base'].forEach(k => $('f_' + k).addEventListener('input', recalcForm));
-  $('f_railway_total_freight').addEventListener('input', e => { e.target.dataset.touched = e.target.value === '' ? '' : '1'; });
+  ['supply_wagons', 'load_wagons', 'time_pt', 'time_ct', 'pola1', 'pola2', 'pola', 'ladc', 'pcla', 'dcla', 'sd', 'sdcc', 'st', 'tc', 'fauc',
+    'enhc', 'loading_gcv', 'gcv_arb', 'rr_weight', 'received_wt', 'net_wt', 'chargeable_wt'].forEach(k => { const el = $('f_' + k); if (el) el.addEventListener('input', recalcForm); });
   $('f_loading_date').addEventListener('change', fillNextSr);
 }
 
@@ -1285,16 +1545,24 @@ function recalcForm() {
   const z = k => g(k) || 0;
   const s = g('supply_wagons'), l = g('load_wagons');
   $('f_sick_wagons').value = (s == null && l == null) ? '' : (s || 0) - (l || 0);
-  const pol = ['pol1', 'pol2', 'pola', 'krba', 'ladc', 'pcla', 'dcla'].reduce((a, k) => a + z(k), 0);
+  const pol = ['pola1', 'pola2', 'pola', 'ladc', 'pcla', 'dcla'].reduce((a, k) => a + z(k), 0);
   const eh = ['sd', 'sdcc', 'st', 'tc', 'fauc'].reduce((a, k) => a + z(k), 0);
   $('f_pol_group').value = round2(pol); $('f_ehbc_group').value = round2(eh);
   const pt = excelTime($('f_time_pt').value), ct = excelTime($('f_time_ct').value);
-  if (pt && ct) {
-    const m = t => +t.slice(0, 2) * 60 + +t.slice(3, 5);
-    $('f_loading_minutes').value = minutesText(((m(ct) - m(pt)) % 1440 + 1440) % 1440);
-  } else $('f_loading_minutes').value = '';
-  const tf = $('f_railway_total_freight');
-  if (!tf.dataset.touched) { const base = g('rr_freight_base'); tf.value = base == null ? '' : Math.round(base + pol + eh + z('gst') + z('enhc') + z('ehbc')); }
+  const mm = t => +t.slice(0, 2) * 60 + +t.slice(3, 5);
+  if (pt && ct) { const d = ((mm(ct) - mm(pt)) % 1440 + 1440) % 1440; $('f_loading_minutes').value = `${pad2(Math.floor(d / 60))}:${pad2(d % 60)}`; } else $('f_loading_minutes').value = '';
+  const rec = g('received_wt'), nt = g('net_wt'), chg = g('chargeable_wt'), rrw = g('rr_weight'), lw = g('load_wagons');
+  $('f_diff_wt').value = (rec != null && nt != null) ? round2(rec - nt) : '';
+  $('f_avg_loading').value = (rec != null && lw) ? Math.round(rec / lw * 1000) / 1000 : '';
+  $('f_fixed_5pct_qty').value = chg != null ? round2(chg * 0.05) : '';
+  const ul = (chg != null && rrw != null) ? round2(chg - rrw) : null;
+  $('f_under_load_qty').value = ul == null ? '' : ul;
+  $('f_dead_freight_qty').value = ul == null ? '' : Math.max(0, -ul);
+  // GCV bonus / penalty
+  const perMt = gcvBonusPerMt(g('loading_gcv'), g('gcv_arb'));
+  const rr = g('rr_weight');
+  $('f_gcv_bonus_penalty').value = perMt == null ? '' : round2(perMt);
+  $('f_gcv_bonus_penalty_amt').value = (perMt == null || rr == null) ? '' : round2(perMt * rr);
 }
 
 async function fillNextSr() {
@@ -1314,23 +1582,88 @@ async function loadSources() {
 
 let entryReady = false;
 async function initEntry() {
-  if (entryReady) return;
+  if (entryReady) {
+    // refresh month list for search
+    fillSearchMonths();
+    return;
+  }
   entryReady = true;
   buildEntryForm();
   await loadSources();
+  fillSearchMonths();
   await resetEntryForm();
   await loadRake();
+}
+function fillSearchMonths() {
+  const keys = [];
+  for (let i = 0; i < 24; i++) {
+    const d = new Date(Date.UTC(2026, 3 + i, 1));
+    keys.push(`${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}`);
+  }
+  const cur = todayStr().slice(0, 7);
+  $('searchMonth').innerHTML = keys.map(k => `<option value="${k}">${k}</option>`).join('');
+  if (keys.includes(cur)) $('searchMonth').value = cur;
 }
 
 async function resetEntryForm() {
   $('entryForm').reset();
-  delete $('f_railway_total_freight').dataset.touched;
+  $('editRecordId').value = '';
   $('f_loading_date').value = todayStr();
   $('f_unit').value = 'IPP';
+  $('entrySubmitBtn').innerHTML = '<i class="fas fa-save"></i> Save Record';
+  $('searchSrStatus').textContent = '';
   await fillNextSr();
   recalcForm();
 }
 $('clearForm').addEventListener('click', resetEntryForm);
+
+async function searchBySr() {
+  const sr = Number($('searchSr').value);
+  const m = $('searchMonth').value;
+  if (!sr || !m) {
+    $('searchSrStatus').textContent = 'Enter Sr No and select month';
+    $('searchSrStatus').className = 'status err';
+    return;
+  }
+  const from = `${m}-01`;
+  const end = new Date(Date.UTC(+m.slice(0, 4), +m.slice(5, 7), 1)).toISOString().slice(0, 10);
+  try {
+    const { data, error } = await db.from(T).select('*').eq('sr_no', sr).gte('loading_date', from).lt('loading_date', end).limit(1);
+    if (error) throw error;
+    if (!data || !data.length) {
+      $('searchSrStatus').textContent = 'No record found for Sr ' + sr + ' in ' + m;
+      $('searchSrStatus').className = 'status err';
+      return;
+    }
+    const r = data[0];
+    $('editRecordId').value = r.id;
+    COLS.forEach(c => {
+      if (isCalc(c.db)) return;
+      const el = $('f_' + c.db);
+      if (!el) return;
+      const v = r[c.db];
+      if (v == null || v === '') { el.value = ''; return; }
+      if (c.type === 'date' && String(v).length >= 10) el.value = String(v).slice(0, 10);
+      else if (c.type === 'time' && String(v).length >= 5) el.value = String(v).slice(0, 5);
+      else el.value = v;
+    });
+    // calc fields
+    recalcForm();
+    if (r.pol_group != null) $('f_pol_group').value = r.pol_group;
+    if (r.ehbc_group != null) $('f_ehbc_group').value = r.ehbc_group;
+    if (r.sick_wagons != null) $('f_sick_wagons').value = r.sick_wagons;
+    $('entrySubmitBtn').innerHTML = '<i class="fas fa-floppy-disk"></i> Update Record';
+    $('searchSrStatus').textContent = 'Loaded Sr ' + sr + ' for update (id ' + r.id + ')';
+    $('searchSrStatus').className = 'status ok';
+  } catch (e) {
+    console.error(e);
+    $('searchSrStatus').textContent = 'Search failed: ' + e.message;
+    $('searchSrStatus').className = 'status err';
+  }
+}
+$('searchSrBtn').addEventListener('click', searchBySr);
+$('searchSr').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); searchBySr(); } });
+
 
 $('entryForm').addEventListener('submit', async e => {
   e.preventDefault();
@@ -1343,18 +1676,26 @@ $('entryForm').addEventListener('submit', async e => {
     if (el) row[c.db] = toDbValue(c.db, el.value);
   });
   if (!row.loading_date || !row.area || !row.source) { toast('Loading Date, Area and Source are required', true); return; }
-  const { error } = await db.from(T).insert(row);
-  if (error) {
-    toast(error.code === '23505' ? 'This rake already exists (same date, area, source, P/T and RR number). Edit it in Records Log.' : 'Save failed: ' + error.message, true);
-    return;
+  row.record_key = recordKey(row);
+  const editId = $('editRecordId').value;
+  if (editId) {
+    const { error } = await db.from(T).update(row).eq('id', editId);
+    if (error) { toast('Update failed: ' + error.message, true); return; }
+    toast('Record updated');
+  } else {
+    const { error } = await db.from(T).insert(row);
+    if (error) {
+      toast(error.code === '23505' ? 'This rake already exists (same date, area, source, P/T and RR number). Search by Sr No to update, or edit in Records Log.' : 'Save failed: ' + error.message, true);
+      return;
+    }
+    toast('Record saved');
   }
-  toast('Record saved');
   await loadSources();
   await refreshLoaded();
   await resetEntryForm();
 });
 
-/* ---- Target rake (table pjpb_rake_targets + pjpb_periods, keyed by month) ---- */
+/* ---- Target rake ---- */
 let rake = [];
 const fmtDay = v => Number(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 });
 const fmtPct = v => Number(v || 0).toLocaleString('en-IN', { maximumFractionDigits: 1 }) + '%';
@@ -1400,9 +1741,11 @@ async function refreshLoaded() {
   renderRake();
 }
 function prevMonth(key) {
-  const [y, m] = key.split('-').map(Number);
-  const d = new Date(Date.UTC(y, m - 2, 1));
-  return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}`;
+  // previous quarter
+  const [fy, qs] = key.split('-Q');
+  let y = +fy, q = +qs - 1;
+  if (q < 1) { q = 4; y -= 1; }
+  return `${y}-Q${q}`;
 }
 async function carryForward() {
   const key = $('rakePeriod').value, p = prevMonth(key), pinfo = periodInfo(p);
@@ -1418,14 +1761,21 @@ async function carryForward() {
 }
 async function loadRake() {
   const key = $('rakePeriod').value;
-  const [tg, pr] = await Promise.all([
+  const [tg, pr, cfr] = await Promise.all([
     db.from('pjpb_rake_targets').select('area, qtr_target').eq('period_key', key),
-    db.from('pjpb_periods').select('report_date, freight_cost_target').eq('period_key', key).maybeSingle()
+    db.from('pjpb_periods').select('report_date, freight_cost_target').eq('period_key', key).maybeSingle(),
+    db.from('pjpb_settings').select('setting_value').eq('setting_key', cfKey(key)).maybeSingle()
   ]);
   rake = AREAS.map(a => ({ area: a, target: 0, loaded: 0 }));
   (tg.data || []).forEach(row => { const r = rake.find(x => x.area === row.area); if (r) r.target = row.qtr_target ?? 0; });
   $('rakeReportDate').value = pr.data?.report_date || todayStr();
   $('fcTarget').value = pr.data?.freight_cost_target ?? '';
+  $('cfRake').value = cfr.data && cfr.data.setting_value !== '' ? cfr.data.setting_value : CARRY_FWD_DEFAULT;
+  // Permanent service charge rates (until changed)
+  $('scSecl').value = FORMULAS.scSecl ?? 0;
+  $('scMcl').value = FORMULAS.scMcl ?? 0;
+  $('scCcl').value = FORMULAS.scCcl ?? 0;
+  $('scNcl').value = FORMULAS.scNcl ?? 0;
   await refreshLoaded();
 }
 $('rakeBody').addEventListener('input', e => {
@@ -1438,9 +1788,11 @@ $('rakeBody').addEventListener('input', e => {
 $('rakePeriod').addEventListener('change', loadRake);
 $('rakeReportDate').addEventListener('change', async () => { await refreshLoaded(); scheduleSaveRake(); });
 $('fcTarget').addEventListener('input', scheduleSaveRake);
+$('cfRake').addEventListener('input', scheduleSaveRake);
+['scSecl', 'scMcl', 'scCcl', 'scNcl'].forEach(id => $(id).addEventListener('input', scheduleSaveSC));
 $('carryFwd').addEventListener('click', async () => {
-  if (!confirm("Replace Month Target with the previous month's balance?")) return;
-  if (!(await carryForward())) { toast('No saved targets for previous month', true); return; }
+  if (!confirm("Replace Quarter Target with the previous quarter's balance?")) return;
+  if (!(await carryForward())) { toast('No saved targets for previous quarter', true); return; }
   renderRake(); await saveRake(false);
 });
 
@@ -1455,6 +1807,9 @@ function saveRake(silent) {
       if (p.error) throw p.error;
       const t = await db.from('pjpb_rake_targets').upsert(rake.map(r => ({ period_key: key, area: r.area, qtr_target: +r.target || 0, updated_at: new Date().toISOString() })), { onConflict: 'period_key,area' });
       if (t.error) throw t.error;
+      const cfv = $('cfRake').value;
+      const s = await db.from('pjpb_settings').upsert({ setting_key: cfKey(key), setting_value: cfv === '' ? String(CARRY_FWD_DEFAULT) : cfv }, { onConflict: 'setting_key' });
+      if (s.error) throw s.error;
       if (!silent) toast('Target saved');
     } catch (err) { console.error(err); toast('Target save failed: ' + (err.message || ''), true); }
   });
@@ -1473,3 +1828,4 @@ setInterval(() => { if (!document.hidden && $('view-dashboard').classList.contai
 </script>
 </body>
 </html>
+Grok finished responding
