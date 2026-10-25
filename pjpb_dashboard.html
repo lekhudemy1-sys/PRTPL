@@ -282,14 +282,15 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(58,55,150,.35)
     <div class="dash-col">
       <div class="card c-bill">
         <div class="card-header"><h3><i class="fas fa-list-check"></i> Particulars</h3></div>
-        <div class="metric-row"><span class="metric-label">Performance on Quantity RECO</span><input class="metric-value wide" id="par_qtyReco" readonly></div>
-        <div class="metric-row"><span class="metric-label">Performance on GCV RECO</span><input class="metric-value wide" id="par_gcvReco" readonly></div>
-        <div class="metric-row"><span class="metric-label">Performance on Service Charge (SECL)</span><input class="metric-value wide" id="par_scSecl" readonly></div>
-        <div class="metric-row"><span class="metric-label">Performance on Service Charge (MCL)</span><input class="metric-value wide" id="par_scMcl" readonly></div>
-        <div class="metric-row"><span class="metric-label">Performance on Service Charge (CCL)</span><input class="metric-value wide" id="par_scCcl" readonly></div>
-        <div class="metric-row"><span class="metric-label">Performance on Service Charge (NCL)</span><input class="metric-value wide" id="par_scNcl" readonly></div>
-        <div class="metric-row"><span class="metric-label">Total Railway Penalty</span><input class="metric-value wide" id="par_pen" readonly></div>
-        <div class="metric-row total-row"><span class="metric-label">TOTAL BILLING</span><input class="metric-value wide" id="par_totalBill" readonly></div>
+        <div class="dual-head"><span>Amount</span><span>Per MT</span></div>
+        <div class="metric-row"><span class="metric-label">Performance on Quantity RECO</span><div class="pair"><input class="metric-value" id="par_qtyReco" readonly><input class="metric-value" id="par_qtyRecoMt" readonly></div></div>
+        <div class="metric-row"><span class="metric-label">Performance on GCV RECO</span><div class="pair"><input class="metric-value" id="par_gcvReco" readonly><input class="metric-value" id="par_gcvRecoMt" readonly></div></div>
+        <div class="metric-row"><span class="metric-label">Performance on Service Charge (SECL)</span><div class="pair"><input class="metric-value" id="par_scSecl" readonly><input class="metric-value" id="par_scSeclMt" readonly></div></div>
+        <div class="metric-row"><span class="metric-label">Performance on Service Charge (MCL)</span><div class="pair"><input class="metric-value" id="par_scMcl" readonly><input class="metric-value" id="par_scMclMt" readonly></div></div>
+        <div class="metric-row"><span class="metric-label">Performance on Service Charge (CCL)</span><div class="pair"><input class="metric-value" id="par_scCcl" readonly><input class="metric-value" id="par_scCclMt" readonly></div></div>
+        <div class="metric-row"><span class="metric-label">Performance on Service Charge (NCL)</span><div class="pair"><input class="metric-value" id="par_scNcl" readonly><input class="metric-value" id="par_scNclMt" readonly></div></div>
+        <div class="metric-row"><span class="metric-label">Total Railway Penalty</span><div class="pair"><input class="metric-value" id="par_pen" readonly><input class="metric-value" id="par_penMt" readonly></div></div>
+        <div class="metric-row total-row"><span class="metric-label">TOTAL BILLING</span><div class="pair"><input class="metric-value" id="par_totalBill" readonly><input class="metric-value" id="par_totalBillMt" readonly></div></div>
         <div class="metric-row"><span class="metric-label">Expected Billing of the Month</span><input class="metric-value wide" id="par_expBill" readonly></div>
       </div>
       <div class="card c-rake">
@@ -937,18 +938,36 @@ function computeDashboard(period, data) {
   });
   put('tgt_TOTAL', tTarget); put('load_TOTAL', tLoaded); put('bal_TOTAL', tTarget - tLoaded); put('ask_TOTAL', round2(tAsk), 'd2');
 
-  put('wv_perRake', all.varN ? all.varS / all.varN : 0, 'd2');
-  put('wv_pct', all.varNet ? all.varS / all.varNet * 100 : 0, 'pct');
+  // Avg Short / Excess = (sum RR Weight − sum Received Wt) / count of Received Wt values
+  put('wv_perRake', all.recN ? (all.rr - all.rec) / all.recN : 0, 'd2');
+  // Normalised Qty % = only rows with Received Wt:
+  //   ((sum RR Weight − sum Received Wt) × 100) / sum RR Weight
+  let normRr = 0, normRec = 0;
+  recs.forEach(r => {
+    if (r.received_wt == null || r.received_wt === '') return;
+    normRr += num(r.rr_weight);
+    normRec += num(r.received_wt);
+  });
+  put('wv_pct', normRr ? ((normRr - normRec) * 100) / normRr : 0, 'pct');
   const perMt = v => all.rr ? v / all.rr : 0;
+  // Area-wise Loading / Unloading GCV =
+  //   SUMPRODUCT(GCV, RR Weight for area) / Quantity (total RR Weight) of that area
+  const areaGcv = rs => {
+    let ugNum = 0, lgNum = 0, qty = 0;
+    rs.forEach(r => {
+      const rr = num(r.rr_weight);
+      qty += rr;
+      if (r.gcv_arb != null && r.gcv_arb !== '') ugNum += rr * num(r.gcv_arb);
+      if (r.loading_gcv != null && r.loading_gcv !== '') lgNum += rr * num(r.loading_gcv);
+    });
+    return { unload: qty ? ugNum / qty : 0, load: qty ? lgNum / qty : 0 };
+  };
   AREAS.forEach(a => {
     const rs = recs.filter(r => r.area === a);
-    const s = stats(rs);
-    // Unloading GCV = plant_end_gcv weighted avg; Loading GCV not in DB yet → 0
-    const unloadGcv = s.gcv;
-    const loadGcv = s.lgcv;
-    put('aw_lgcv_' + a, loadGcv, 'd1');
-    put('aw_ugcv_' + a, unloadGcv, 'd1');
-    put('aw_gcvd_' + a, loadGcv - unloadGcv, 'd1');
+    const g = areaGcv(rs);
+    put('aw_lgcv_' + a, g.load, 'int');
+    put('aw_ugcv_' + a, g.unload, 'int');
+    put('aw_gcvd_' + a, g.load - g.unload, 'int');
   });
 
   // Particulars
@@ -956,16 +975,19 @@ function computeDashboard(period, data) {
   const cf = data.cf;
   const hVal = cf > 0 ? all.n * 100 / cf : 0;
   const qtyReco = cf > 0 ? recoFactor(hVal) * all.rr : 0;
-  put('par_qtyReco', qtyReco, 'd1');
+  const mt = v => all.rr ? v / all.rr : 0; // Per MT vs total RR Weight
+  put('par_qtyReco', qtyReco, 'int');
+  put('par_qtyRecoMt', mt(qtyReco), 'd2');
 
   // GCV RECO = sum of Bonus/Penalty amount (gcv_bonus_penalty_amt)
   let gcvReco = 0;
   recs.forEach(r => {
-    const perMt = gcvBonusPerMt(r.loading_gcv, r.gcv_arb);
-    if (perMt != null && r.rr_weight != null) gcvReco += perMt * Number(r.rr_weight);
+    const perMtBp = gcvBonusPerMt(r.loading_gcv, r.gcv_arb);
+    if (perMtBp != null && r.rr_weight != null) gcvReco += perMtBp * Number(r.rr_weight);
   });
   gcvReco = round2(gcvReco);
-  put('par_gcvReco', gcvReco, 'd1');
+  put('par_gcvReco', gcvReco, 'int');
+  put('par_gcvRecoMt', mt(gcvReco), 'd2');
 
   // Service Charge = RR Weight of area × permanent rate (₹/MT)
   // MCL = IB + CKP
@@ -977,25 +999,30 @@ function computeDashboard(period, data) {
   const scMcl = rrMcl * (FORMULAS.scMcl || 0);
   const scCcl = rrCcl * (FORMULAS.scCcl || 0);
   const scNcl = rrNcl * (FORMULAS.scNcl || 0);
-  put('par_scSecl', scSecl, 'd1');
-  put('par_scMcl', scMcl, 'd1');
-  put('par_scCcl', scCcl, 'd1');
-  put('par_scNcl', scNcl, 'd1');
+  put('par_scSecl', scSecl, 'int'); put('par_scSeclMt', mt(scSecl), 'd2');
+  put('par_scMcl', scMcl, 'int'); put('par_scMclMt', mt(scMcl), 'd2');
+  put('par_scCcl', scCcl, 'int'); put('par_scCclMt', mt(scCcl), 'd2');
+  put('par_scNcl', scNcl, 'int'); put('par_scNclMt', mt(scNcl), 'd2');
 
   // Total Railway Penalty shown as negative (cost)
   const ulSumForPar = sum(recs, r => r.underload_charges);
   const penTotalPar = ulSumForPar + all.pun + all.eh + all.enhc;
   const penNeg = -Math.abs(penTotalPar);
-  put('par_pen', penNeg, 'd1');
+  put('par_pen', penNeg, 'int');
+  put('par_penMt', mt(penNeg), 'd2');
 
   // TOTAL BILLING = Qty RECO + GCV RECO + SC (all) + Railway Penalty (already negative)
   const totalBill = qtyReco + gcvReco + scSecl + scMcl + scCcl + scNcl + penNeg;
-  put('par_totalBill', totalBill, 'd1');
-  put('par_expBill', info.daysPassed ? totalBill / info.daysPassed * info.totalDays : 0, 'd1');
+  const expBill = info.daysPassed ? totalBill / info.daysPassed * info.totalDays : 0;
+  put('par_totalBill', totalBill, 'int'); put('par_totalBillMt', mt(totalBill), 'd2');
+  put('par_expBill', expBill, 'int');
 
-  // Rake Performance: Target Achieved = loaded vs target; Asking = actual per-day vs asking per-day
-  put('pd_tgtAch', tLoaded); put('pd_tgtTgt', tTarget);
-  put('pd_askAch', info.daysPassed ? all.n / info.daysPassed : 0, 'd2');
+  // Rake Performance
+  // Target Achieved: Achieve = (rakes loaded till × 100) / quarter target ; Target = 100%
+  put('pd_tgtAch', tTarget ? (tLoaded * 100) / tTarget : 0, 'pct');
+  put('pd_tgtTgt', 100, 'pct');
+  // Asking: Achieve = rakes loaded till / days passed ; Target = sum of asking per day
+  put('pd_askAch', info.daysPassed ? tLoaded / info.daysPassed : 0, 'd2');
   put('pd_askTgt', round2(tAsk), 'd2');
 
   // Weight Summary (whole numbers)
@@ -1023,17 +1050,19 @@ function computeDashboard(period, data) {
   AREAS.forEach(a => {
     const rs = recs.filter(r => r.area === a);
     const s = stats(rs);
-    const unloadGcv = s.gcv;
-    const loadGcv = s.lgcv; // loading end GCV not in DB yet
-    put('a_rr_' + a, s.rr, 'd1');
-    put('a_ugcv_' + a, unloadGcv, 'd1');
-    put('a_lgcv_' + a, loadGcv, 'd1');
-    put('a_gcvd_' + a, loadGcv - unloadGcv, 'd1');
-    put('a_pun_' + a, s.pun);
-    put('a_ehbc_' + a, s.eh);
-    put('a_enhc_' + a, s.enhc);
-    put('a_fpm_' + a, s.fpm, 'd2');
-    put('a_ulChg_' + a, sum(rs, r => r.underload_charges));
+    const g = areaGcv(rs);
+    // Per Ton Cost = (Punitive Sum + EHBC/FAUC/SD/TC + ENHC) / RR Quantity of area
+    const penSum = s.pun + s.eh + s.enhc;
+    const perTon = s.rr ? penSum / s.rr : 0;
+    put('a_rr_' + a, s.rr, 'int');
+    put('a_ugcv_' + a, g.unload, 'int');
+    put('a_lgcv_' + a, g.load, 'int');
+    put('a_gcvd_' + a, g.load - g.unload, 'int');
+    put('a_pun_' + a, s.pun, 'int');
+    put('a_ehbc_' + a, s.eh, 'int');
+    put('a_enhc_' + a, s.enhc, 'int');
+    put('a_fpm_' + a, perTon, 'd2');
+    put('a_ulChg_' + a, sum(rs, r => r.underload_charges), 'int');
   });
 
   const lastRake = recs.length ? recs[recs.length - 1].loading_date : '';
@@ -1828,4 +1857,3 @@ setInterval(() => { if (!document.hidden && $('view-dashboard').classList.contai
 </script>
 </body>
 </html>
-Grok finished responding
