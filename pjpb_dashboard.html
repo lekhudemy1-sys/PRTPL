@@ -682,7 +682,7 @@ function tryUnlock() {
     isUnlocked = true;
     $('pwdInput').value = '';
     $('pwdErr').textContent = '';
-    $('userLabel').textContent = 'Open';
+    $('userLabel').textContent = '';
     showView(pendingView);
   } else {
     $('pwdErr').textContent = 'Wrong password';
