@@ -21,7 +21,7 @@
 html,body{height:100%}
 body{
   font-family:var(--body);color:var(--ink);min-height:100vh;display:grid;place-items:center;padding:1.5rem;
-  background:var(--bg);overflow:hidden;position:relative;
+  background:var(--bg);overflow-x:hidden;overflow-y:auto;position:relative;
   transition:opacity .45s var(--ease),filter .45s var(--ease);
 }
 body.leave{opacity:0;filter:blur(6px)}
@@ -142,11 +142,18 @@ input:focus{border-color:var(--brand2);box-shadow:0 0 0 4px rgba(59,130,246,.15)
 .err{min-height:1.3rem;margin-top:.9rem;text-align:center;color:var(--err);font-size:.87rem;font-weight:500;transition:opacity .3s}
 .err.hide{opacity:0}
 
-@keyframes rot{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media (hover:none){.card:hover,.card:hover .mark{transform:none}}
 @media (max-width:420px){.card{padding:1.8rem 1.4rem 1.6rem}}
 </style>
+<meta name="pr-hub" content="plain" />
+<meta name="description" content="Sign in | Prithvi Realcon – Prithvi Realcon logistics and performance portal." />
+<meta name="theme-color" content="#1d4ed8" />
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+<link rel="apple-touch-icon" href="assets/icon-192.png" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="stylesheet" href="assets/prtpl.css" />
+<script src="assets/prtpl.js"></script>
 </head>
 <body>
 <div class="mesh"><span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span><span class="blob b4"></span></div>
@@ -318,6 +325,8 @@ $('f').onsubmit = async function (e) {
   const u = $('u').value.trim(), p = $('p').value;
   if (!u || !p) { setErr(!u ? 'Enter your username.' : 'Enter your password.'); shake(); return; }
 
+  if (coolLeft() > 0) { setErr('Too many attempts. Try again in ' + coolLeft() + 's.'); shake(); return; }
+
   const btn = $('go');
   $('err').textContent = '';
   btn.disabled = true; btn.classList.add('loading');
@@ -335,6 +344,7 @@ $('f').onsubmit = async function (e) {
       if ($('remember').checked) localStorage.setItem(REM, u); else localStorage.removeItem(REM);
     } catch (e) {}
 
+    sessionStorage.removeItem('pr-fails'); sessionStorage.removeItem('pr-lock');
     /* success: morph the button, fade the card out, then go to the home page */
     btn.classList.remove('loading'); btn.classList.add('ok');
     btn.querySelector('.lbl').textContent = 'Welcome';
@@ -342,11 +352,19 @@ $('f').onsubmit = async function (e) {
     setTimeout(() => location.replace('home_page.html'), 1000);
   } catch (ex) {
     resetBtn();
-    setErr(ex.message === 'bad' ? 'Wrong username or password.' : 'Could not reach the server. Try again.');
+    if (ex.message === 'bad') {
+      const n = (+sessionStorage.getItem('pr-fails') || 0) + 1;
+      sessionStorage.setItem('pr-fails', n);
+      if (n >= 5) {
+        sessionStorage.setItem('pr-lock', Date.now() + 30000); sessionStorage.setItem('pr-fails', 0);
+        setErr('Too many attempts. Try again in 30s.');
+      } else setErr('Wrong username or password.' + (n >= 3 ? ' (' + (5 - n) + ' attempts left)' : ''));
+    } else setErr('Could not reach the server. Try again.');
     shake();
   }
 };
 
+function coolLeft() { return Math.max(0, Math.ceil(((+sessionStorage.getItem('pr-lock') || 0) - Date.now()) / 1000)); }
 function shake() {
   const w = $('wrap');
   w.classList.remove('shake'); void w.offsetWidth; w.classList.add('shake');
