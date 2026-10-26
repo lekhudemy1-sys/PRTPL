@@ -11,12 +11,6 @@ Static site (GitHub Pages) + Supabase. Every page loads the shared layer in `ass
 
 Optional settings (put before the `prtpl.js` tag): `window.PRTPL_CONFIG = { lottie: 'assets/loader.json', idleMinutes: 30 };`
 
-## Inner sheets
-Dashboards and entry sheets (pages with `pr-access`) automatically load `assets/prtpl-inner.css/js`:
-staggered panel entrance, hover/press feedback, themed scrollbars and focus rings, row hover tint,
-a loading shimmer on empty value boxes, and a small site button (bottom-left) for Home and Ctrl+K search.
-Each sheet keeps its own party colours.
-
 ## Page access
 Each page declares what it needs with `<meta name="pr-access" content="amm:HZL">`.
 Users without that access are sent back to the home page; signed-out users go to the login page.
