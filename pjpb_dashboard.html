@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow" />
+<meta name="referrer" content="strict-origin-when-cross-origin" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PJPB Dashboard | AMM PJPB</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -522,7 +524,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(58,55,150,.35)
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.13/dist/html-to-image.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 /* ==================== CONFIG ==================== */
@@ -1406,7 +1408,7 @@ async function nextSrNos(rows) {
 $('importBtn').addEventListener('click', async () => {
   const good = parsedRows.filter(r => !r.errors.length);
   if (!good.length) { toast('Nothing to import', true); return; }
-  if (!confirm(`Save ${good.length} rakes to the database? Rakes that already exist are updated, not duplicated.`)) return;
+  if (!(await PRTPL.confirm(`Save ${good.length} rakes to the database? Rakes that already exist are updated, not duplicated.`, { title: 'Import rakes', okLabel: 'Save rakes', danger: false }))) return;
   const btn = $('importBtn');
   btn.disabled = true;
   let ok = 0; const fail = [];
@@ -1534,7 +1536,7 @@ $('logTbl').addEventListener('click', async e => {
     loadLog();
   }
   if (delBtn) {
-    if (!confirm('Delete this record permanently?')) return;
+    if (!(await PRTPL.confirm('Delete this record permanently?', { title: 'Delete record?', okLabel: 'Delete' }))) return;
     const { error } = await db.from(T).delete().eq('id', delBtn.dataset.del);
     if (error) { setStatus('logStatus', 'Delete failed: ' + error.message, 'err'); return; }
     setStatus('logStatus', 'Record deleted', 'ok');
@@ -1828,7 +1830,7 @@ $('fcTarget').addEventListener('input', scheduleSaveRake);
 $('cfRake').addEventListener('input', scheduleSaveRake);
 ['scSecl', 'scMcl', 'scCcl', 'scNcl'].forEach(id => $(id).addEventListener('input', scheduleSaveSC));
 $('carryFwd').addEventListener('click', async () => {
-  if (!confirm("Replace Quarter Target with the previous quarter's balance?")) return;
+  if (!(await PRTPL.confirm("Replace Quarter Target with the previous quarter's balance?", { title: 'Use previous balance?', okLabel: 'Replace targets', danger: true }))) return;
   if (!(await carryForward())) { toast('No saved targets for previous quarter', true); return; }
   renderRake(); await saveRake(false);
 });

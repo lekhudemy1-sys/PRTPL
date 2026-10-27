@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow" />
+<meta name="referrer" content="strict-origin-when-cross-origin" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light">
 <title>AMM Daily Rake Loading Status</title>
@@ -438,7 +440,11 @@
   function markSaved(iso) { if (iso && savedDates.indexOf(iso) < 0) savedDates.unshift(iso); drawSaved(); }
   $('saved').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) go(parseISO(b.getAttribute('data-d'))); });
   function go(d) {
-    if (dirty && !confirm('You have unsaved changes. Open another date without saving?')) { $('dateIn').value = toISO(reportDate); return; }
+    if (dirty) {
+      PRTPL.confirm('You have unsaved changes. Open another date without saving?', { title: 'Unsaved changes', okLabel: 'Open anyway', cancelLabel: 'Stay here', danger: true })
+        .then(function (ok) { if (ok) openDate(d); else $('dateIn').value = toISO(reportDate); });
+      return;
+    }
     openDate(d);
   }
   /* ---- actions ---- */

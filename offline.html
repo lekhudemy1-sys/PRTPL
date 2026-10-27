@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="referrer" content="strict-origin-when-cross-origin" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<meta name="theme-color" content="#1d4ed8" />
+<title>You are offline | Prithvi Realcon</title>
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+<style>
+:root{--ink:#0f2142;--ink2:#506078;--a:#1d4ed8;--b:#3b82f6;--gold:#d9ac4e;--bg:#f4f7fc}
+@media (prefers-color-scheme:dark){:root{--ink:#e8eefc;--ink2:#a9b6d0;--bg:#0a1020}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;display:grid;place-items:center;padding:1.5rem;text-align:center;color:var(--ink);background:var(--bg);
+  font-family:"Instrument Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:430px}
+.ic{width:84px;height:84px;margin:0 auto 1.4rem;border-radius:26px;display:grid;place-items:center;color:#fff;background:linear-gradient(140deg,#0f2142,var(--a));box-shadow:0 22px 40px -20px var(--a)}
+.ic svg{width:40px;height:40px;fill:none;stroke:#fff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+h1{font-size:1.7rem;letter-spacing:-.02em;margin-bottom:.5rem}
+p{color:var(--ink2);line-height:1.55;margin-bottom:1.6rem}
+button{height:48px;padding:0 1.6rem;border:0;border-radius:14px;cursor:pointer;color:#fff;font-weight:600;font-size:1rem;font-family:inherit;background:linear-gradient(135deg,var(--a),var(--b));box-shadow:0 14px 26px -14px var(--a)}
+button:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.s{margin-top:1.1rem;font-size:.85rem;color:var(--ink2);min-height:1.2rem}
+</style>
+</head>
+<body>
+<main>
+  <div class="ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 8.8a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0"/><path d="M12 19.5h.01"/><path d="M3 3l18 18"/></svg></div>
+  <h1>You are offline</h1>
+  <p>This page needs a connection to load live data. Pages you have already opened are still available, and this one will reload by itself when the network returns.</p>
+  <button type="button" id="retry">Try again</button>
+  <div class="s" id="s" role="status" aria-live="polite"></div>
+</main>
+<script>
+  var s = document.getElementById('s');
+  function go() { location.reload(); }
+  document.getElementById('retry').onclick = function () { s.textContent = navigator.onLine ? 'Reconnecting…' : 'Still offline. Check your connection.'; if (navigator.onLine) go(); };
+  window.addEventListener('online', go);
+</script>
+</body>
+</html>

@@ -2,13 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
+<meta name="robots" content="noindex, nofollow" />
+<meta name="referrer" content="strict-origin-when-cross-origin" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Sign in | Prithvi Realcon</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <style>
 :root{
   --bg:#f5f8fc; --surface:#ffffff; --ink:#0f2142; --ink2:#51607a; --mute:#8794ab;
@@ -139,6 +141,12 @@ input:focus{border-color:var(--brand2);box-shadow:0 0 0 4px rgba(59,130,246,.15)
 .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.45);transform:scale(0);animation:ripple .6s ease-out forwards;pointer-events:none}
 @keyframes ripple{to{transform:scale(4);opacity:0}}
 
+.notice{display:flex;gap:.6rem;align-items:flex-start;margin:0 0 1.1rem;padding:.7rem .85rem;border-radius:12px;font-size:.84rem;line-height:1.4;font-weight:500;
+  color:#7a5410;background:#fdf3de;border:1px solid #f1d9a3;animation:rise .5s var(--ease) backwards}
+.notice[hidden]{display:none}
+.notice i{margin-top:.15rem}
+.help{margin-top:1.1rem;text-align:center;font-size:.8rem;color:var(--mute)}
+.nojs{max-width:390px;margin:0 auto;padding:1rem 1.2rem;border-radius:14px;background:#fff;border:1px solid var(--line);color:var(--ink2);text-align:center;font-size:.92rem}
 .err{min-height:1.3rem;margin-top:.9rem;text-align:center;color:var(--err);font-size:.87rem;font-weight:500;transition:opacity .3s}
 .err.hide{opacity:0}
 
@@ -159,11 +167,14 @@ input:focus{border-color:var(--brand2);box-shadow:0 0 0 4px rgba(59,130,246,.15)
 <div class="mesh"><span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span><span class="blob b4"></span></div>
 <canvas id="fx"></canvas>
 
+<noscript><div class="nojs"><strong>JavaScript is turned off.</strong><br>Turn it on in your browser settings to sign in to Prithvi Realcon.</div></noscript>
 <div class="wrap" id="wrap">
   <div class="card" id="card">
     <div class="mark"><i class="fas fa-truck-fast"></i></div>
     <h1 class="head type" id="title"></h1>
     <p class="sub">Sign in to Prithvi Realcon</p>
+
+    <div class="notice" id="notice" role="status" hidden><i class="fas fa-circle-info" aria-hidden="true"></i><span id="noticeTxt"></span></div>
 
     <form id="f" autocomplete="off" novalidate>
       <div class="f" style="--d:.4s">
@@ -201,11 +212,12 @@ input:focus{border-color:var(--brand2);box-shadow:0 0 0 4px rgba(59,130,246,.15)
       </button>
       <div class="err hide" id="err" role="alert"></div>
     </form>
+    <p class="help">Need an account or access to a dashboard? Ask your administrator.</p>
   </div>
 </div>
 
 <script>
-const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.getAttribute('data-motion') !== 'full';
 const $ = id => document.getElementById(id);
 
 /* typing heading */
@@ -305,6 +317,21 @@ try {
 /* already signed in: go straight to the home page */
 try { if (JSON.parse(sessionStorage.getItem('amm-auth'))) location.replace('home_page.html'); } catch (e) {}
 
+/* why the user is back here (idle sign-out, expired session) */
+(function () {
+  let r = null;
+  try { r = sessionStorage.getItem('pr-reason'); sessionStorage.removeItem('pr-reason'); } catch (e) {}
+  const msg = { idle: 'You were signed out after a period of inactivity. Sign in to continue.', expired: 'Your session has ended. Sign in again to continue.' }[r];
+  if (msg) { $('noticeTxt').textContent = msg; $('notice').hidden = false; }
+})();
+
+/* after sign-in, return to the page the user was trying to open (same-site .html pages only) */
+function landingPage() {
+  let n = null;
+  try { n = sessionStorage.getItem('pr-next'); sessionStorage.removeItem('pr-next'); } catch (e) {}
+  return n && /^[A-Za-z0-9_\-]+\.html(\?[A-Za-z0-9_=&%.\-]*)?$/.test(n) && !/^index\.html/.test(n) ? n : 'home_page.html';
+}
+
 const SUPABASE_URL = 'https://pycmkjrmdieaqsbgrher.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5Y21ranJtZGllYXFzYmdyaGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwMjMxNzAsImV4cCI6MjEwNjU5OTE3MH0.9IE2c2FZ4BPv6Rvhfa_VniQ7LJvQ_c4EGDXFihYR4Lc';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -338,7 +365,7 @@ $('f').onsubmit = async function (e) {
 
     /* 'role' is an internal flag the existing sheet pages check; which cards a user sees is set by access */
     sessionStorage.setItem('amm-auth', JSON.stringify({
-      user: row.username, name: row.full_name || row.username, role: 'admin', access: row.access || []
+      user: row.username, name: row.full_name || row.username, role: 'admin', access: row.access || [], at: Date.now()
     }));
     try {
       if ($('remember').checked) localStorage.setItem(REM, u); else localStorage.removeItem(REM);
@@ -349,7 +376,8 @@ $('f').onsubmit = async function (e) {
     btn.classList.remove('loading'); btn.classList.add('ok');
     btn.querySelector('.lbl').textContent = 'Welcome';
     setTimeout(() => document.body.classList.add('leave'), 550);
-    setTimeout(() => location.replace('home_page.html'), 1000);
+    const dest = landingPage();
+    setTimeout(() => location.replace(dest), 1000);
   } catch (ex) {
     resetBtn();
     if (ex.message === 'bad') {

@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow" />
+<meta name="referrer" content="strict-origin-when-cross-origin" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Gujarat Performance | AMM Gujarat</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -1432,7 +1434,7 @@ $('cancelImport').addEventListener('click', () => {
 $('importBtn').addEventListener('click', async () => {
   const good = parsedRows.filter(r => !r.errors.length);
   if (!good.length) { toast('Nothing to import', true); return; }
-  if (!confirm(`Save ${good.length} rows to the database?`)) return;
+  if (!(await PRTPL.confirm(`Save ${good.length} rows to the database?`, { title: 'Import rows', okLabel: 'Save rows', danger: false }))) return;
   const btn = $('importBtn');
   btn.disabled = true;
   let ok = 0; const fail = [];
@@ -1538,7 +1540,7 @@ $('logTbl').addEventListener('click', async e => {
     loadLog();
   }
   if (delBtn) {
-    if (!confirm('Delete this record permanently?')) return;
+    if (!(await PRTPL.confirm('Delete this record permanently?', { title: 'Delete record?', okLabel: 'Delete' }))) return;
     const { error } = await db.from(TBL).delete().eq('id', delBtn.dataset.del);
     if (error) { setStatus('logStatus', 'Delete failed: ' + error.message, 'err'); return; }
     setStatus('logStatus', 'Record deleted', 'ok');
@@ -1629,7 +1631,7 @@ function buildEntryForm() {
   $('formSections').addEventListener('change', async e => {
     const s = e.target;
     if (s.tagName !== 'SELECT' || s.value !== '__add__') return;
-    const v = (prompt('Enter the new option:') || '').trim();
+    const v = ((await PRTPL.prompt('Enter the new option:', { title: 'Add new option', placeholder: 'Type the option name', okLabel: 'Add option' })) || '').trim();
     if (!v) { s.value = ''; recalcForm(); return; }
     const have = [...s.options].find(o => o.value.toLowerCase() === v.toLowerCase());
     if (have) { s.value = have.value; recalcForm(); return; }
@@ -1890,7 +1892,7 @@ async function saveSetting(key, value) {
 }
 
 async function carryForward() {
-  if (!confirm("Replace this month's targets with the previous month's balance?")) return;
+  if (!(await PRTPL.confirm("Replace this month's targets with the previous month's balance?", { title: 'Use previous balance?', okLabel: 'Replace targets', danger: true }))) return;
   const prev = shiftMonth(ENTRY_PERIOD, -1);
   const pi = monthInfo(prev);
   try {

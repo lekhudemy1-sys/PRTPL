@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
+<meta name="robots" content="noindex, nofollow" />
+<meta name="referrer" content="strict-origin-when-cross-origin" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Notices | Prithvi Realcon</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -157,7 +159,7 @@ body{font-family:var(--body);color:var(--ink);min-height:100vh;background:var(--
 </section>
 
 <script>
-const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.getAttribute('data-motion') !== 'full';
 function typeText(el, text, speed) {
   el.textContent = '';
   if (reduce) { el.textContent = text; el.classList.add('done'); return; }

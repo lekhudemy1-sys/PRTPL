@@ -8,7 +8,48 @@
   "background_color": "#f4f7fc",
   "theme_color": "#1d4ed8",
   "icons": [
-    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    {
+      "src": "assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "id": "./index.html",
+  "lang": "en",
+  "dir": "ltr",
+  "orientation": "any",
+  "categories": [
+    "business",
+    "productivity"
+  ],
+  "shortcuts": [
+    {
+      "name": "AMM Performance",
+      "short_name": "AMM",
+      "url": "amm_home.html"
+    },
+    {
+      "name": "Coal India Data",
+      "short_name": "Coal",
+      "url": "dispatch_dashboard.html"
+    },
+    {
+      "name": "Daily Rake Loading",
+      "short_name": "Rakes",
+      "url": "daily_rake_loading.html"
+    }
   ]
 }

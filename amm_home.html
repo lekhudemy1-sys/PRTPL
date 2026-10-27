@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
+<meta name="robots" content="noindex, nofollow" />
+<meta name="referrer" content="strict-origin-when-cross-origin" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="theme-color" content="#f4f7fc" />
 <title>AMM Performance | Prithvi Realcon</title>
@@ -290,7 +292,7 @@ a:focus-visible,button:focus-visible{outline:2px solid #1d4ed8;outline-offset:3p
 </nav>
 
 <script>
-const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.getAttribute('data-motion') !== 'full';
 function typeText(el, text, speed) {
   el.textContent = '';
   if (reduce) { el.textContent = text; el.classList.add('done'); return; }

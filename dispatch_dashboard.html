@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow" />
+<meta name="referrer" content="strict-origin-when-cross-origin" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Dispatch Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1406,7 +1408,7 @@ $("l-table").addEventListener("click", async e => {
   const tr = b.closest("tr"), id = tr.dataset.id;
   const desc = ["entry_date","area","siding","destination"]
     .map(f => tr.querySelector(`[data-f="${f}"]`).value.trim()).filter(Boolean).join(" · ");
-  if (!confirm(`Delete row ${id} (${desc})? This cannot be undone.`)) return;
+  if (!(await PRTPL.confirm(`Delete row ${id} (${desc})? This cannot be undone.`, { title: 'Delete this row?', okLabel: 'Delete' }))) return;
   b.disabled = true; b.textContent = "Deleting…";
   const { data, error } = await sb.from(TABLE).delete().eq("id", id).select("id");
   if (error || !data || !data.length) {

@@ -1,5 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow" />
+<meta name="referrer" content="strict-origin-when-cross-origin" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>KSK Mahanadi</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -130,7 +132,7 @@ dialog{border:1px solid var(--line);border-radius:18px;padding:20px;width:min(76
 <nav class="dock" id="dock"><button data-v="dashboard" class="active"><span>Dashboard</span></button><button data-v="entry"><span>Data entry</span></button><button data-v="log"><span>Log</span></button><button data-v="excel"><span>Excel upload</span></button></nav>
 <dialog id="dlg"><h3 id="dlg-t" style="margin:0 0 12px">Edit</h3><div id="dlg-b"></div><div style="text-align:right;margin-top:10px"><button class="btn ghost" onclick="$('#dlg').close()">Close</button></div></dialog>
 <div id="toast" class="toast hidden"></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
@@ -247,8 +249,8 @@ function mkForm(t,o={}){const T=TB[t],v=o.values||{},f=document.createElement('f
  f.addEventListener('submit',async e=>{e.preventDefault();const m=f.querySelector('.msg'),p={};m.className='msg';m.textContent='';
   for(const[k,l,ty,rq]of T.f){let x=f.elements[k].value.trim();if(ty=='n'||ty=='i'){x=x===''?null:Number(x);if(x!==null&&(!Number.isFinite(x)||(ty=='i'&&!Number.isInteger(x))))return m.className='msg err',m.textContent=l+': enter a valid number'}else x=x||null;
    if(k=='vehicle_no'&&x)x=x.toUpperCase();if(rq&&x===null)return m.className='msg err',m.textContent=l+' is required';p[k]=typeof x=='number'?String(x):x}
-  if(!DIR[t]&&!S.vals.some(d=>d.do_no==p.do_no)&&!confirm(`D.O. ${p.do_no} is not in the dashboard list. Save anyway?`))return;
-  if(DIR[t]&&!S.vals.some(d=>String(d.do_no)==p.do_no)&&!confirm(`D.O. ${p.do_no} is not in the dashboard list. Save anyway?`))return;
+  if(!DIR[t]&&!S.vals.some(d=>d.do_no==p.do_no)&&!(await PRTPL.confirm(`D.O. ${p.do_no} is not in the dashboard list. Save anyway?`,{title:'D.O. not in list',okLabel:'Save anyway',danger:false})))return;
+  if(DIR[t]&&!S.vals.some(d=>String(d.do_no)==p.do_no)&&!(await PRTPL.confirm(`D.O. ${p.do_no} is not in the dashboard list. Save anyway?`,{title:'D.O. not in list',okLabel:'Save anyway',danger:false})))return;
   const b=f.querySelector('.primary');b.disabled=true;
   const dir=DIR[t]?{direction:DIR[t]}:{};
   const{error}=o.edit?await db.from(SRC(t)).update({...p,...dir}).eq('id',v.id):await db.from(SRC(t)).insert({...p,...dir,source_sheet:'MANUAL'});
@@ -269,7 +271,7 @@ function buildDo(){const fl=(n,l,t='text',x='')=>`<label class="fld ${x}"><span>
  ${OVK.map(([k,l])=>`<label class="fld full"><span>${l}</span><input class="ov" type="number" step="any" name="ov_${k}" placeholder=" "></label>`).join('')}<div class="row"><button type="button" class="btn ghost" id="ov-reset">Reset all to formula</button></div></div></div></form>`;
  const f=$('#do-f');f.addEventListener('input',ph);$('#do-pick').addEventListener('change',fillDoForm);
  $('#ov-reset').onclick=()=>{OVK.forEach(([k])=>f.elements['ov_'+k].value='');ph()};
- $('#do-del').onclick=async()=>{const n=f.elements.do_no.value;if(!$('#do-pick').value||!confirm(`Delete D.O. ${n} from the list? Inward/dispatch entries are kept.`))return;const{error}=await db.from('ksk_dashboard_values').delete().eq('do_no',n);error?toast(exErr(error),true):(toast('D.O. deleted'),$('#do-pick').value='',await load())};
+ $('#do-del').onclick=async()=>{const n=f.elements.do_no.value;if(!$('#do-pick').value||!(await PRTPL.confirm(`Delete D.O. ${n} from the list? Inward/dispatch entries are kept.`,{title:'Delete D.O.?',okLabel:'Delete'})))return;const{error}=await db.from('ksk_dashboard_values').delete().eq('do_no',n);error?toast(exErr(error),true):(toast('D.O. deleted'),$('#do-pick').value='',await load())};
  f.addEventListener('submit',async e=>{e.preventDefault();const m=f.querySelector('.msg'),g=k=>f.elements[k].value.trim(),n=k=>g(k)===''?null:Number(g(k));m.className='msg';m.textContent='';
   const dn=n('do_no');if(!Number.isInteger(dn))return m.className='msg err',m.textContent='D.O. No is required (whole number)';
   const ov={};OVK.forEach(([k])=>{const v=n('ov_'+k);if(v!==null&&Number.isFinite(v))ov[k]=v});
@@ -361,7 +363,7 @@ async function impX(){const all=S.xl.rows;if(!all.length||S.xl.busy)return;
  const rows=all.filter(r=>r._s=='ok');
  if(!rows.length)return toast('No valid rows to load',true);
  if($('#x-t').value=='ksk_dashboard_values'){
-  if(!confirm(`Add or update ${fI(rows.length)} D.O.s in the D.O. list from this sheet? Asking, RR details and manual overrides already saved are kept.`))return;
+  if(!(await PRTPL.confirm(`Add or update ${fI(rows.length)} D.O.s in the D.O. list from this sheet? Asking, RR details and manual overrides already saved are kept.`,{title:'Update D.O. list',okLabel:'Update list',danger:false})))return;
   S.xl.busy=true;$('#x-imp').disabled=true;let n=0;
   try{for(let i=0;i<rows.length;i+=500){
     const ch=rows.slice(i,i+500).map(({_row,_s,_err,direction,source_sheet,source_row,...r})=>r);
@@ -373,7 +375,7 @@ async function impX(){const all=S.xl.rows;if(!all.length||S.xl.busy)return;
   return}
  const dir=S.xl.dir||($('#x-t').value==='ksk_inward'?'IN':'OUT');
  const label=dir=='IN'?'Inward':'Dispatch';
- if(!confirm(`Delete all current ${label} rows and load the ${fI(rows.length)} rows from this sheet?`))return;
+ if(!(await PRTPL.confirm(`Delete all current ${label} rows and load the ${fI(rows.length)} rows from this sheet?`,{title:'Replace all '+label+' rows?',okLabel:'Delete and load',danger:true})))return;
  S.xl.busy=true;$('#x-imp').disabled=true;let n=0;
  try{
   for(let i=0;i<rows.length;i+=500){
@@ -398,7 +400,7 @@ $('#l-t').onchange=()=>{S.pg=0;setupLog();renderLog()};$('#l-go').onclick=()=>{S
 $('#l-clr').onclick=()=>{$$('#l-from,#l-to,#l-do,#l-sec,#l-x input').forEach(e=>e.value='');S.pg=0;renderLog()};$('#l-pv').onclick=()=>{S.pg--;renderLog()};$('#l-nx').onclick=()=>{S.pg++;renderLog()};
 $('#t-log').addEventListener('click',async e=>{const b=e.target.closest('[data-a]');if(!b)return;const t=$('#l-t').value,id=b.dataset.id,a=b.dataset.a;
  if(a=='open'){$('#dock [data-v=entry]').click();$$('.stab')[0].click();$('#do-pick').value=id;return fillDoForm()}
- if(a=='del'){if(!confirm('Delete this entry permanently?'))return;const{error}=await db.from(SRC(t)).delete().eq('id',id);return error?toast(exErr(error),true):(toast('Deleted'),renderLog(),load())}
+ if(a=='del'){if(!(await PRTPL.confirm('Delete this entry permanently?',{title:'Delete entry?',okLabel:'Delete'})))return;const{error}=await db.from(SRC(t)).delete().eq('id',id);return error?toast(exErr(error),true):(toast('Deleted'),renderLog(),load())}
  const row=$('#t-log')._r.find(r=>String(r.id)==id);if(!row)return;$('#dlg-t').textContent=`Edit · ${TB[t].l} · #${id}`;$('#dlg-b').innerHTML='';$('#dlg-b').append(mkForm(t,{edit:1,values:row,done:()=>{$('#dlg').close();renderLog();load()}}));$('#dlg').showModal()});
 $('#refresh').onclick=load;$('#x-t').onchange=()=>{S.xl.wb&&(guess(),parseSheet().catch(x=>toast(exErr(x),true)))};$('#x-s').onchange=()=>parseSheet().catch(x=>toast(exErr(x),true));
 const dp=$('#drop');dp.onclick=()=>$('#x-f').click();$('#x-f').onchange=e=>e.target.files[0]&&loadX(e.target.files[0]);['dragover','drop'].forEach(v=>dp.addEventListener(v,e=>e.preventDefault()));dp.addEventListener('drop',e=>e.dataTransfer.files[0]&&loadX(e.dataTransfer.files[0]));$('#x-imp').onclick=impX;

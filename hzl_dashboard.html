@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow" />
+<meta name="referrer" content="strict-origin-when-cross-origin" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HZL Dashboard | AMM HZL</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -661,7 +663,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 /* ==================== CONFIG ==================== */
@@ -964,7 +966,7 @@ $('cancelImport').addEventListener('click', () => {
 $('importBtn').addEventListener('click', async () => {
   const good = parsedRows.filter(r => !r.errors.length);
   if (!good.length) { toast('Nothing to import', true); return; }
-  if (!confirm(`Save ${good.length} rows to the database?`)) return;
+  if (!(await PRTPL.confirm(`Save ${good.length} rows to the database?`, { title: 'Import rows', okLabel: 'Save rows', danger: false }))) return;
   const btn = $('importBtn');
   btn.disabled = true;
   let ok = 0; const fail = [];
@@ -1062,7 +1064,7 @@ $('logTbl').addEventListener('click', async e => {
     loadLog();
   }
   if (delBtn) {
-    if (!confirm('Delete this record permanently?')) return;
+    if (!(await PRTPL.confirm('Delete this record permanently?', { title: 'Delete record?', okLabel: 'Delete' }))) return;
     const { error } = await db.from('hzl_rake_records').delete().eq('id', delBtn.dataset.del);
     if (error) { setStatus('logStatus', 'Delete failed: ' + error.message, 'err'); return; }
     setStatus('logStatus', 'Record deleted', 'ok');
@@ -1218,11 +1220,11 @@ function enhanceSelects(root = document) {
     sel.appendChild(new Option('+ ADD NEW', '__new__'));
   });
 }
-document.addEventListener('change', e => {
+document.addEventListener('change', async e => {
   const sel = e.target;
   if (!(sel instanceof HTMLSelectElement) || sel.value !== '__new__') return;
   const name = sel.dataset.addnew;
-  const v = (prompt('Enter a new ' + name.replace(/_/g, ' ') + ':') || '').trim();
+  const v = ((await PRTPL.prompt('Enter a new ' + name.replace(/_/g, ' ') + ':', { title: 'Add new option', placeholder: 'Type the option name', okLabel: 'Add option' })) || '').trim();
   if (!v) { sel.value = ''; return; }
   if (!CUSTOM_OPTS[name]) CUSTOM_OPTS[name] = [];
   if (!CUSTOM_OPTS[name].includes(v)) CUSTOM_OPTS[name].push(v);
@@ -1394,7 +1396,7 @@ $('rakeBody').addEventListener('input', e => {
 $('rakeQuarter').addEventListener('change', async () => { await loadRake(); await loadSettings(); });
 $('rakeReportDate').addEventListener('change', async () => { await refreshLoaded(); scheduleSaveRake(); });
 $('carryFwd').addEventListener('click', async () => {
-  if (!confirm("Replace Qtr Target with the previous quarter's balance?")) return;
+  if (!(await PRTPL.confirm("Replace Qtr Target with the previous quarter's balance?", { title: 'Use previous balance?', okLabel: 'Replace targets', danger: true }))) return;
   if (!(await carryForward())) { toast('No saved targets for previous quarter', true); return; }
   renderRake(); await saveRake(false);
 });
