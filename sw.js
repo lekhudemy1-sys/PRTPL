@@ -2,10 +2,10 @@
    - Pages: network first (always the latest deploy), cached copy when offline.
    - Own assets and CDN libraries: served from cache instantly, refreshed in the background.
    - Supabase / any non-GET request: never touched, so data is always live. */
-const VERSION = 'prtpl-v2.0';
+const VERSION = 'prtpl-v2.1';
 const SHELL = [
   'index.html', 'home_page.html', 'amm_home.html', 'odr_home.html', 'notices.html', 'offline.html',
-  'assets/prtpl.css', 'assets/prtpl.js', 'assets/favicon.svg', 'assets/icon-192.png', 'assets/icon-512.png', 'manifest.webmanifest'
+  'favicon.svg', 'icon-192.png', 'icon-512.png', 'inspiration.jpg', 'manifest.webmanifest'
 ];
 const LIB_HOSTS = ['cdnjs.cloudflare.com', 'cdn.jsdelivr.net', 'fonts.googleapis.com', 'fonts.gstatic.com'];
 const NAV_TIMEOUT = 4500;

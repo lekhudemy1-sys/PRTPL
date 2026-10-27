@@ -8,12 +8,12 @@ Static portal (GitHub Pages) with a Supabase backend: login, hub pages and perfo
 | `index.html` | Login (RPC `app_login`), session notices, return-to-page |
 | `home_page.html`, `amm_home.html`, `odr_home.html`, `notices.html` | Hub pages |
 | `*_dashboard.html`, `daily_rake_loading.html`, `hzl_odr.html`, `nlod_odr.html` | Data pages |
-| `assets/prtpl.js` / `prtpl.css` | Shared layer: auth guard, theme, search palette, dialogs, quick menu, shortcuts, session safeguards |
+| `prtpl.js` + `prtpl.css` (now inlined in every page) | Shared layer: auth guard, theme, search palette, dialogs, quick menu, shortcuts, session safeguards |
 | `sw.js`, `offline.html` | Offline cache worker and fallback screen |
 | `robots.txt`, `manifest.webmanifest` | No-index rules, installable app metadata |
 
 ## Protecting a page
-Add `<meta name="pr-access" content="KEY">` (empty content = any signed-in user) and load `assets/prtpl.js` in `<head>`.
+Add `<meta name="pr-access" content="KEY">` (empty content = any signed-in user) and keep the inlined `prtpl-js` block in `<head>` (copy it from any existing page).
 
 ## Shared API (`window.PRTPL`)
 - `await PRTPL.confirm(message, {title, okLabel, cancelLabel, danger})` → boolean
