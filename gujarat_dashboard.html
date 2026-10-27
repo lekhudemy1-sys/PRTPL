@@ -400,7 +400,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(33,132,71,.25)
     <div class="card-header"><h3><i class="fas fa-calendar-alt"></i> Monthly Performance</h3></div>
     <div class="trend-wrap">
       <table class="trend-table">
-        <thead><tr><th>Month</th><th>Total Qty</th><th>Billing</th><th>Deduction</th><th>Amount</th></tr></thead>
+        <thead><tr><th>Month</th><th>Total Rakes</th><th>Total Qty</th><th>Billing</th><th>Deduction</th><th>Amount</th></tr></thead>
         <tbody id="trendBody"></tbody>
       </table>
     </div>
@@ -1063,7 +1063,7 @@ function renderDashboard(o, trend) {
 
   $('trendBody').innerHTML = trend.map(t => {
     const ded = -t.penTotal;
-    return `<tr><td>${periodLabel(t.period)}</td><td>${fInt(t.recvTotal)}</td><td>${fInt(t.grossBill)}</td>`
+    return `<tr><td>${periodLabel(t.period)}</td><td>${fInt(t.nRecs)}</td><td>${fInt(t.recvTotal)}</td><td>${fInt(t.grossBill)}</td>`
       + `<td class="${ded < 0 ? 'neg' : ''}">${fInt(ded)}</td><td>${fInt(t.totalBill)}</td></tr>`;
   }).join('');
 
@@ -1092,7 +1092,7 @@ async function fetchAll(table, build) {
 }
 
 async function fetchState(period) {
-  const periods = [shiftMonth(period, -2), shiftMonth(period, -1), period];
+  const periods = [-5, -4, -3, -2, -1, 0].map(k => shiftMonth(period, k));
   const from = monthInfo(periods[0]).start, to = monthInfo(period).end;
   const [recs, tgts] = await Promise.all([
     fetchAll(TBL, q => q.gte('date', from).lte('date', to)),
