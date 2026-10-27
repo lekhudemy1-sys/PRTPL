@@ -660,8 +660,10 @@ function matPct(mat, F) {
   return F.matBelow;
 }
 
-function computeMonth({ period, recs, targets, settings, formulas, reportDate }) {
+function computeMonth({ period, recs, targets, settings, formulas, reportDate, ovr = () => undefined }) {
   const mi = monthInfo(period);
+  // A manual override replaces the value and every calculation below uses the replaced value.
+  const pick = (id, v) => { const o = ovr(id); return o !== undefined ? o : v; };
   const S = Object.assign({}, DEFAULT_SETTINGS, settings || {});
   const F = Object.assign({}, DEFAULT_FORMULAS, formulas || {});
   const mrecs = (recs || []).filter(r => r.date >= mi.start && r.date <= mi.end);
@@ -731,23 +733,29 @@ function computeMonth({ period, recs, targets, settings, formulas, reportDate })
   });
 
   // Dashboard GCV Reco is the sum of the database-calculated bonus_penalty_rs values.
-  const gcvReco = sumField(mrecs, 'bonus_penalty_rs');
+  const gcvReco = pick('b-gcv', sumField(mrecs, 'bonus_penalty_rs'));
   const gcvRR = mrecs.filter(r => isNum(r.rr_wt) && isNum(r.bonus_penalty_rs)).reduce((s, r) => s + Number(r.rr_wt), 0);
   // Total Quantity Reco billing is GETS amount + TPHS amount.
-  const qtyReco = parties.GETS.amount + parties.TPHS.amount;
+  const qtyReco = pick('b-qty', parties.GETS.amount + parties.TPHS.amount);
 
   const rrSecl = sumField(mrecs.filter(r => up(r.area) === 'SECL'), 'rr_wt');
   const rrWcl = sumField(mrecs.filter(r => up(r.area) === 'WCL'), 'rr_wt');
-  const svcSecl = rrSecl * S.svcSecl, svcWcl = rrWcl * S.svcWcl;
+  const svcSecl = pick('b-svc-secl', rrSecl * S.svcSecl), svcWcl = pick('b-svc-wcl', rrWcl * S.svcWcl);
 
+  // Penalty components: each may be overridden, and the total follows them.
+  // If the total (or the b-pen line, which shows it as negative) is overridden, that value wins.
   const pen = {
-    ul: sumField(mrecs, 'ul_ch'), ol: sumField(mrecs, 'ol_ch'), pun: sumField(mrecs, 'pol_group'),
-    ehbc: sumField(mrecs, 'ehbc_group'), enhc: sumField(mrecs, 'enhc_charge'), dead: num(S.deadFreight)
+    ul: pick('p-ul', sumField(mrecs, 'ul_ch')), ol: pick('p-ol', sumField(mrecs, 'ol_ch')),
+    pun: pick('p-pun', sumField(mrecs, 'pol_group')),
+    ehbc: pick('p-ehbc', sumField(mrecs, 'ehbc_group')), enhc: pick('p-enhc', sumField(mrecs, 'enhc_charge')),
+    dead: pick('p-dead', num(S.deadFreight))
   };
-  const penTotal = pen.ul + pen.ol + pen.pun + pen.ehbc + pen.enhc + pen.dead;
+  const penSum = pen.ul + pen.ol + pen.pun + pen.ehbc + pen.enhc + pen.dead;
+  const penFromBPen = ovr('b-pen') !== undefined ? -ovr('b-pen') : penSum;
+  const penTotal = pick('p-total', penFromBPen);
   const grossBill = qtyReco + gcvReco + svcSecl + svcWcl;
-  const totalBill = grossBill - penTotal;
-  const expBill = daysPassed ? totalBill / daysPassed * mi.dim : 0;
+  const totalBill = pick('b-total', grossBill - penTotal);
+  const expBill = pick('b-exp', daysPassed ? totalBill / daysPassed * mi.dim : 0);
 
   const perMt = {
     qty: recvTotal ? qtyReco / recvTotal : 0,
@@ -1067,7 +1075,7 @@ function renderDashboard(o, trend) {
 
 function periodArgs(p, st) {
   const s = settingsFor(p);
-  return { period: p, recs: st.recs, targets: st.tgts, settings: s, formulas: FORMULAS, reportDate: s.reportDate };
+  return { period: p, recs: st.recs, targets: st.tgts, settings: s, formulas: FORMULAS, reportDate: s.reportDate, ovr: id => getOverride(p, id) };
 }
 
 async function fetchAll(table, build) {
