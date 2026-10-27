@@ -1236,7 +1236,7 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
  <div id="e-out" class="eg hidden" style="grid-template-columns:minmax(0,640px)"><div class="panel"><h3>Dispatch (Outward)</h3><div id="f-out"></div></div></div>
 </section>
 <section id="v-log" class="view hidden">
- <div class="toolbar"><select id="l-t"><option value="ksk_inward">Inward</option><option value="ksk_dispatch">Dispatch</option><option value="ksk_dashboard_values">D.O. values</option></select>
+ <div class="toolbar"><select id="l-t"><option value="ksk_inward">Inward</option><option value="ksk_dispatch">Dispatch</option><option value="ksk_dashboard_values">D.O. values</option><option value="ksk_multi_upload_rows">Multi Upload rows</option></select>
  <input type="date" id="l-from" title="From"><input type="date" id="l-to" title="To"><select id="l-do"></select><select id="l-sec" class="hidden"><option value="">All sections</option><option>WASHERY</option><option>RCR</option><option>ROAD</option></select><select id="l-ord"><option value="1">Newest first</option><option value="0">Oldest first</option></select></div>
  <div class="toolbar" id="l-x"></div>
  <div class="toolbar"><button id="l-go" class="btn primary small">Apply</button><button id="l-clr" class="btn ghost small">Clear</button><button id="l-exp" class="btn small">⬇ Export Excel</button><button id="l-pv" class="btn small">‹ Prev</button><button id="l-nx" class="btn small">Next ›</button></div>
@@ -1247,8 +1247,18 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
  <select id="x-s" disabled><option>Choose a file first</option></select><div class="cnt"><div><b id="c-ok">0</b>Rows</div><div><b id="c-dup">0</b>Skipped</div><div><b id="c-err">0</b>Error</div></div><div class="prog"><i id="x-p"></i></div><button id="x-imp" class="btn primary" disabled>Replace all data with these rows</button>
  <small class="muted">Every upload deletes all existing inward/dispatch rows and loads every non-empty row of the chosen sheet exactly as it appears. Manual entries are deleted too. Rows with a Direction/Type column are sorted by it; otherwise the dropdown above is used.</small></div></div>
  <div class="glass"><div class="glass-h"><h2>Preview</h2><span class="sub" id="x-i">Upload a file to preview</span></div><div class="sc"><table id="t-x"></table></div></div></div></section>
+<section id="v-multi" class="view hidden">
+ <div class="xg"><div><div class="glass xs">
+  <div class="drop" id="mdrop"><b>Drop the DISPATCH MIS file here</b><br><small class="muted">or click (.xlsx, .xlsm, .xls). Each sheet is one D.O.</small><input type="file" id="m-f" accept=".xlsx,.xlsm,.xls" hidden></div>
+  <div class="cnt"><div><b id="m-ok">0</b>D.O.s ready</div><div><b id="m-rows">0</b>Truck rows</div><div><b id="m-err">0</b>Skipped</div></div>
+  <div class="prog"><i id="m-p"></i></div>
+  <button id="m-imp" class="btn primary" disabled>Save all D.O.s</button>
+  <small class="muted">Saving replaces the dispatch rows of the D.O.s in this file. Manual entries and other D.O.s are kept. SUMMARY is skipped.</small>
+  <div id="m-log" style="font:12px ui-monospace,monospace;white-space:pre-wrap;max-height:220px;overflow:auto"></div>
+ </div></div>
+ <div class="glass"><div class="glass-h"><h2>Preview</h2><span class="sub" id="m-i">Upload a file to preview</span></div><div class="sc"><table id="t-m"></table></div></div></div></section>
 </main>
-<nav class="dock" id="dock"><button data-v="dashboard" class="active"><span>Dashboard</span></button><button data-v="entry"><span>Data entry</span></button><button data-v="log"><span>Log</span></button><button data-v="excel"><span>Excel upload</span></button></nav>
+<nav class="dock" id="dock"><button data-v="dashboard" class="active"><span>Dashboard</span></button><button data-v="entry"><span>Data entry</span></button><button data-v="log"><span>Log</span></button><button data-v="excel"><span>Excel upload</span></button><button data-v="multi"><span>Multi upload</span></button></nav>
 <dialog id="dlg"><h3 id="dlg-t" style="margin:0 0 12px">Edit</h3><div id="dlg-b"></div><div style="text-align:right;margin-top:10px"><button class="btn ghost" onclick="$('#dlg').close()">Close</button></div></dialog>
 <div id="toast" class="toast hidden"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
@@ -1282,20 +1292,22 @@ const exErr=e=>{if(!e)return'Unknown error';const s=(e.message||'')+' '+(e.code|
 async function fetchAll(b){let o=[];for(let f=0;;f+=1000){const{data,error}=await b().range(f,f+999);if(error)throw error;o=o.concat(data||[]);if(!data||data.length<1000)break}return o}
 
 /* ---- tables ---- */
-/* Inward and Dispatch are both stored in ksk_sheet_rows, told apart by `direction` (IN / OUT). */
-const SRC=t=>t=='ksk_dashboard_values'?t:'ksk_sheet_rows';
+/* Inward and manual Dispatch use ksk_sheet_rows (IN / OUT). Multi Upload dispatch rows live in ksk_multi_upload_rows. */
+const SRC=t=>t=='ksk_dashboard_values'||t=='ksk_multi_upload_rows'?t:'ksk_sheet_rows';
 const DIR={ksk_inward:'IN',ksk_dispatch:'OUT'};
 const TB={
 ksk_inward:{l:'Inward',dc:'rec_date',ord:'id',f:[['sn_no','Sn. No.','t'],['rec_date','Rec. Date','d',1],['ch_date','Ch. Date','d'],['excise_sr_no','Excise Sr. No.','t'],['unique_no','Unique No.','t'],['do_no','D.O. No.','t',1],['gate_pass','Gate Pass','t'],['grade','Grade','t'],['vehicle_no','Vehicle No.','t',1],['gross_wt','Gross Wt.','n',1],['tare_wt','Tare Wt.','n',1],['net_wt','Net Wt.','n',1],['rec_wt','Rec. Wt.','n'],['party_name','Party Name','t'],['mines','Mines','t']],x:['vehicle_no','unique_no','excise_sr_no','gate_pass','grade','mines','party_name'],sk:'net_wt'},
 ksk_dispatch:{l:'Dispatch',dc:'disp_date',ord:'id',f:[['sn_no','Sr. No.','t'],['disp_date','Date','d',1],['do_no','D.O. No.','t',1],['item','Item','t'],['vehicle_no','Vehicle No.','t',1],['gross_wt','Gross Wt.','n',1],['tare_wt','Tare Wt.','n',1],['net_wt','Net Wt.','n',1],['unique_no','Unique No.','t'],['rptp_no','RPTP No.','t'],['party_name','Party Name','t']],x:['vehicle_no','unique_no','rptp_no','item','party_name'],sk:'net_wt'},
-ksk_dashboard_values:{l:'D.O. values',dc:null,ord:'sn_no',f:[['do_no','D.O. No.','i',1],['section','Section','t'],['sn_no','Sn. No.','i'],['colliery','Colliery','t'],['party_name','Party','t'],['issue_date','Issue','t'],['sized','Sized','t'],['lapsing_date','Lapsing','t'],['do_qty','D.O. Qty','n'],['asking','Asking','n'],['daily_lift','Daily Lift','n'],['daily_dispatch','Daily Dispatch','n'],['rr_no','RR No','t'],['rr_date','RR Date','t'],['rr_qty','RR Qty','n'],['ch_qty','CH Qty','n']],x:['colliery','party_name','sized'],sk:'do_qty'}};
+ksk_dashboard_values:{l:'D.O. values',dc:null,ord:'sn_no',f:[['do_no','D.O. No.','i',1],['section','Section','t'],['sn_no','Sn. No.','i'],['colliery','Colliery','t'],['party_name','Party','t'],['issue_date','Issue','t'],['sized','Sized','t'],['lapsing_date','Lapsing','t'],['do_qty','D.O. Qty','n'],['asking','Asking','n'],['daily_lift','Daily Lift','n'],['daily_dispatch','Daily Dispatch','n'],['plant_rec_qty','Plant Rec Qty (Manual)','n'],['loading_grade','Loading Grade (Manual)','t'],['loaded_do_no','Loaded D.O. No. (Manual)','t'],['rr_no','RR No','t'],['rr_date','RR Date','t'],['rr_qty','RR Qty','n'],['ch_qty','CH Qty','n']],x:['colliery','party_name','sized','loading_grade','loaded_do_no'],sk:'do_qty'},
+ksk_multi_upload_rows:{l:'Multi Upload',dc:'disp_date',ord:'id',f:[['do_no','D.O. No.','t'],['section','Section','t'],['sn','Sr. No.','t'],['disp_date','Dispatch Date','d'],['vehicle_no','Vehicle No.','t'],['gate_pass','Gate Pass','t'],['unique_no','Unique No.','t'],['net_wt','Net Wt. (MT)','n'],['source_sheet','Source Sheet','t'],['source_row','Source Row','i']],x:['do_no','vehicle_no','gate_pass','unique_no','source_sheet'],sk:'net_wt'}};
 const lab=(t,k)=>TB[t].f.find(f=>f[0]==k)[1];
 const S={vals:[],inS:{},dsS:{},rows:[],view:'dashboard',page:'w',sort:{w:{k:'_s',d:1},r:{k:'_s',d:1},o:{k:'_s',d:1}},pg:0,xl:{wb:null,rows:[],busy:false,skip:0}};
 
 /* ---- formulas (each can be overridden per D.O. via ov; override = formula disconnected) ---- */
-function calc(d,ov){ov=ov||d.ov||{};const m={},I=S.inS[d.do_no]||{trips:0,net:0},D=S.dsS[d.do_no]||{trips:0,net:0};
+function calc(d,ov){ov=ov||d.ov||{};const m={},isRCR=String(d.section||'').toUpperCase()==='RCR',I=(isRCR?S.rcrS:S.inS)[d.do_no]||{trips:0,net:0},D=S.dsS[d.do_no]||{trips:0,net:0};
  const pk=(k,f)=>{const v=num(ov[k]);if(v!==null){m[k]=1;return v}return f};
- const trips=pk('trips',I.trips),rec=pk('rec_qty',r3(I.net)),mines=pk('mines_bal',r3((num(d.do_qty)||0)-rec)),wash=pk('wash_coal',r3(rec*WASH)),rej=pk('reject',r3(rec*REJ)),
+ /* RCR alone uses Multi Upload rows for Trips and Rec. Qty. All non-RCR sections retain their original formulas and overrides. */
+ const trips=isRCR?I.trips:pk('trips',I.trips),rec=isRCR?r3(I.net):pk('rec_qty',r3(I.net)),mines=pk('mines_bal',r3((num(d.do_qty)||0)-rec)),wash=pk('wash_coal',r3(rec*WASH)),rej=pk('reject',r3(rec*REJ)),
  dt=pk('disp_trips',D.trips),dq=pk('disp_qty',r3(D.net)),bal=pk('washery_bal',r3((d.section=='WASHERY'?wash:rec)-dq));
  return{...d,trips,rec_qty:rec,mines_bal:mines,wash_coal:wash,reject:rej,disp_trips:dt,disp_qty:dq,washery_bal:bal,m}}
 const isClosed=x=>x.mines_bal<=.005&&(x.section=='ROAD'||x.washery_bal<=.005);
@@ -1303,16 +1315,15 @@ const stRank=x=>isClosed(x)?2:(pd(x.lapsing_date)&&pd(x.lapsing_date)<new Date(n
 const stPill=x=>['<span class="st open">Open</span>','<span class="st over">Overdue</span>','<span class="st done">Closed</span>'][stRank(x)];
 
 async function load(){if(!db)return setSt('Not connected','err');setSt('Loading…');
- const[v,i,d]=await Promise.all([db.from('ksk_dashboard_values').select('*').order('sn_no'),db.from('ksk_inward_sum').select('*'),db.from('ksk_dispatch_sum').select('*')]);
+ const [v,i,d]=await Promise.all([db.from('ksk_dashboard_values').select('*').order('sn_no'),db.from('ksk_inward_sum').select('*'),db.from('ksk_dispatch_sum').select('*')]);
+ let m=[];
+ try{m=await fetchAll(()=>db.from('ksk_multi_upload_rows').select('id,do_key,do_no,net_wt').order('id'))}catch(err){setSt('Error','err');return toast(exErr(err),true)}
  const e=v.error||i.error||d.error;if(e){setSt('Error','err');return toast(exErr(e),true)}
- S.vals=v.data;S.inS={};S.dsS={};i.data.forEach(r=>S.inS[r.do_no]={trips:r.trips,net:num(r.net_qty)||0});d.data.forEach(r=>S.dsS[r.do_no]={trips:r.trips,net:num(r.net_qty)||0});
- /* grade (from inward) and loaded D.O. numbers (from dispatch) per D.O., for the RCR plant & loading columns */
- S.gr={};S.ld={};
- try{const sr=await fetchAll(()=>db.from('ksk_sheet_rows').select('id,do_key,do_no,grade,direction').order('id'));
-  sr.forEach(r=>{const k=String(r.do_key||'');if(!k)return;
-   if(r.direction=='IN'&&r.grade)S.gr[k]=r.grade;
-   if(r.direction=='OUT'&&r.do_no){(S.ld[k]=S.ld[k]||new Set()).add(String(r.do_no).trim())}})}catch(e){}
- S.rows=S.vals.map(x=>{const c=calc(x),k=String(x.do_no);c.grade=S.gr[k]||null;c.loaded=S.ld[k]?[...S.ld[k]].join(', '):null;return c});setSt('Live','live');$('#updated').textContent='Updated '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+ S.vals=v.data;S.inS={};S.rcrS={};S.dsS={};i.data.forEach(r=>S.inS[String(r.do_no)]={trips:r.trips,net:num(r.net_qty)||0});d.data.forEach(r=>S.dsS[String(r.do_no)]={trips:r.trips,net:num(r.net_qty)||0});
+ /* Multi Upload is used only for RCR: Trips = row count and Rec. Qty = sum of net_wt. */
+ (m||[]).forEach(r=>{const k=String(r.do_key||r.do_no||'');if(!k)return;S.rcrS[k]||(S.rcrS[k]={trips:0,net:0});S.rcrS[k].trips++;S.rcrS[k].net+=num(r.net_wt)||0});
+ /* Plant receipt, loading grade and loaded D.O. number are intentionally manual master fields. */
+ S.rows=S.vals.map(x=>{const c=calc(x);c.plant_rec_qty=x.plant_rec_qty;c.grade=x.loading_grade||null;c.loaded=x.loaded_do_no||null;return c});setSt('Live','live');$('#updated').textContent='Updated '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
  const nm=[...new Set(S.rows.map(x=>(x.colliery||'').trim()).filter(Boolean).map(s=>s.toLowerCase()))].sort(),c=$('#f-col').value;
  $('#f-col').innerHTML='<option value="">All collieries</option>'+nm.map(n=>`<option value="${esc(n)}">${esc(n.replace(/^./,m=>m.toUpperCase()))}</option>`).join('');$('#f-col').value=c;
  const dl=S.rows.map(x=>`<option value="${x.do_no}">${x.do_no} · ${esc(x.colliery||'')}</option>`).join('');
@@ -1323,7 +1334,7 @@ const INFO=[['colliery','Colliery','t'],['party_name','Party','t'],['issue_date'
 const MB=[['asking','Asking','q'],['daily_lift','Daily Lift','q'],['trips','Trips','i'],['rec_qty','Rec. Qty','q'],['mines_bal','Mines Bal.','q']];
 const TD={
  w:{id:'#t-w',g:[['',INFO,0],['Mines balance',MB,2],['Dispatch (Outward)',[['daily_dispatch','Daily Dispatch','q'],['disp_trips','Trips','i'],['disp_qty','Dispatch Qty','q']],4],['Washery output',[['wash_coal','Wash Coal 85%','q'],['reject','Reject 15%','q'],['washery_bal','Washery Bal.','q']],3]]},
- r:{id:'#t-r',g:[['',INFO,0],['Mines balance',MB,2],['Rake dispatch',[['disp_qty','Dispatch by Rake','q'],['washery_bal','Balance at IUIK','q']],1],['Rake details',[['rr_no','RR No.','t'],['rr_date','RR Date','dt'],['rr_qty','RR Qty','q'],['ch_qty','CH Qty','q']],4],['Plant & loading',[['rec_qty','Plant Rec Qty','q'],['grade','Loading Grade','t'],['loaded','Loaded D.O. No','t']],3]]},
+ r:{id:'#t-r',g:[['',INFO,0],['Mines balance',MB,2],['Rake dispatch',[['disp_qty','Dispatch by Rake','q'],['washery_bal','Balance at IUIK','q']],1],['Rake details',[['rr_no','RR No.','t'],['rr_date','RR Date','dt'],['rr_qty','RR Qty','q'],['ch_qty','CH Qty','q']],4],['Plant & loading',[['plant_rec_qty','Plant Rec Qty (Manual)','q'],['grade','Loading Grade (Manual)','t'],['loaded','Loaded D.O. No (Manual)','t']],3]]},
  o:{id:'#t-o',g:[['',INFO,0],['Lifting',[['daily_lift','Daily Lift','q'],['rec_qty','Lifted Qty','q'],['mines_bal','Bal. in Mines','q'],['disp_qty','Dispatch Qty','q']],2]]}};
 function cell(c,x){const[k,,t,g,gs]=c,v=x[k],cl=(g?'g'+g+' ':'')+(gs?'gs ':''),dot=x.m&&x.m[k]?'<i class="mv" title="Manual value"></i>':'';
  if(t=='dt')return`<td class="${cl}">${fD(v)}</td>`;if(t=='id')return`<td class="${cl}id">${esc(v)}${stPill(x)}</td>`;
@@ -1342,14 +1353,18 @@ function renderAll(){const W=filt(['WASHERY']),R=filt(['RCR']),O=filt(['ROAD']),
  $('#c-w').innerHTML=card('D.O. quantity',sum(aw,'do_qty'),'',aw.length+' D.O.s')+card('Received',sum(aw,'rec_qty'),'',`${sum(aw,'do_qty')?(sum(aw,'rec_qty')/sum(aw,'do_qty')*100).toFixed(1):0}% of D.O. qty`)+card('Dispatched',sum(aw,'disp_qty'),'k',`${sum(aw,'wash_coal')?(sum(aw,'disp_qty')/sum(aw,'wash_coal')*100).toFixed(1):0}% of 85% output`)+card('Washery balance',sum(aw,'washery_bal'),'o','Output not yet dispatched')+card('Mines balance',sum(aw,'mines_bal'),'r','D.O. qty not yet received');
  $('#c-r').innerHTML=card('D.O. quantity',sum(ar,'do_qty'),'r',ar.length+' RCR + Road D.O.s')+card('Lifted',sum(ar,'rec_qty'),'r','RCR + Road')+card('Balance in mines',sum(ar,'mines_bal'),'x','Not yet lifted')+card('RCR balance at IUIK',sum(ar.filter(x=>x.section=='RCR'),'washery_bal'),'o','Lifted − rake dispatch')+card('Active D.O.s',ar.filter(x=>!isClosed(x)).length,'s','Balance above zero','i');
  const n=[drawT('w',W),drawT('r',R),drawT('o',O)];$('#n-w').textContent=`${W.length} of ${aw.length} shown`;$('#n-r').textContent=`${R.length} shown`;$('#n-o').textContent=`${O.length} shown`;
- const known=new Set(S.vals.map(x=>String(x.do_no))),un=[...new Set([...Object.keys(S.inS),...Object.keys(S.dsS)])].filter(d=>!known.has(String(d)));
+ const known=new Set(S.vals.map(x=>String(x.do_no))),un=[...new Set([...Object.keys(S.inS),...Object.keys(S.rcrS),...Object.keys(S.dsS)])].filter(d=>!known.has(String(d)));
  $('#alert').classList.toggle('hidden',!un.length);$('#alert').innerHTML=un.length?`<b>${un.length} D.O. number(s) in the Excel data are not in the D.O. list, so they are not shown:</b> ${esc(un.slice(0,25).join(', '))}${un.length>25?' … and '+(un.length-25)+' more':''}. Add them under Data entry → D.O. &amp; values.`:''}
 function setPage(p){S.page=p;$$('.seg button').forEach(b=>b.classList.toggle('active',b.dataset.p==p));['w','r','s'].forEach(x=>$('#p-'+x).classList.toggle('hidden',x!=p));$('#flt').classList.toggle('hidden',p=='s');p=='s'?loadSum():renderAll()}
 async function loadSum(){const d=S.rows.find(x=>x.do_no==$('#s-do').value)||S.rows[0];if(!d)return;$('#s-do').value=d.do_no;$('#h-do').textContent=d.do_no;
  $('#h-sub').textContent=`${d.colliery||'–'} · ${d.party_name||'–'} · Issued ${fD(d.issue_date)} · Lapses ${fD(d.lapsing_date)}`;$('#h-st').innerHTML=stPill(d);
  const w=d.section=='WASHERY';
- const{data}=await db.from('ksk_sheet_rows').select('direction,rec_date,disp_date,vehicle_no,net_wt,unique_no').eq('do_key',String(d.do_no)).order('id',{ascending:false}).limit(50);
- const rc=(data||[]).map(x=>x.direction=='IN'?[x.rec_date,'IN',x.vehicle_no,x.net_wt,x.unique_no]:[x.disp_date,'OUT',x.vehicle_no,x.net_wt,x.unique_no]);
+ const [oldMov,newMov]=await Promise.all([
+   db.from('ksk_sheet_rows').select('direction,rec_date,disp_date,vehicle_no,net_wt,unique_no,source_sheet').eq('do_key',String(d.do_no)).order('id',{ascending:false}).limit(50),
+   db.from('ksk_multi_upload_rows').select('disp_date,vehicle_no,net_wt,unique_no').eq('do_key',String(d.do_no)).order('id',{ascending:false}).limit(50)
+ ]);
+ if(oldMov.error||newMov.error)return toast(exErr(oldMov.error||newMov.error),true);
+ const rc=[...(oldMov.data||[]).filter(x=>!String(x.source_sheet||'').startsWith('MULTI:')).map(x=>x.direction=='IN'?[x.rec_date,'IN',x.vehicle_no,x.net_wt,x.unique_no]:[x.disp_date,'OUT',x.vehicle_no,x.net_wt,x.unique_no]),...(newMov.data||[]).map(x=>[x.disp_date,'OUT',x.vehicle_no,x.net_wt,x.unique_no])].sort((a,b)=>String(b[0]||'').localeCompare(String(a[0]||''))).slice(0,50);
  $('#s-body').innerHTML=`<div class="cards">${card('D.O. quantity',d.do_qty,w?'':'r',d.section)}${card('Received / lifted',d.rec_qty,'',`${d.trips} trips`,'q')}${card('Mines balance',d.mines_bal,'r','D.O. qty − received')}${w?card('Wash coal 85%',d.wash_coal,'s','Reject 15%: '+fQ(d.reject)):''}${card('Dispatched',d.disp_qty,'k',d.disp_trips+' trips')}${card(w?'Washery balance':'Balance at IUIK',d.washery_bal,'o','')}</div>
  <div class="glass"><div class="glass-h"><h2>Recent movements</h2><span class="sub">latest entries</span></div><div class="sc"><table><thead><tr><th>Date</th><th>Type</th><th>Vehicle</th><th class="num">Net (MT)</th><th>Unique no.</th></tr></thead><tbody>${rc.map(r=>`<tr><td>${esc(r[0]||'–')}</td><td><span class="badge">${r[1]}</span></td><td>${esc(r[2])}</td><td class="num">${esc(r[3]??'–')}</td><td class="muted">${esc(r[4]||'')}</td></tr>`).join('')||'<tr><td colspan="5" class="empty">No entries for this D.O.</td></tr>'}</tbody></table></div></div>`}
 async function capture(){if(!window.html2canvas)return toast('Image library did not load',true);
@@ -1379,14 +1394,14 @@ function mkForm(t,o={}){const T=TB[t],v=o.values||{},f=document.createElement('f
   o.done?.()});return f}
 
 /* ---- D.O. & values form: 3 panels, overrides per value ---- */
-const OVK=[['trips','Trips'],['rec_qty','Rec. Qty (net sum of inward)'],['mines_bal','Mines Bal.'],['wash_coal','Wash Coal 85%'],['reject','Reject Coal 15%'],['disp_trips','Dispatch Trips'],['disp_qty','Dispatch Qty'],['washery_bal','Washery Bal. / Balance at IUIK']];
+const OVK=[['mines_bal','Mines Bal.'],['wash_coal','Wash Coal 85%'],['reject','Reject Coal 15%'],['disp_trips','Dispatch Trips'],['disp_qty','Dispatch Qty'],['washery_bal','Washery Bal. / Balance at IUIK']];
 function buildDo(){const fl=(n,l,t='text',x='')=>`<label class="fld ${x}"><span>${l}</span><input name="${n}" type="${t}" ${t=='number'?'step="any"':''}></label>`;
  $('#e-do').innerHTML=`<form id="do-f" class="eg" style="grid-column:1/-1;grid-template-columns:repeat(3,minmax(0,1fr))" novalidate>
  <div class="panel" style="--c:#0d9488"><h3>1 · D.O. details</h3><div class="form"><label class="fld full"><span>Edit existing D.O.</span><select id="do-pick"></select></label>
  <label class="fld"><span>Section *</span><select name="section"><option>WASHERY</option><option>RCR</option><option>ROAD</option></select></label>${fl('do_no','D.O. No *','number')}${fl('colliery','Colliery')}${fl('party_name','Party')}${fl('issue_date','Issue (dd-mm-yyyy or text)')}${fl('sized','Sized')}${fl('lapsing_date','Lapsing (dd-mm-yyyy or text)')}${fl('do_qty','D.O. Qty (MT)','number')}${fl('sn_no','Sn. No.','number')}</div></div>
- <div class="panel" style="--c:#d97706"><h3>2 · Manual values</h3><div class="form">${fl('asking','Asking')}${fl('daily_lift','Daily Lift')}${fl('daily_dispatch','Daily Dispatch')}<div class="note full">Rake details (RCR only)</div>${fl('rr_no','RR No.')}${fl('rr_date','RR Date')}${fl('rr_qty','RR Qty','number')}${fl('ch_qty','CH Qty','number')}
+ <div class="panel" style="--c:#d97706"><h3>2 · Manual values</h3><div class="form">${fl('asking','Asking')}${fl('daily_lift','Daily Lift')}${fl('daily_dispatch','Daily Dispatch')}${fl('plant_rec_qty','Plant Rec Qty (Manual)','number')}${fl('loading_grade','Loading Grade (Manual)')}${fl('loaded_do_no','Loaded D.O. No. (Manual)')}<div class="note full">Rake details (RCR only)</div>${fl('rr_no','RR No.')}${fl('rr_date','RR Date')}${fl('rr_qty','RR Qty','number')}${fl('ch_qty','CH Qty','number')}
  <div class="msg"></div><div class="row"><button type="button" class="btn red" id="do-del">Delete D.O.</button><button class="btn primary">Save D.O.</button></div></div></div>
- <div class="panel" style="--c:#7c3aed"><h3>3 · Override calculated values</h3><div class="form"><div class="note">Empty = calculated from inward / dispatch (placeholder shows the formula result). Type a value to set it manually; that value stops following the formula.</div>
+ <div class="panel" style="--c:#7c3aed"><h3>3 · Override calculated values</h3><div class="form"><div class="note">Trips and Rec. Qty are always calculated from Multi Upload rows. Empty override fields use formula values. (placeholder shows the formula result). Type a value to set it manually; that value stops following the formula.</div>
  ${OVK.map(([k,l])=>`<label class="fld full"><span>${l}</span><input class="ov" type="number" step="any" name="ov_${k}" placeholder=" "></label>`).join('')}<div class="row"><button type="button" class="btn ghost" id="ov-reset">Reset all to formula</button></div></div></div></form>`;
  const f=$('#do-f');f.addEventListener('input',ph);$('#do-pick').addEventListener('change',fillDoForm);
  $('#ov-reset').onclick=()=>{OVK.forEach(([k])=>f.elements['ov_'+k].value='');ph()};
@@ -1394,7 +1409,7 @@ function buildDo(){const fl=(n,l,t='text',x='')=>`<label class="fld ${x}"><span>
  f.addEventListener('submit',async e=>{e.preventDefault();const m=f.querySelector('.msg'),g=k=>f.elements[k].value.trim(),n=k=>g(k)===''?null:Number(g(k));m.className='msg';m.textContent='';
   const dn=n('do_no');if(!Number.isInteger(dn))return m.className='msg err',m.textContent='D.O. No is required (whole number)';
   const ov={};OVK.forEach(([k])=>{const v=n('ov_'+k);if(v!==null&&Number.isFinite(v))ov[k]=v});
-  const p={do_no:dn,section:g('section'),sn_no:n('sn_no'),colliery:g('colliery')||null,party_name:g('party_name')||null,issue_date:normD(g('issue_date')),sized:g('sized')||null,lapsing_date:normD(g('lapsing_date')),do_qty:n('do_qty'),asking:n('asking'),daily_lift:n('daily_lift'),daily_dispatch:n('daily_dispatch'),rr_no:g('rr_no')||null,rr_date:normD(g('rr_date')),rr_qty:n('rr_qty'),ch_qty:n('ch_qty'),ov,updated_at:new Date().toISOString()};
+  const p={do_no:dn,section:g('section'),sn_no:n('sn_no'),colliery:g('colliery')||null,party_name:g('party_name')||null,issue_date:normD(g('issue_date')),sized:g('sized')||null,lapsing_date:normD(g('lapsing_date')),do_qty:n('do_qty'),asking:n('asking'),daily_lift:n('daily_lift'),daily_dispatch:n('daily_dispatch'),plant_rec_qty:n('plant_rec_qty'),loading_grade:g('loading_grade')||null,loaded_do_no:g('loaded_do_no')||null,rr_no:g('rr_no')||null,rr_date:normD(g('rr_date')),rr_qty:n('rr_qty'),ch_qty:n('ch_qty'),ov,updated_at:new Date().toISOString()};
   const{error}=await db.from('ksk_dashboard_values').upsert(p,{onConflict:'do_no'});if(error)return m.className='msg err',m.textContent=exErr(error);toast('D.O. saved');await load();$('#do-pick').value=dn;fillDoForm()})}
 function ph(){const f=$('#do-f');if(!f)return;const dn=Number(f.elements.do_no.value),base=S.vals.find(x=>x.do_no==dn)||{do_no:dn,section:f.elements.section.value,do_qty:num(f.elements.do_qty.value)||0},ov={};
  OVK.forEach(([k])=>{const v=num(f.elements['ov_'+k].value);if(v!==null)ov[k]=v});const d={...base,section:f.elements.section.value,do_qty:num(f.elements.do_qty.value)||0};
@@ -1403,7 +1418,7 @@ function pickOpts(){const pk=$('#do-pick');if(!pk)return;const cur=pk.value;
  pk.innerHTML='<option value="">➕ New D.O.</option>'+S.rows.map(x=>`<option value="${x.do_no}">${x.do_no} · ${x.section} · ${esc(x.colliery||'')}</option>`).join('');pk.value=S.rows.some(x=>x.do_no==cur)?cur:'';ph()}
 function fillDoForm(){const f=$('#do-f');if(!f)return;pickOpts();const pk=$('#do-pick');
  const d=S.vals.find(x=>x.do_no==pk.value)||{section:'WASHERY',ov:{}};
- ['section','do_no','colliery','party_name','issue_date','sized','lapsing_date','do_qty','sn_no','asking','daily_lift','daily_dispatch','rr_no','rr_date','rr_qty','ch_qty'].forEach(k=>f.elements[k].value=d[k]??'');
+ ['section','do_no','colliery','party_name','issue_date','sized','lapsing_date','do_qty','sn_no','asking','daily_lift','daily_dispatch','plant_rec_qty','loading_grade','loaded_do_no','rr_no','rr_date','rr_qty','ch_qty'].forEach(k=>f.elements[k].value=d[k]??'');
  OVK.forEach(([k])=>f.elements['ov_'+k].value=(d.ov||{})[k]??'');f.elements.do_no.readOnly=!!pk.value;ph()}
 
 /* ---- log ---- */
@@ -1419,8 +1434,8 @@ async function renderLog(){if(!db)return;const t=$('#l-t').value,T=TB[t],PS=500,
  if(error){$('#l-info').textContent='';return toast(exErr(error),true)}
  let tot='';try{tot=' · total '+fQ(sum(await fetchAll(()=>logQ(T.sk).order(T.ord)),T.sk))+' MT ('+lab(t,T.sk)+')'}catch(e){}
  $('#l-info').textContent=`${count} row${count==1?'':'s'} · showing ${count?S.pg*PS+1:0}–${S.pg*PS+data.length}${tot}`;$('#l-pv').disabled=S.pg==0;$('#l-nx').disabled=(S.pg+1)*PS>=count;
- const ed=t!='ksk_dashboard_values'?'edit':'open';
- $('#t-log').innerHTML=`<thead><tr>${T.f.map(f=>`<th class="${f[2]=='n'?'num':''}">${f[1]}</th>`).join('')}<th></th></tr></thead><tbody>`+(data.length?data.map(r=>'<tr>'+T.f.map(([k,,ty])=>{const v=r[k];return v==null||v===''?'<td class="muted">–</td>':ty=='n'?`<td class="num">${fQ(v)}</td>`:ty=='i'?`<td class="num">${v}</td>`:ty=='d'&&t!='ksk_dashboard_values'?`<td>${esc(v)}</td>`:`<td class="t" title="${esc(v)}">${esc(v)}</td>`}).join('')+`<td><button class="btn small" data-a="${ed}" data-id="${r.id??r.do_no}">${ed=='edit'?'Edit':'Open'}</button>${ed=='edit'?` <button class="btn small red" data-a="del" data-id="${r.id}">Delete</button>`:''}</td></tr>`).join(''):`<tr><td class="empty" colspan="${T.f.length+1}">No records match.</td></tr>`)+'</tbody>';
+ const ed=t!='ksk_dashboard_values'&&t!='ksk_multi_upload_rows'?'edit':'open';
+ $('#t-log').innerHTML=`<thead><tr>${T.f.map(f=>`<th class="${f[2]=='n'?'num':''}">${f[1]}</th>`).join('')}<th></th></tr></thead><tbody>`+(data.length?data.map(r=>'<tr>'+T.f.map(([k,,ty])=>{const v=r[k];return v==null||v===''?'<td class="muted">–</td>':ty=='n'?`<td class="num">${fQ(v)}</td>`:ty=='i'?`<td class="num">${v}</td>`:ty=='d'&&t!='ksk_dashboard_values'?`<td>${esc(v)}</td>`:`<td class="t" title="${esc(v)}">${esc(v)}</td>`}).join('')+`${t=='ksk_multi_upload_rows'?'<td><span class="muted">From Multi Upload</span></td>':`<td><button class="btn small" data-a="${ed}" data-id="${r.id??r.do_no}">${ed=='edit'?'Edit':'Open'}</button>${ed=='edit'?` <button class="btn small red" data-a="del" data-id="${r.id}">Delete</button>`:''}</td>`}</tr>`).join(''):`<tr><td class="empty" colspan="${T.f.length+1}">No records match.</td></tr>`)+'</tbody>';
  $('#t-log')._r=data}
 async function expLog(){const t=$('#l-t').value;try{const d=await fetchAll(()=>logQ('*').order(TB[t].ord));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(d.map(r=>{const o={};TB[t].f.forEach(f=>o[f[1]]=r[f[0]]);return o})),TB[t].l);XLSX.writeFile(wb,`ksk-${TB[t].l}-${iso(new Date())}.xlsx`)}catch(e){toast(exErr(e),true)}}
 
@@ -1508,9 +1523,143 @@ async function impX(){const all=S.xl.rows;if(!all.length||S.xl.busy)return;
  finally{S.xl.busy=false;await load();setTimeout(()=>$('#x-p').style.width='0',1200);cntX()}
 }
 
+/* ===== Multi-sheet D.O. upload: one sheet = one D.O. ===== */
+const MU={rows:[]};
+const MCOLL={KHAIRAHA:'Khairaha',AMADAND:'Amadand oc',AMLAI:'Amlai OC'};
+const mnum=v=>typeof v==='number'&&Number.isFinite(v);
+const ymd=(y,m,d)=>`${y}-${p2(m)}-${p2(d)}`;
+const muLog=m=>{const el=$('#m-log');el.textContent+=(el.textContent?'\n':'')+m};
+
+function muDate(v,f){
+  if(v==null||v==='')return null;
+  if(mnum(v)&&v>20000&&v<80000){const d=new Date(Math.round((v-25569)*864e5));return ymd(d.getUTCFullYear(),d.getUTCMonth()+1,d.getUTCDate())}
+  const m=String(v).trim().match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4,5})$/);
+  if(!m){f.push(`date "${v}" not readable`);return null}
+  let y=m[3];
+  if(y.length===5){f.push(`date "${v}": year fixed to ${y.slice(0,4)}`);y=y.slice(0,4)}
+  const mo=+m[2],d=+m[1];
+  if(mo<1||mo>12||d<1||d>31){f.push(`date "${v}" not valid`);return null}
+  return ymd(+y,mo,d);
+}
+function muTruck(v,f){
+  if(v==null||String(v).trim()==='')return null;
+  const o=String(v).toUpperCase().replace(/[\s.\-]/g,'');
+  const t=o.replace(/^CCG/,'CG').replace(/^C[HX]G/,'CG').replace(/^([A-Z]{2})(\d)([A-Z]+\d+)$/,(m,a,b,c)=>a+'0'+b+c);
+  if(t!==o)f.push(`truck "${v}" fixed to ${t}`);
+  if(!/^[A-Z]{2}\d{2}[A-Z]{1,3}\d{3,4}$/.test(t))f.push(`truck "${t}" does not look like a plate`);
+  return t;
+}
+function muGp(v,f){
+  if(v==null||String(v).trim()==='')return null;
+  const g=String(v).replace(/\D/g,'');
+  if(g.length!==10)f.push(`G.P. "${v}" is not 10 digits`);
+  return g;
+}
+
+function muParse(name,ws){
+  const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:null,blankrows:false});
+  const o={sheet:name,flags:[],rows:[],do_no:null,qty:null,validity:null,colliery:null,total:null,sum:0,error:null};
+  const hdr=rows.findIndex(r=>r.some(c=>/G\.?\s*P\.?\s*NO|LR\s*NO|TRUCK/i.test(String(c??''))));
+  if(hdr<0){o.error='no header row found';return o}
+  const top=rows.slice(0,hdr).map(r=>r.filter(c=>c!=null).join(' ')).join(' | ');
+  let m=top.match(/D\.?\s*O\.?\s*NO\.?\s*[-:]?\s*(\d{6,})/i);
+  o.do_no=m?m[1]:null;
+  if(!o.do_no){o.error='D.O. number not found in header';return o}
+  m=top.match(/(\d[\d,]*)\s*MT/i);o.qty=m?Number(m[1].replace(/,/g,'')):null;
+  m=top.match(/VALIDITY\s*[-:]?\s*(\d{1,2})\/(\d{1,2})\/(\d{4})/i);o.validity=m?ymd(+m[3],+m[2],+m[1]):null;
+  m=top.match(/\b(KHAIRAHA|AMADAND|AMLAI)\b/i);o.colliery=m?MCOLL[m[1].toUpperCase()]:null;
+  const sm=name.match(/^(KHAIRAHA|AMADAND|AMLAI)/i);
+  if(sm&&o.colliery&&MCOLL[sm[1].toUpperCase()]!==o.colliery)o.flags.push(`sheet name says ${sm[1]}, header says ${o.colliery}; header used`);
+
+  const H=rows[hdr].map(c=>String(c??'').toUpperCase());
+  const col=(re,d)=>{const i=H.findIndex(h=>re.test(h));return i>=0?i:d};
+  const cDate=col(/DATE/,1),cTruck=col(/TRUCK/,2),cGp=col(/G\.?\s*P/,3),cLr=col(/LR/,4),cW=col(/WEIGHT|QTY/,5),cDo=col(/D\.?\s*O\.?\s*NO/,6);
+
+  const tIdx=rows.findIndex((r,i)=>i>hdr&&r.some(c=>/TOTAL|BALANCE/i.test(String(c??''))));
+  const end=tIdx<0?rows.length:tIdx;
+  for(let i=hdr+1;i<end;i++){
+    const r=rows[i];
+    if(!mnum(r[cW])){if(r.some(c=>c!=null&&String(c).trim()!==''))o.flags.push(`row ${i+1}: no weight, skipped`);continue}
+    const f=[];
+    const dt=muDate(r[cDate],f), truck=muTruck(r[cTruck],f), gp=muGp(r[cGp],f);
+    if(r[cDo]!=null&&String(r[cDo]).replace(/\D/g,'')!==o.do_no)f.push(`D.O. ${r[cDo]} differs, sheet D.O. used`);
+    f.forEach(x=>o.flags.push(`row ${i+1}: ${x}`));
+    o.rows.push({src_row:i+1,sn:r[0],disp_date:dt,vehicle_no:truck,gate_pass:gp,unique_no:r[cLr]==null?null:String(r[cLr]).trim(),net_wt:r3(r[cW])});
+  }
+  if(tIdx>=0){const t=[...rows[tIdx]].reverse().find(mnum);o.total=t==null?null:t}
+  o.sum=r3(o.rows.reduce((s,x)=>s+x.net_wt,0));
+  if(o.total!=null&&Math.abs(o.total-o.sum)>0.5)o.flags.push(`sum of weights ${o.sum} differs from TOTAL ${o.total}`);
+  const lc={};o.rows.forEach(x=>{if(x.unique_no)lc[x.unique_no]=(lc[x.unique_no]||0)+1});
+  const dup=Object.entries(lc).filter(([,n])=>n>1);
+  if(dup.length)o.flags.push(`LR no repeated: ${dup.map(([k,n])=>k+' x'+n).join(', ')}`);
+  if(!o.rows.length)o.error='no truck rows found';
+  return o;
+}
+
+function muRender(){
+  $('#t-m').innerHTML=`<thead><tr><th>Sheet</th><th>D.O. no.</th><th>D.O. qty</th><th>Validity</th><th>Colliery</th><th>Section</th><th>Rows</th><th>Sum MT</th><th>Notes</th></tr></thead><tbody>`+
+  MU.rows.map((p,i)=>p.error
+    ?`<tr><td>${esc(p.sheet)}</td><td colspan="8" class="neg">${esc(p.error)}</td></tr>`
+    :`<tr><td>${esc(p.sheet)}</td><td>${p.do_no}</td>
+      <td class="num">${p.qty==null?'<span class="neg">missing</span>':fQ(p.qty)}</td>
+      <td>${p.validity?fD(p.validity):'–'}</td><td>${esc(p.colliery||'–')}</td>
+      <td><select data-i="${i}"><option selected>RCR</option><option>ROAD</option><option>WASHERY</option></select></td>
+      <td class="num">${p.rows.length}</td><td class="num">${fQ(p.sum)}</td>
+      <td>${p.flags.length?`<details><summary>${p.flags.length} note(s)</summary><ul style="font-size:12px;margin:4px 0 0">${p.flags.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></details>`:'<span class="ok">none</span>'}</td></tr>`
+  ).join('')+'</tbody>';
+  const ready=MU.rows.filter(p=>!p.error&&p.qty!=null);
+  $('#m-ok').textContent=ready.length;
+  $('#m-rows').textContent=fI(ready.reduce((s,p)=>s+p.rows.length,0));
+  $('#m-err').textContent=MU.rows.length-ready.length;
+  $('#m-imp').disabled=!ready.length;
+  $('#m-i').textContent=`${MU.rows.length} D.O. sheets`;
+}
+
+function muLoad(file){
+  const rd=new FileReader();
+  rd.onload=ev=>{
+    try{
+      const wb=XLSX.read(ev.target.result,{type:'array'});
+      MU.rows=wb.SheetNames.filter(n=>!/summary/i.test(n)).map(n=>muParse(n,wb.Sheets[n]));
+      $('#m-log').textContent='';
+      muRender();
+      muLog(`Read ${MU.rows.length} D.O. sheets from ${file.name}`);
+    }catch(x){toast('Cannot read file: '+x.message,true)}
+  };
+  rd.readAsArrayBuffer(file);
+}
+
+async function muSave(){
+  const ready=MU.rows.map((p,i)=>({p,i})).filter(x=>!x.p.error&&x.p.qty!=null);
+  if(!ready.length)return toast('Nothing to save',true);
+  if(!(await PRTPL.confirm(`Save ${ready.length} D.O.s? Multi-upload rows will be stored in the new table. Manual dispatch entries are kept.`,{title:'Save D.O. sheets',okLabel:'Save',danger:false})))return;
+  $('#m-imp').disabled=true;
+  let ok=0;
+  for(let k=0;k<ready.length;k++){
+    const {p,i}=ready[k];
+    const sec=document.querySelector(`#t-m [data-i="${i}"]`).value;
+    const recs=p.rows.map(x=>({sn:x.sn==null?null:String(x.sn),disp_date:x.disp_date,vehicle_no:x.vehicle_no,gate_pass:x.gate_pass,unique_no:x.unique_no,net_wt:x.net_wt,source_sheet:'MULTI:'+p.sheet,source_row:x.src_row}));
+    const {data,error}=await db.rpc('ksk_save_do_sheet_multi',{
+      p_do:{do_no:p.do_no,section:sec,colliery:p.colliery,party_name:'KSK Mahanadi',lapsing_date:p.validity,do_qty:p.qty},
+      p_rows:recs});
+    $('#m-p').style.width=((k+1)/ready.length*100)+'%';
+    if(error){muLog(`${p.do_no}: ${exErr(error)}`);continue}
+    ok++;
+    muLog(`${p.do_no} (${sec}): ${data.rows} rows, ${r3(data.net_wt_total)} MT saved`);
+  }
+  muLog(`Done: ${ok} of ${ready.length} D.O.s saved.`);
+  $('#m-imp').disabled=false;
+  setTimeout(()=>$('#m-p').style.width='0',1200);
+  await load();
+}
+
+$('#mdrop').onclick=()=>$('#m-f').click();
+$('#m-f').onchange=e=>e.target.files[0]&&muLoad(e.target.files[0]);
+$('#m-imp').onclick=muSave;
+
 /* ---- events ---- */
-const IC={dashboard:'<rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/>',entry:'<path d="M12 5v14M5 12h14"/>',log:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',excel:'<path d="M12 15V3m0 0l-4 4m4-4l4 4M4 15v4a2 2 0 002 2h12a2 2 0 002-2v-4"/>'};
-$$('#dock button').forEach(b=>{b.insertAdjacentHTML('afterbegin',`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">${IC[b.dataset.v]}</svg>`);b.onclick=()=>{S.view=b.dataset.v;$$('#dock button').forEach(x=>x.classList.toggle('active',x==b));['dashboard','entry','log','excel'].forEach(n=>$('#v-'+n).classList.toggle('hidden',n!=S.view));S.view=='log'&&renderLog();S.view=='dashboard'&&setPage(S.page)}});
+const IC={dashboard:'<rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/>',entry:'<path d="M12 5v14M5 12h14"/>',log:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',excel:'<path d="M12 15V3m0 0l-4 4m4-4l4 4M4 15v4a2 2 0 002 2h12a2 2 0 002-2v-4"/>',multi:'<path d="M4 4h16v4H4zM4 12h16M4 16h10"/>'};
+$$('#dock button').forEach(b=>{b.insertAdjacentHTML('afterbegin',`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">${IC[b.dataset.v]}</svg>`);b.onclick=()=>{S.view=b.dataset.v;$$('#dock button').forEach(x=>x.classList.toggle('active',x==b));['dashboard','entry','log','excel','multi'].forEach(n=>$('#v-'+n).classList.toggle('hidden',n!=S.view));S.view=='log'&&renderLog();S.view=='dashboard'&&setPage(S.page)}});
 $$('.seg button').forEach(b=>b.onclick=()=>setPage(b.dataset.p));
 $$('.stab').forEach(b=>b.onclick=()=>{$$('.stab').forEach(x=>x.classList.toggle('active',x==b));['do','in','out'].forEach(n=>$('#e-'+n).classList.toggle('hidden',n!=b.dataset.e))});
 ['#f-q','#f-col','#f-hide'].forEach(s=>$(s).addEventListener('input',renderAll));$('#dl').onclick=capture;$('#s-do').onchange=loadSum;
