@@ -268,6 +268,16 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(33,132,71,.25)
 .avg-bar:hover{background:linear-gradient(120deg,#0b3a1e,#145c32)}
 .avg-bar .row-label{color:#fff;font-size:.85rem;font-weight:700;padding:0}
 .area-table .avg-bar input{width:9rem;background:rgba(143,209,158,.2);color:#d7f5df;text-align:right;font:700 1rem var(--body);padding:.4rem .7rem}
+
+/* MANUAL OVERRIDES */
+.metric-value.overridden{background:#fff3cf!important;color:#7a4f00!important;box-shadow:inset 0 0 0 2px #d6a21a}
+.switch{position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0;position:absolute}
+.slider{position:absolute;inset:0;background:#c9d6cc;border-radius:999px;cursor:pointer;transition:.2s}
+.slider::before{content:"";position:absolute;width:20px;height:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 2px 4px rgba(0,0,0,.2)}
+.switch input:checked + .slider{background:var(--navy2)}
+.switch input:checked + .slider::before{transform:translateX(20px)}
+.switch input:focus + .slider{box-shadow:0 0 0 3px rgba(33,132,71,.25)}
 </style>
 <meta name="pr-access" content="amm:GPCL" />
 <meta name="description" content="Gujarat Performance | AMM Gujarat – Prithvi Realcon logistics and performance portal." />
@@ -500,6 +510,21 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(33,132,71,.25)
       <div class="form-group"><label for="deadFreight">Dead Freight for the month (₹)</label><input type="number" id="deadFreight" min="0" step="0.01" placeholder="0"></div>
     </div>
     <div class="status" id="entryStatus"></div>
+  </div>
+
+  <div class="panel">
+    <h2><i class="fas fa-sliders"></i> Manual Override</h2>
+    <p class="muted">Switch a dashboard value ON and type a fixed figure. It replaces the formula for the month selected above (or every month of the selected quarter when View is Quarter) until you switch it OFF or press Reset. Month overrides take priority over quarter overrides.</p>
+    <div class="toolbar" style="margin-top:.8rem">
+      <label class="switch" title="Override on / off"><input type="checkbox" id="ovrSwitch"><span class="slider"></span></label>
+      <select id="ovrField" class="field" style="max-width:360px" aria-label="Dashboard value"></select>
+      <input type="number" step="any" id="ovrValue" class="field" style="max-width:180px" placeholder="Manual value">
+      <button class="btn-go" id="ovrSave"><i class="fas fa-floppy-disk"></i> Save value</button>
+      <button class="btn-soft" id="ovrReset"><i class="fas fa-rotate-left"></i> Reset to formula</button>
+    </div>
+    <div class="muted" id="ovrScopeNote"></div>
+    <div class="tbl-wrap" style="max-height:none;margin-top:.8rem"><table class="tbl" id="ovrTbl"></table></div>
+    <div class="status" id="ovrStatus"></div>
   </div>
 </section>
 
@@ -837,33 +862,51 @@ async function loadValues(periods) {
   });
 }
 
-async function fetchAll(table, build) {
-  const out = [];
-  const PAGE = 1000;
-  for (let from = 0; ; from += PAGE) {
-    const q = build(db.from(table).select('*').order('id', { ascending: true }).range(from, from + PAGE - 1));
-    const { data, error } = await q;
-    if (error) throw error;
-    out.push(...(data || []));
-    if (!data || data.length < PAGE) break;
-  }
-  return out;
+/* ==================== MANUAL OVERRIDES ==================== */
+// Dashboard values that can be replaced by a typed figure (ids are the dashboard element ids).
+const OVR_FIELDS = [
+  ['b-qty','Billing: Quantity Reco (₹)'], ['b-qty-mt','Billing: Quantity Reco (₹/MT)'],
+  ['b-gcv','Billing: GCV Reco (₹)'], ['b-gcv-mt','Billing: GCV Reco (₹/MT)'],
+  ['b-svc-secl','Billing: Service Charge SECL (₹)'], ['b-svc-secl-mt','Billing: Service Charge SECL (₹/MT)'],
+  ['b-svc-wcl','Billing: Service Charge WCL (₹)'], ['b-svc-wcl-mt','Billing: Service Charge WCL (₹/MT)'],
+  ['b-pen','Billing: Total Railway Penalty (₹)'], ['b-pen-mt','Billing: Total Railway Penalty (₹/MT)'],
+  ['b-total','Billing: TOTAL BILLING (₹)'], ['b-total-mt','Billing: TOTAL BILLING (₹/MT)'],
+  ['b-exp','Billing: Expected Billing of the Month (₹)'],
+  ['w-ch','Weights: Avg. CH.Wt.'], ['w-rr','Weights: Avg. RR.Wt.'], ['w-recv','Weights: Avg. Plant Rec. Wt.'],
+  ['w-totrr','Weights: TOTAL RR WEIGHT'], ['w-totrecv','Weights: PLANT RECEIVE'],
+  ['s-pct','Shortage: Avg Shrt / Excess (%)'], ['s-mt','Shortage: MT per rake'],
+  ['p-ul','Penalty: Underload Charge (₹)'], ['p-ul-mt','Penalty: Underload Charge (₹/MT)'],
+  ['p-ol','Penalty: Overload Charge (₹)'], ['p-ol-mt','Penalty: Overload Charge (₹/MT)'],
+  ['p-pun','Penalty: Punitive Sum (₹)'], ['p-pun-mt','Penalty: Punitive Sum (₹/MT)'],
+  ['p-ehbc','Penalty: EHBC / FAUC / TC (₹)'], ['p-ehbc-mt','Penalty: EHBC / FAUC / TC (₹/MT)'],
+  ['p-enhc','Penalty: ENHC Charges (₹)'], ['p-enhc-mt','Penalty: ENHC Charges (₹/MT)'],
+  ['p-dead','Penalty: Dead Freight (₹)'], ['p-dead-mt','Penalty: Dead Freight (₹/MT)'],
+  ['p-total','Penalty: TOTAL PENALTY (₹)'], ['p-total-mt','Penalty: TOTAL PENALTY (₹/MT)']
+];
+const OVR_LABEL = Object.fromEntries(OVR_FIELDS);
+let OVR = {};              // { 'ovr-m:2026-10': { 'b-total': 123 }, 'ovr-q:2026-10': { ... } }
+let RENDER_PERIOD = currentMonthKey();
+let OVR_APPLIED = 0;
+
+// Financial-year quarter start (same rule as the quarter view): Apr, Jul, Oct, Jan
+const quarterStart = p => { const [Y, M] = p.split('-').map(Number); const s0 = [4, 7, 10, 1][Math.floor(((M + 8) % 12) / 3)]; return `${Y}-${pad2(s0)}`; };
+const quarterLabel = qs => { const [Y, M] = qs.split('-').map(Number); return `${MONTHS[M - 1]} – ${MONTHS[M + 1]} ${Y}`; };
+const ovrKeyFor = (period, scope) => scope === 'q' ? 'ovr-q:' + quarterStart(period) : 'ovr-m:' + period;
+
+// Month override wins over quarter override; undefined means "use the formula"
+function getOverride(period, id) {
+  const m = OVR['ovr-m:' + period];
+  if (m && m[id] !== undefined) return m[id];
+  const q = OVR['ovr-q:' + quarterStart(period)];
+  if (q && q[id] !== undefined) return q[id];
+  return undefined;
 }
 
-async function fetchState(period) {
-  const periods = [shiftMonth(period, -2), shiftMonth(period, -1), period];
-  const from = monthInfo(periods[0]).start, to = monthInfo(period).end;
-  const [recs, tgts] = await Promise.all([
-    fetchAll(TBL, q => q.gte('date', from).lte('date', to)),
-    db.from(TGT).select('*').in('period', periods).then(unwrap)
-  ]);
-  await loadValues(periods);
-  return { periods, recs, tgts };
-}
-
-function periodArgs(p, st) {
-  const s = settingsFor(p);
-  return { period: p, recs: st.recs, targets: st.tgts, settings: s, formulas: FORMULAS, reportDate: s.reportDate };
+async function loadOverrides(periods) {
+  const keys = [...new Set(periods.flatMap(p => ['ovr-m:' + p, 'ovr-q:' + quarterStart(p)]))];
+  const rows = unwrap(await db.from(VAL).select('period_key, field_key, field_value').in('period_key', keys));
+  keys.forEach(k => OVR[k] = {});
+  rows.forEach(r => { if (OVR[r.period_key] && isNum(r.field_value)) OVR[r.period_key][r.field_key] = Number(r.field_value); });
 }
 
 /* ==================== DASHBOARD ==================== */
@@ -888,7 +931,10 @@ function fillPeriodPicker() {
     subscribeLive();
   });
 }
-function setPeriodLabel() { $('periodLabel').textContent = `AMM Gujarat • ${periodLabel(PERIOD)}`; }
+function setPeriodLabel() {
+  $('periodLabel').textContent = `AMM Gujarat • ${periodLabel(PERIOD)}` +
+    (OVR_APPLIED ? ` • ${OVR_APPLIED} manual value${OVR_APPLIED > 1 ? 's' : ''}` : '');
+}
 
 let loadSeq = 0;
 async function loadDashboard() {
@@ -905,16 +951,25 @@ async function loadDashboard() {
   }
 }
 
+// Dashboard: a manual value replaces the formula and is styled as overridden
 function putVal(id, v, fmt) {
   const el = $(id);
   if (!el) return;
-  el.value = fmt(v);
-  el.classList.toggle('neg', Number.isFinite(v) && v < 0);
-  el.classList.toggle('pos', Number.isFinite(v) && v > 0);
+  const o = getOverride(RENDER_PERIOD, id);
+  const manual = o !== undefined;
+  const shown = manual ? o : v;
+  if (manual) OVR_APPLIED++;
+  el.value = fmt(shown);
+  el.classList.toggle('neg', Number.isFinite(shown) && shown < 0);
+  el.classList.toggle('pos', Number.isFinite(shown) && shown > 0);
+  el.classList.toggle('overridden', manual);
+  el.title = manual ? 'Manual value for this period. Reset it in Data Entry > Manual Override.' : '';
 }
 const cellIn = (v, fmt) => `<td><input class="metric-value ${v < 0 ? 'neg' : ''}" readonly value="${fmt(v)}"></td>`;
 
 function renderDashboard(o, trend) {
+  RENDER_PERIOD = o.period;
+  OVR_APPLIED = 0;
   const pm = o.perMt;
   const bill = (id, v, mt) => { putVal(id, v, fInt); putVal(id + '-mt', mt, f2); };
 
@@ -1007,6 +1062,37 @@ function renderDashboard(o, trend) {
   // "Performance Report updated upto" is always yesterday (today - 1)
   const yd = new Date(); yd.setDate(yd.getDate() - 1);
   $('reportUpdatedUpto').textContent = yd.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+  setPeriodLabel();
+}
+
+function periodArgs(p, st) {
+  const s = settingsFor(p);
+  return { period: p, recs: st.recs, targets: st.tgts, settings: s, formulas: FORMULAS, reportDate: s.reportDate };
+}
+
+async function fetchAll(table, build) {
+  const out = [];
+  const PAGE = 1000;
+  for (let from = 0; ; from += PAGE) {
+    const q = build(db.from(table).select('*').order('id', { ascending: true }).range(from, from + PAGE - 1));
+    const { data, error } = await q;
+    if (error) throw error;
+    out.push(...(data || []));
+    if (!data || data.length < PAGE) break;
+  }
+  return out;
+}
+
+async function fetchState(period) {
+  const periods = [shiftMonth(period, -2), shiftMonth(period, -1), period];
+  const from = monthInfo(periods[0]).start, to = monthInfo(period).end;
+  const [recs, tgts] = await Promise.all([
+    fetchAll(TBL, q => q.gte('date', from).lte('date', to)),
+    db.from(TGT).select('*').in('period', periods).then(unwrap)
+  ]);
+  await loadValues(periods);
+  await loadOverrides(periods);
+  return { periods, recs, tgts };
 }
 
 // Realtime events can arrive in bursts (e.g. the database recalculating a whole month), so reload once after they settle.
@@ -1611,6 +1697,12 @@ async function initEntry() {
     $('recSearchBtn').addEventListener('click', searchRecord);
     $('recSearch').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); searchRecord(); } });
     $('tgtBody').addEventListener('change', onTargetInput);
+    $('ovrField').addEventListener('change', renderOverrides);
+    $('ovrSwitch').addEventListener('change', onOverrideSwitch);
+    $('ovrSave').addEventListener('click', saveOverride);
+    $('ovrReset').addEventListener('click', () => resetOverride($('ovrField').value));
+    $('ovrValue').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); saveOverride(); } });
+    $('ovrTbl').addEventListener('click', e => { const b = e.target.closest('[data-ovr-reset]'); if (b) resetOverride(b.dataset.ovrReset); });
   }
   await resetEntryForm();
   await loadEntryPeriod();
@@ -1692,6 +1784,7 @@ async function loadEntryPeriod() {
       db.from(TGT).select('*').eq('period', ENTRY_PERIOD).then(unwrap)
     ]);
     await loadValues(periods);
+    await loadOverrides(periods);
     ENTRY_RECS = recs;
     ENTRY_TGTS = tgts;
     const s = settingsFor(ENTRY_PERIOD);
@@ -1734,6 +1827,7 @@ async function renderQuarter() {
 }
 
 function renderEntryTargets() {
+  renderOverrides();
   $('thTarget').textContent = $('entryScope').value === 'q' ? 'Quarter Target' : 'Month Target';
   if ($('entryScope').value === 'q') { renderQuarter(); return; }
   const res = computeMonth({
@@ -1808,6 +1902,65 @@ async function carryForward() {
   } catch (err) { toast('Carry forward failed: ' + err.message, true); }
 }
 
+/* ---------- Data Entry: manual override panel ---------- */
+function renderOverrides() {
+  if (!$('ovrTbl')) return;
+  const scope = $('entryScope').value;
+  const key = ovrKeyFor(ENTRY_PERIOD, scope);
+  const list = OVR[key] || {};
+  const applies = scope === 'q' ? quarterLabel(quarterStart(ENTRY_PERIOD)) : periodLabel(ENTRY_PERIOD);
+  const sel = $('ovrField');
+  if (!sel.options.length) sel.innerHTML = OVR_FIELDS.map(([id, l]) => `<option value="${id}">${esc(l)}</option>`).join('');
+  const id = sel.value;
+  $('ovrSwitch').checked = id in list;
+  if (document.activeElement !== $('ovrValue')) $('ovrValue').value = id in list ? list[id] : '';
+  $('ovrScopeNote').textContent = scope === 'q'
+    ? `Applies to every month of ${applies} (a month override still wins).`
+    : `Applies to ${applies} only.`;
+  const ids = Object.keys(list);
+  $('ovrTbl').innerHTML = ids.length
+    ? `<thead><tr><th>Dashboard value</th><th>Manual value</th><th>Applies to</th><th></th></tr></thead><tbody>` +
+      ids.map(i => `<tr>
+        <td style="text-align:left">${esc(OVR_LABEL[i] || i)}</td>
+        <td>${Number(list[i]).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</td>
+        <td>${applies}</td>
+        <td><button class="btn-soft btn-sm btn-danger" data-ovr-reset="${i}"><i class="fas fa-rotate-left"></i> Reset to formula</button></td>
+      </tr>`).join('') + '</tbody>'
+    : `<tbody><tr><td class="empty">No manual values for this ${scope === 'q' ? 'quarter' : 'month'}. Formulas are in use.</td></tr></tbody>`;
+}
+
+async function saveOverride() {
+  const id = $('ovrField').value;
+  const raw = $('ovrValue').value.trim();
+  if (!isNum(raw)) { setStatus('ovrStatus', 'Type a number for the manual value', 'err'); return; }
+  const key = ovrKeyFor(ENTRY_PERIOD, $('entryScope').value);
+  const { error } = await db.from(VAL).upsert(
+    [{ period_key: key, field_key: id, field_value: String(Number(raw)), sort_order: 0 }],
+    { onConflict: 'period_key,field_key' });
+  if (error) { setStatus('ovrStatus', 'Save failed: ' + error.message, 'err'); return; }
+  (OVR[key] = OVR[key] || {})[id] = Number(raw);
+  setStatus('ovrStatus', 'Manual value saved', 'ok');
+  toast('Manual value saved');
+  renderOverrides();
+}
+
+async function resetOverride(id) {
+  const key = ovrKeyFor(ENTRY_PERIOD, $('entryScope').value);
+  const { error } = await db.from(VAL).delete().eq('period_key', key).eq('field_key', id);
+  if (error) { setStatus('ovrStatus', 'Reset failed: ' + error.message, 'err'); return; }
+  if (OVR[key]) delete OVR[key][id];
+  setStatus('ovrStatus', `${OVR_LABEL[id] || id} is back on its formula`, 'ok');
+  toast('Formula restored');
+  renderOverrides();
+}
+
+function onOverrideSwitch() {
+  const id = $('ovrField').value;
+  const key = ovrKeyFor(ENTRY_PERIOD, $('entryScope').value);
+  if ($('ovrSwitch').checked) { $('ovrValue').focus(); return; }
+  if (OVR[key] && id in OVR[key]) resetOverride(id); else renderOverrides();
+}
+
 /* ==================== FORMULAS ==================== */
 function renderFormulas() {
   $('tierTbl').innerHTML = `<thead><tr><th>If materialisation is at least (%)</th><th>Rate change (% of base)</th></tr></thead><tbody>` +
@@ -1848,7 +2001,7 @@ setInterval(() => { if (!document.hidden && $('view-dashboard').classList.contai
 (async () => {
   setPeriodLabel();
   fillPeriodPicker();
-  try { await loadValues([PERIOD]); } catch (e) { console.warn('Values not loaded, using defaults', e); }
+  try { await loadValues([PERIOD]); await loadOverrides([PERIOD]); } catch (e) { console.warn('Values not loaded, using defaults', e); }
   loadDashboard();
   subscribeLive();
 })();
