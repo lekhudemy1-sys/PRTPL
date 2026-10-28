@@ -20,6 +20,10 @@
   create policy "amm read"   on amm_daily_entries for select using (true);
   create policy "amm insert" on amm_daily_entries for insert with check (true);
   create policy "amm update" on amm_daily_entries for update using (true) with check (true);
+
+  No table change is needed for the "Today loading" column. Each party entry is stored as
+  { t: target, p: loaded up to yesterday, d: today's loading, l: loaded (= p + d) }.
+  Older entries that only have t and l still open correctly (p = l, d = empty).
 -->
 <style>
   :root {
@@ -90,7 +94,7 @@
   .key { display:flex; flex-wrap:wrap; gap:.4rem 1.2rem; margin:1rem 0 0; padding:0; list-style:none; font-size:.88rem; color:var(--muted); }
   .key li { display:flex; align-items:center; gap:.45rem; }
   .key i { display:inline-block; width:1.9rem; height:1.2rem; border-radius:.2rem; }
-  .k-in { background:var(--field); border:1px solid var(--rule-strong); } .k-over { background:var(--err-bg); border:1px solid var(--err); } .k-calc { background:var(--ok-bg); border:1px solid var(--ok-rule); }
+  .k-in { background:var(--field); border:1px solid var(--rule-strong); } .k-today { background:var(--field-hover); border:1px solid var(--signal-deep); } .k-over { background:var(--err-bg); border:1px solid var(--err); } .k-calc { background:var(--ok-bg); border:1px solid var(--ok-rule); }
   .train { display:flex; gap:.6rem; }
   .wagon { flex:1 1 6rem; min-width:5.5rem; display:block; color:inherit; text-decoration:none; border-radius:.4rem; }
   .wagon:hover .body { transform:translateY(-3px); box-shadow:0 6px 12px rgba(23,40,58,.15); }
@@ -109,7 +113,7 @@
   .panel > h3 { margin:0; padding:.9rem 1.1rem .75rem; font:700 1.6rem/1 var(--display); color:var(--navy); border-bottom:1px solid var(--rule); letter-spacing:-.01em; }
   .panel > h3 small { font:400 .9rem var(--text); color:var(--muted); margin-left:.7rem; }
   .scroll { overflow-x:auto; }
-  table.grid { width:100%; border-collapse:separate; border-spacing:0; min-width:34rem; }
+  table.grid { width:100%; border-collapse:separate; border-spacing:0; min-width:38rem; }
   .grid thead th { padding:.6rem .7rem; text-align:right; font:500 .82rem/1.2 var(--text); color:var(--muted); border-bottom:2px solid var(--navy); background:#fafbfd; }
   .grid thead th:first-child { text-align:left; }
   .grid th[scope=row], .grid td { padding:0 .7rem; height:2.45rem; border-bottom:1px solid var(--rule); }
@@ -118,6 +122,7 @@
   .grid td.ask { font-weight:600; }
   .grid td.hl { background:var(--hl-bg); color:var(--hl-ink); font-weight:700; }
   .grid td.neg { color:var(--err) !important; } .grid tr.grand td.neg { color:#ff9a90 !important; }
+  .grid td.num.over { color:var(--err); background:var(--err-bg); }
   .grid tbody tr:not(.sec):not(.tot):hover > * { background:#f4f8fc; }
   .sec th { text-align:left; height:2.6rem; padding:0 .75rem; border-bottom:1px solid var(--rule); border-left:.32rem solid var(--c); background:var(--tint); }
   .chip { display:inline-block; padding:.12rem .6rem .06rem; border-radius:.22rem; background:var(--c); color:#fff; font:700 1.2rem/1.25 var(--display); letter-spacing:.03em; }
@@ -147,11 +152,11 @@
   .grid tr.grand td.prog .bar { background:rgba(255,255,255,.22); } .grid tr.grand td.prog .bar i { background:var(--signal); }
   .grid tr.tot td.prog .bar { background:rgba(13,90,48,.18); } .grid tr.tot td.prog .bar i { background:var(--ok-rule); }
   input.in { width:4rem; height:1.95rem; padding:0 .5rem; text-align:right; color:var(--ink); font:600 1.15rem var(--display); background:var(--field); border:1px solid transparent; border-radius:.3rem; -moz-appearance:textfield; appearance:textfield; transition:background .15s,border-color .15s; }
+  input.in.today { background:var(--field-hover); border-color:#f1d98a; }
   input.in::placeholder { color:#b3bbc3; }
   input.in::-webkit-outer-spin-button, input.in::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
   input.in:hover { background:var(--field-hover); border-color:var(--signal-deep); }
   input.in:focus { outline:2px solid var(--focus); outline-offset:0; background:#fff; }
-  input.in.over { background:var(--err-bg); border-color:var(--err); color:var(--err); }
   .foot { padding:1.2rem 0 0; color:var(--muted); font-size:.92rem; max-width:70rem; } .foot b { color:var(--ink); font-weight:600; }
   .toast { position:fixed; left:50%; bottom:1.6rem; transform:translate(-50%,1rem); opacity:0; pointer-events:none; background:var(--navy); color:#fff; padding:.7rem 1.2rem; border-radius:.4rem; font-size:.95rem; transition:opacity .2s,transform .2s; z-index:50; box-shadow:0 6px 20px rgba(23,40,58,.3); }
   .toast.show { opacity:1; transform:translate(-50%,0); }
@@ -166,7 +171,7 @@
     .wagon .lbl b { font-size:1.3rem; } .wagon .lbl .of { font-size:.82rem; }
     .boards { gap:1rem; } .panel > h3 { font-size:1.45rem; } .panel > h3 small { display:block; margin:.3rem 0 0; }
     table.grid, .summary { min-width:0; }
-    #mainGrid thead th:nth-child(6), td.prog { display:none; }
+    #mainGrid thead th:nth-child(7), td.prog { display:none; }
     .sec .full { display:none; }
     .grid thead th { padding:.5rem .25rem; font-size:.75rem; }
     .grid th[scope=row], .grid td, .summary th[scope=row], .summary td { padding:0 .25rem; }
@@ -1313,11 +1318,11 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
       <a class="back" href="home_page.html" title="Back to home" aria-label="Back to home">←</a>
       <div>
         <h1>AMM daily rake loading status</h1>
-        <p>Coal India subsidiaries: target, loaded and asking rakes</p>
+        <p>Coal India subsidiaries: target, today's loading, loaded and asking rakes</p>
       </div>
     </div>
     <div class="mini" aria-hidden="true">
-      <div><span>Target</span><b id="mT">0</b></div><div><span>Loaded</span><b id="mL">0</b></div>
+      <div><span>Target</span><b id="mT">0</b></div><div><span>Today</span><b id="mD">0</b></div><div><span>Loaded</span><b id="mL">0</b></div>
       <div><span>Balance</span><b id="mB">0</b></div><div><span>Asking per day</span><b id="mA">–</b></div>
     </div>
     <div class="controls">
@@ -1342,23 +1347,23 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
       <h2><span id="hLoaded">0</span> of <span id="hTarget">0</span> rakes loaded</h2>
       <p id="readoutText"></p>
       <ul class="key" aria-label="How to read the tables">
-        <li><i class="k-in"></i>Type in the boxes</li><li><i class="k-over"></i>Loaded is above target</li><li><i class="k-calc"></i>Calculated totals</li>
+        <li><i class="k-today"></i>Type today's loading</li><li><i class="k-in"></i>Type the target</li><li><i class="k-over"></i>Loaded is above target</li><li><i class="k-calc"></i>Calculated totals</li>
       </ul>
     </div>
     <nav class="train" id="train" aria-label="Loading progress by subsidiary. Select a wagon to jump to its rows."></nav>
   </section>
   <div class="boards">
-    <section class="panel"><h3>Subsidiary-wise loading <small>Type in the Target and Loaded boxes. Enter moves down.</small></h3><div class="scroll"><table class="grid" id="mainGrid"></table></div></section>
+    <section class="panel"><h3>Subsidiary-wise loading <small>Type the Target and Today loading boxes. Enter moves down.</small></h3><div class="scroll"><table class="grid" id="mainGrid"></table></div></section>
     <section class="panel"><h3>Party-wise summary <small>Updates automatically</small></h3><div class="scroll"><table class="grid summary" id="sumGrid"></table></div></section>
   </div>
-  <p class="foot"><b>How the numbers work.</b> Balance = Target − Loaded. Asking rakes per day (P/D) = Balance ÷ (Days in month − day of the report date). Pick a date to open that day's entry. A new date starts with the full data (targets + loaded) from the latest earlier entry of the same month so you can see the previous day and only update what changed. Save entry stores the day in Supabase; saving the same date again updates it. Ctrl+S also saves.</p>
+  <p class="foot"><b>How the numbers work.</b> Loaded = Loaded up to the previous day + Today loading. Balance = Target − Loaded. Asking rakes per day (P/D) = Balance ÷ (Days in month − day of the report date). Pick a date to open that day's entry. A new date starts with the targets and the loaded total from the latest earlier entry of the same month, and Today loading is left empty so you only type what was loaded today. Save entry stores the day in Supabase; saving the same date again updates it. Ctrl+S also saves.</p>
 </main>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script>
 (function () {
   'use strict';
   var SB_URL = 'https://jzkrywwrsewchtiqsczk.supabase.co';
-  var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6a3J5d3dyc2V3Y2h0aXFzY3prIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1NDU0MzQsImV4cCI6MjEwNzEyMTQzNH0.IDwfVhqDI9uXfAALCVKBD0pNjsNVu38fW4eEueaKDSs';
+  var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6a3J5d3dyc2V3Y2h0aXFzY3prIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1NDU0MzQsImV4cCI6MjEwNzEyMTQzNH0.IDwfVhqDI9uXfALCVKBD0pNjsNVu38fW4eEueaKDSs';
   var TABLE = 'amm_daily_entries';
   /* ---- structure (party names only; no numbers live in the page) ---- */
   var SUBS = [
@@ -1394,21 +1399,22 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
   function g(n) { return String(parseFloat(n.toPrecision(10))); }
   function ask(a, d) { return isFinite(a) ? a.toFixed(d) : '–'; }
   /* ---- build tables ---- */
-  var inp = {};                                    // id-t / id-l -> input
-  function inputCell(id, f, label) { return '<td class="num"><input class="in" type="number" step="any" min="0" inputmode="decimal" data-c="' + f + '" id="' + id + '-' + f + '" aria-label="' + label + '"></td>'; }
+  var inp = {};                                    // id-t / id-d -> input
+  var base = {};                                   // id -> loaded up to the previous day
+  function inputCell(id, f, label) { return '<td class="num"><input class="in' + (f === 'd' ? ' today' : '') + '" type="number" step="any" min="0" inputmode="decimal" data-c="' + f + '" id="' + id + '-' + f + '" aria-label="' + label + '"></td>'; }
   function cells(p, extra) { return '<td class="num" id="' + p + '-b"></td><td class="num ask' + (extra || '') + '" id="' + p + '-a"></td>'; }
   function prog(p) { return '<td class="prog" id="' + p + '-p"><span class="bar"><i></i></span><b></b></td>'; }
-  var h = '<thead><tr><th scope="col">Party name</th><th scope="col">Target rakes</th><th scope="col">Loaded rakes</th><th scope="col">Balance rakes</th><th scope="col">Asking rakes (P/D)</th><th scope="col">Loaded %</th></tr></thead>';
+  var h = '<thead><tr><th scope="col">Party name</th><th scope="col">Target rakes</th><th scope="col">Today loading</th><th scope="col">Loaded rakes</th><th scope="col">Balance rakes</th><th scope="col">Asking rakes (P/D)</th><th scope="col">Loaded %</th></tr></thead>';
   SUBS.forEach(function (s) {
     h += '<tbody class="sub" id="sub-' + s.k + '" style="--c:' + s.c + ';--tint:' + s.t + ';--edge:' + s.c + '66">';
-    h += '<tr class="sec"><th colspan="6" scope="colgroup"><span class="chip">' + s.k + '</span><span class="full">' + s.n + '</span></th></tr>';
+    h += '<tr class="sec"><th colspan="7" scope="colgroup"><span class="chip">' + s.k + '</span><span class="full">' + s.n + '</span></th></tr>';
     s.p.forEach(function (name, i) {
       var id = s.k + '-' + i, lb = s.k + ' ' + name;
-      h += '<tr><th scope="row" class="party">' + name + '</th>' + inputCell(id, 't', 'Target rakes, ' + lb) + inputCell(id, 'l', 'Loaded rakes, ' + lb) + cells(id) + prog(id) + '</tr>';
+      h += '<tr><th scope="row" class="party">' + name + '</th>' + inputCell(id, 't', 'Target rakes, ' + lb) + inputCell(id, 'd', 'Today loading, ' + lb) + '<td class="num" id="' + id + '-l"></td>' + cells(id) + prog(id) + '</tr>';
     });
-    h += '<tr class="tot"><th scope="row">' + s.k + ' total</th><td class="num" id="' + s.k + '-t"></td><td class="num" id="' + s.k + '-l"></td>' + cells(s.k) + prog(s.k) + '</tr></tbody>';
+    h += '<tr class="tot"><th scope="row">' + s.k + ' total</th><td class="num" id="' + s.k + '-t"></td><td class="num" id="' + s.k + '-d"></td><td class="num" id="' + s.k + '-l"></td>' + cells(s.k) + prog(s.k) + '</tr></tbody>';
   });
-  h += '<tfoot><tr class="grand"><th scope="row">Total</th><td class="num" id="ALL-t"></td><td class="num" id="ALL-l"></td>' + cells('ALL') + prog('ALL') + '</tr></tfoot>';
+  h += '<tfoot><tr class="grand"><th scope="row">Total</th><td class="num" id="ALL-t"></td><td class="num" id="ALL-d"></td><td class="num" id="ALL-l"></td>' + cells('ALL') + prog('ALL') + '</tr></tfoot>';
   $('mainGrid').innerHTML = h;
   var sh = '<thead><tr><th scope="col">Subsidiary</th><th scope="col">Party</th><th scope="col">Target</th><th scope="col">Loaded</th><th scope="col">Balance</th><th scope="col">Asking</th></tr></thead>';
   var sumRows = [];                                // {p, ids}
@@ -1448,12 +1454,16 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
   /* ---- calculation ---- */
   var reportDate = null, dirty = false, daysLeftN = 0;
   function agg(list) {
-    var t = 0, l = 0; list.forEach(function (id) { t += num(inp[id + '-t'].value); l += num(inp[id + '-l'].value); });
-    var b = t - l; return { t:t, l:l, b:b, a: daysLeftN > 0 ? b / daysLeftN : NaN };
+    var t = 0, d = 0, l = 0;
+    list.forEach(function (id) {
+      var td = num(inp[id + '-d'].value);
+      t += num(inp[id + '-t'].value); d += td; l += (base[id] || 0) + td;
+    });
+    var b = t - l; return { t:t, d:d, l:l, b:b, a: daysLeftN > 0 ? b / daysLeftN : NaN };
   }
   function put(p, a, askDec) {
     var set = function (s, v) { var el = $(p + s); if (el) el.textContent = v; };
-    set('-t', g(a.t)); set('-l', g(a.l)); set('-b', g(a.b)); set('-a', ask(a.a, askDec)); var be = $(p + '-b'); if (be) be.classList.toggle('neg', a.b < 0);
+    set('-t', g(a.t)); set('-d', g(a.d)); set('-l', g(a.l)); set('-b', g(a.b)); set('-a', ask(a.a, askDec)); var be = $(p + '-b'); if (be) be.classList.toggle('neg', a.b < 0);
     var pc = $(p + '-p');
     if (pc) {
       var q = a.t > 0 ? a.l / a.t : -1; pc.setAttribute('data-s', q < 0 ? 'none' : q >= 1 ? 'hi' : q >= 0.5 ? 'mid' : 'lo');
@@ -1464,7 +1474,7 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
   function recalc() {
     daysLeftN = num($('daysIn').value) - reportDate.getDate();
     $('daysLeft').textContent = daysLeftN;
-    ALL.forEach(function (id) { var a = agg([id]); put(id, a, 2); inp[id + '-l'].classList.toggle('over', num(inp[id + '-l'].value) > num(inp[id + '-t'].value)); });
+    ALL.forEach(function (id) { var a = agg([id]); put(id, a, 2); $(id + '-l').classList.toggle('over', a.l > a.t); });
     SUBS.forEach(function (s) {
       var a = agg(ids(s.k, s.p.map(function (_, i) { return i; }))); put(s.k, a, 2);
       var w = $('W-' + s.k); w.style.flexGrow = Math.max(a.t, 1);
@@ -1475,11 +1485,12 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
     var tot = agg(ALL); put('ALL', tot, 0); put('SALL', tot, 0);
     sumRows.forEach(function (r) { put(r.p, agg(r.ids), 1); });
     $('hLoaded').textContent = g(tot.l); $('hTarget').textContent = g(tot.t);
-    $('mT').textContent = g(tot.t); $('mL').textContent = g(tot.l); $('mB').textContent = g(tot.b); $('mA').textContent = ask(tot.a, 2);
+    $('mT').textContent = g(tot.t); $('mD').textContent = g(tot.d); $('mL').textContent = g(tot.l); $('mB').textContent = g(tot.b); $('mA').textContent = ask(tot.a, 2);
     var pct = tot.t > 0 ? ' (' + Math.round(tot.l / tot.t * 100) + '% of target)' : '';
+    var todayTxt = '<b>' + g(tot.d) + '</b> loaded today. ';
     $('readoutText').innerHTML = isFinite(tot.a)
-      ? '<b>' + g(tot.b) + '</b> rakes still to load' + pct + '. The asking rate is <b>' + tot.a.toFixed(2) + '</b> rakes a day for the <b>' + daysLeftN + '</b> days left in the month.'
-      : '<b>' + g(tot.b) + '</b> rakes still to load' + pct + '. <span class="err">No days are left, so the asking rate cannot be worked out. Change the report date or the days in the month.</span>';
+      ? todayTxt + '<b>' + g(tot.b) + '</b> rakes still to load' + pct + '. The asking rate is <b>' + tot.a.toFixed(2) + '</b> rakes a day for the <b>' + daysLeftN + '</b> days left in the month.'
+      : todayTxt + '<b>' + g(tot.b) + '</b> rakes still to load' + pct + '. <span class="err">No days are left, so the asking rate cannot be worked out. Change the report date or the days in the month.</span>';
   }
   /* ---- status ---- */
   function status(msg, cls) { var s = $('status'); s.textContent = msg; s.className = cls || ''; }
@@ -1500,17 +1511,26 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
     if (e.code === '42501') return 'Supabase blocked this action. Add the read, insert and update policies from the setup SQL.';
     return 'Could not reach Supabase: ' + e.message;
   }
-  function fill(entries) {
-    Object.keys(inp).forEach(function (k) {
-      var parts = k.split('-'), f = parts.pop(), id = parts.join('-'), e = entries && entries[id];
-      inp[k].value = e && e[f] !== undefined && e[f] !== null && e[f] !== '' ? e[f] : '';
+  function has(v) { return v !== undefined && v !== null && v !== ''; }
+  /* mode 'saved': open a stored day (p = loaded up to yesterday, d = today's loading).
+     mode 'carry': start a new day from an earlier entry (its loaded total becomes the new base, today is empty). */
+  function fill(entries, mode) {
+    base = {};
+    ALL.forEach(function (id) {
+      var e = (entries && entries[id]) || {}, b, d = '';
+      if (mode === 'carry') { b = num(e.l); }
+      else if (has(e.p)) { b = num(e.p); d = has(e.d) ? e.d : ''; }
+      else { b = num(e.l); }                       // older entries: l only
+      base[id] = b;
+      inp[id + '-t'].value = has(e.t) ? e.t : '';
+      inp[id + '-d'].value = d;
     });
   }
   function collect() {
     var out = {};
     ALL.forEach(function (id) {
-      var t = inp[id + '-t'].value, l = inp[id + '-l'].value;
-      if (t !== '' || l !== '') out[id] = { t: t === '' ? null : num(t), l: l === '' ? null : num(l) };
+      var t = inp[id + '-t'].value, d = inp[id + '-d'].value, b = base[id] || 0;
+      if (t !== '' || d !== '' || b) out[id] = { t: t === '' ? null : num(t), p: b, d: d === '' ? null : num(d), l: b + num(d) };
     });
     return out;
   }
@@ -1520,29 +1540,22 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
     status('Loading ' + nice(d) + '…');
     return api(TABLE + '?report_date=eq.' + iso + '&select=*').then(function (rows) {
       if (rows.length) {
-        fill(rows[0].entries); $('daysIn').value = rows[0].days_in_month; recalc(); dirty = false;
+        fill(rows[0].entries, 'saved'); $('daysIn').value = rows[0].days_in_month; recalc(); dirty = false;
         status('Loaded saved entry for ' + nice(d), 'ok'); markSaved(iso); return;
       }
-      /* No entry for this date → copy BOTH target + loaded from latest earlier entry in the same month */
+      /* No entry for this date → carry targets and the loaded total from the latest earlier entry in the same month */
       var first = iso.slice(0, 8) + '01';
       return api(TABLE + '?report_date=lt.' + iso + '&report_date=gte.' + first + '&order=report_date.desc&limit=1&select=*').then(function (prev) {
-        var carry = {};
-        if (prev.length) {
-          Object.keys(prev[0].entries).forEach(function (k) {
-            var e = prev[0].entries[k];
-            carry[k] = { t: e.t, l: e.l };   // copy both target and loaded
-          });
-        }
-        fill(carry); $('daysIn').value = dim(d); recalc(); dirty = false;
+        fill(prev.length ? prev[0].entries : null, 'carry'); $('daysIn').value = dim(d); recalc(); dirty = false;
         status(
           prev.length
-            ? 'New entry. Full data (targets + loaded) copied from ' + nice(parseISO(prev[0].report_date)) + '. Edit as needed and save.'
-            : 'No entry for this date yet. Type the targets and loaded rakes, then save.',
+            ? 'New entry. Targets and loaded rakes carried from ' + nice(parseISO(prev[0].report_date)) + '. Type today\'s loading and save.'
+            : 'No entry for this date yet. Type the targets and today\'s loading, then save.',
           'warn'
         );
         markSaved(null);
       });
-    }).catch(function (e) { fill(null); $('daysIn').value = dim(d); recalc(); status(dbError(e), 'bad'); });
+    }).catch(function (e) { fill(null, 'carry'); $('daysIn').value = dim(d); recalc(); status(dbError(e), 'bad'); });
   }
   var savedDates = [];
   function loadSaved() {
@@ -1571,7 +1584,7 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
   $('daysIn').addEventListener('input', function () { dirty = true; recalc(); status('Unsaved changes', 'warn'); });
   $('btnSave').addEventListener('click', function () {
     var b = $('btnSave'), iso = toISO(reportDate), entries = collect();
-    if (!Object.keys(entries).length) { status('Nothing to save. Enter at least one target or loaded value.', 'bad'); return; }
+    if (!Object.keys(entries).length) { status('Nothing to save. Enter at least one target or loading value.', 'bad'); return; }
     b.disabled = true; status('Saving…');
     api(TABLE + '?on_conflict=report_date', {
       method:'POST', headers:{ Prefer:'resolution=merge-duplicates,return=minimal' },
@@ -1646,16 +1659,16 @@ var COL = { SECL:['#2f6fb5','#e5edf7'], MCL:['#1b8a7f','#e3f1ef'], WCL:['#7656a8
     }
     rect(0, 0, W, H, '#f1f4f8'); rect(0, 0, W, 8, '#ffb400');
     txt('AMM daily rake loading status', P, 76, '700 48px ' + CD, '#17283a');
-    txt('Coal India subsidiaries: target, loaded and asking rakes', P, 106, '400 18px ' + BT, '#55636f');
+    txt('Coal India subsidiaries: target, today\'s loading, loaded and asking rakes', P, 106, '400 18px ' + BT, '#55636f');
     txt('Report date', W - P, 52, '400 15px ' + BT, '#55636f', 'right');
     txt($('dateText').textContent, W - P, 100, '700 44px ' + CD, '#17283a', 'right');
     var tg = num($('hTarget').textContent), ld = num($('hLoaded').textContent), pc = tg > 0 ? Math.min(100, ld / tg * 100) : 0;
     txt($('hLoaded').textContent + ' of ' + $('hTarget').textContent + ' rakes loaded', P, 190, '700 64px ' + CD, '#17283a');
     txt($('readoutText').textContent, P, 226, '400 20px ' + BT, '#55636f');
     rect(P, 244, W - 2 * P, 10, '#dfe5ea', 5); if (pc > 0) rect(P, 244, Math.max(10, (W - 2 * P) * pc / 100), 10, '#1d8f4e', 5);
-    var kp = [['Target rakes', 'mT'], ['Loaded rakes', 'mL'], ['Balance rakes', 'mB'], ['Asking rakes per day', 'mA']], kw = (W - 2 * P - 48) / 4;
+    var kp = [['Target rakes', 'mT'], ['Loaded today', 'mD'], ['Loaded rakes', 'mL'], ['Balance rakes', 'mB'], ['Asking rakes per day', 'mA']], kw = (W - 2 * P - 64) / 5;
     kp.forEach(function (k, i) {
-      var x = P + i * (kw + 16), key = i === 3;
+      var x = P + i * (kw + 16), key = i === 4;
       rect(x, 278, kw, 96, key ? '#17283a' : '#fff', 10); if (!key) { path(x, 278, kw, 96, 10); c.strokeStyle = '#c2ccd6'; c.stroke(); }
       txt(k[0], x + 20, 308, '400 16px ' + BT, key ? '#a9b6c3' : '#55636f');
       txt($(k[1]).textContent, x + 20, 355, '700 50px ' + CD, key ? '#ffb400' : '#17283a');
@@ -1680,9 +1693,9 @@ var COL = { SECL:['#2f6fb5','#e5edf7'], MCL:['#1b8a7f','#e3f1ef'], WCL:['#7656a8
       wx += bw + gp;
     });
     txt('Subsidiary-wise loading', P, 612, '700 26px ' + CD, '#17283a'); txt('Party-wise summary', P + 984, 612, '700 26px ' + CD, '#17283a');
-    table(P, TY, 960, [27, 13, 13, 15, 17, 15], mainRows, false);
+    table(P, TY, 960, [24, 11, 11, 11, 12, 16, 15], mainRows, false);
     table(P + 984, TY, 636, [15, 26, 13, 13, 15, 17], sumRows, true);
-    txt('Balance = Target - Loaded. Asking rakes per day = Balance / (days in month - day of the report date).', P, H - 30, '400 15px ' + BT, '#55636f');
+    txt('Loaded = loaded up to the previous day + today loading. Balance = Target - Loaded. Asking rakes per day = Balance / (days in month - day of the report date).', P, H - 30, '400 15px ' + BT, '#55636f');
     return new Promise(function (res) {
       cv.toBlob(function (bl) {
         var a = document.createElement('a'); a.href = URL.createObjectURL(bl); a.download = 'AMM-rake-status-' + toISO(reportDate) + '.png';
@@ -1706,7 +1719,7 @@ var COL = { SECL:['#2f6fb5','#e5edf7'], MCL:['#1b8a7f','#e3f1ef'], WCL:['#7656a8
   window.addEventListener('scroll', function () { document.body.classList.toggle('scrolled', window.scrollY > 180); }, { passive: true });
   $('dateIn').addEventListener('click', function () { try { $('dateIn').showPicker(); } catch (e) {} });
   /* ---- start ---- */
-  reportDate = yesterday(); $('dateText').textContent = nice(reportDate); $('dateIn').value = toISO(reportDate); $('daysIn').value = dim(reportDate); recalc();
+  reportDate = yesterday(); $('dateText').textContent = nice(reportDate); $('dateIn').value = toISO(reportDate); $('daysIn').value = dim(reportDate); fill(null, 'carry'); recalc();
   loadSaved().then(function () { openDate(reportDate); });
 })();
 </script>
