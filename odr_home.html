@@ -552,7 +552,7 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
    Load in <head> (synchronously) so the loader appears instantly.
 
    Optional config, set BEFORE this file loads:
-     window.PRTPL_CONFIG = { lottie: 'loader.json', idleMinutes: 30 };
+     window.PRTPL_CONFIG = { lottie: 'loader.json', idleMinutes: 0 };
 
    The loader animation is picked up automatically from
      loader.json   (Lottie JSON)   or
@@ -566,8 +566,8 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
     minShow: 350,            // first page of a session (ms)
     minShowRepeat: 150,      // later pages (ms)
     maxShow: 7000,           // never block longer than this
-    idleMinutes: 30,         // auto sign-out after inactivity (0 = off)
-    maxSessionHours: 12,     // hard limit on one sign-in (0 = off)
+    idleMinutes: 0,         // auto sign-out after inactivity (0 = off)
+    maxSessionHours: 0,     // hard limit on one sign-in (0 = off)
     staleMinutes: 10,        // refresh a dashboard that was in the background this long (0 = off)
     sw: 'sw.js',             // offline cache worker (false = off)
     version: '2.0',
@@ -583,7 +583,7 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
     return null;
   }
   function ss(key, val) {
-    try { if (val === undefined) return sessionStorage.getItem(key); if (val === null) sessionStorage.removeItem(key); else sessionStorage.setItem(key, val); } catch (e) {}
+    try { var st = (key === 'amm-auth') ? localStorage : sessionStorage; if (val === undefined) return st.getItem(key); if (val === null) st.removeItem(key); else st.setItem(key, val); } catch (e) {}
     return null;
   }
   function meta(name) { var m = D.querySelector('meta[name="' + name + '"]'); return m ? m.getAttribute('content') : null; }
@@ -1437,7 +1437,7 @@ function typeText(el, text, speed) {
 })();
 
 let S = null;
-try { S = JSON.parse(sessionStorage.getItem('amm-auth')); } catch (e) {}
+try { S = JSON.parse(localStorage.getItem('amm-auth')); } catch (e) {}
 if (!S) location.replace('index.html');
 else {
   const access = S.access || [];
