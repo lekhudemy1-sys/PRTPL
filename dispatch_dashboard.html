@@ -2067,6 +2067,12 @@ function plainClone(el) {
   src.forEach((n, i) => { if (getComputedStyle(n).position === "sticky") dst[i].style.position = "static"; });
   return c;
 }
+function kpiClone(id) {
+  const c = plainClone($(id));
+  c.classList.remove("hidden");
+  c.style.cssText = "display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:14px;margin:0 0 16px;";
+  return c;
+}
 async function saveStageAsPng(stage, widthCss, filename) {
   stage.style.cssText = `position:fixed;left:-10000px;top:0;width:${widthCss};background:#fff;padding:22px;box-sizing:border-box;`;
   document.body.appendChild(stage);
@@ -2090,6 +2096,7 @@ async function downloadMonthlyImage() {
   btn.disabled = true;
   try {
     const stage = document.createElement("div");
+    stage.appendChild(kpiClone("m-kpis"));
     stage.appendChild(plainClone($("m-table")));
     await saveStageAsPng(stage, "max-content", `AMM_${name}_${MONTHS[+m - 1]}_${y}.png`);
   } catch (e) { $("m-note").textContent = "Could not create image: " + e.message; }
@@ -2106,13 +2113,16 @@ async function downloadAverageImage() {
   try {
     if (mine === "ALL") {
       stage.innerHTML = `<div class="avtitle">Overall · ${dmy(from)} to ${dmy(to)}</div>`;
+      stage.appendChild(kpiClone("a-kpis"));
       const grid = plainClone($("a-sum"));
       grid.style.cssText = "display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;margin:0;";
       stage.appendChild(grid);
       await saveStageAsPng(stage, "1400px", `OVERALL_${from}_to_${to}.png`);
     } else {
-      stage.innerHTML = `<div class="avtitle">Average Rakes Per Day By Siding And Destination</div>` + mineBlocks(rows, days, mine);
-      await saveStageAsPng(stage, "max-content",`AVERAGE_${mine}${area ? "_" + nk(area) : ""}_${from}_to_${to}.png`);
+      stage.innerHTML = `<div class="avtitle">Average Rakes Per Day By Siding And Destination</div>`;
+      stage.appendChild(kpiClone("a-kpis"));
+      stage.insertAdjacentHTML("beforeend", mineBlocks(rows, days, mine));
+      await saveStageAsPng(stage, "max-content", `AVERAGE_${mine}${area ? "_" + nk(area) : ""}_${from}_to_${to}.png`);
     }
   } catch (e) { $("a-note").textContent = "Could not create image: " + e.message; }
   finally { btn.disabled = false; }
@@ -2750,6 +2760,7 @@ async function downloadSearchImage() {
       `<div style="margin-top:12px;font:600 12px Arial,sans-serif;color:#eadcf9">${filterParts(m.f).map(([k, v]) => `<span style="${bannerBox};color:#4a1d7a">${esc(k)}: <b>${esc(v)}</b></span>`).join("")}</div>` +
       `<div style="margin-top:6px;font:700 13px Arial,sans-serif">Total ${fmt(SR_ROWS.length)} rakes &nbsp;·&nbsp; Power ${fmt(power)} &nbsp;·&nbsp; Non-power ${fmt(nonp)}</div>` +
     `</div>`;
+  stage.appendChild(kpiClone("s-kpis"));
   stage.appendChild(plainClone($("s-table")));
   btn.disabled = true;
   try {
@@ -3063,6 +3074,7 @@ async function downloadSummaryImage(){
   stage.innerHTML = `<div style="text-align:center;margin-bottom:16px;padding:18px 16px;border-radius:16px;background:linear-gradient(115deg,#3b1665,#6a2fa0 55%,#9b59d6);color:#fff">` +
     `<div style="font:800 20px/1.25 Inter,Arial,sans-serif;letter-spacing:.04em">${esc($("sm-title").textContent)}</div>` +
     `<div style="margin-top:8px;font:600 12px Arial,sans-serif;color:#eadcf9">${esc(L.filterText)}</div></div>`;
+  stage.appendChild(kpiClone("sm-kpis"));
   stage.appendChild(plainClone($("sm-table")));
   try { await saveStageAsPng(stage, "max-content", `RAKE_SUMMARY_${L.from}_to_${L.to}.png`); }
   catch (e) { $("sm-note").textContent = "Could not create image: " + e.message; }
