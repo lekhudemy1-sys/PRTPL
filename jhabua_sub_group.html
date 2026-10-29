@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Jhabua Sub Group · Rake Recommendation</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg:#eef1f7;--card:#ffffff;--ink:#0f172a;--ink2:#334155;--mut:#64748b;--line:#e3e8f0;--soft:#f6f8fc;
+  --navy:#0b1426;--navy2:#16233f;--gold:#d9a441;--gold2:#f5d68a;
+  --acc:#4338ca;--acc2:#6d28d9;--ok:#15803d;--bad:#b91c1c;--warn:#b45309;
+  --shadow:0 1px 2px rgba(15,23,42,.04),0 12px 32px -14px rgba(15,23,42,.18);
+  --r:16px;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#070c16;--card:#0f1828;--ink:#e8edf6;--ink2:#c3cddd;--mut:#8593a8;--line:#1f2b40;--soft:#131e31;--shadow:0 12px 32px -14px rgba(0,0,0,.6)}
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  font-family:Inter,"Segoe UI",system-ui,Roboto,Arial,sans-serif;color:var(--ink);font-size:14px;line-height:1.5;
+  background:radial-gradient(1200px 600px at 10% -10%,#dfe6ff 0%,transparent 60%),radial-gradient(900px 500px at 110% 0%,#fdf0d2 0%,transparent 55%),var(--bg);
+  min-height:100vh;
+}
+@media (prefers-color-scheme:dark){body{background:radial-gradient(1200px 600px at 10% -10%,#1b2450 0%,transparent 60%),var(--bg)}}
+
+/* ---------- header ---------- */
+header{background:linear-gradient(120deg,var(--navy) 0%,var(--navy2) 100%);color:#fff;position:sticky;top:0;z-index:10;box-shadow:0 8px 24px -12px rgba(2,6,23,.6)}
+.hwrap{max-width:1280px;margin:auto;padding:18px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.mark{height:52px;min-width:52px;padding:6px 10px;border-radius:12px;background:#ffffff;display:grid;place-items:center;box-shadow:0 6px 18px -8px rgba(0,0,0,.5)}
+.mark img{height:40px;width:auto;max-width:180px;object-fit:contain;display:block}
+.mark .fallback{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--gold),#f3c25b);display:grid;place-items:center;color:var(--navy);font-weight:800;font-size:16px}
+.brand h1{margin:0;font-size:17px;font-weight:700;letter-spacing:.01em}
+.brand p{margin:1px 0 0;font-size:12px;color:#9fb0cc;letter-spacing:.04em;text-transform:uppercase}
+.spacer{flex:1}
+.status{font-size:12px;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#c9d4e8;display:inline-flex;gap:8px;align-items:center}
+.dot{width:8px;height:8px;border-radius:50%;background:#94a3b8;box-shadow:0 0 0 4px rgba(148,163,184,.15)}
+.status.ok .dot{background:#34d399;box-shadow:0 0 0 4px rgba(52,211,153,.18)}
+.status.bad .dot{background:#f87171;box-shadow:0 0 0 4px rgba(248,113,113,.18)}
+.status.busy .dot{background:#fbbf24;box-shadow:0 0 0 4px rgba(251,191,36,.18)}
+
+main{max-width:1280px;margin:auto;padding:24px;display:flex;flex-direction:column;gap:20px}
+
+/* ---------- KPIs ---------- */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.kpi:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent,#4338ca)}
+.kpi .l{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+.kpi .v{font-size:28px;font-weight:700;margin-top:6px;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.kpi .s{font-size:12px;color:var(--mut);margin-top:2px}
+.kpi.ach{display:flex;align-items:center;gap:14px}
+.ring{width:56px;height:56px;flex:0 0 56px}
+.ring text{font-size:12px;font-weight:700;fill:var(--ink)}
+@media (max-width:820px){.kpis{grid-template-columns:repeat(2,1fr)}}
+
+/* ---------- cards ---------- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
+.card-h{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:16px 20px;border-bottom:1px solid var(--line)}
+.card-h h2{font-size:15px;margin:0;font-weight:650;letter-spacing:-.005em}
+.card-h .sub{color:var(--mut);font-size:12px}
+.card-b{padding:20px}
+
+/* ---------- form controls ---------- */
+label{display:block;font-size:12px;color:var(--mut);margin:0 0 6px;font-weight:600}
+input,textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--soft);color:var(--ink);font:inherit;transition:border-color .15s,box-shadow .15s,background .15s}
+input:hover,textarea:hover{border-color:#cdd5e2}
+input:focus,textarea:focus{outline:none;border-color:#818cf8;background:var(--card);box-shadow:0 0 0 4px rgba(99,102,241,.16)}
+input.err{border-color:var(--bad);box-shadow:0 0 0 4px rgba(185,28,28,.12)}
+input[type=number]{font-variant-numeric:tabular-nums;text-align:right}
+button{font:inherit;font-weight:600;border-radius:10px;padding:10px 16px;border:1px solid transparent;cursor:pointer;transition:transform .05s,background .15s,opacity .15s,box-shadow .15s;display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}
+button:active:not(:disabled){transform:translateY(1px)}
+button:disabled{opacity:.5;cursor:not-allowed}
+.btn-p{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;box-shadow:0 8px 18px -10px rgba(67,56,202,.8)}
+.btn-p:hover:not(:disabled){box-shadow:0 10px 22px -10px rgba(67,56,202,.9)}
+.btn-g{background:linear-gradient(135deg,#15803d,#16a34a);color:#fff;box-shadow:0 8px 18px -10px rgba(21,128,61,.8)}
+.btn-g:hover:not(:disabled){filter:brightness(1.05)}
+.btn-s{background:var(--card);color:var(--ink2);border-color:var(--line)}
+.btn-s:hover:not(:disabled){background:var(--soft)}
+.btn-d{background:transparent;color:var(--bad);border-color:var(--line)}
+.btn-d:hover:not(:disabled){background:rgba(185,28,28,.07)}
+.field{min-width:180px}
+.toolbar{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;flex:1}
+
+/* ---------- report ---------- */
+.report-meta{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--mut)}
+.chip{padding:4px 10px;border-radius:999px;background:var(--soft);border:1px solid var(--line);color:var(--ink2);font-weight:600}
+.scroll{overflow-x:auto;background:#fff;scrollbar-width:thin}
+canvas{display:block}
+.legend{padding:12px 20px;border-top:1px solid var(--line);font-size:12px;color:var(--mut);display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+.legend b{color:var(--ink2)}
+
+/* ---------- entry ---------- */
+.entry{display:grid;grid-template-columns:280px 1fr;gap:24px}
+@media (max-width:860px){.entry{grid-template-columns:1fr}}
+.side .hint{color:var(--mut);font-size:12px;margin-top:12px}
+.date-big{font-size:13px;color:var(--ink2);background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:14px}
+.date-big b{display:block;font-size:18px;color:var(--ink);font-weight:700}
+table.t{width:100%;border-collapse:separate;border-spacing:0}
+table.t th{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);font-weight:700}
+table.t td{padding:10px 12px;border-bottom:1px solid var(--line)}
+table.t tbody tr:hover td{background:var(--soft)}
+table.t tr:last-child td{border-bottom:0}
+table.t td.name{font-weight:700;color:var(--ink);width:34%}
+table.t td.name span{display:inline-block;padding:4px 10px;border-radius:8px;background:linear-gradient(135deg,rgba(67,56,202,.1),rgba(109,40,217,.1));color:var(--acc);font-size:13px}
+table.t td input{max-width:190px;margin-left:auto;display:block}
+table.t th.num,table.t td.num{text-align:right}
+
+/* ---------- settings ---------- */
+details summary{cursor:pointer;font-weight:700;font-size:15px;list-style:none;display:flex;align-items:center;gap:10px}
+details summary::-webkit-details-marker{display:none}
+details summary:before{content:"›";font-size:20px;line-height:1;color:var(--mut);transition:transform .2s;display:inline-block}
+details[open] summary:before{transform:rotate(90deg)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media (max-width:680px){.grid2{grid-template-columns:1fr}}
+code{background:var(--soft);padding:1px 6px;border-radius:6px;border:1px solid var(--line);font-size:12px}
+
+/* ---------- toasts ---------- */
+#toasts{position:fixed;right:20px;bottom:20px;display:flex;flex-direction:column;gap:10px;z-index:50}
+.toast{background:var(--navy);color:#fff;padding:12px 16px;border-radius:12px;box-shadow:0 14px 34px -10px rgba(2,6,23,.5);font-size:13px;max-width:360px;animation:in .25s cubic-bezier(.2,.8,.2,1);border-left:3px solid var(--gold)}
+.toast.ok{border-left-color:#34d399}
+.toast.bad{border-left-color:#f87171}
+@keyframes in{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hwrap">
+    <div class="mark"><img src="https://img1.wsimg.com/isteam/ip/bdbd16d3-5f12-43db-a1ba-484c583fa1a9/JPL-Logo-Transparent.png/:/rs=h:100,cg:true,m/qt=q:100/ll" alt="JPL logo" referrerpolicy="no-referrer" onerror="this.parentNode.innerHTML='<span class=&quot;fallback&quot;>JS</span>'"></div>
+    <div class="brand">
+      <h1 id="gname">Jhabua Sub Group</h1>
+      <p>Rake recommendation report</p>
+    </div>
+    <div class="spacer"></div>
+    <span class="status" id="conn"><span class="dot"></span><span id="connText">Connecting…</span></span>
+  </div>
+</header>
+
+<main>
+  <section class="kpis">
+    <div class="kpi" style="--accent:#4338ca"><div class="l">Recommended</div><div class="v" id="k1">0.00</div><div class="s">Rakes, month to date</div></div>
+    <div class="kpi" style="--accent:#0ea5e9"><div class="l">Loaded</div><div class="v" id="k2">0.00</div><div class="s">Rakes, month to date</div></div>
+    <div class="kpi ach" style="--accent:#d9a441">
+      <svg class="ring" viewBox="0 0 56 56">
+        <circle cx="28" cy="28" r="23" fill="none" stroke="var(--line)" stroke-width="6"/>
+        <circle id="ringFg" cx="28" cy="28" r="23" fill="none" stroke="#d9a441" stroke-width="6" stroke-linecap="round" stroke-dasharray="144.5" stroke-dashoffset="144.5" transform="rotate(-90 28 28)"/>
+        <text id="ringTxt" x="28" y="32" text-anchor="middle">0%</text>
+      </svg>
+      <div><div class="l">Achievement</div><div class="s" style="margin-top:6px">Loaded ÷ Recommended</div></div>
+    </div>
+    <div class="kpi" style="--accent:#15803d"><div class="l">Days recorded</div><div class="v" id="k4">0</div><div class="s" id="k5">No data yet</div></div>
+  </section>
+
+  <section class="card">
+    <div class="card-h">
+      <div class="toolbar">
+        <div class="field">
+          <label for="mon">Report month</label>
+          <input type="month" id="mon">
+        </div>
+        <button class="btn-s" id="refresh">↻ Refresh</button>
+      </div>
+      <button class="btn-p" id="dl">⬇ Download PNG</button>
+    </div>
+    <div class="scroll" id="scroll"><canvas id="cv"></canvas></div>
+    <div class="legend">
+      <span><b>Achievement</b> = Loaded ÷ Recommended × 100</span>
+      <span>Scroll sideways for more days</span>
+      <span>The download includes days up to the last day with data</span>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-h"><h2>Daily entry</h2><span class="sub">Saved to the database</span></div>
+    <div class="card-b entry">
+      <div class="side">
+        <div class="field" style="min-width:0">
+          <label for="date">Date</label>
+          <input type="date" id="date">
+        </div>
+        <div class="date-big" id="dateBig"></div>
+        <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">
+          <button class="btn-g" id="save" style="flex:1">💾 Save day</button>
+          <button class="btn-d" id="del">Clear day</button>
+        </div>
+        <p class="hint">Leave a field empty to skip it. Saving replaces the values already stored for that date.</p>
+      </div>
+      <div>
+        <table class="t">
+          <thead><tr><th>Area</th><th class="num">Recommended</th><th class="num">Loaded</th></tr></thead>
+          <tbody id="ent"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-b">
+      <details id="setbox">
+        <summary>Settings</summary>
+        <div class="grid2" style="margin-top:18px">
+          <div>
+            <label for="name">Group name</label>
+            <input id="name">
+            <label for="target" style="margin-top:14px">Target rakes per day</label>
+            <input id="target" type="number" step="0.01" min="0">
+          </div>
+          <div>
+            <label for="areas">Areas — one per line as <code>NAME=default</code></label>
+            <textarea id="areas" rows="6"></textarea>
+          </div>
+        </div>
+        <div style="margin-top:16px"><button class="btn-p" id="apply">Save settings</button></div>
+      </details>
+    </div>
+  </section>
+</main>
+
+<div id="toasts"></div>
+
+<script>
+/* ============ CONFIG ============ */
+const SUPABASE_URL = 'https://lflsewvyhyfmuegksscy.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmbHNld3Z5aHlmbXVlZ2tzc2N5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0NTY3MjIsImV4cCI6MjEwNzAzMjcyMn0.BKNDWGKs4MX7MFL4FD0ECesgFciFmMRpMdmQUnARj7s';
+const T_ENT = 'jhabua_sub_group';
+const T_CFG = 'jhabua_sub_group_config';
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const $=id=>document.getElementById(id);
+const p2=n=>String(n).padStart(2,'0');
+const f2=n=>Number(n||0).toFixed(2);
+const ymd=d=>d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());
+const num=v=>(v===null||v===undefined||v==='')?null:Number(v);
+
+let CFG = {group_name:'Jhabua Sub Group', target:2.5, areas:[{n:'SECL',d:0.5},{n:'NCL',d:0},{n:'CCL',d:0.5},{n:'MCL',d:1}]};
+let DATA = {};       // { 'YYYY-MM': { day: { AREA: [rec, loaded] } } }
+let LOADED_MONTH = null;
+
+/* ============ UI helpers ============ */
+function toast(msg, kind){
+  const t=document.createElement('div');
+  t.className='toast '+(kind||'');
+  t.textContent=msg;
+  $('toasts').appendChild(t);
+  setTimeout(()=>t.remove(),3200);
+}
+function setConn(state,text){
+  $('conn').className='status '+(state||'');
+  $('connText').textContent=text;
+}
+function setBusy(btn,busy){btn.disabled=busy}
+
+/* ============ DATA ============ */
+async function loadConfig(){
+  const {data,error}=await sb.from(T_CFG).select('*').eq('id',1).maybeSingle();
+  if(error) throw error;
+  if(data) CFG={group_name:data.group_name,target:Number(data.target),areas:data.areas||[]};
+}
+async function saveConfig(){
+  const {error}=await sb.from(T_CFG).upsert({
+    id:1,group_name:CFG.group_name,target:CFG.target,areas:CFG.areas,updated_at:new Date().toISOString()
+  });
+  if(error) throw error;
+}
+async function loadMonth(ym){
+  const y=+ym.slice(0,4),m=+ym.slice(5);
+  const first=`${y}-${p2(m)}-01`;
+  const last=`${y}-${p2(m)}-${p2(new Date(y,m,0).getDate())}`;
+  const {data,error}=await sb.from(T_ENT).select('*').gte('report_date',first).lte('report_date',last);
+  if(error) throw error;
+  const month={};
+  (data||[]).forEach(r=>{
+    const day=+r.report_date.slice(8,10);
+    month[day]=month[day]||{};
+    month[day][r.area]=[num(r.recommended),num(r.loaded)];
+  });
+  DATA[ym]=month;
+}
+async function saveDay(dateStr, rows){
+  const {error:e1}=await sb.from(T_ENT).delete().eq('report_date',dateStr);
+  if(e1) throw e1;
+  if(rows.length){
+    const {error:e2}=await sb.from(T_ENT).insert(rows);
+    if(e2) throw e2;
+  }
+}
+async function clearDay(dateStr){
+  const {error}=await sb.from(T_ENT).delete().eq('report_date',dateStr);
+  if(error) throw error;
+}
+
+/* ============ SETTINGS UI ============ */
+function fillSettings(){
+  $('name').value=CFG.group_name;
+  $('target').value=CFG.target;
+  $('areas').value=CFG.areas.map(a=>a.n+'='+a.d).join('\n');
+  $('gname').textContent=CFG.group_name;
+}
+async function applySettings(){
+  const areas=$('areas').value.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{
+    const [n,d]=l.split('=');return{n:(n||'').trim(),d:parseFloat(d)||0};
+  }).filter(a=>a.n);
+  if(!areas.length){toast('Add at least one area','bad');return}
+  const target=parseFloat($('target').value);
+  if(isNaN(target)||target<0){$('target').classList.add('err');toast('Enter a valid target','bad');return}
+  $('target').classList.remove('err');
+  CFG={group_name:$('name').value.trim()||'Rake Group',target,areas};
+  setBusy($('apply'),true);
+  try{
+    await saveConfig();
+    fillSettings();fillForm();await refresh(true);
+    toast('Settings saved','ok');
+  }catch(e){toast('Settings not saved: '+e.message,'bad')}
+  finally{setBusy($('apply'),false)}
+}
+
+/* ============ ENTRY UI ============ */
+function updateDateBig(){
+  const d=$('date').value;if(!d){$('dateBig').textContent='';return}
+  const dt=new Date(d+'T00:00:00');
+  const wd=dt.toLocaleDateString('en-IN',{weekday:'long'});
+  $('dateBig').innerHTML=`${wd}<b>${p2(dt.getDate())} ${MN[dt.getMonth()]} ${dt.getFullYear()}</b>`;
+}
+function fillForm(){
+  const d=$('date').value;if(!d)return;
+  const ym=d.slice(0,7),day=+d.slice(8);
+  const e=(DATA[ym]||{})[day];
+  $('ent').innerHTML=CFG.areas.map((a,i)=>{
+    const v=e?e[a.n]:null;
+    const r=e?(v&&v[0]!==null?v[0]:''):(a.d||'');
+    const l=v&&v[1]!==null?v[1]:'';
+    return `<tr>
+      <td class="name"><span>${a.n}</span></td>
+      <td class="num"><input type="number" step="0.01" min="0" data-i="${i}" data-k="r" value="${r}" placeholder="0.00"></td>
+      <td class="num"><input type="number" step="0.01" min="0" data-i="${i}" data-k="l" value="${l}" placeholder="0.00"></td>
+    </tr>`;
+  }).join('');
+}
+async function onSaveDay(){
+  const d=$('date').value;
+  if(!d){toast('Pick a date first','bad');return}
+  const rows=[];let bad=false;
+  CFG.areas.forEach((a,i)=>{
+    const rEl=document.querySelector(`[data-i="${i}"][data-k="r"]`);
+    const lEl=document.querySelector(`[data-i="${i}"][data-k="l"]`);
+    [rEl,lEl].forEach(el=>el.classList.remove('err'));
+    const r=rEl.value,l=lEl.value;
+    if(r!==''&&(+r<0||isNaN(+r))){rEl.classList.add('err');bad=true}
+    if(l!==''&&(+l<0||isNaN(+l))){lEl.classList.add('err');bad=true}
+    if(r!==''||l!=='') rows.push({report_date:d,area:a.n,recommended:r===''?null:+r,loaded:l===''?null:+l});
+  });
+  if(bad){toast('Values must be 0 or more','bad');return}
+  setBusy($('save'),true);setConn('busy','Saving…');
+  try{
+    await saveDay(d,rows);
+    const ym=d.slice(0,7);
+    await loadMonth(ym);
+    LOADED_MONTH=ym;
+    $('mon').value=ym;
+    fillForm();draw();
+    setConn('ok','Connected');
+    toast('Saved '+p2(+d.slice(8))+' '+MN[+d.slice(5,7)-1]+' '+d.slice(0,4),'ok');
+  }catch(e){setConn('bad','Error');toast('Save failed: '+e.message,'bad')}
+  finally{setBusy($('save'),false)}
+}
+async function onClearDay(){
+  const d=$('date').value;if(!d)return;
+  if(!confirm('Clear all entries for '+d+'?'))return;
+  try{
+    await clearDay(d);
+    await loadMonth(d.slice(0,7));
+    fillForm();draw();
+    toast('Day cleared','ok');
+  }catch(e){toast('Could not clear: '+e.message,'bad')}
+}
+
+/* ============ REPORT ============ */
+function filledLastDay(ym){
+  const ent=DATA[ym]||{};let mx=0;
+  Object.keys(ent).forEach(d=>{
+    const has=Object.values(ent[d]).some(([r,l])=>r!==null||l!==null);
+    if(has && +d>mx) mx=+d;
+  });
+  return mx;
+}
+function screenLastDay(ym,dim){
+  const y=+ym.slice(0,4),m=+ym.slice(5);
+  const now=new Date();
+  const mx=filledLastDay(ym);
+  let last;
+  if(now.getFullYear()===y&&now.getMonth()+1===m) last=Math.max(now.getDate(),mx);
+  else if(new Date(y,m-1,1)<now) last=dim;
+  else last=Math.max(1,mx);
+  return Math.min(last,dim);
+}
+function computeKpis(ym){
+  const ent=DATA[ym]||{};let T=0,L=0,days=0;
+  Object.keys(ent).forEach(d=>{
+    let any=false;
+    Object.values(ent[d]).forEach(([r,l])=>{
+      if(r!==null){T+=r;any=true}
+      if(l!==null){L+=l;any=true}
+    });
+    if(any) days++;
+  });
+  return{T,L,days,pct:T>0?Math.round(L/T*100):0};
+}
+function renderKpis(ym){
+  const k=computeKpis(ym);
+  $('k1').textContent=f2(k.T);
+  $('k2').textContent=f2(k.L);
+  $('k4').textContent=k.days;
+  $('k5').textContent=k.days?`Last entry ${p2(filledLastDay(ym))} ${MN[+ym.slice(5)-1]}`:'No data yet';
+  $('ringTxt').textContent=k.pct+'%';
+  const C=2*Math.PI*23;
+  $('ringFg').style.strokeDasharray=C;
+  $('ringFg').style.strokeDashoffset=C*(1-Math.min(k.pct,100)/100);
+}
+
+/* Draws the report onto a canvas at the given scale, showing days 1..last */
+function paintReport(cv,ym,last,sc){
+  const y=+ym.slice(0,4),m=+ym.slice(5);
+  const ent=DATA[ym]||{};
+  const A=CFG.areas;
+
+  const TH=72, HH=32, RH=34, FH=40;          // title, header, row, footer heights
+  const AW=140, DW=72, TW=96;
+  const tx=AW+last*DW;
+  const W=tx+TW*3;
+  const H=TH+HH+(A.length+1)*RH+1;
+
+  cv.width=W*sc; cv.height=H*sc;
+  cv.style.width=W+'px'; cv.style.height=H+'px';
+  const c=cv.getContext('2d');
+  c.setTransform(sc,0,0,sc,0,0);
+
+  const FONT='Inter, "Segoe UI", Arial, sans-serif';
+  const INK='#0f172a', MUT='#64748b', LINE='#e3e8f0', HEAD='#f1f5f9';
+  const GOLD='#d9a441', SUN='#fffbeb', SUNH='#fde9b5', ZEBRA='#fafbfd';
+
+  function box(x,yy,w,h,fill){
+    if(fill){c.fillStyle=fill;c.fillRect(x,yy,w,h)}
+    c.strokeStyle=LINE;c.lineWidth=1;c.strokeRect(x+.5,yy+.5,w-1,h-1);
+  }
+  function txt(t,x,yy,w,h,o){
+    o=o||{};
+    c.font=(o.b?'700 ':'500 ')+(o.s||12)+'px '+FONT;
+    c.fillStyle=o.color||INK;
+    c.textBaseline='middle';
+    if(o.al==='left'){c.textAlign='left';c.fillText(t,x+12,yy+h/2+.5)}
+    else{c.textAlign='center';c.fillText(t,x+w/2,yy+h/2+.5)}
+  }
+  function tone(p){
+    if(p>=100) return ['#dcfce7','#15803d'];
+    if(p>=80)  return ['#fef3c7','#b45309'];
+    return ['#fee2e2','#b91c1c'];
+  }
+  function pct(p,x,yy,w,h){
+    const [bg,fg]=tone(p);
+    const pw=Math.min(w-18,70), ph=20;
+    const px=x+(w-pw)/2, py=yy+(h-ph)/2;
+    c.fillStyle=bg;
+    c.beginPath();c.roundRect(px,py,pw,ph,10);c.fill();
+    c.fillStyle=fg;c.font='700 11px '+FONT;
+    c.textAlign='center';c.textBaseline='middle';
+    c.fillText(Math.round(p)+'%',px+pw/2,py+ph/2+.5);
+  }
+
+  /* --- white base --- */
+  c.fillStyle='#ffffff';c.fillRect(0,0,W,H);
+
+  /* --- title band --- */
+  const g=c.createLinearGradient(0,0,W,0);
+  g.addColorStop(0,'#0b1426');g.addColorStop(1,'#16233f');
+  c.fillStyle=g;c.fillRect(0,0,W,TH);
+  c.fillStyle=GOLD;c.fillRect(0,TH-3,W,3);
+
+  c.textBaseline='alphabetic';
+  c.textAlign='left';
+  c.fillStyle='#9fb0cc';c.font='600 11px '+FONT;
+  c.fillText('RAKE RECOMMENDATION REPORT',20,26);
+  c.fillStyle='#ffffff';c.font='700 20px '+FONT;
+  c.fillText(CFG.group_name,20,53);
+
+  c.textAlign='right';
+  c.fillStyle='#f5d68a';c.font='700 14px '+FONT;
+  c.fillText(MN[m-1]+' '+y,W-20,27);
+  c.fillStyle='#9fb0cc';c.font='500 12px '+FONT;
+  c.fillText('Target '+f2(CFG.target)+' rakes/day',W-20,53);
+
+  /* --- header row --- */
+  const y0=TH;
+  box(0,y0,AW,HH,HEAD);
+  txt('Area',0,y0,AW,HH,{b:1,al:'left',color:MUT,s:11});
+  for(let d=1;d<=last;d++){
+    const sun=new Date(y,m-1,d).getDay()===0;
+    const x=AW+(d-1)*DW;
+    box(x,y0,DW,HH,HEAD);
+    txt(p2(d)+' '+MN[m-1],x,y0,DW,HH,{b:1,color:MUT,s:11});
+  }
+  ['Recommended','Loaded','Achievement'].forEach((t,i)=>{
+    box(tx+i*TW,y0,TW,HH,HEAD);
+    txt(t,tx+i*TW,y0,TW,HH,{b:1,color:MUT,s:11});
+  });
+
+  /* --- area rows --- */
+  const dayTot=new Array(last+1).fill(0);
+  let gT=0,gL=0;
+  A.forEach((a,k)=>{
+    const yy=y0+HH+k*RH;
+    const zebra=k%2?ZEBRA:'#ffffff';
+
+    box(0,yy,AW,RH,zebra);
+    c.fillStyle='rgba(67,56,202,.08)';
+    c.beginPath();c.roundRect(10,yy+7,AW-20,RH-14,6);c.fill();
+    txt(a.n,0,yy,AW,RH,{b:1,al:'left',color:'#4338ca',s:12.5});
+
+    let T=0,L=0;
+    for(let d=1;d<=last;d++){
+      const v=ent[d]&&ent[d][a.n];
+      const r=v&&v[0]!==null?v[0]:null;
+      const x=AW+(d-1)*DW;
+      const sun=new Date(y,m-1,d).getDay()===0;
+      box(x,yy,DW,RH,zebra);
+      if(r!==null){T+=r;dayTot[d]+=r;txt(f2(r),x,yy,DW,RH,{s:12})}
+      if(v&&v[1]!==null)L+=v[1];
+    }
+    gT+=T;gL+=L;
+
+    box(tx,yy,TW,RH,zebra);
+    txt(String(Math.round(T)),tx,yy,TW,RH,{b:1});
+    box(tx+TW,yy,TW,RH,zebra);
+    txt(String(Math.round(L)),tx+TW,yy,TW,RH,{b:1});
+    box(tx+2*TW,yy,TW,RH,zebra);
+    if(T>0) pct(L/T*100,tx+2*TW,yy,TW,RH);
+    else txt('—',tx+2*TW,yy,TW,RH,{color:MUT});
+  });
+
+  /* --- total row --- */
+  const ty=y0+HH+A.length*RH;
+  box(0,ty,AW,RH,HEAD);
+  txt('Total',0,ty,AW,RH,{b:1,al:'left'});
+  for(let d=1;d<=last;d++){
+    const x=AW+(d-1)*DW;
+    box(x,ty,DW,RH,HEAD);
+    txt(String(Math.round(dayTot[d])),x,ty,DW,RH,{b:1,s:11.5});
+  }
+  box(tx,ty,TW,RH,SUNH);txt(String(Math.round(gT)),tx,ty,TW,RH,{b:1});
+  box(tx+TW,ty,TW,RH,SUNH);txt(String(Math.round(gL)),tx+TW,ty,TW,RH,{b:1});
+  box(tx+2*TW,ty,TW,RH,SUNH);
+  if(gT>0) pct(gL/gT*100,tx+2*TW,ty,TW,RH);
+
+  /* --- outer frame --- */
+  c.strokeStyle='#0b1426';c.lineWidth=1.5;
+  c.strokeRect(.75,.75,W-1.5,H-1.5);
+}
+
+function draw(){
+  const ym=$('mon').value;if(!ym)return;
+  const dim=new Date(+ym.slice(0,4),+ym.slice(5),0).getDate();
+  paintReport($('cv'),ym,screenLastDay(ym,dim),2);
+  renderKpis(ym);
+}
+
+/* ============ REFRESH / LOAD ============ */
+async function refresh(silent){
+  const ym=$('mon').value;if(!ym)return;
+  try{
+    if(LOADED_MONTH!==ym||!silent){
+      await loadMonth(ym);
+      LOADED_MONTH=ym;
+    }
+    draw();
+    if(!silent) setConn('ok','Connected');
+  }catch(e){
+    setConn('bad','Offline');
+    toast('Could not load data: '+e.message,'bad');
+  }
+}
+
+/* ============ DOWNLOAD (stops at last filled day) ============ */
+function download(){
+  const ym=$('mon').value;if(!ym)return;
+  const last=Math.max(1,filledLastDay(ym));
+  const off=document.createElement('canvas');
+  paintReport(off,ym,last,3);
+  off.toBlob(b=>{
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(b);
+    a.download=`Rake_Report_${ym}_till_${p2(last)}.png`;
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  },'image/png');
+}
+
+/* ============ INIT ============ */
+async function init(){
+  const t=new Date();
+  $('date').value=ymd(t);
+  $('mon').value=ymd(t).slice(0,7);
+  updateDateBig();
+  setConn('busy','Connecting…');
+  try{ await loadConfig(); }
+  catch(e){ toast('Settings not loaded: '+e.message,'bad') }
+  fillSettings();fillForm();
+  await refresh();
+}
+
+$('save').onclick=onSaveDay;
+$('del').onclick=onClearDay;
+$('apply').onclick=applySettings;
+$('dl').onclick=download;
+$('refresh').onclick=async()=>{await refresh();toast('Refreshed','ok')};
+$('mon').onchange=async()=>{LOADED_MONTH=null;await refresh()};
+$('date').onchange=async()=>{
+  const d=$('date').value;if(!d)return;
+  updateDateBig();
+  $('mon').value=d.slice(0,7);
+  if(LOADED_MONTH!==d.slice(0,7)){await loadMonth(d.slice(0,7));LOADED_MONTH=d.slice(0,7)}
+  fillForm();draw();
+};
+
+init();
+</script>
+</body>
+</html>
