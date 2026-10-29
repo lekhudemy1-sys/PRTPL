@@ -115,6 +115,10 @@ details[open] summary:before{transform:rotate(90deg)}
 @media (max-width:680px){.grid2{grid-template-columns:1fr}}
 code{background:var(--soft);padding:1px 6px;border-radius:6px;border:1px solid var(--line);font-size:12px}
 
+/* ---------- back button ---------- */
+.back-btn{background:rgba(255,255,255,.08);color:#e8edf6;border:1px solid rgba(255,255,255,.18);padding:6px 14px;font-size:12px;margin-left:12px}
+.back-btn:hover:not(:disabled){background:rgba(255,255,255,.16)}
+
 /* ---------- toasts ---------- */
 #toasts{position:fixed;right:20px;bottom:20px;display:flex;flex-direction:column;gap:10px;z-index:50}
 .toast{background:var(--navy);color:#fff;padding:12px 16px;border-radius:12px;box-shadow:0 14px 34px -10px rgba(2,6,23,.5);font-size:13px;max-width:360px;animation:in .25s cubic-bezier(.2,.8,.2,1);border-left:3px solid var(--gold)}
@@ -134,6 +138,7 @@ code{background:var(--soft);padding:1px 6px;border-radius:6px;border:1px solid v
     </div>
     <div class="spacer"></div>
     <span class="status" id="conn"><span class="dot"></span><span id="connText">Connecting…</span></span>
+    <button class="back-btn" id="back" type="button">← Back</button>
   </div>
 </header>
 
@@ -608,6 +613,7 @@ async function init(){
   await refresh();
 }
 
+$('back').onclick=()=>{if(history.length>1)history.back();else location.href='/'};
 $('save').onclick=onSaveDay;
 $('del').onclick=onClearDay;
 $('apply').onclick=applySettings;
