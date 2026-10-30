@@ -535,9 +535,9 @@ function paintReport(cv,ym,last,sc){
     gT+=T;gL+=L;
 
     box(tx,yy,TW,RH,zebra);
-    txt(String(Math.round(T)),tx,yy,TW,RH,{b:1});
+    txt(f2(T),tx,yy,TW,RH,{b:1});
     box(tx+TW,yy,TW,RH,zebra);
-    txt(String(Math.round(L)),tx+TW,yy,TW,RH,{b:1});
+    txt(f2(L),tx+TW,yy,TW,RH,{b:1});
     box(tx+2*TW,yy,TW,RH,zebra);
     if(T>0) pct(L/T*100,tx+2*TW,yy,TW,RH);
     else txt('—',tx+2*TW,yy,TW,RH,{color:MUT});
@@ -550,10 +550,10 @@ function paintReport(cv,ym,last,sc){
   for(let d=1;d<=last;d++){
     const x=AW+(d-1)*DW;
     box(x,ty,DW,RH,HEAD);
-    txt(String(Math.round(dayTot[d])),x,ty,DW,RH,{b:1,s:11.5});
+    txt(f2(dayTot[d]),x,ty,DW,RH,{b:1,s:11.5});
   }
-  box(tx,ty,TW,RH,SUNH);txt(String(Math.round(gT)),tx,ty,TW,RH,{b:1});
-  box(tx+TW,ty,TW,RH,SUNH);txt(String(Math.round(gL)),tx+TW,ty,TW,RH,{b:1});
+  box(tx,ty,TW,RH,SUNH);txt(f2(gT),tx,ty,TW,RH,{b:1});
+  box(tx+TW,ty,TW,RH,SUNH);txt(f2(gL),tx+TW,ty,TW,RH,{b:1});
   box(tx+2*TW,ty,TW,RH,SUNH);
   if(gT>0) pct(gL/gT*100,tx+2*TW,ty,TW,RH);
 
