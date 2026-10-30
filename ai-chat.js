@@ -1592,6 +1592,17 @@ textarea::placeholder{color:var(--mute)}
       root.querySelectorAll('[data-theme]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.theme === l.theme)));
       root.querySelectorAll('[data-mode]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === l.mode)));
     }
+
+    /* Follow the dashboard: whenever the page's theme or light/dark mode changes, the chat changes with it. */
+    function followPage() {
+      const l = readLook();
+      if (l.theme !== 'auto' || l.mode !== 'auto') { l.theme = 'auto'; l.mode = 'auto'; writeLook(l); }
+      applyLook();
+    }
+    new MutationObserver(followPage).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'data-mode', 'style', 'class'] });
+    window.addEventListener('storage', e => { if (e.key !== LOOK_KEY) followPage(); });
+    applyLook();
+
     const scrollDown = () => requestAnimationFrame(() => { log.scrollTop = log.scrollHeight; });
     function setBusy(b) {
       busy = b; send.disabled = b; panel.classList.toggle('busy', b);
