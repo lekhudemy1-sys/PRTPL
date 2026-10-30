@@ -1259,7 +1259,9 @@
   }
 
   /* ===== UI (shadow DOM so page styles cannot interfere) ===== */
+  function signedIn() { try { return !!JSON.parse(localStorage.getItem('amm-auth')); } catch (e) { return false; } }
   function mount() {
+    if (!signedIn()) return;   // no assistant on the sign-in page or for signed-out visitors
     const host = document.createElement('div');
     host.id = 'prai-host';
     document.body.appendChild(host);
@@ -1275,11 +1277,32 @@
     const fab = $('.fab'), panel = $('.panel'), log = $('.log'), input = $('input'), form = $('form');
     root.host.style.setProperty('--ac', accent());
 
+    /* placement: header chip beside Search (hub pages) > quick-menu item (dashboards) > floating button */
+    let hb = null, mode = 'float';
+    const bar = document.querySelector('.top-right, .pr-floatbar');
+    if (bar) {
+      hb = document.createElement('button'); hb.type = 'button'; hb.className = 'pr-chipbtn'; hb.id = 'prai-hdr';
+      hb.setAttribute('aria-label', 'Ask the data assistant'); hb.setAttribute('aria-haspopup', 'dialog'); hb.setAttribute('aria-expanded', 'false');
+      hb.innerHTML = '<i class="fas fa-comment-dots" aria-hidden="true"></i><span class="t">Ask data</span>';
+      const sch = bar.querySelector('.pr-chipbtn');
+      if (sch && sch.nextSibling) bar.insertBefore(hb, sch.nextSibling); else if (sch) bar.appendChild(hb); else bar.insertBefore(hb, bar.firstChild);
+      mode = 'header'; panel.classList.add('hdr'); fab.hidden = true;
+    } else {
+      host.style.bottom = '72px'; host.style.right = '16px';   // sit above the page's back-to-top button
+      const menu = document.getElementById('pr-menu'), sm = menu && menu.querySelector('[data-a=search]');
+      if (sm) {
+        const mb = document.createElement('button'); mb.type = 'button'; mb.setAttribute('role', 'menuitem'); mb.setAttribute('data-a', 'ai');
+        mb.innerHTML = '<i class="fas fa-comment-dots"></i>Ask data'; sm.insertAdjacentElement('afterend', mb);
+        mb.addEventListener('click', () => toggle(true));
+      }
+    }
     function toggle(open) {
-      panel.hidden = !open; fab.hidden = open;
+      panel.hidden = !open; fab.hidden = open || mode === 'header';
+      if (hb) hb.setAttribute('aria-expanded', open ? 'true' : 'false');
       if (open) { if (!log.children.length) welcome(); input.focus(); }
     }
     fab.onclick = () => toggle(true);
+    if (hb) hb.addEventListener('click', e => { e.stopPropagation(); toggle(panel.hidden); });
     root.addEventListener('click', e => {
       const b = e.target.closest('[data-act]'); if (!b) return;
       if (b.dataset.act === 'close') toggle(false);
@@ -1352,6 +1375,7 @@
     '*{box-sizing:border-box}[hidden]{display:none!important}',
     '.fab{display:flex;align-items:center;gap:8px;height:46px;padding:0 18px 0 15px;border:0;border-radius:23px;background:var(--ac,#1d4ed8);color:#fff;font:600 14px system-ui,sans-serif;cursor:pointer;box-shadow:0 8px 24px -8px rgba(0,0,0,.45)}',
     '.fab:hover{filter:brightness(1.08)}.fab:focus-visible,.ic:focus-visible,.chip:focus-visible,.ex:focus-visible,input:focus-visible,.bar button:focus-visible{outline:2px solid var(--ac,#1d4ed8);outline-offset:2px}',
+    '.panel.hdr{top:84px;bottom:auto;right:max(14px,calc((100vw - 1120px) / 2));height:min(640px,calc(100vh - 100px))}@media(max-width:700px){.panel.hdr{top:76px;right:10px;height:calc(100vh - 90px)}}',
     '.panel{position:fixed;right:18px;bottom:18px;width:min(470px,calc(100vw - 20px));height:min(620px,calc(100vh - 36px));display:flex;flex-direction:column;background:#fff;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;box-shadow:0 24px 60px -18px rgba(0,0,0,.45)}',
     'header{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;background:var(--ac,#1d4ed8);color:#fff}',
     'header b{display:block;font-size:15px}header small{display:block;opacity:.85;font-size:12px}',

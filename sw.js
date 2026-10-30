@@ -2,7 +2,7 @@
    - Pages: network first (always the latest deploy), cached copy when offline.
    - Own assets and CDN libraries: served from cache instantly, refreshed in the background.
    - Supabase / any non-GET request: never touched, so data is always live. */
-const VERSION = 'prtpl-v2.2';
+const VERSION = 'prtpl-v2.3';
 const SHELL = [
   'index.html', 'home_page.html', 'amm_home.html', 'odr_home.html', 'notices.html', 'offline.html',
   'favicon.svg', 'icon-192.png', 'icon-512.png', 'inspiration.jpg', 'manifest.webmanifest'
