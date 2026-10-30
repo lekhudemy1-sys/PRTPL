@@ -300,6 +300,12 @@ body:not(.unlocked) .pro-tab{display:none}
 
 /* EDITED ROWS IN RECORDS LOG */
 .tbl tr.dirty td{background:#fff6d6!important}
+
+/* DASHBOARD NOTICE BOX */
+.c-notice{--c:#d9a21a;--t:#fff3d6;--l:#f1d98f;--d:#7d5c10}
+.notice-text{white-space:pre-wrap;word-break:break-word;font-size:.9rem;font-weight:600;line-height:1.55;color:var(--ink);background:#fff8e4;border:1px solid #f1d98f;border-radius:14px;padding:.8rem 1rem}
+.notice-input{width:100%;min-height:110px;resize:vertical;padding:.7rem .9rem;font:600 .92rem var(--body);border:1px solid var(--line);border-radius:11px;background:#f5faf5;color:var(--ink)}
+.alert-fill{margin-top:.8rem}
 </style>
 <meta name="pr-access" content="amm:GPCL" />
 <meta name="description" content="Gujarat Performance | AMM Gujarat – Prithvi Realcon logistics and performance portal." />
@@ -383,6 +389,11 @@ body:not(.unlocked) .pro-tab{display:none}
         <div class="metric-row"><span class="metric-label">Avg. Plant Rec. Wt.</span><input class="metric-value" id="w-recv" readonly></div>
         <div class="metric-row total-row"><span class="metric-label">TOTAL RR WEIGHT</span><input class="metric-value" id="w-totrr" readonly></div>
         <div class="metric-row total-row"><span class="metric-label">PLANT RECEIVE</span><input class="metric-value" id="w-totrecv" readonly></div>
+      </div>
+
+      <div class="card c-notice hidden" id="noticeCard">
+        <div class="card-header"><h3><i class="fas fa-bullhorn"></i> Notice</h3></div>
+        <div class="notice-text" id="noticeText"></div>
       </div>
     </div>
 
@@ -552,6 +563,20 @@ body:not(.unlocked) .pro-tab{display:none}
     <div class="muted" id="ovrScopeNote"></div>
     <div class="tbl-wrap" style="max-height:none;margin-top:.8rem"><table class="tbl" id="ovrTbl"></table></div>
     <div class="status" id="ovrStatus"></div>
+  </div>
+
+  <div class="panel">
+    <h2><i class="fas fa-bullhorn"></i> Dashboard Notice</h2>
+    <p class="muted">Type a notice and switch it ON to show it on the dashboard. Switch it OFF (or leave the box empty) and nothing is shown.</p>
+    <div class="toolbar" style="margin-top:.8rem">
+      <label class="switch" title="Show notice on dashboard"><input type="checkbox" id="noticeOn"><span class="slider"></span></label>
+      <span class="muted">Show on dashboard</span>
+    </div>
+    <textarea class="notice-input" id="noticeInput" placeholder="Type the notice here..."></textarea>
+    <div class="form-actions">
+      <button class="btn-go" id="noticeSave"><i class="fas fa-floppy-disk"></i> Save Notice</button>
+    </div>
+    <div class="status" id="noticeStatus"></div>
   </div>
 </section>
 
@@ -892,6 +917,7 @@ const fPct = n => { if (!Number.isFinite(n) || Math.abs(n) < 0.005) return '-'; 
 /* ==================== STATE ==================== */
 let FORMULAS = structuredClone(DEFAULT_FORMULAS);
 let SETTINGS_BY_PERIOD = {};
+let NOTICE = { on: false, text: '' };   // manual dashboard notice (shared, saved in Supabase)
 let CUSTOM_OPTS = {};   // extra dropdown options added from Data Entry ("Add new option")
 
 function mergeFormulas(obj) {
@@ -918,6 +944,7 @@ async function loadValues(periods) {
     if (r.period_key === 'global') {
       if (r.field_key === 'options') { try { CUSTOM_OPTS = JSON.parse(r.field_value) || {}; } catch (e) { console.warn(e); } }
       if (r.field_key === 'formulas') { try { mergeFormulas(JSON.parse(r.field_value)); } catch (e) { console.warn(e); } }
+      if (r.field_key === 'notice') { try { const n = JSON.parse(r.field_value) || {}; NOTICE = { on: !!n.on, text: String(n.text || '') }; } catch (e) { console.warn(e); } }
     } else {
       (SETTINGS_BY_PERIOD[r.period_key] = SETTINGS_BY_PERIOD[r.period_key] || {})[r.field_key] = r.field_value;
     }
@@ -1043,6 +1070,7 @@ function renderDashboard(o, trend) {
   bill('b-pen', -o.penTotal, pm.pen);
   bill('b-total', o.totalBill, pm.total);
   putVal('b-exp', o.expBill, fInt);
+  renderNotice();
 
   const rp = (label, ach, tgt, fa, ft) => `<tr><td class="row-label">${label}</td>${cellIn(ach, fa)}${cellIn(tgt, ft)}</tr>`;
   $('rakePerfBody').innerHTML =
@@ -1175,6 +1203,31 @@ function subscribeLive() {
 
 $('reloadDash').addEventListener('click', loadDashboard);
 
+/* ==================== DASHBOARD NOTICE (manual, show / hide) ==================== */
+// The card is shown only when the switch is ON and some text is typed.
+function renderNotice() {
+  const show = !!(NOTICE.on && NOTICE.text);
+  $('noticeCard').classList.toggle('hidden', !show);
+  $('noticeText').textContent = NOTICE.text || '';
+}
+function fillNoticeForm() {
+  $('noticeOn').checked = !!NOTICE.on;
+  if (document.activeElement !== $('noticeInput')) $('noticeInput').value = NOTICE.text || '';
+}
+async function saveNotice() {
+  const next = { on: $('noticeOn').checked, text: $('noticeInput').value.trim() };
+  const { error } = await db.from(VAL).upsert(
+    [{ period_key: 'global', field_key: 'notice', field_value: JSON.stringify(next), sort_order: 0 }],
+    { onConflict: 'period_key,field_key' });
+  if (error) { setStatus('noticeStatus', 'Save failed: ' + error.message, 'err'); return; }
+  NOTICE = next;
+  setStatus('noticeStatus',
+    next.on && next.text ? 'Notice is showing on the dashboard'
+      : next.on ? 'Switch is ON but the box is empty, so nothing is shown' : 'Notice is hidden', 'ok');
+  toast('Notice saved');
+  renderNotice();
+}
+
 /* ==================== ALERT: PENDING / NOT RECEIVED DETAILS (RR NO. WISE TABS) ==================== */
 // A rake shows in the bell while any of these values is still empty.
 const ALERT_FIELDS = [
@@ -1184,6 +1237,7 @@ const ALERT_FIELDS = [
 const isBlank = v => v === null || v === undefined || String(v).trim() === '';
 let ALERTS = [];
 let ALERT_SEL = null;
+let PENDING_FILL = null;   // Sr No to open in Data Entry after the "Fill up" button is pressed
 
 async function loadAlerts() {
   try {
@@ -1221,13 +1275,24 @@ function renderAlerts() {
   ];
   body.innerHTML =
     `<div class="alert-info">${info.map(([k, v]) => `<span class="chip">${k}: ${esc(v)}</span>`).join('')}</div>` +
-    cur.miss.map(([k, label]) => `<div class="alert-miss"><span>${esc(label)}</span><span>Not received</span></div>`).join('');
+    cur.miss.map(([k, label]) => `<div class="alert-miss"><span>${esc(label)}</span><span>Not received</span></div>`).join('') +
+    (isBlank(r.sr_no)
+      ? '<p class="muted alert-fill">This rake has no Sr No, so open it from Records Log to fill it.</p>'
+      : `<button class="btn-go alert-fill" data-fill="${esc(r.sr_no)}"><i class="fas fa-pen-to-square"></i> Fill up (Sr No ${esc(r.sr_no)})</button>`);
 }
 
 $('alertBtn').addEventListener('click', () => { $('alertModal').classList.remove('hidden'); renderAlerts(); });
 $('alertClose').addEventListener('click', () => $('alertModal').classList.add('hidden'));
 $('alertModal').addEventListener('click', e => {
   if (e.target.id === 'alertModal') { $('alertModal').classList.add('hidden'); return; }
+  const f = e.target.closest('[data-fill]');
+  if (f) {
+    // close the popup and open Data Entry with this Sr No searched (asks for the password first if locked)
+    PENDING_FILL = f.dataset.fill;
+    $('alertModal').classList.add('hidden');
+    showView('entry');
+    return;
+  }
   const t = e.target.closest('.alert-tab');
   if (t) { ALERT_SEL = t.dataset.id; renderAlerts(); }
 });
@@ -1432,7 +1497,7 @@ function tryUnlock() {
 }
 $('unlockBtn').addEventListener('click', tryUnlock);
 $('pwdInput').addEventListener('keydown', e => { if (e.key === 'Enter') tryUnlock(); });
-$('lockBack').addEventListener('click', () => showView('dashboard'));
+$('lockBack').addEventListener('click', () => { PENDING_FILL = null; showView('dashboard'); });
 $('lockBtn').addEventListener('click', () => {
   if (isUnlocked) {
     // lock again: the protected sheets disappear from the top bar
@@ -1873,9 +1938,18 @@ async function initEntry() {
     $('ovrReset').addEventListener('click', () => resetOverride($('ovrField').value));
     $('ovrValue').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); saveOverride(); } });
     $('ovrTbl').addEventListener('click', e => { const b = e.target.closest('[data-ovr-reset]'); if (b) resetOverride(b.dataset.ovrReset); });
+    $('noticeSave').addEventListener('click', saveNotice);
+    $('noticeOn').addEventListener('change', saveNotice);   // show / hide takes effect straight away
   }
   await resetEntryForm();
   await loadEntryPeriod();
+  // Coming from the alert bell: load that rake straight into the form
+  if (PENDING_FILL != null) {
+    const sr = PENDING_FILL;
+    PENDING_FILL = null;
+    $('recSearch').value = sr;
+    await searchRecord();
+  }
 }
 
 let EDIT_ID = null;
@@ -1957,6 +2031,7 @@ async function loadEntryPeriod() {
     await loadOverrides(periods);
     ENTRY_RECS = recs;
     ENTRY_TGTS = tgts;
+    fillNoticeForm();
     const s = settingsFor(ENTRY_PERIOD);
     $('svcSecl').value = s.svcSecl;
     $('svcWcl').value = s.svcWcl;
