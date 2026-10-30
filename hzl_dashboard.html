@@ -11,10 +11,8 @@
 @import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Instrument+Sans:wght@400;500;600;700&display=swap");
 :root{
   --bg:#e9eff8; --card:#fff; --line:#e1e8f3; --ink:#0a1530; --mute:#0a1530; --navy:#0f2142; --navy2:#1b3a6b;
-  --teal:#0f9d7a; --blue:#2f6fd0; --amber:#f0a020; --violet:#7c5cf0; --rose:#e5484d; --sky:#12a4d9;
   --head:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
   --body:"Instrument Sans","Segoe UI",system-ui,sans-serif;
-  --ease:cubic-bezier(.2,.8,.2,1);
   --sh:0 1px 2px rgba(15,33,66,.06),0 10px 24px -12px rgba(15,33,66,.22);
   --sh-hi:0 2px 4px rgba(15,33,66,.06),0 22px 38px -16px rgba(15,33,66,.36);
 }
@@ -25,6 +23,7 @@ body{font-family:var(--body);color:var(--ink);min-height:100vh;line-height:1.4;o
 a{text-decoration:none;color:inherit}
 input,select,textarea{font-family:inherit;color-scheme:light;outline:none}
 input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35)!important}
+body:not(.unlocked) .pro-tab{display:none}
 
 /* Floating nav */
 .sidebar{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:100;display:flex;align-items:center;gap:1rem;
@@ -38,22 +37,21 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 .nav-item.active{background:rgba(52,211,166,.25);color:#fff;box-shadow:inset 0 0 0 1px rgba(52,211,166,.4)}
 .user-chip{display:flex;align-items:center;gap:.5rem;color:#cfd9ee;font-size:.8rem;font-weight:600;padding:.3rem .6rem}
 .user-chip button{border:0;background:rgba(255,255,255,.14);color:#fff;border-radius:999px;padding:.3rem .75rem;cursor:pointer;font:inherit}
+.user-chip .alert-btn{position:relative;padding:.3rem .65rem}
+.alert-badge{position:absolute;top:-7px;right:-7px;min-width:18px;height:18px;padding:0 4px;border-radius:999px;background:#e0475b;color:#fff;font:700 .65rem var(--body);display:grid;place-items:center}
 
 .main{max-width:1600px;margin:0 auto;padding:4.8rem 1.4rem 1.4rem}
 .view{display:none}
-.view.active{display:block;animation:rise .55s var(--ease) backwards}
+.view.active{display:block;animation:rise .55s cubic-bezier(.2,.8,.2,1) backwards}
 @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 
-/* Back row: back button top-left, report stamp top-right (shown on every view) */
 .back-row{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:.8rem}
 .back-btn{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;border:0;padding:.6rem 1.1rem;border-radius:12px;font:700 .85rem var(--body);cursor:pointer;display:inline-flex;align-items:center;gap:.45rem;box-shadow:0 10px 18px -10px rgba(15,33,66,.6);transition:.2s}
 .back-btn:hover{transform:translateY(-2px)}
 .report-stamp{font-size:.85rem;font-weight:600;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:.5rem 1.2rem;box-shadow:var(--sh);display:inline-flex;align-items:center;gap:.5rem;margin-left:auto}
 .report-stamp::before{content:"";width:8px;height:8px;border-radius:50%;background:#16a870;box-shadow:0 0 0 3px rgba(22,168,112,.25)}
-.report-stamp strong{color:var(--ink)}
 
-/* Hero title bar */
-.topbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:.8rem;margin-bottom:1.2rem;padding:1.1rem 1.5rem;border-radius:22px;color:#fff;
+.topbar{display:flex;flex-wrap:wrap;align-items:center;gap:.8rem;margin-bottom:1.2rem;padding:1.1rem 1.5rem;border-radius:22px;color:#fff;
   background:radial-gradient(500px 200px at 90% 0,rgba(52,211,166,.35),transparent 70%),linear-gradient(120deg,var(--navy) 0%,var(--navy2) 60%,#1f6f8f 100%);
   box-shadow:0 18px 36px -18px rgba(15,33,66,.65)}
 .topbar h1{font:700 clamp(1.3rem,1.4vw + .8rem,2rem) var(--head);letter-spacing:-.02em}
@@ -62,29 +60,29 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 .month-pick{padding:.55rem .9rem;border-radius:12px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.12);color:#fff;font-weight:600;cursor:pointer}
 .month-pick option{color:var(--ink)}
 .btn{display:inline-flex;align-items:center;gap:.45rem;padding:.55rem 1.1rem;font:600 .85rem var(--body);border:1px solid transparent;border-radius:12px;cursor:pointer;transition:.2s}
-.btn i{transition:transform .2s}.btn:hover i{transform:scale(1.2) rotate(8deg)}
 .btn:hover{transform:translateY(-2px)}.btn:active{transform:scale(.97)}
 .btn-secondary{background:rgba(255,255,255,.14);color:#fff;border-color:rgba(255,255,255,.3)}
 .btn-secondary:hover{background:rgba(255,255,255,.24)}
 .btn-primary{background:#34d3a6;color:#06281f;box-shadow:0 10px 18px -8px rgba(52,211,166,.7)}
 .btn:disabled{opacity:.6;cursor:wait}
 
-/* Grid + cards */
+/* Cards */
 .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.2rem;margin-bottom:1.2rem;align-items:stretch}
-.card{--c:var(--blue);--t:#e8f0fd;--l:#acc5ec;--d:#1c437d;--h:#f0f5fe;--b:#d9e5f6;position:relative;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:1.1rem 1.15rem 1rem;box-shadow:var(--sh);overflow:hidden;transition:transform .25s var(--ease),box-shadow .25s;margin-bottom:1.2rem}
+.card{--c:#2f6fd0;--t:#e8f0fd;--l:#acc5ec;--d:#1c437d;--h:#f0f5fe;--b:#d9e5f6;position:relative;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:1.1rem 1.15rem 1rem;box-shadow:var(--sh);overflow:hidden;transition:transform .25s,box-shadow .25s;margin-bottom:1.2rem}
 .card::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,var(--c),var(--l))}
 .card:hover{transform:translateY(-3px);box-shadow:var(--sh-hi)}
 .card-header{display:flex;align-items:center;justify-content:space-between;gap:.6rem;margin-bottom:.7rem;flex-wrap:wrap}
 .card-header h3{font:700 1rem var(--head);letter-spacing:-.01em;display:flex;align-items:center;gap:.6rem}
 .card-header h3 i{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-size:.9rem;color:#fff;background:linear-gradient(135deg,var(--c),var(--d));box-shadow:0 8px 14px -6px var(--c)}
-.c-key{--c:var(--violet);--t:#efeafe;--l:#cbbef9;--d:#4a3790;--h:#f4f1fe;--b:#e7e2fc}
-.c-area{--c:var(--sky);--t:#e1f4fb;--l:#a0dbf0;--d:#0b6282;--h:#ebf8fc;--b:#d4eff8}
-.c-short{--c:var(--teal);--t:#e0f5ef;--l:#9fd8ca;--d:#095e49;--h:#eaf8f4;--b:#d4ede7}
-.c-bill{--c:var(--blue);--t:#e8f0fd;--l:#acc5ec;--d:#1c437d;--h:#f0f5fe;--b:#d9e5f6}
-.c-rake{--c:var(--amber);--t:#fdf1da;--l:#f9d9a6;--d:#906013;--h:#fef6e6;--b:#fceed7}
-.c-pen{--c:var(--rose);--t:#fdebec;--l:#f5b6b8;--d:#892b2e;--h:#fef0f1;--b:#fadedf}
-.mines-card{--c:var(--navy2);--t:#e8edf7;--l:#a4b0c4;--d:#102340;--h:#eff2f9;--b:#d6dbe4}
-.trend-card{--c:var(--teal);--t:#e0f5ef;--l:#9fd8ca;--d:#095e49}
+.c-key{--c:#7c5cf0;--t:#efeafe;--l:#cbbef9;--d:#4a3790}
+.c-area{--c:#12a4d9;--t:#e1f4fb;--l:#a0dbf0;--d:#0b6282}
+.c-short{--c:#0f9d7a;--t:#e0f5ef;--l:#9fd8ca;--d:#095e49}
+.c-bill{--c:#2f6fd0;--t:#e8f0fd;--l:#acc5ec;--d:#1c437d}
+.c-rake{--c:#f0a020;--t:#fdf1da;--l:#f9d9a6;--d:#906013}
+.c-pen{--c:#e5484d;--t:#fdebec;--l:#f5b6b8;--d:#892b2e}
+.c-notice{--c:#d9a21a;--t:#fff3d6;--l:#f1d98f;--d:#7d5c10}
+.mines-card{--c:#1b3a6b;--t:#e8edf7;--l:#a4b0c4;--d:#102340}
+.trend-card{--c:#0f9d7a;--t:#e0f5ef;--l:#9fd8ca;--d:#095e49}
 .grid-3 .card{margin-bottom:0}
 
 .metric-row{display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.42rem .25rem;border-bottom:1px dashed var(--line);border-radius:10px;transition:background .2s}
@@ -92,9 +90,9 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 .metric-row:hover{background:var(--h)}
 .metric-label{flex:1;font-size:.8rem;font-weight:700;color:var(--ink);text-align:left}
 .metric-value{width:7.8rem;min-width:0;border:1px solid transparent;border-radius:11px;background:var(--t);color:var(--ink);font:700 .95rem var(--body);font-variant-numeric:tabular-nums;text-align:right;padding:.4rem .7rem;transition:.2s}
-.metric-value:hover{border-color:var(--c)}
 .metric-value.neg{color:#b3162b;background:#fdeaec}
 .metric-value.pos{color:#0c7a55}
+.metric-value.overridden{background:#fff3cf!important;color:#7a4f00!important;box-shadow:inset 0 0 0 2px #d6a21a}
 .pair{display:flex;gap:.35rem}
 .pair input:first-child{width:7.8rem}.pair input:last-child{width:5.6rem}
 .wide{width:9.5rem!important}
@@ -106,11 +104,6 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 .total-row .metric-label{color:#fff;font-weight:700}
 .total-row .metric-value{background:rgba(154,212,255,.14);color:#9ad4ff;border:0}
 .total-row .metric-value.neg{color:#ffb3bd}
-/* Hover on TOTAL rows: switch to a deep dark shade with bright white figures so values stay readable */
-.metric-row.total-row:hover{background:linear-gradient(120deg,#050d1f,#0a1d3f)}
-.metric-row.total-row:hover .metric-label{color:#fff}
-.total-row:hover .metric-value,
-.total-row:hover .metric-value.neg{background:#13305e;color:#fff;border-color:#34d3a6;box-shadow:0 0 0 1px rgba(52,211,166,.35)}
 .dead-grey{background:#eceef2;border-radius:12px}
 .dead-grey .metric-label{color:#5b6475}
 .dead-grey .metric-value{background:#d5dae3;color:#4b5563}
@@ -121,33 +114,30 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 .area-table .row-label{font-size:.78rem;font-weight:700;color:var(--ink);text-align:left;padding:0 .3rem}
 .area-table td{padding:0}
 .area-table input{width:100%;border:1px solid transparent;border-radius:12px;background:var(--t);color:var(--ink);font:700 1.15rem var(--head);font-variant-numeric:tabular-nums;text-align:center;padding:.65rem .2rem;transition:.2s}
-.area-table input:hover{border-color:var(--c)}
 .area-table input.neg{color:#b3162b;background:#fdeaec}
+.area-table input.overridden{background:#fff3cf!important;color:#7a4f00!important}
 .avg-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:.7rem}
-.highlight-box{background:var(--t);border-radius:14px;padding:.55rem .6rem;text-align:center;border:1px solid var(--b);transition:transform .2s,box-shadow .2s}
-.highlight-box:hover{transform:translateY(-2px);box-shadow:0 10px 18px -12px var(--c)}
+.highlight-box{background:var(--t);border-radius:14px;padding:.55rem .6rem;text-align:center;border:1px solid var(--b)}
 .highlight-box .label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--ink);margin-bottom:.2rem}
 .highlight-box .metric-value{width:100%;background:transparent;border:0;text-align:center;font:700 1.25rem var(--head);color:var(--ink);padding:.1rem}
 .hb-steel{background:#e8f0fd}.hb-lav{background:#efeafe}
+.avg-bar{display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.45rem .8rem;border-radius:14px;background:linear-gradient(120deg,var(--navy),var(--navy2))}
+.avg-bar .row-label{color:#fff;font-size:.85rem;font-weight:700;padding:0}
+.avg-bar input{width:9rem;background:rgba(154,212,255,.14);color:#9ad4ff;text-align:right;font:700 1rem var(--body);padding:.4rem .7rem;border:0;border-radius:11px}
 
 .mines-wrap{overflow-x:auto;border-radius:14px;border:1px solid var(--line)}
 .mines-table{width:100%;border-collapse:separate;border-spacing:0;min-width:780px}
-.mines-table th{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;font-size:.72rem;letter-spacing:.5px;text-transform:uppercase;font-weight:700;padding:.6rem .5rem;white-space:nowrap;position:sticky;top:0}
+.mines-table th{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;font-size:.72rem;letter-spacing:.5px;text-transform:uppercase;font-weight:700;padding:.6rem .5rem;white-space:nowrap}
 .mines-table td{border-bottom:1px solid var(--line);padding:0;text-align:center}
 .mines-table tbody tr:nth-child(even) td{background:#f6f9fe}
-.mines-table tbody tr:last-child td{border-bottom:0}
-.mines-table .row-label{text-align:left;font-size:.78rem;font-weight:700;color:var(--ink);padding:.5rem .8rem;min-width:11.5rem;white-space:nowrap;position:sticky;left:0;z-index:1;background:#f6f9fe;border-right:1px solid var(--line)}
+.mines-table .row-label{text-align:left;font-size:.78rem;font-weight:700;color:var(--ink);padding:.5rem .8rem;min-width:11.5rem;white-space:nowrap;background:#f6f9fe;border-right:1px solid var(--line)}
 .mines-table input{width:100%;min-width:4.8rem;border:0;background:transparent;color:var(--ink);font:700 .85rem var(--body);font-variant-numeric:tabular-nums;text-align:center;padding:.55rem .3rem}
 .mines-table input.neg{color:#b3162b}
-.mines-table input.pos{color:#0c7a55}
 
 .trend-wrap{overflow-x:auto;border-radius:14px;border:1px solid var(--line)}
 .trend-table{width:100%;min-width:920px;border-collapse:separate;border-spacing:0;font-variant-numeric:tabular-nums}
 .trend-table th{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;font-size:.7rem;letter-spacing:.4px;text-transform:uppercase;font-weight:700;padding:.6rem .5rem;text-align:center;white-space:nowrap}
 .trend-table td{padding:.5rem .6rem;text-align:center;font-size:.85rem;font-weight:700;color:var(--ink);border-bottom:1px solid var(--line);white-space:nowrap}
-.trend-table tbody tr:nth-child(6n+4) td,.trend-table tbody tr:nth-child(6n+5) td,.trend-table tbody tr:nth-child(6n+6) td{background:#f6f9fe}
-.trend-table tbody tr:nth-child(3n) td{border-bottom:2px solid #d6e2f2}
-.trend-table tbody tr:last-child td{border-bottom:0}
 .trend-table td:first-child{text-align:left;font-weight:700;color:var(--navy2)}
 .trend-table td.qtr{background:#e0f5ef;color:#095e49;font-weight:700}
 .trend-table td.low{background:#fdeaec;color:#b3162b}
@@ -164,16 +154,12 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 .form-group input[readonly]{background:#eef6f3}
 .form-actions{margin-top:1rem;display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
 .btn-go{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;border:0;padding:.6rem 1.1rem;border-radius:12px;font:700 .85rem var(--body);cursor:pointer;display:inline-flex;align-items:center;gap:.45rem;transition:.2s}
-.btn-go:hover{transform:translateY(-2px);box-shadow:0 10px 18px -10px rgba(15,33,66,.6)}
+.btn-go:hover{transform:translateY(-2px)}
 .btn-go:disabled{opacity:.55;cursor:not-allowed;transform:none}
 .btn-soft{background:#fbfcfe;color:var(--navy);border:1px solid #d3ddee;padding:.55rem .95rem;border-radius:12px;font:600 .82rem var(--body);cursor:pointer;display:inline-flex;align-items:center;gap:.4rem}
 .btn-soft:hover{border-color:#34d3a6}
 .btn-soft.btn-danger{background:#fbe6e9;color:#b3162b;border-color:#f2c4cb}
 .btn-sm{padding:.3rem .55rem;font-size:.75rem}
-.drop{border:2px dashed #9fb4d6;border-radius:16px;padding:1.6rem;text-align:center;background:#f5f8fd;cursor:pointer;transition:.2s}
-.drop:hover,.drop.over{border-color:#0f9d7a;background:#eefaf5}
-.drop i{font-size:1.8rem;color:#0f9d7a}
-.drop p{margin-top:.4rem;font-weight:600}
 .status{font-size:.85rem;font-weight:600;margin-top:.7rem;min-height:1.2em}
 .status.err{color:#b3162b}
 .status.ok{color:#0c7a55}
@@ -182,7 +168,9 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 .tbl th{position:sticky;top:0;z-index:1;background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;padding:.5rem .6rem;font-size:.7rem;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;text-align:center}
 .tbl td{padding:.4rem .5rem;border-bottom:1px solid var(--line);white-space:nowrap;text-align:center;font-weight:600;color:var(--ink)}
 .tbl tbody tr:nth-child(even) td{background:#f6f9fe}
+.tbl tr.dirty td{background:#fff6d6!important}
 .tbl td input{width:100%;min-width:7rem;border:1px solid var(--line);border-radius:8px;padding:.3rem .4rem;font:600 .8rem var(--body);background:#fff;text-align:center}
+.tbl td input[readonly]{background:#f0f2f8;color:#4b5563}
 .tbl td.act{white-space:nowrap}
 .tbl .empty{padding:1.5rem;color:var(--mute)}
 .mapping{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.6rem}
@@ -199,34 +187,48 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 .unit-wrap{position:relative;display:flex;align-items:center}
 .unit-wrap input{padding-right:3rem}
 .unit{position:absolute;right:.7rem;font-size:.72rem;font-weight:700;color:var(--mute);pointer-events:none}
+.badge{display:inline-block;padding:.2rem .65rem;border-radius:50px;font-size:.72rem;font-weight:700}
+.badge-success{background:#d7efe6;color:#16875f}
+.badge-warning{background:#fbecd0;color:#a8680a}
 
-/* Password page */
+/* Switch */
+.switch{position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0;position:absolute}
+.slider{position:absolute;inset:0;background:#c9d3e3;border-radius:999px;cursor:pointer;transition:.2s}
+.slider::before{content:"";position:absolute;width:20px;height:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 2px 4px rgba(0,0,0,.2)}
+.switch input:checked + .slider{background:var(--navy2)}
+.switch input:checked + .slider::before{transform:translateX(20px)}
+
+/* Notice */
+.notice-text{white-space:pre-wrap;word-break:break-word;font-size:.9rem;font-weight:600;line-height:1.55;color:var(--ink);background:#fff8e4;border:1px solid #f1d98f;border-radius:14px;padding:.8rem 1rem}
+.notice-input{width:100%;min-height:110px;resize:vertical;padding:.7rem .9rem;font:600 .92rem var(--body);border:1px solid var(--line);border-radius:11px;background:#f4f7fd;color:var(--ink)}
+
+/* Alert popup */
+.modal-back{position:fixed;inset:0;z-index:500;background:rgba(10,21,48,.45);display:grid;place-items:center;padding:1rem}
+.modal{width:min(900px,96vw);max-height:86vh;display:flex;flex-direction:column;background:var(--card);border-radius:20px;box-shadow:var(--sh-hi);overflow:hidden}
+.modal-head{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:.9rem 1.2rem;background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff}
+.modal-head h2{font:700 1.05rem var(--head);display:flex;gap:.5rem;align-items:center}
+.alert-tabs{display:flex;gap:.4rem;overflow-x:auto;padding:.7rem 1rem;border-bottom:1px solid var(--line);flex-shrink:0}
+.alert-tab{border:1px solid var(--line);background:#f4f7fd;color:var(--ink);border-radius:999px;padding:.35rem .8rem;font:700 .8rem var(--body);cursor:pointer;white-space:nowrap}
+.alert-tab small{margin-left:.4rem;background:#e5484d;color:#fff;border-radius:999px;padding:0 .4rem;font-size:.7rem}
+.alert-tab.active{background:var(--navy2);color:#fff;border-color:var(--navy2)}
+.alert-body{padding:1rem 1.2rem;overflow:auto}
+.alert-info{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.8rem}
+.alert-miss{display:flex;justify-content:space-between;gap:1rem;padding:.55rem .8rem;border-radius:12px;background:#fdeaec;color:#b3162b;font-weight:700;margin-bottom:.4rem}
+.alert-miss span:last-child{font-weight:600}
+.alert-fill{margin-top:.8rem}
+
+/* Lock page */
 .lock-row{display:flex;align-items:center;justify-content:center;gap:1.5rem;flex-wrap:wrap;min-height:70vh;padding:1rem}
 .lock-back{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;border:0;padding:.75rem 1.2rem;border-radius:14px;font:700 .9rem var(--body);cursor:pointer;display:inline-flex;align-items:center;gap:.5rem;box-shadow:0 12px 22px -12px rgba(15,33,66,.7);transition:.2s}
-.lock-back:hover{transform:translateY(-2px)}
 .lock-card{width:min(380px,92vw);text-align:center;margin:0}
 .lock-card input{margin:.8rem 0;width:100%;border:1px solid var(--line);border-radius:11px;padding:.6rem .8rem;font-size:1rem;text-align:center;letter-spacing:.3em;background:#f4f7fd}
 .lock-card .btn-go{justify-content:center;width:100%}
 
-/* Alerts & reports (static views) */
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:1.2rem}
-.stat-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:1rem 1.2rem;box-shadow:var(--sh);border-top:4px solid var(--line);text-align:center}
-.stat-card .label{font-size:.8rem;font-weight:700;color:var(--ink)}
-.stat-card .value{font:700 1.9rem var(--head);line-height:1.2;margin-top:.2rem}
-.alert-item{display:flex;gap:1rem;align-items:center;padding:.9rem 1rem;margin-bottom:.7rem;border-radius:14px;background:#e6eefc;border:1px solid var(--line);border-left:5px solid #2f6fd0}
-.alert-item.critical{border-left-color:#d1344a;background:#fbebee}
-.alert-item.warning{border-left-color:#c27a0a;background:#fcf3e0}
-.alert-item.success{border-left-color:#16875f;background:#e1f3ec}
-.alert-item h4{font-size:.95rem}
-.alert-item p{font-size:.85rem;color:#4a5a78}
-.alert-item .alert-time{font-size:.75rem;color:#7685a0}
-.rep-table{width:100%;border-collapse:collapse;font-size:.88rem}
-.rep-table th,.rep-table td{padding:.6rem .7rem;border-bottom:1px solid var(--line);text-align:left;font-weight:600}
-.rep-table th{background:#eaf0fa;font-size:.72rem;text-transform:uppercase}
-.badge{display:inline-block;padding:.2rem .65rem;border-radius:50px;font-size:.72rem;font-weight:700}
-.badge-success{background:#d7efe6;color:#16875f}
-.badge-warning{background:#fbecd0;color:#a8680a}
-.badge-info{background:#e0e9fb;color:#2f6fd0}
+.drop{border:2px dashed #9fb4d6;border-radius:16px;padding:1.6rem;text-align:center;background:#f5f8fd;cursor:pointer;transition:.2s}
+.drop:hover,.drop.over{border-color:#0f9d7a;background:#eefaf5}
+.drop i{font-size:1.8rem;color:#0f9d7a}
+.drop p{margin-top:.4rem;font-weight:600}
 
 .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--navy);color:#fff;border-left:4px solid #34d3a6;padding:.8rem 1.3rem;border-radius:12px;box-shadow:0 18px 34px -12px rgba(15,33,66,.5);z-index:1000;transform:translateY(100px);opacity:0;transition:.25s}
 .toast.show{transform:none;opacity:1}.toast.error{border-left-color:#ff7a8c}
@@ -238,7 +240,6 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
   .main{padding:7rem .8rem 1rem}.topbar{justify-content:center;text-align:center}
   .report-stamp{margin-left:0}
 }
-@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 <meta name="pr-access" content="amm:HZL" />
 <meta name="description" content="HZL Dashboard | AMM HZL – Prithvi Realcon logistics and performance portal." />
@@ -246,1163 +247,49 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(47,111,208,.35
 <link rel="icon" type="image/svg+xml" href="favicon.svg" />
 <link rel="apple-touch-icon" href="icon-192.png" />
 <link rel="manifest" href="manifest.webmanifest" />
-<style id="prtpl-css">
-/* ==========================================================
-   Prithvi Realcon – shared UI layer (prtpl.css)
-   Preloader · page transitions · toasts · command palette ·
-   colour themes · dark mode · scroll progress · back-to-top
-   ========================================================== */
-
-:root{
-  --pr-a:#1d4ed8; --pr-b:#3b82f6; --pr-deep:#0f2142; --pr-gold:#d9ac4e;
-  --pr-o1:#bcd2ff; --pr-o2:#c3f1e1; --pr-o3:#fde7bd;
-  --pr-ease:cubic-bezier(.16,1,.3,1);
-}
-
-/* ---------- Colour templates ---------- */
-html[data-theme="emerald"]{--pr-a:#0f8a6a;--pr-b:#22c55e;--pr-deep:#073b2e;--pr-gold:#e0b050;--pr-o1:#b6efd9;--pr-o2:#cfe8ff;--pr-o3:#fdf0c4}
-html[data-theme="violet"]{--pr-a:#6d28d9;--pr-b:#a78bfa;--pr-deep:#24124d;--pr-gold:#f0b429;--pr-o1:#ddd0ff;--pr-o2:#c9e8ff;--pr-o3:#ffd9e8}
-html[data-theme="sunset"]{--pr-a:#c2410c;--pr-b:#f59e0b;--pr-deep:#3b1606;--pr-gold:#f7c948;--pr-o1:#ffd6b8;--pr-o2:#ffe9a8;--pr-o3:#ffc9d6}
-html[data-theme="rose"]{--pr-a:#be185d;--pr-b:#f472b6;--pr-deep:#3d0a24;--pr-gold:#f3b95f;--pr-o1:#ffd0e3;--pr-o2:#ffe0c2;--pr-o3:#e6d5ff}
-html[data-theme="teal"]{--pr-a:#0e7490;--pr-b:#22d3ee;--pr-deep:#073642;--pr-gold:#e6b450;--pr-o1:#b8ecf7;--pr-o2:#c3f1e1;--pr-o3:#fdeabd}
-
-/* Theme-aware surfaces (hub pages only: index, home, AMM, ODR, notices, 404) */
-html[data-hub] .orb.o1,html[data-hub] .blob.b1{background:var(--pr-o1)}
-html[data-hub] .orb.o2,html[data-hub] .blob.b2{background:var(--pr-o2)}
-html[data-hub] .orb.o3,html[data-hub] .blob.b3{background:var(--pr-o3)}
-html[data-hub] .mark{background:linear-gradient(140deg,var(--pr-deep),var(--pr-a))!important}
-html[data-hub="grid"] .head{background-image:linear-gradient(180deg,var(--ink) 30%,var(--pr-a) 150%)}
-html[data-hub] .site-footer{background:linear-gradient(135deg,var(--pr-deep) 0%,color-mix(in srgb,var(--pr-a) 70%,var(--pr-deep)) 60%,var(--pr-a) 125%)!important}
-html[data-hub] .go[type=submit],html[data-hub] button.go{background:linear-gradient(135deg,var(--pr-a),var(--pr-b))}
-html[data-hub] .type::after{background:var(--pr-gold)}
-html[data-hub] .cursor-glow{background:radial-gradient(circle,color-mix(in srgb,var(--pr-a) 14%,transparent),transparent 65%)}
-html[data-hub] input:focus{border-color:var(--pr-b);box-shadow:0 0 0 4px color-mix(in srgb,var(--pr-b) 20%,transparent)}
-html[data-hub] a:focus-visible,html[data-hub] button:focus-visible{outline-color:var(--pr-a)}
-html[data-hub] .check input:checked+.box{background:var(--pr-a);border-color:var(--pr-a)}
-
-/* ---------- Dark mode (hub pages) ---------- */
-html[data-mode="dark"]{color-scheme:dark;--pr-o1:#1b3270;--pr-o2:#0f4a3b;--pr-o3:#4a3410}
-html[data-mode="dark"][data-hub]{
-  --bg:#0a1020;--surface:#111a2e;--ink:#e8eefc;--ink2:#a9b6d0;--mute:#7886a3;--line:#22304d;
-}
-html[data-mode="dark"][data-hub] body{background:linear-gradient(180deg,#0a1020 0%,#0b1325 60%,#09101f 100%)!important}
-html[data-mode="dark"][data-hub] .orb,html[data-mode="dark"][data-hub] .blob{opacity:.38}
-html[data-mode="dark"][data-hub] .grain{opacity:.06}
-html[data-mode="dark"][data-hub] .top{background:rgba(17,26,46,.78)}
-html[data-mode="dark"][data-hub] .back,html[data-mode="dark"][data-hub] .eye:hover{background:var(--surface);border-color:var(--line);color:var(--ink)}
-html[data-mode="dark"][data-hub] .tile,html[data-mode="dark"][data-hub] .note,html[data-mode="dark"][data-hub] .card{background:rgba(17,26,46,.88)!important;border-color:var(--line)}
-html[data-mode="dark"][data-hub] .tile:hover{border-color:color-mix(in srgb,var(--c) 70%,#000)}
-html[data-mode="dark"][data-hub] .ico{background:color-mix(in srgb,var(--c,var(--pr-a)) 20%,#111a2e)!important;border-color:color-mix(in srgb,var(--c,var(--pr-a)) 35%,#111a2e)!important}
-html[data-mode="dark"][data-hub] .ico img{background:#fff;border-radius:10px;padding:4px}
-html[data-mode="dark"][data-hub] .go{background:#18233d;border-color:var(--line)}
-html[data-mode="dark"][data-hub] .inspire{background:linear-gradient(120deg,#2a2210,#241d0e 60%,#2b2311);border-color:#4d3d17}
-html[data-mode="dark"][data-hub] .inspire-title{color:#f1d9a0}
-html[data-mode="dark"][data-hub] .inspire-title em{color:var(--pr-gold)}
-html[data-mode="dark"][data-hub] input{background:#0d1528;border-color:var(--line);color:var(--ink)}
-html[data-mode="dark"][data-hub] input:focus{background:#0f1a33}
-html[data-mode="dark"][data-hub] .box{background:#0d1528;border-color:#33466b}
-html[data-mode="dark"][data-hub] .btn{background:var(--pr-a);color:#fff}
-html[data-mode="dark"][data-hub] .note .tag,html[data-mode="dark"][data-hub] .note .ico{background:color-mix(in srgb,var(--c) 22%,#111a2e);color:color-mix(in srgb,var(--c) 55%,#fff)}
-html[data-mode="dark"][data-hub] .card::before{opacity:.5}
-
-/* ---------- Preloader ---------- */
-html.pr-loading{overflow:hidden}
-#pr-loader{
-  position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;
-  background:radial-gradient(1200px 700px at 50% 38%,#ffffff 0%,#f1f6ff 55%,#e6eefb 100%);
-  transition:opacity .55s var(--pr-ease),visibility .55s,transform .7s var(--pr-ease);
-}
-html[data-mode="dark"] #pr-loader{background:radial-gradient(1200px 700px at 50% 38%,#14203b 0%,#0b1325 60%,#070c18 100%)}
-#pr-loader.out{opacity:0;visibility:hidden;transform:scale(1.04);pointer-events:none}
-.pr-stage{display:flex;flex-direction:column;align-items:center;gap:1.1rem;text-align:center;padding:1.5rem}
-.pr-anim{position:relative;width:min(240px,56vw);aspect-ratio:1;display:grid;place-items:center}
-.pr-anim>*{grid-area:1/1}
-.pr-anim svg,.pr-anim dotlottie-player,.pr-anim canvas{width:100%!important;height:100%!important}
-.pr-fallback{display:grid;place-items:center;transition:opacity .4s}
-.pr-fallback.hide{opacity:0}
-.pr-ring{width:150px;height:150px;border-radius:50%;border:4px solid color-mix(in srgb,var(--pr-a) 18%,transparent);border-top-color:var(--pr-a);border-right-color:var(--pr-b);animation:pr-rot 1s linear infinite;position:relative}
-.pr-fallback .pr-mk svg{width:38px;height:38px;fill:#fff}
-.pr-fallback .pr-mk{position:absolute;width:76px;height:76px;border-radius:22px;display:grid;place-items:center;color:#fff;font-size:1.35rem;
-  background:linear-gradient(140deg,var(--pr-deep),var(--pr-a));box-shadow:0 14px 26px -12px color-mix(in srgb,var(--pr-a) 80%,transparent);animation:pr-bob 1.6s ease-in-out infinite}
-.pr-name{font:700 1.1rem/1.2 "Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--pr-deep)}
-html[data-mode="dark"] .pr-name{color:#e8eefc}
-.pr-bar{width:min(220px,60vw);height:4px;border-radius:99px;background:color-mix(in srgb,var(--pr-a) 15%,transparent);overflow:hidden}
-.pr-bar i{display:block;height:100%;width:40%;border-radius:inherit;background:linear-gradient(90deg,var(--pr-a),var(--pr-b),var(--pr-gold));animation:pr-slide 1.25s var(--pr-ease) infinite}
-@keyframes pr-rot{to{transform:rotate(360deg)}}
-@keyframes pr-bob{50%{transform:translateY(-5px) scale(1.04)}}
-@keyframes pr-slide{0%{transform:translateX(-110%)}100%{transform:translateX(260%)}}
-
-/* ---------- Page transitions ---------- */
-html.pr-leave body{opacity:0;filter:blur(5px);transform:translateY(-6px);transition:opacity .24s ease,filter .24s ease,transform .24s ease}
-body{animation:pr-in .6s var(--pr-ease) both}
-@keyframes pr-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-
-/* ---------- Scroll progress ---------- */
-#pr-progress{position:fixed;left:0;top:0;height:3px;width:0;z-index:2147482000;background:linear-gradient(90deg,var(--pr-a),var(--pr-b),var(--pr-gold));
-  box-shadow:0 0 10px color-mix(in srgb,var(--pr-b) 60%,transparent);pointer-events:none;transition:width .1s linear,opacity .3s}
-
-/* ---------- Floating controls ---------- */
-.pr-fab{
-  position:fixed;right:max(16px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));z-index:2147481000;
-  width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.25);cursor:pointer;display:grid;place-items:center;
-  color:#fff;font-size:1rem;background:linear-gradient(135deg,var(--pr-a),var(--pr-b));
-  box-shadow:0 14px 28px -12px color-mix(in srgb,var(--pr-a) 85%,transparent);
-  opacity:0;transform:translateY(14px) scale(.9);pointer-events:none;transition:opacity .3s,transform .4s var(--pr-ease)
-}
-.pr-fab.show{opacity:1;transform:none;pointer-events:auto}
-.pr-fab:hover{transform:translateY(-3px)}
-.pr-fab:focus-visible{outline:3px solid var(--pr-gold);outline-offset:3px}
-
-/* ---------- Header chips (palette + theme) ---------- */
-.pr-chipbtn{
-  display:inline-flex;align-items:center;gap:.5rem;height:36px;padding:0 .8rem;border-radius:999px;cursor:pointer;
-  background:var(--surface,#fff);border:1px solid var(--line,#e1e7f1);color:var(--ink,#0f2142);font:500 .84rem "Instrument Sans",ui-sans-serif,system-ui,sans-serif;
-  transition:transform .3s var(--pr-ease),border-color .2s,box-shadow .3s
-}
-.pr-chipbtn:hover{transform:translateY(-1px);border-color:var(--pr-b);box-shadow:0 8px 18px -12px var(--pr-a)}
-.pr-chipbtn kbd{font:600 .68rem ui-monospace,monospace;padding:.1rem .35rem;border-radius:6px;background:color-mix(in srgb,var(--pr-a) 10%,transparent);color:var(--pr-a)}
-.pr-chipbtn.icon{width:36px;padding:0;justify-content:center}
-.pr-floatbar{position:fixed;top:max(14px,env(safe-area-inset-top));right:14px;z-index:2147481000;display:flex;gap:.5rem}
-@media (max-width:560px){
-  html[data-hub] .top{gap:.5rem;padding-left:.7rem}
-  html[data-hub] .top .brand{white-space:nowrap;min-width:0;gap:.5rem}
-  html[data-hub] .top .brand span:last-child{font-size:.88rem;overflow:hidden;text-overflow:ellipsis}
-  html[data-hub] .top .back{white-space:nowrap;padding:.5rem .8rem}
-  html[data-hub] .top-right{gap:.4rem;flex:none}
-}
-@media (max-width:700px){.pr-chipbtn kbd,.pr-chipbtn .t{display:none}.pr-chipbtn{width:36px;padding:0;justify-content:center}}
-
-/* ---------- Theme popover ---------- */
-#pr-theme{
-  position:fixed;z-index:2147482500;width:260px;padding:1rem;border-radius:20px;background:var(--surface,#fff);color:var(--ink,#0f2142);
-  border:1px solid var(--line,#e1e7f1);box-shadow:0 30px 60px -24px rgba(15,33,66,.5);
-  opacity:0;visibility:hidden;transform:translateY(-8px) scale(.97);transform-origin:top right;transition:all .3s var(--pr-ease)
-}
-#pr-theme.open{opacity:1;visibility:visible;transform:none}
-#pr-theme h4{font:700 .95rem "Bricolage Grotesque",ui-sans-serif,sans-serif;margin-bottom:.7rem}
-.pr-sw{display:grid;grid-template-columns:repeat(6,1fr);gap:.5rem;margin-bottom:.9rem}
-.pr-sw button{aspect-ratio:1;border-radius:50%;border:2px solid transparent;cursor:pointer;background:var(--g);box-shadow:0 6px 12px -6px var(--g);transition:transform .25s var(--pr-ease)}
-.pr-sw button:hover{transform:scale(1.14)}
-.pr-sw button[aria-pressed=true]{border-color:var(--ink,#0f2142);outline:2px solid var(--surface,#fff);outline-offset:-4px}
-.pr-mode{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.35rem;background:color-mix(in srgb,var(--ink,#0f2142) 6%,transparent);padding:.25rem;border-radius:12px}
-.pr-mode button{border:0;cursor:pointer;border-radius:9px;padding:.45rem .2rem;background:none;color:var(--ink2,#506078);font:600 .78rem "Instrument Sans",ui-sans-serif,sans-serif;transition:all .25s}
-.pr-mode button[aria-pressed=true]{background:var(--surface,#fff);color:var(--pr-a);box-shadow:0 4px 10px -6px rgba(15,33,66,.4)}
-
-/* ---------- Command palette ---------- */
-#pr-pal{position:fixed;inset:0;z-index:2147483100;display:grid;place-items:start center;padding:12vh 1rem 1rem;background:rgba(8,14,30,.5);backdrop-filter:blur(6px);
-  opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s}
-#pr-pal.open{opacity:1;visibility:visible}
-.pr-box{width:min(620px,100%);border-radius:22px;background:var(--surface,#fff);color:var(--ink,#0f2142);border:1px solid var(--line,#e1e7f1);
-  box-shadow:0 40px 80px -30px rgba(0,0,0,.6);overflow:hidden;transform:translateY(-12px) scale(.98);transition:transform .35s var(--pr-ease)}
-#pr-pal.open .pr-box{transform:none}
-.pr-sbar{display:flex;align-items:center;gap:.7rem;padding:1rem 1.1rem;border-bottom:1px solid var(--line,#e1e7f1)}
-.pr-sbar i{color:var(--pr-a)}
-.pr-sbar input{flex:1;border:0;outline:0;background:none;color:inherit;font:500 1rem "Instrument Sans",ui-sans-serif,sans-serif;height:auto;padding:0;box-shadow:none}
-.pr-sbar span{font:600 .7rem ui-monospace,monospace;color:var(--mute,#8794ab);border:1px solid var(--line,#e1e7f1);border-radius:6px;padding:.15rem .4rem}
-.pr-list{max-height:52vh;overflow:auto;padding:.5rem;list-style:none;margin:0}
-.pr-item{display:flex;align-items:center;gap:.85rem;padding:.7rem .8rem;border-radius:14px;cursor:pointer;font:500 .95rem "Instrument Sans",ui-sans-serif,sans-serif}
-.pr-item .ic{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;flex:none;color:var(--c,var(--pr-a));background:color-mix(in srgb,var(--c,var(--pr-a)) 13%,transparent)}
-.pr-item small{display:block;color:var(--mute,#8794ab);font-weight:400;font-size:.78rem}
-.pr-item[aria-selected=true]{background:color-mix(in srgb,var(--pr-a) 10%,transparent)}
-.pr-item[aria-selected=true] .ic{background:var(--c,var(--pr-a));color:#fff}
-.pr-empty{padding:1.6rem;text-align:center;color:var(--mute,#8794ab);font-size:.92rem}
-.pr-foot{display:flex;gap:1rem;padding:.65rem 1.1rem;border-top:1px solid var(--line,#e1e7f1);color:var(--mute,#8794ab);font-size:.74rem}
-
-/* ---------- Toasts ---------- */
-#pr-toasts{position:fixed;left:50%;bottom:max(20px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:2147483200;display:flex;flex-direction:column;gap:.55rem;align-items:center;pointer-events:none;width:min(440px,92vw)}
-.pr-toast{pointer-events:auto;display:flex;align-items:center;gap:.7rem;width:100%;padding:.8rem 1rem;border-radius:16px;background:#0f2142;color:#fff;
-  font:500 .9rem "Instrument Sans",ui-sans-serif,sans-serif;box-shadow:0 20px 40px -18px rgba(0,0,0,.6);border-left:4px solid var(--pr-b);
-  animation:pr-toast .5s var(--pr-ease) both}
-.pr-toast.ok{border-color:#22c55e}.pr-toast.err{border-color:#f43f5e}.pr-toast.warn{border-color:#f59e0b}
-.pr-toast.out{animation:pr-toast-out .3s ease both}
-.pr-toast button{margin-left:auto;background:none;border:0;color:#f1cf86;font-weight:600;cursor:pointer;font-family:inherit}
-@keyframes pr-toast{from{opacity:0;transform:translateY(16px) scale(.96)}to{opacity:1;transform:none}}
-@keyframes pr-toast-out{to{opacity:0;transform:translateY(8px) scale(.96)}}
-
-/* ---------- Offline banner ---------- */
-#pr-offline{position:fixed;top:0;left:0;right:0;z-index:2147482900;padding:.55rem 1rem;text-align:center;background:#b45309;color:#fff;font:600 .85rem "Instrument Sans",ui-sans-serif,sans-serif;
-  transform:translateY(-100%);transition:transform .4s var(--pr-ease)}
-#pr-offline.show{transform:none}
-
-/* ---------- Coming-soon tiles ---------- */
-.tile.pr-soon{cursor:not-allowed}
-.tile.pr-soon .go{opacity:.4}
-.pr-badge{position:absolute;top:14px;right:14px;z-index:2;padding:.25rem .6rem;border-radius:99px;font:700 .68rem "Instrument Sans",ui-sans-serif,sans-serif;letter-spacing:.06em;
-  background:color-mix(in srgb,var(--pr-gold) 25%,#fff);color:#7a5a12;border:1px solid color-mix(in srgb,var(--pr-gold) 60%,#fff)}
-html[data-mode="dark"] .pr-badge{background:#3a2d0e;color:#f1cf86;border-color:#5a4617}
-.tile.pr-soon .ico{filter:grayscale(.7)}
-.pr-fallback-logo{font:800 1.4rem "Bricolage Grotesque",ui-sans-serif,sans-serif;color:var(--c,var(--pr-a))}
-
-/* ---------- Recent chips (home) ---------- */
-.pr-recent{width:100%;max-width:1120px;margin:0 auto 1.25rem;display:flex;flex-wrap:wrap;align-items:center;gap:.55rem}
-.pr-recent b{font:600 .82rem "Instrument Sans",ui-sans-serif,sans-serif;color:var(--ink2,#506078);margin-right:.2rem}
-.pr-recent a{display:inline-flex;align-items:center;gap:.5rem;padding:.45rem .9rem;border-radius:99px;text-decoration:none;color:var(--ink,#0f2142);
-  background:var(--surface,#fff);border:1px solid var(--line,#e1e7f1);font:500 .84rem "Instrument Sans",ui-sans-serif,sans-serif;transition:transform .3s var(--pr-ease),border-color .2s}
-.pr-recent a i{color:var(--c,var(--pr-a));font-size:.8rem}
-.pr-recent a:hover{transform:translateY(-2px);border-color:var(--c,var(--pr-a))}
-
-/* ---------- 404 ---------- */
-.pr-404{min-height:100vh;display:grid;place-items:center;padding:1.5rem;text-align:center}
-.pr-404 h1{font:800 clamp(5rem,22vw,11rem)/1 "Bricolage Grotesque",ui-sans-serif,sans-serif;letter-spacing:-.05em;background:linear-gradient(135deg,var(--pr-deep),var(--pr-a) 60%,var(--pr-gold));-webkit-background-clip:text;background-clip:text;color:transparent}
-.pr-404 p{color:var(--ink2,#506078);margin:.4rem 0 1.6rem;font-size:1.05rem}
-.pr-404 a{display:inline-flex;gap:.6rem;align-items:center;padding:.85rem 1.4rem;border-radius:14px;background:linear-gradient(135deg,var(--pr-a),var(--pr-b));color:#fff;text-decoration:none;font-weight:600;box-shadow:0 14px 26px -14px var(--pr-a)}
-
-@media (prefers-reduced-motion:reduce){
-  #pr-loader,#pr-loader *,.pr-toast,body{animation:none!important;transition:none!important}
-}
-@media print{#pr-loader,.pr-fab,.pr-floatbar,#pr-progress,#pr-toasts,#pr-pal,#pr-theme,#pr-offline{display:none!important}}
-
-/* ==========================================================
-   v2 additions: dialogs · shortcuts · quick menu · skip link ·
-   focus ring · scrollbars · print
-   ========================================================== */
-
-/* ---------- Dialogs (confirm / prompt / notice) ---------- */
-.pr-dlg{position:fixed;inset:0;z-index:2147483300;display:grid;place-items:center;padding:1rem;background:rgba(8,14,30,.5);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
-  opacity:0;transition:opacity .2s ease}
-.pr-dlg.open{opacity:1}
-.pr-dlg-box{width:min(440px,100%);display:grid;grid-template-columns:auto 1fr;gap:.2rem 1rem;padding:1.4rem 1.4rem 1.1rem;border-radius:20px;
-  background:var(--surface,#fff);color:var(--ink,#0f2142);border:1px solid var(--line,#e1e7f1);box-shadow:0 40px 80px -30px rgba(0,0,0,.55);
-  transform:translateY(10px) scale(.97);transition:transform .3s var(--pr-ease)}
-.pr-dlg.open .pr-dlg-box{transform:none}
-.pr-dlg-box.wide{width:min(500px,100%)}
-.pr-dlg-ic{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:1.05rem;color:var(--pr-a);background:color-mix(in srgb,var(--pr-a) 12%,transparent)}
-.pr-dlg-box.danger .pr-dlg-ic{color:#d1344a;background:color-mix(in srgb,#d1344a 12%,transparent)}
-.pr-dlg-body h3{margin:.1rem 0 .3rem;font:700 1.1rem/1.3 "Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif}
-.pr-dlg-body p{margin:0;color:var(--ink2,#506078);font:400 .93rem/1.5 "Instrument Sans",ui-sans-serif,system-ui,sans-serif;white-space:pre-line}
-.pr-dlg-in{width:100%;margin-top:.8rem;height:44px;padding:0 .9rem;border-radius:12px;border:1px solid var(--line,#d5dcea);background:var(--bg,#f8fafd);color:inherit;font:500 .95rem "Instrument Sans",ui-sans-serif,system-ui,sans-serif;outline:none}
-.pr-dlg-in:focus{border-color:var(--pr-b);box-shadow:0 0 0 4px color-mix(in srgb,var(--pr-b) 20%,transparent)}
-.pr-dlg-act{grid-column:1/-1;display:flex;justify-content:flex-end;gap:.55rem;margin-top:1.1rem}
-.pr-btn{height:40px;padding:0 1.15rem;border:0;border-radius:12px;cursor:pointer;color:#fff;font:600 .9rem "Instrument Sans",ui-sans-serif,system-ui,sans-serif;
-  background:linear-gradient(135deg,var(--pr-a),var(--pr-b));box-shadow:0 10px 20px -12px var(--pr-a);transition:transform .2s var(--pr-ease),filter .2s}
-.pr-btn:hover{transform:translateY(-1px);filter:brightness(1.06)}
-.pr-btn:active{transform:none}
-.pr-btn.ghost{background:transparent;color:var(--ink2,#506078);box-shadow:none;border:1px solid var(--line,#d5dcea)}
-.pr-btn.ghost:hover{background:color-mix(in srgb,var(--ink,#0f2142) 6%,transparent);filter:none}
-.pr-btn.danger{background:linear-gradient(135deg,#be123c,#e11d48);box-shadow:0 10px 20px -12px #be123c}
-.pr-btn:focus-visible,.pr-dlg-in:focus-visible{outline:3px solid var(--pr-gold);outline-offset:2px}
-
-/* ---------- Shortcut list ---------- */
-.pr-keys{list-style:none;margin:.6rem 0 0;padding:0;display:grid;gap:.1rem}
-.pr-keys li{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:.5rem 0;border-bottom:1px solid var(--line,#e8edf5);font:500 .9rem "Instrument Sans",ui-sans-serif,system-ui,sans-serif}
-.pr-keys li:last-child{border-bottom:0}
-.pr-keys .keys{display:inline-flex;align-items:center;gap:.3rem;white-space:nowrap}
-.pr-keys kbd{font:600 .74rem ui-monospace,SFMono-Regular,Menlo,monospace;padding:.18rem .5rem;border-radius:7px;background:color-mix(in srgb,var(--pr-a) 9%,transparent);color:var(--pr-a);border:1px solid color-mix(in srgb,var(--pr-a) 22%,transparent)}
-.pr-keys em{font-style:normal;color:var(--mute,#8794ab);font-size:.78rem}
-
-/* ---------- Quick menu (dashboard pages) ---------- */
-.pr-quick{position:fixed;left:max(14px,env(safe-area-inset-left));bottom:max(14px,env(safe-area-inset-bottom));z-index:2147481000;width:42px;height:42px;border-radius:50%;
-  border:2px solid #fff;cursor:pointer;display:grid;place-items:center;color:#fff;font:700 .82rem "Instrument Sans",ui-sans-serif,system-ui,sans-serif;letter-spacing:.02em;
-  background:linear-gradient(140deg,var(--pr-deep),var(--pr-a));box-shadow:0 12px 24px -10px color-mix(in srgb,var(--pr-a) 80%,transparent);
-  transition:transform .3s var(--pr-ease),box-shadow .3s}
-.pr-quick:hover{transform:translateY(-2px) scale(1.04)}
-.pr-quick:focus-visible{outline:3px solid var(--pr-gold);outline-offset:3px}
-#pr-menu{position:fixed;left:max(14px,env(safe-area-inset-left));bottom:calc(max(14px,env(safe-area-inset-bottom)) + 52px);z-index:2147482600;width:min(290px,calc(100vw - 28px));padding:.5rem;border-radius:18px;
-  background:#fff;color:#0f2142;border:1px solid #e1e7f1;box-shadow:0 30px 60px -24px rgba(15,33,66,.5);
-  opacity:0;visibility:hidden;transform:translateY(8px) scale(.97);transform-origin:bottom left;transition:all .25s var(--pr-ease)}
-#pr-menu.open{opacity:1;visibility:visible;transform:none}
-#pr-menu .pr-who{padding:.65rem .75rem .7rem;margin-bottom:.3rem;border-bottom:1px solid #e8edf5;display:grid;gap:.1rem}
-#pr-menu .pr-who b{font:700 .98rem "Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif}
-#pr-menu .pr-who small{color:#6b7893;font:400 .78rem "Instrument Sans",ui-sans-serif,system-ui,sans-serif}
-#pr-menu .pr-who small:empty{display:none}
-#pr-menu button{width:100%;display:flex;align-items:center;gap:.7rem;padding:.6rem .75rem;border:0;border-radius:11px;background:none;color:inherit;cursor:pointer;text-align:left;
-  font:500 .9rem "Instrument Sans",ui-sans-serif,system-ui,sans-serif;transition:background .15s}
-#pr-menu button i{width:18px;text-align:center;color:var(--pr-a)}
-#pr-menu button kbd{margin-left:auto;font:600 .68rem ui-monospace,monospace;color:#6b7893;border:1px solid #dde4ef;border-radius:6px;padding:.1rem .35rem}
-#pr-menu button:hover,#pr-menu button:focus-visible{background:color-mix(in srgb,var(--pr-a) 9%,transparent);outline:none}
-#pr-menu button.out,#pr-menu button.out i{color:#c0273f}
-@media (max-width:700px){.pr-quick{bottom:max(76px,calc(env(safe-area-inset-bottom) + 70px));width:38px;height:38px}#pr-menu{bottom:calc(max(76px,calc(env(safe-area-inset-bottom) + 70px)) + 48px)}}
-
-/* ---------- Skip link ---------- */
-.pr-skip{position:fixed;left:50%;top:-80px;transform:translateX(-50%);z-index:2147483400;padding:.65rem 1.1rem;border-radius:0 0 14px 14px;background:#0f2142;color:#fff;
-  font:600 .88rem "Instrument Sans",ui-sans-serif,system-ui,sans-serif;text-decoration:none;transition:top .2s var(--pr-ease)}
-.pr-skip:focus{top:0;outline:3px solid var(--pr-gold)}
-
-/* ---------- Keyboard focus (all pages) ---------- */
-:where(a,button,select,summary,[tabindex]):focus-visible{outline:3px solid color-mix(in srgb,var(--pr-b) 80%,#fff);outline-offset:2px}
-:where(input,textarea,select):focus-visible{outline:2px solid color-mix(in srgb,var(--pr-b) 80%,#fff);outline-offset:1px}
-
-/* ---------- Polish ---------- */
-::selection{background:color-mix(in srgb,var(--pr-b) 35%,transparent)}
-html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.pr-dlg,.pr-dlg-box,#pr-menu,.pr-quick,.pr-skip{transition:none!important}}
-@media (prefers-contrast:more){.pr-dlg-box,#pr-menu,.pr-box{border-width:2px}.pr-btn.ghost{border-width:2px}}
-@supports (scrollbar-width:thin){html{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--pr-a) 40%,#94a3b8) transparent}}
-
-/* ---------- Print: clean report output for every dashboard ---------- */
-@page{margin:10mm}
-@media print{
-  html,body{background:#fff!important;color:#000!important}
-  body{animation:none!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  #pr-loader,.pr-fab,.pr-floatbar,.pr-quick,#pr-menu,#pr-progress,#pr-toasts,#pr-pal,#pr-theme,#pr-offline,.pr-dlg,.pr-skip,
-  .sidebar,.topbar-actions,.back-row .back-btn,.cursor-glow,.aurora,.mesh,canvas#fx,.grain,.toast{display:none!important}
-  .main{margin:0!important;padding:0!important;max-width:none!important}
-  .view:not(.active){display:none!important}
-  .card,.panel,.tile,.note{box-shadow:none!important;break-inside:avoid;page-break-inside:avoid}
-  a[href]::after{content:none!important}
-  *{animation:none!important;transition:none!important}
-}
-
-/* ---------- Motion: minimal by default (html[data-motion="lite"]); "full" restores every effect ---------- */
-.pr-mot{display:grid;grid-template-columns:1fr 1fr;gap:.35rem;margin-top:.55rem;background:color-mix(in srgb,var(--ink,#0f2142) 6%,transparent);padding:.25rem;border-radius:12px}
-.pr-mot button{border:0;cursor:pointer;border-radius:9px;padding:.45rem .2rem;background:none;color:var(--ink2,#506078);font:600 .74rem "Instrument Sans",ui-sans-serif,sans-serif}
-.pr-mot button[aria-pressed=true]{background:var(--surface,#fff);color:var(--pr-a);box-shadow:0 4px 10px -6px rgba(15,33,66,.4)}
-html[data-motion=lite] *,html[data-motion=lite] *::before,html[data-motion=lite] *::after{animation-delay:0s!important;transition-delay:0s!important}
-html[data-motion=lite] :where(a,button,.card,.tile,.row,input,select,td,th,li,.btn,.pill,.chip){transition-duration:.12s!important}
-html[data-motion=lite] :where(.aurora,.mesh,.grain,.cursor-glow,canvas#fx){display:none!important}
-html[data-motion=lite] .tile{transform:none!important}
-html[data-motion=lite].pr-leave body{filter:none;transform:none;transition:opacity .1s}
-html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!important}
-
-</style>
-<script id="prtpl-js">
-/* ==========================================================
-   Prithvi Realcon – shared UI layer (prtpl.js)
-   Load in <head> (synchronously) so the loader appears instantly.
-
-   Optional config, set BEFORE this file loads:
-     window.PRTPL_CONFIG = { lottie: 'loader.json', idleMinutes: 0 };
-
-   The loader animation is picked up automatically from
-     loader.json   (Lottie JSON)   or
-     loader.lottie (dotLottie)
-   ========================================================== */
-(function () {
-  'use strict';
-  var D = document, H = D.documentElement, W = window;
-  var CFG = {
-    lottie: null,            // explicit URL (.json or .lottie); null = auto-detect in /assets
-    minShow: 350,            // first page of a session (ms)
-    minShowRepeat: 150,      // later pages (ms)
-    maxShow: 7000,           // never block longer than this
-    idleMinutes: 0,         // auto sign-out after inactivity (0 = off)
-    maxSessionHours: 0,     // hard limit on one sign-in (0 = off)
-    staleMinutes: 10,        // refresh a dashboard that was in the background this long (0 = off)
-    sw: 'sw.js',             // offline cache worker (false = off)
-    version: '2.0',
-    home: 'home_page.html',
-    login: 'index.html',
-    authKey: 'amm-auth'
-  };
-  var user = W.PRTPL_CONFIG || {};
-  for (var k in user) CFG[k] = user[k];
-
-  function ls(key, val) {
-    try { if (val === undefined) return localStorage.getItem(key); if (val === null) localStorage.removeItem(key); else localStorage.setItem(key, val); } catch (e) {}
-    return null;
-  }
-  function ss(key, val) {
-    try { var st = (key === 'amm-auth') ? localStorage : sessionStorage; if (val === undefined) return st.getItem(key); if (val === null) st.removeItem(key); else st.setItem(key, val); } catch (e) {}
-    return null;
-  }
-  function meta(name) { var m = D.querySelector('meta[name="' + name + '"]'); return m ? m.getAttribute('content') : null; }
-
-  /* ---------- theme (applied before first paint) ---------- */
-  var HUB = meta('pr-hub');                       // "grid" | "plain" | null
-  var THEMES = [
-    ['royal', '#1d4ed8'], ['emerald', '#0f8a6a'], ['violet', '#6d28d9'],
-    ['sunset', '#c2410c'], ['rose', '#be185d'], ['teal', '#0e7490']
-  ];
-  function applyTheme() {
-    var t = ls('pr-theme') || 'royal';
-    if (t === 'royal') H.removeAttribute('data-theme'); else H.setAttribute('data-theme', t);
-    if (HUB) {
-      var m = ls('pr-mode') || 'auto';
-      var dark = m === 'dark' || (m === 'auto' && W.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
-      if (dark) H.setAttribute('data-mode', 'dark'); else H.removeAttribute('data-mode');
-    }
-  }
-  if (HUB) H.setAttribute('data-hub', HUB);
-  applyTheme();
-
-  /* ---------- session + access guard ---------- */
-  function session() { try { return JSON.parse(ss(CFG.authKey)); } catch (e) { return null; } }
-  function can(key) {
-    var s = session(); if (!s) return false;
-    var a = s.access || [];
-    return a.indexOf('*') > -1 || a.indexOf(key) > -1 || a.indexOf(String(key).split(':')[0]) > -1;
-  }
-  function signOut(reason) {
-    ss(CFG.authKey, null); ss('pr-next', null);
-    if (typeof reason === 'string') ss('pr-reason', reason);
-    location.replace(CFG.login);
-  }
-  function here() { return (location.pathname.split('/').pop() || 'index.html') + location.search; }
-
-  /* motion: minimal by default, full on request */
-  H.setAttribute('data-motion', ls('pr-motion') === 'full' ? 'full' : 'lite');
-
-  var need = meta('pr-access');
-  var blocked = false;
-  if (need !== null) {
-    var cur = session();
-    /* stamp the sign-in time once, then enforce the hard session limit */
-    if (cur && !cur.at) { cur.at = Date.now(); ss(CFG.authKey, JSON.stringify(cur)); }
-    if (cur && CFG.maxSessionHours && Date.now() - cur.at > CFG.maxSessionHours * 3600000) {
-      ss(CFG.authKey, null); ss('pr-reason', 'expired'); cur = null;
-    }
-    if (!cur) { blocked = true; ss('pr-next', here()); location.replace(CFG.login); }
-    else if (need && !can(need)) { blocked = true; ss('pr-denied', '1'); location.replace(CFG.home); }
-  }
-
-  /* ---------- preloader ---------- */
-  var t0 = Date.now(), loader, fb, done = false, minMs = ss('pr-seen') ? CFG.minShowRepeat : CFG.minShow;
-  ss('pr-seen', '1');
-
-  function buildLoader() {
-    H.classList.add('pr-loading');
-    loader = D.createElement('div');
-    loader.id = 'pr-loader';
-    loader.setAttribute('role', 'status');
-    loader.setAttribute('aria-label', 'Loading');
-    loader.innerHTML =
-      '<div class="pr-stage">' +
-        '<div class="pr-anim" id="pr-anim">' +
-          '<div class="pr-fallback" id="pr-fb"><div class="pr-ring"></div><div class="pr-mk"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 6.5A1.5 1.5 0 0 1 3.5 5H13a1 1 0 0 1 1 1v2h3.2a1.5 1.5 0 0 1 1.2.6l2.3 3A1.5 1.5 0 0 1 21 12.5V16a1 1 0 0 1-1 1h-.6a2.5 2.5 0 0 1-4.8 0H9.4a2.5 2.5 0 0 1-4.8 0H4a2 2 0 0 1-2-2V6.5ZM7 16a1 1 0 1 0 0 2 1 1 0 0 0 0-2Zm10 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2Zm-3-6v2.5h5.2l-1.9-2.5H14Z"/></svg></div></div>' +
-        '</div>' +
-        '<div class="pr-name">Prithvi Realcon</div>' +
-        '<div class="pr-bar"><i></i></div>' +
-      '</div>';
-    H.appendChild(loader);
-    fb = loader.querySelector('#pr-fb');
-    mountAnimation(loader.querySelector('#pr-anim'));
-  }
-
-  function probe(url) {
-    return fetch(url, { method: 'HEAD', cache: 'no-cache' }).then(function (r) { return r.ok; }, function () { return false; });
-  }
-  function mountAnimation(box) {
-    var cached = ss('pr-lottie');
-    function use(url) {
-      if (!url) return;
-      if (/\.lottie(\?|$)/i.test(url)) mountDotLottie(box, url); else mountLottieWeb(box, url);
-    }
-    if (CFG.lottie) return use(CFG.lottie);
-    if (cached === 'none') return;
-    if (cached) return use(cached);
-    probe('loader.json').then(function (ok) {
-      if (ok) { ss('pr-lottie', 'loader.json'); return use('loader.json'); }
-      return probe('loader.lottie').then(function (ok2) {
-        if (ok2) { ss('pr-lottie', 'loader.lottie'); use('loader.lottie'); } else ss('pr-lottie', 'none');
-      });
-    });
-  }
-  function loadScript(src, mod, cb) {
-    var s = D.createElement('script'); s.src = src; if (mod) s.type = 'module';
-    s.onload = cb; s.onerror = function () {}; D.head.appendChild(s);
-  }
-  function mountLottieWeb(box, url) {
-    function go() {
-      if (!W.lottie) return;
-      var holder = D.createElement('div'); holder.style.cssText = 'width:100%;height:100%;opacity:0;transition:opacity .4s';
-      box.appendChild(holder);
-      var anim = W.lottie.loadAnimation({ container: holder, renderer: 'svg', loop: true, autoplay: true, path: url,
-        rendererSettings: { preserveAspectRatio: 'xMidYMid meet' } });
-      anim.addEventListener('DOMLoaded', function () { holder.style.opacity = 1; if (fb) fb.classList.add('hide'); });
-    }
-    if (W.lottie) go(); else loadScript('https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js', false, go);
-  }
-  function mountDotLottie(box, url) {
-    loadScript('https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs', true, function () {
-      var p = D.createElement('dotlottie-player');
-      p.setAttribute('src', url); p.setAttribute('autoplay', ''); p.setAttribute('loop', '');
-      p.style.cssText = 'width:100%;height:100%;opacity:0;transition:opacity .4s';
-      p.addEventListener('ready', function () { p.style.opacity = 1; if (fb) fb.classList.add('hide'); });
-      box.appendChild(p);
-    });
-  }
-
-  function hideLoader() {
-    if (done || !loader) return; done = true;
-    loader.classList.add('out');
-    H.classList.remove('pr-loading');
-    setTimeout(function () { if (loader && loader.parentNode) loader.parentNode.removeChild(loader); }, 800);
-    H.dispatchEvent(new Event('prtpl:ready'));
-  }
-  function scheduleHide() {
-    var wait = Math.max(0, minMs - (Date.now() - t0));
-    setTimeout(hideLoader, wait);
-  }
-  if (!blocked) {
-    buildLoader();
-    if (D.readyState === 'complete') scheduleHide(); else W.addEventListener('load', scheduleHide);
-    setTimeout(hideLoader, CFG.maxShow);
-  } else {
-    buildLoader();   // keep the screen clean while redirecting
-  }
-  /* back/forward cache: never show a stale loader or leave-state */
-  W.addEventListener('pageshow', function (e) {
-    H.classList.remove('pr-leave');
-    if (e.persisted) { H.classList.remove('pr-loading'); var l = D.getElementById('pr-loader'); if (l) l.remove(); }
-  });
-
-  if (blocked) return;
-
-  /* ---------- page transitions ---------- */
-  D.addEventListener('click', function (e) {
-    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-    var a = e.target.closest && e.target.closest('a[href]');
-    if (!a || (a.target && a.target !== '_self') || a.hasAttribute('download')) return;
-    var href = a.getAttribute('href');
-    if (!href || href.charAt(0) === '#' || /^(javascript|mailto|tel|blob|data):/i.test(href)) return;
-    var u; try { u = new URL(a.href, location.href); } catch (er) { return; }
-    if (u.origin !== location.origin) return;
-    if (u.pathname === location.pathname && u.search === location.search) return;
-    if (!/(\.html?|\/)$/i.test(u.pathname)) return;
-    e.preventDefault();
-    H.classList.add('pr-leave');
-    setTimeout(function () { location.href = u.href; }, 230);
-  });
-
-  /* ---------- toasts ---------- */
-  var toastBox;
-  function toast(msg, opt) {
-    opt = opt || {};
-    if (!toastBox) { toastBox = D.createElement('div'); toastBox.id = 'pr-toasts'; toastBox.setAttribute('aria-live', 'polite'); D.body.appendChild(toastBox); }
-    var el = D.createElement('div');
-    el.className = 'pr-toast ' + (opt.type || '');
-    var ic = { ok: 'fa-circle-check', err: 'fa-circle-exclamation', warn: 'fa-triangle-exclamation' }[opt.type] || 'fa-circle-info';
-    el.innerHTML = '<i class="fas ' + ic + '"></i><span></span>';
-    el.querySelector('span').textContent = msg;
-    if (opt.action) {
-      var b = D.createElement('button'); b.type = 'button'; b.textContent = opt.action.label;
-      b.onclick = function () { opt.action.fn(); close(); }; el.appendChild(b);
-    }
-    toastBox.appendChild(el);
-    function close() { el.classList.add('out'); setTimeout(function () { el.remove(); }, 300); }
-    if (opt.ms !== 0) setTimeout(close, opt.ms || 3800);
-    return close;
-  }
-
-  /* ---------- everything that needs <body> ---------- */
-  function ready(fn) { if (D.readyState === 'loading') D.addEventListener('DOMContentLoaded', fn); else fn(); }
-
-  ready(function () {
-    /* Font Awesome for pages that did not load it */
-    if (!D.querySelector('link[href*="font-awesome"]')) {
-      var l = D.createElement('link'); l.rel = 'stylesheet';
-      l.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css'; D.head.appendChild(l);
-    }
-
-    /* scroll progress + back-to-top */
-    var bar = D.createElement('div'); bar.id = 'pr-progress'; D.body.appendChild(bar);
-    var up = D.createElement('button'); up.className = 'pr-fab'; up.type = 'button'; up.setAttribute('aria-label', 'Back to top');
-    up.innerHTML = '<i class="fas fa-arrow-up"></i>'; D.body.appendChild(up);
-    up.onclick = function () { W.scrollTo({ top: 0, behavior: 'smooth' }); };
-    var tick = false;
-    function onScroll() {
-      if (tick) return; tick = true;
-      requestAnimationFrame(function () {
-        tick = false;
-        var max = H.scrollHeight - H.clientHeight, y = W.scrollY || H.scrollTop;
-        bar.style.width = max > 40 ? Math.min(100, y / max * 100) + '%' : '0';
-        up.classList.toggle('show', y > 520 && max > 800);
-      });
-    }
-    W.addEventListener('scroll', onScroll, { passive: true }); onScroll();
-
-    /* offline banner */
-    var off = D.createElement('div'); off.id = 'pr-offline'; off.setAttribute('role', 'alert');
-    off.textContent = 'You are offline. Changes will not save until the connection returns.'; D.body.appendChild(off);
-    function net() { off.classList.toggle('show', !navigator.onLine); }
-    W.addEventListener('online', function () { net(); toast('Back online', { type: 'ok' }); });
-    W.addEventListener('offline', net); net();
-
-    /* access-denied notice (set by the guard on another page) */
-    if (ss('pr-denied')) { ss('pr-denied', null); toast('You do not have access to that page.', { type: 'warn' }); }
-
-    trackVisit();
-    skipLink();
-    watchA11y();
-    hubFeatures();
-    buildPalette();
-    buildThemeUI();
-    buildQuickMenu();
-    idleWatch();
-    sessionWatch();
-    registerWorker();
-  });
-
-  /* ---------- hub-page features ---------- */
-  function hubFeatures() {
-    /* tiles that point to pages which do not exist yet -> "Coming soon" */
-    D.querySelectorAll('a.tile[href*="/"]').forEach(function (t) {
-      var h = t.getAttribute('href');
-      if (/^https?:/i.test(h)) return;
-      t.setAttribute('data-href', h); t.setAttribute('href', '#'); t.setAttribute('aria-disabled', 'true'); t.classList.add('pr-soon');
-      var b = D.createElement('span'); b.className = 'pr-badge'; b.textContent = 'Coming soon'; t.appendChild(b);
-      t.addEventListener('click', function (e) {
-        e.preventDefault();
-        var n = t.querySelector('.name'); toast((n ? n.textContent : 'This dashboard') + ' is not live yet.', { type: 'warn' });
-      });
-    });
-
-    /* broken logo images -> neat initials */
-    function fix(img) {
-      var tile = img.closest('.tile'), nm = tile && tile.querySelector('.name');
-      var s = D.createElement('span'); s.className = 'pr-fallback-logo';
-      s.textContent = (nm ? nm.textContent : '?').split(/\s+/).map(function (w) { return w[0]; }).join('').slice(0, 2).toUpperCase();
-      img.replaceWith(s);
-    }
-    D.querySelectorAll('.tile .ico img').forEach(function (img) {
-      img.referrerPolicy = 'no-referrer';
-      img.addEventListener('error', function () { fix(img); });
-      if (img.complete && img.naturalWidth === 0 && img.getAttribute('src')) fix(img);
-    });
-
-    /* recently opened + time-of-day greeting (home page only) */
-    var tiles = D.querySelectorAll('a.tile');
-    tiles.forEach(function (t) {
-      t.addEventListener('click', function () {
-        if (t.classList.contains('pr-soon')) return;
-        var n = t.querySelector('.name'), i = t.querySelector('.ico i');
-        if (!n) return;
-        var item = { h: t.getAttribute('href'), n: n.textContent, i: i ? i.className.replace(/\bfas\b/, '').trim() : 'fa-clock-rotate-left', c: t.style.getPropertyValue('--c') || '' };
-        var list; try { list = JSON.parse(ls('pr-recent') || '[]'); } catch (e) { list = []; }
-        list = list.filter(function (x) { return x.h !== item.h; }); list.unshift(item); ls('pr-recent', JSON.stringify(list.slice(0, 4)));
-      });
-    });
-    if (meta('pr-page') === 'home') {
-      var sub = D.querySelector('.hero .sub'), hr = new Date().getHours();
-      if (sub) sub.textContent = (hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening') + ' \u2014 choose a dashboard to open';
-      var grid = D.querySelector('nav.grid'), list2; try { list2 = JSON.parse(ls('pr-recent') || '[]'); } catch (e) { list2 = []; }
-      list2 = list2.filter(function (x) { return can(accessFor(x.h)) || accessFor(x.h) === ''; });
-      if (grid && list2.length) {
-        var r = D.createElement('div'); r.className = 'pr-recent'; r.innerHTML = '<b>Recent</b>';
-        list2.forEach(function (x) {
-          var a = D.createElement('a'); a.href = x.h; if (x.c) a.style.setProperty('--c', x.c);
-          a.innerHTML = '<i class="fas ' + x.i.replace(/[^\w\- ]/g, '') + '"></i><span></span>'; a.querySelector('span').textContent = x.n; r.appendChild(a);
-        });
-        grid.parentNode.insertBefore(r, grid);
-      }
-    }
-  }
-
-  /* ---------- command palette ---------- */
-  var PAGES = [
-    { t: 'Home', s: 'All dashboards', h: 'home_page.html', i: 'fa-house', c: '#1d4ed8', k: '' },
-    { t: 'AMM Performance', s: 'Party dashboards and reports', h: 'amm_home.html', i: 'fa-chart-line', c: '#1d4ed8', k: 'amm' },
-    { t: 'Hindustan Zinc', s: 'AMM · party dashboard', h: 'hzl_dashboard.html', i: 'fa-industry', c: '#0f8a6a', k: 'amm:HZL' },
-    { t: 'Jhabua Power (PJPB)', s: 'AMM · party dashboard', h: 'pjpb_dashboard.html', i: 'fa-bolt', c: '#1d4ed8', k: 'amm:PJPB' },
-    { t: 'JSW Mahanadi Power', s: 'AMM · party dashboard', h: 'ksk_dashboard.html', i: 'fa-plug', c: '#b45309', k: 'amm:JSW' },
-    { t: 'Gujarat Power Corporation', s: 'AMM · party dashboard', h: 'gujarat_dashboard.html', i: 'fa-gauge-high', c: '#be185d', k: 'amm:GPCL' },
-    { t: 'Daily Rake Loading', s: 'Daily entry and report', h: 'daily_rake_loading.html', i: 'fa-truck-loading', c: '#0e7490', k: 'amm' },
-    { t: 'Coal India Data', s: 'Dispatch dashboard and entry', h: 'dispatch_dashboard.html', i: 'fa-train', c: '#0f8a6a', k: 'coal' },
-    { t: 'ODR Data', s: 'Railway operations data', h: 'odr_home.html', i: 'fa-database', c: '#7c3aed', k: 'odr' },
-    { t: 'Hindustan Zinc ODR', s: 'ODR data', h: 'hzl_odr.html', i: 'fa-database', c: '#0f8a6a', k: 'odr:HZL' },
-    { t: 'NALCO ODR', s: 'ODR data', h: 'nlod_odr.html', i: 'fa-database', c: '#1d4ed8', k: 'odr:NALCO' },
-    { t: 'Notices', s: 'Coal company notice sites', h: 'notices.html', i: 'fa-bell', c: '#b7791f', k: 'notices' }
-  ];
-  function accessFor(h) { for (var i = 0; i < PAGES.length; i++) if (PAGES[i].h === h) return PAGES[i].k; return ''; }
-
-  var pal, palInput, palList, palItems = [], palSel = 0;
-  function buildPalette() {
-    if (!session()) return;
-    pal = D.createElement('div'); pal.id = 'pr-pal'; pal.setAttribute('role', 'dialog'); pal.setAttribute('aria-modal', 'true'); pal.setAttribute('aria-label', 'Quick navigation');
-    pal.innerHTML = '<div class="pr-box"><div class="pr-sbar"><i class="fas fa-magnifying-glass"></i>' +
-      '<input id="pr-q" type="text" placeholder="Jump to a page or action…" autocomplete="off" spellcheck="false" aria-label="Search pages"><span>Esc</span></div>' +
-      '<ul class="pr-list" id="pr-l" role="listbox"></ul>' +
-      '<div class="pr-foot"><span>↑ ↓ to move</span><span>Enter to open</span><span>Ctrl / ⌘ + K anywhere</span></div></div>';
-    D.body.appendChild(pal);
-    palInput = pal.querySelector('#pr-q'); palList = pal.querySelector('#pr-l');
-    pal.addEventListener('mousedown', function (e) { if (e.target === pal) closePal(); });
-    palInput.addEventListener('input', renderPal);
-    palInput.addEventListener('keydown', function (e) {
-      if (e.key === 'ArrowDown') { e.preventDefault(); movePal(1); }
-      else if (e.key === 'ArrowUp') { e.preventDefault(); movePal(-1); }
-      else if (e.key === 'Enter') { e.preventDefault(); runPal(palSel); }
-    });
-    D.addEventListener('keydown', function (e) {
-      var typing = /^(INPUT|TEXTAREA|SELECT)$/.test((e.target.tagName || '')) || e.target.isContentEditable;
-      /* keys typed in the instant before the search box takes focus are not lost */
-      if (pal.classList.contains('open') && D.activeElement !== palInput && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-        e.preventDefault(); palInput.focus(); palInput.value += e.key; renderPal(); return;
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); pal.classList.contains('open') ? closePal() : openPal(); }
-      else if (e.key === 'Escape') { closePal(); closeTheme(); closeMenu(); }
-      else if (e.key === '/' && !typing && !pal.classList.contains('open')) { e.preventDefault(); openPal(); }
-      else if (e.key === '?' && !typing && !e.ctrlKey && !e.metaKey) { e.preventDefault(); showShortcuts(); }
-      else if (!typing && !e.ctrlKey && !e.metaKey && !e.altKey && !dlgOpen) chord(e);
-    });
-  }
-  function actions() {
-    var dark = H.getAttribute('data-mode') === 'dark';
-    var a = [];
-    if (HUB) {
-      a.push({ t: dark ? 'Switch to light mode' : 'Switch to dark mode', s: 'Appearance', i: dark ? 'fa-sun' : 'fa-moon', c: '#b7791f', fn: function () { setMode(dark ? 'light' : 'dark'); } });
-      a.push({ t: 'Colour themes…', s: 'Change the accent palette', i: 'fa-palette', c: '#7c3aed', fn: function () { setTimeout(openTheme, 60); } });
-    }
-    tableList().forEach(function (t) { a.push({ t: 'Export table to CSV', s: t.name, i: 'fa-file-csv', c: '#15803d', fn: function () { exportCsv(t.el, t.name); } }); });
-    a.push({ t: 'Animations: ' + (H.getAttribute('data-motion') === 'full' ? 'switch to minimal' : 'switch to full'), s: 'Motion and visual effects', i: 'fa-wand-magic-sparkles', c: '#7c3aed', fn: toggleMotion });
-    a.push({ t: 'Keyboard shortcuts', s: 'Press ? anywhere', i: 'fa-keyboard', c: '#0e7490', fn: function () { setTimeout(showShortcuts, 60); } });
-    a.push({ t: 'Print or save as PDF', s: 'This page', i: 'fa-print', c: '#506078', fn: function () { setTimeout(function () { W.print(); }, 120); } });
-    a.push({ t: 'Copy link to this page', s: 'Share with a teammate', i: 'fa-link', c: '#506078', fn: copyLink });
-    a.push({ t: 'Sign out', s: 'End this session', i: 'fa-right-from-bracket', c: '#d1344a', fn: function () { signOut(); } });
-    return a;
-  }
-  function renderPal() {
-    var q = palInput.value.trim().toLowerCase();
-    var all = PAGES.filter(function (p) { return (p.k === '' || can(p.k)) && p.h !== location.pathname.split('/').pop(); })
-      .map(function (p) { return { t: p.t, s: p.s, i: p.i, c: p.c, h: p.h }; });
-    if (!q) {
-      var rec = recent();
-      all.forEach(function (x) { var r = rec.indexOf(x.h); x._r = r < 0 ? 99 : r; if (r > -1) { x.s = 'Recent · ' + x.s; x.i = 'fa-clock-rotate-left'; } });
-      all.sort(function (a, b) { return a._r - b._r; });
-    }
-    all = all.concat(actions());
-    palItems = q ? all.map(function (x) { return { x: x, sc: score(q, x.t + ' ' + x.s) }; })
-      .filter(function (r) { return r.sc > 0; }).sort(function (a, b) { return b.sc - a.sc; }).map(function (r) { return r.x; }) : all;
-    palSel = 0;
-    palList.innerHTML = '';
-    if (!palItems.length) { palList.innerHTML = '<li class="pr-empty">Nothing matches “' + q.replace(/[<>&]/g, '') + '”</li>'; return; }
-    palItems.forEach(function (x, idx) {
-      var li = D.createElement('li'); li.className = 'pr-item'; li.setAttribute('role', 'option'); li.setAttribute('aria-selected', idx === 0);
-      li.style.setProperty('--c', x.c);
-      li.innerHTML = '<span class="ic"><i class="fas ' + x.i + '"></i></span><span><span class="n"></span><small></small></span>';
-      li.querySelector('.n').textContent = x.t; li.querySelector('small').textContent = x.s;
-      li.addEventListener('mousemove', function () { selPal(idx); });
-      li.addEventListener('click', function () { runPal(idx); });
-      palList.appendChild(li);
-    });
-  }
-  /* simple fuzzy score: substring beats word-start beats in-order letters */
-  function score(q, text) {
-    var t = text.toLowerCase();
-    if (t.indexOf(q) === 0) return 100;
-    var at = t.indexOf(q);
-    if (at > -1) return t.charAt(at - 1) === ' ' ? 80 : 60;
-    var parts = q.split(/\s+/).filter(Boolean);
-    if (parts.length > 1 && parts.every(function (w) { return t.indexOf(w) > -1; })) return 50;
-    var j = 0; for (var k = 0; k < t.length && j < q.length; k++) if (t.charAt(k) === q.charAt(j)) j++;
-    return j === q.length && q.length > 2 ? 20 : 0;
-  }
-  function selPal(i) {
-    palSel = i;
-    [].forEach.call(palList.children, function (li, idx) { li.setAttribute('aria-selected', idx === i); if (idx === i) li.scrollIntoView({ block: 'nearest' }); });
-  }
-  function movePal(d) { if (palItems.length) selPal((palSel + d + palItems.length) % palItems.length); }
-  function runPal(i) {
-    var x = palItems[i]; if (!x) return; closePal();
-    if (x.fn) x.fn(); else { H.classList.add('pr-leave'); setTimeout(function () { location.href = x.h; }, 200); }
-  }
-  var palPrev = null;
-  function openPal() { closeTheme(); closeMenu(); palPrev = D.activeElement; palInput.value = ''; renderPal(); pal.classList.add('open'); focusPal(0); }
-  /* the box is only focusable once it is painted visible, so retry for a few frames */
-  function focusPal(n) { if (!pal.classList.contains('open') || D.activeElement === palInput || n > 20) return; palInput.focus(); requestAnimationFrame(function () { focusPal(n + 1); }); }
-  function closePal() {
-    if (!pal || !pal.classList.contains('open')) return;
-    pal.classList.remove('open');
-    if (palPrev && palPrev.focus && D.body.contains(palPrev)) try { palPrev.focus({ preventScroll: true }); } catch (e) {}
-  }
-
-  /* ---------- theme popover ---------- */
-  var themeBox;
-  function setMode(m) { ls('pr-mode', m); applyTheme(); syncTheme(); }
-  function setTheme(t) { ls('pr-theme', t); applyTheme(); syncTheme(); }
-  function syncTheme() {
-    if (!themeBox) return;
-    var t = ls('pr-theme') || 'royal', m = ls('pr-mode') || 'auto';
-    themeBox.querySelectorAll('.pr-sw button').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.t === t); });
-    themeBox.querySelectorAll('.pr-mode button').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.m === m); });
-  }
-  function buildThemeUI() {
-    if (!HUB) return;
-    themeBox = D.createElement('div'); themeBox.id = 'pr-theme'; themeBox.setAttribute('role', 'dialog'); themeBox.setAttribute('aria-label', 'Appearance');
-    themeBox.innerHTML = '<h4>Appearance</h4><div class="pr-sw"></div><div class="pr-mode">' +
-      '<button type="button" data-m="light">Light</button><button type="button" data-m="auto">Auto</button><button type="button" data-m="dark">Dark</button></div>' +
-      '<div class="pr-mot"><button type="button" data-mo="lite">Minimal motion</button><button type="button" data-mo="full">Full motion</button></div>';
-    var sw = themeBox.querySelector('.pr-sw');
-    THEMES.forEach(function (t) {
-      var b = D.createElement('button'); b.type = 'button'; b.dataset.t = t[0]; b.title = t[0][0].toUpperCase() + t[0].slice(1);
-      b.setAttribute('aria-label', b.title + ' theme'); b.style.setProperty('--g', t[1]); sw.appendChild(b);
-      b.onclick = function () { setTheme(t[0]); };
-    });
-    themeBox.querySelectorAll('.pr-mode button').forEach(function (b) { b.onclick = function () { setMode(b.dataset.m); }; });
-    themeBox.querySelectorAll('.pr-mot button').forEach(function (b) { b.onclick = function () { setMotion(b.dataset.mo); }; });
-    D.body.appendChild(themeBox); syncTheme(); syncMotion();
-
-    var host = D.querySelector('.top-right'), holder;
-    if (host) holder = host; else { holder = D.createElement('div'); holder.className = 'pr-floatbar'; D.body.appendChild(holder); }
-    var anchor = host ? host.firstChild : null;
-    function add(el) { if (host) host.insertBefore(el, anchor); else holder.appendChild(el); }
-    if (session()) {
-      var s = D.createElement('button'); s.type = 'button'; s.className = 'pr-chipbtn'; s.setAttribute('aria-label', 'Quick navigation');
-      s.innerHTML = '<i class="fas fa-magnifying-glass"></i><span class="t">Search</span><kbd>Ctrl K</kbd>'; s.onclick = openPal; add(s);
-    }
-    var tb = D.createElement('button'); tb.type = 'button'; tb.className = 'pr-chipbtn icon'; tb.id = 'pr-theme-btn';
-    tb.setAttribute('aria-label', 'Appearance and colour theme'); tb.innerHTML = '<i class="fas fa-palette"></i>';
-    tb.onclick = function (e) { e.stopPropagation(); themeBox.classList.contains('open') ? closeTheme() : openTheme(); }; add(tb);
-    D.addEventListener('click', function (e) { if (themeBox.classList.contains('open') && !themeBox.contains(e.target)) closeTheme(); });
-  }
-  function openTheme() {
-    if (!themeBox) return;
-    var b = D.getElementById('pr-theme-btn'), r = b ? b.getBoundingClientRect() : { bottom: 60, right: innerWidth - 14 };
-    themeBox.style.top = Math.min(r.bottom + 10, innerHeight - 220) + 'px';
-    themeBox.style.right = Math.max(10, innerWidth - r.right) + 'px';
-    themeBox.classList.add('open');
-  }
-  function closeTheme() { if (themeBox) themeBox.classList.remove('open'); }
-
-  /* ---------- idle sign-out ---------- */
-  var idleCheck = function () {};
-  function idleWatch() {
-    if (!session() || !CFG.idleMinutes) return;
-    var limit = CFG.idleMinutes * 60000, last = Date.now(), warned = false, closeWarn = null;
-    function bump() { last = Date.now(); if (warned && closeWarn) { closeWarn(); closeWarn = null; } warned = false; }
-    ['pointerdown', 'keydown', 'scroll', 'touchstart'].forEach(function (ev) { W.addEventListener(ev, bump, { passive: true }); });
-    idleCheck = function () {
-      var idle = Date.now() - last;
-      if (idle >= limit) { signOut('idle'); }
-      else if (idle >= limit - 120000 && !warned) {
-        warned = true;
-        closeWarn = toast('You will be signed out in 2 minutes due to inactivity.', { type: 'warn', ms: 0, action: { label: 'Stay signed in', fn: bump } });
-      }
-    };
-    setInterval(idleCheck, 15000);
-  }
-
-  /* ---------- dialogs: replace native confirm() / prompt() ---------- */
-  var dlgOpen = false, dlgQueue = Promise.resolve();
-  function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-
-  function openDialog(o) {
-    return new Promise(function (resolve) {
-      var prev = D.activeElement, id = 'pr-d' + Math.random().toString(36).slice(2, 7);
-      var danger = !!o.danger, isPrompt = o.kind === 'prompt', isInfo = o.kind === 'info';
-      var wrap = D.createElement('div'); wrap.className = 'pr-dlg';
-      wrap.innerHTML =
-        '<div class="pr-dlg-box' + (danger ? ' danger' : '') + '" role="' + (danger ? 'alertdialog' : 'dialog') + '" aria-modal="true" aria-labelledby="' + id + 't" aria-describedby="' + id + 'd">' +
-          '<div class="pr-dlg-ic"><i class="fas ' + (o.icon || (danger ? 'fa-triangle-exclamation' : isPrompt ? 'fa-pen' : isInfo ? 'fa-circle-info' : 'fa-circle-question')) + '"></i></div>' +
-          '<div class="pr-dlg-body"><h3 id="' + id + 't"></h3><p id="' + id + 'd"></p>' +
-          (isPrompt ? '<input class="pr-dlg-in" type="text" autocomplete="off" spellcheck="false" aria-label="' + esc(o.title) + '">' : '') + '</div>' +
-          '<div class="pr-dlg-act">' + (isInfo ? '' : '<button type="button" class="pr-btn ghost" data-r="0"></button>') + '<button type="button" class="pr-btn' + (danger ? ' danger' : '') + '" data-r="1"></button></div>' +
-        '</div>';
-      wrap.querySelector('h3').textContent = o.title;
-      wrap.querySelector('p').textContent = o.message || '';
-      if (!o.message) wrap.querySelector('p').hidden = true;
-      var okB = wrap.querySelector('[data-r="1"]'), noB = wrap.querySelector('[data-r="0"]'), inp = wrap.querySelector('.pr-dlg-in');
-      okB.textContent = o.okLabel || 'OK'; if (noB) noB.textContent = o.cancelLabel || 'Cancel';
-      if (inp) { inp.value = o.value || ''; inp.placeholder = o.placeholder || ''; }
-      var scrollLock = H.style.overflow; H.style.overflow = 'hidden';
-      D.body.appendChild(wrap); requestAnimationFrame(function () { wrap.classList.add('open'); });
-      (inp || (danger && noB) || okB).focus();
-      if (inp) inp.select();
-
-      var done = false;
-      function finish(ok) {
-        if (done) return; done = true;
-        wrap.classList.remove('open'); wrap.removeEventListener('keydown', onKey, true);
-        H.style.overflow = scrollLock;
-        setTimeout(function () { wrap.remove(); }, 220);
-        if (prev && prev.focus && D.body.contains(prev)) try { prev.focus({ preventScroll: true }); } catch (e) {}
-        resolve(isPrompt ? (ok ? inp.value : null) : !!ok);
-      }
-      function onKey(e) {
-        if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); finish(false); }
-        else if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') { e.preventDefault(); e.stopPropagation(); finish(true); }
-        else if (e.key === 'Tab') {
-          var f = [].slice.call(wrap.querySelectorAll('button,input')).filter(function (x) { return !x.disabled; });
-          var i = f.indexOf(D.activeElement);
-          if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); }
-          else if (!e.shiftKey && (i === f.length - 1 || i < 0)) { e.preventDefault(); f[0].focus(); }
-        } else e.stopPropagation();
-      }
-      wrap.addEventListener('keydown', onKey, true);
-      wrap.addEventListener('mousedown', function (e) { if (e.target === wrap) finish(false); });
-      okB.addEventListener('click', function () { finish(true); });
-      if (noB) noB.addEventListener('click', function () { finish(false); });
-    });
-  }
-  function queued(o) {
-    var run = function () { dlgOpen = true; return openDialog(o).then(function (r) { dlgOpen = false; return r; }); };
-    var p = dlgQueue.then(run, run); dlgQueue = p.catch(function () {}); return p;
-  }
-  function askConfirm(message, opt) {
-    opt = opt || {};
-    var danger = opt.danger != null ? opt.danger : /\b(delete|remove|permanent|cannot be undone|erase)\b/i.test(message);
-    return queued({ kind: 'confirm', title: opt.title || (danger ? 'Please confirm' : 'Confirm'), message: message, danger: danger,
-      okLabel: opt.okLabel || (danger && /delete/i.test(message) ? 'Delete' : 'Continue'), cancelLabel: opt.cancelLabel || 'Cancel' });
-  }
-  function askPrompt(message, opt) {
-    opt = opt || {};
-    return queued({ kind: 'prompt', title: opt.title || message, message: opt.title ? message : '', value: opt.value, placeholder: opt.placeholder,
-      okLabel: opt.okLabel || 'Add', cancelLabel: opt.cancelLabel || 'Cancel' });
-  }
-  function notice(title, message, opt) {
-    opt = opt || {};
-    return queued({ kind: 'info', title: title, message: message, icon: opt.icon, okLabel: opt.okLabel || 'Got it' });
-  }
-
-  /* ---------- keyboard shortcuts ---------- */
-  var SHORTCUTS = [
-    ['Ctrl / ⌘ + K', 'Search pages and actions'],
-    ['/', 'Open search'],
-    ['?', 'Show this list'],
-    ['G then H', 'Go to Home'],
-    ['G then A', 'Go to AMM Performance'],
-    ['G then O', 'Go to ODR Data'],
-    ['G then N', 'Go to Notices'],
-    ['Esc', 'Close any open panel']
-  ];
-  var chordAt = 0;
-  var CHORDS = { h: 'home_page.html', a: 'amm_home.html', o: 'odr_home.html', n: 'notices.html' };
-  function chord(e) {
-    var k = (e.key || '').toLowerCase();
-    if (k === 'g') { chordAt = Date.now(); return; }
-    if (chordAt && Date.now() - chordAt < 1200 && CHORDS[k]) {
-      chordAt = 0;
-      var h = CHORDS[k];
-      if (h !== location.pathname.split('/').pop() && (accessFor(h) === '' || can(accessFor(h)))) { e.preventDefault(); H.classList.add('pr-leave'); setTimeout(function () { location.href = h; }, 200); }
-    } else chordAt = 0;
-  }
-  function showShortcuts() {
-    if (dlgOpen) return;
-    closePal(); closeMenu(); closeTheme();
-    var rows = SHORTCUTS.map(function (r) {
-      return '<li><span>' + esc(r[1]) + '</span><span class="keys">' + r[0].split(' ').map(function (p) { return /^(then|\+|\/)$/.test(p) && p !== '/' ? '<em>' + p + '</em>' : '<kbd>' + esc(p) + '</kbd>'; }).join(' ') + '</span></li>';
-    }).join('');
-    var wrap = D.createElement('div'); wrap.className = 'pr-dlg';
-    wrap.innerHTML = '<div class="pr-dlg-box wide" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts"><div class="pr-dlg-ic"><i class="fas fa-keyboard"></i></div>' +
-      '<div class="pr-dlg-body"><h3>Keyboard shortcuts</h3><ul class="pr-keys">' + rows + '</ul></div>' +
-      '<div class="pr-dlg-act"><button type="button" class="pr-btn">Close</button></div></div>';
-    var prev = D.activeElement; dlgOpen = true;
-    D.body.appendChild(wrap); requestAnimationFrame(function () { wrap.classList.add('open'); });
-    var b = wrap.querySelector('button'); b.focus();
-    function close() { dlgOpen = false; wrap.classList.remove('open'); D.removeEventListener('keydown', onk, true); setTimeout(function () { wrap.remove(); }, 220); if (prev && prev.focus && D.body.contains(prev)) try { prev.focus({ preventScroll: true }); } catch (e) {} }
-    function onk(e) { if (e.key === 'Escape' || e.key === 'Enter' || e.key === '?') { e.preventDefault(); e.stopPropagation(); close(); } else if (e.key === 'Tab') { e.preventDefault(); b.focus(); } }
-    D.addEventListener('keydown', onk, true);
-    b.addEventListener('click', close); wrap.addEventListener('mousedown', function (e) { if (e.target === wrap) close(); });
-  }
-  function copyLink() {
-    var url = location.href.split('#')[0];
-    function ok() { toast('Link copied', { type: 'ok' }); }
-    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(ok, function () { toast('Could not copy the link', { type: 'err' }); });
-    else { var t = D.createElement('textarea'); t.value = url; t.style.cssText = 'position:fixed;opacity:0'; D.body.appendChild(t); t.select(); try { D.execCommand('copy'); ok(); } catch (e) { toast('Could not copy the link', { type: 'err' }); } t.remove(); }
-  }
-
-  /* ---------- quick menu (dashboard pages: account, search, shortcuts, sign out) ---------- */
-  var menuBtn, menuBox;
-  function initials(n) { return (String(n || '?').trim().split(/\s+/).map(function (w) { return w.charAt(0); }).join('').slice(0, 2) || '?').toUpperCase(); }
-  function timeLeft() {
-    var s = session(); if (!s || !s.at || !CFG.maxSessionHours) return '';
-    var ms = s.at + CFG.maxSessionHours * 3600000 - Date.now(); if (ms <= 0) return '';
-    var h = Math.floor(ms / 3600000), m = Math.floor(ms % 3600000 / 60000);
-    return (h ? h + ' h ' : '') + m + ' min left in this session';
-  }
-  function buildQuickMenu() {
-    var s = session();
-    if (!s || HUB || meta('pr-access') === null) return;
-    menuBtn = D.createElement('button'); menuBtn.type = 'button'; menuBtn.className = 'pr-quick';
-    menuBtn.setAttribute('aria-haspopup', 'menu'); menuBtn.setAttribute('aria-expanded', 'false'); menuBtn.setAttribute('aria-label', 'Account and quick actions');
-    menuBtn.innerHTML = '<span></span>'; menuBtn.firstChild.textContent = initials(s.name || s.user);
-    menuBox = D.createElement('div'); menuBox.id = 'pr-menu'; menuBox.setAttribute('role', 'menu');
-    menuBox.innerHTML = '<div class="pr-who"><b></b><small></small><small class="tl"></small></div>' +
-      '<button type="button" role="menuitem" data-a="home"><i class="fas fa-house"></i>Home</button>' +
-      '<button type="button" role="menuitem" data-a="search"><i class="fas fa-magnifying-glass"></i>Search<kbd>Ctrl K</kbd></button>' +
-      '<button type="button" role="menuitem" data-a="keys"><i class="fas fa-keyboard"></i>Shortcuts<kbd>?</kbd></button>' +
-      '<button type="button" role="menuitem" data-a="motion"><i class="fas fa-wand-magic-sparkles"></i>Animations<kbd></kbd></button>' +
-      '<button type="button" role="menuitem" data-a="print"><i class="fas fa-print"></i>Print or save as PDF</button>' +
-      '<button type="button" role="menuitem" data-a="out" class="out"><i class="fas fa-right-from-bracket"></i>Sign out</button>';
-    menuBox.querySelector('b').textContent = s.name || s.user;
-    menuBox.querySelector('small').textContent = s.user && s.name && s.user !== s.name ? '@' + s.user : 'Signed in';
-    D.body.appendChild(menuBtn); D.body.appendChild(menuBox);
-    menuBtn.onclick = function (e) { e.stopPropagation(); menuBox.classList.contains('open') ? closeMenu() : openMenu(); };
-    menuBox.addEventListener('click', function (e) {
-      var b = e.target.closest('button[data-a]'); if (!b) return; var a = b.dataset.a; closeMenu();
-      if (a === 'home') { H.classList.add('pr-leave'); setTimeout(function () { location.href = CFG.home; }, 200); }
-      else if (a === 'search') setTimeout(function () { if (pal) openPal(); }, 60);
-      else if (a === 'keys') setTimeout(showShortcuts, 60);
-      else if (a === 'motion') toggleMotion();
-      else if (a === 'print') setTimeout(function () { W.print(); }, 150);
-      else if (a === 'out') askConfirm('You will need to sign in again to continue.', { title: 'Sign out?', okLabel: 'Sign out', danger: false }).then(function (ok) { if (ok) signOut(); });
-    });
-    menuBox.addEventListener('keydown', function (e) {
-      var items = [].slice.call(menuBox.querySelectorAll('button')), i = items.indexOf(D.activeElement);
-      if (e.key === 'ArrowDown') { e.preventDefault(); items[(i + 1) % items.length].focus(); }
-      else if (e.key === 'ArrowUp') { e.preventDefault(); items[(i - 1 + items.length) % items.length].focus(); }
-      else if (e.key === 'Escape') { closeMenu(); menuBtn.focus(); }
-    });
-    D.addEventListener('click', function (e) { if (menuBox.classList.contains('open') && !menuBox.contains(e.target)) closeMenu(); });
-  }
-  function openMenu() { if (!menuBox) return; closeTheme(); menuBox.querySelector('.tl').textContent = timeLeft(); menuBox.querySelector('[data-a=motion] kbd').textContent = H.getAttribute('data-motion') === 'full' ? 'Full' : 'Minimal'; menuBox.classList.add('open'); menuBtn.setAttribute('aria-expanded', 'true'); var f = menuBox.querySelector('button'); if (f) f.focus(); }
-  function closeMenu() { if (menuBox && menuBox.classList.contains('open')) { menuBox.classList.remove('open'); menuBtn.setAttribute('aria-expanded', 'false'); } }
-
-  /* ---------- accessibility: name unlabeled fields and icon buttons ---------- */
-  function nameFields(root) {
-    root = root || D;
-    [].forEach.call(root.querySelectorAll('input:not([type=hidden]):not([type=submit]):not([type=button]),select,textarea'), function (el) {
-      if (el.getAttribute('aria-label') || el.getAttribute('aria-labelledby') || el.title || el.closest('label') || (el.id && D.querySelector('label[for="' + el.id + '"]'))) return;
-      var t = el.getAttribute('placeholder') || '';
-      if (!t) {
-        var td = el.closest('td,th'), tr = td && td.parentElement;
-        if (td && tr) {
-          var row = tr.firstElementChild && tr.firstElementChild !== td ? tr.firstElementChild.textContent.trim() : '';
-          var tb = tr.closest('table'), col = '';
-          if (tb && tb.tHead && tb.tHead.rows.length) { var hc = tb.tHead.rows[tb.tHead.rows.length - 1].cells[td.cellIndex]; col = hc ? hc.textContent.trim() : ''; }
-          t = [row, col].filter(Boolean).join(' – ');
-        }
-      }
-      if (!t) t = (el.name || el.id || '').replace(/[_-]+/g, ' ').trim();
-      if (t) el.setAttribute('aria-label', t.slice(0, 80));
-    });
-    [].forEach.call(root.querySelectorAll('button:not([aria-label]):not([title])'), function (b) {
-      if (b.textContent.trim()) return;
-      var ic = b.querySelector('i[class*="fa-"]'); if (!ic) return;
-      var m = (ic.className.match(/fa-(?!solid|regular|fas|far|fw)([a-z-]+)/) || [])[1];
-      if (m) b.setAttribute('aria-label', m.replace(/-/g, ' '));
-    });
-  }
-  function watchA11y() {
-    var t = 0;
-    nameFields();
-    new MutationObserver(function () { clearTimeout(t); t = setTimeout(nameFields, 400); }).observe(D.body, { childList: true, subtree: true });
-  }
-
-  /* ---------- motion, recent pages, CSV export ---------- */
-  function setMotion(m) { ls('pr-motion', m); H.setAttribute('data-motion', m); syncMotion(); }
-  function toggleMotion() {
-    var full = H.getAttribute('data-motion') === 'full';
-    setMotion(full ? 'lite' : 'full');
-    toast(full ? 'Animations set to minimal.' : 'Full animations on. Reload to see every effect.', { type: 'ok' });
-  }
-  function syncMotion() {
-    var m = H.getAttribute('data-motion');
-    if (themeBox) themeBox.querySelectorAll('.pr-mot button').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.mo === m); });
-  }
-  function recent() { try { return JSON.parse(ls('pr-visits') || '[]'); } catch (e) { return []; } }
-  function trackVisit() {
-    if (!session() || meta('pr-access') === null) return;
-    var h = location.pathname.split('/').pop(); if (!h) return;
-    var r = recent().filter(function (x) { return x !== h; }); r.unshift(h); ls('pr-visits', JSON.stringify(r.slice(0, 6)));
-  }
-  function tableList() {
-    var out = [];
-    [].forEach.call(D.querySelectorAll('table'), function (t) {
-      if (!t.offsetParent || t.rows.length < 2 || t.closest('#pr-pal,.pr-dlg')) return;
-      var box = t.closest('.card,section,.panel,.box') || t.parentElement, h = box && box.querySelector('h1,h2,h3,h4,.title,.card-title');
-      var name = (h && h.textContent.trim().replace(/\s+/g, ' ').slice(0, 40)) || 'Table ' + (out.length + 1);
-      out.push({ el: t, name: name });
-    });
-    return out.slice(0, 8);
-  }
-  function exportCsv(t, name) {
-    var rows = [].map.call(t.rows, function (r) {
-      return [].map.call(r.cells, function (c) {
-        var f = c.querySelector('input,select,textarea'), v = f ? (f.tagName === 'SELECT' ? (f.selectedOptions[0] || {}).text || '' : f.value) : c.innerText;
-        v = String(v).replace(/\s+/g, ' ').trim();
-        return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
-      }).join(',');
-    });
-    var blob = new Blob(['\ufeff' + rows.join('\r\n')], { type: 'text/csv;charset=utf-8' });
-    var a = D.createElement('a'); a.href = URL.createObjectURL(blob);
-    a.download = (name || 'table').replace(/[^\w\-]+/g, '_') + '_' + new Date().toISOString().slice(0, 10) + '.csv';
-    D.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
-    toast('CSV downloaded: ' + rows.length + ' rows', { type: 'ok' });
-  }
-
-  /* ---------- skip link ---------- */
-  function skipLink() {
-    var main = D.querySelector('main, [role="main"], .main, nav.grid, .list, .hero');
-    if (!main) return;
-    if (!main.id) main.id = 'pr-main';
-    if (main.tabIndex < 0) main.tabIndex = -1;
-    var a = D.createElement('a'); a.className = 'pr-skip'; a.href = '#' + main.id; a.textContent = 'Skip to content';
-    a.addEventListener('click', function (e) { e.preventDefault(); main.focus({ preventScroll: false }); main.scrollIntoView({ block: 'start' }); });
-    D.body.insertBefore(a, D.body.firstChild);
-  }
-
-  /* ---------- session safeguards ---------- */
-  function sessionWatch() {
-    var s = session(); if (!s) return;
-    function check() {
-      var cur = session();
-      if (!cur) { signOut('expired'); return; }
-      if (CFG.maxSessionHours && cur.at && Date.now() - cur.at > CFG.maxSessionHours * 3600000) signOut('expired');
-    }
-    /* timers freeze in background tabs, so re-check the moment the tab comes back */
-    D.addEventListener('visibilitychange', function () { if (!D.hidden) { check(); idleCheck(); } });
-    setInterval(check, 60000);
-  }
-
-  /* ---------- friendly error reporting (once per few seconds, never blocks the page) ---------- */
-  var lastErr = 0;
-  function softError(msg) { var n = Date.now(); if (n - lastErr < 8000) return; lastErr = n; toast(msg, { type: 'err' }); }
-  W.addEventListener('error', function (e) {
-    var m = String((e && e.message) || '');
-    if (!m || /ResizeObserver|Script error/i.test(m) || (e.target && e.target !== W)) return;
-    if (W.console) console.error('[PRTPL]', e.error || m);
-    softError('Something went wrong on this page. If it keeps happening, reload it.');
-  });
-  W.addEventListener('unhandledrejection', function (e) {
-    var r = e && e.reason, m = String(r && r.message || r || '');
-    if (W.console) console.error('[PRTPL]', r);
-    if (/Failed to fetch|NetworkError|Load failed|network request failed/i.test(m)) softError('Could not reach the server. Check your connection and try again.');
-    else if (!/AbortError|ResizeObserver/i.test(m)) softError('That action did not complete. Please try again.');
-  });
-
-  /* ---------- offline support (service worker) ---------- */
-  function registerWorker() {
-    if (!CFG.sw || !('serviceWorker' in navigator) || !/^https?:$/.test(location.protocol)) return;
-    var hadController = !!navigator.serviceWorker.controller, reloading = false;
-    navigator.serviceWorker.addEventListener('controllerchange', function () { if (hadController && !reloading) { reloading = true; location.reload(); } });
-    W.addEventListener('load', function () {
-      navigator.serviceWorker.register(CFG.sw).then(function (reg) {
-        reg.addEventListener('updatefound', function () {
-          var nw = reg.installing; if (!nw) return;
-          nw.addEventListener('statechange', function () {
-            if (nw.state === 'installed' && navigator.serviceWorker.controller)
-              toast('A new version of the portal is ready.', { ms: 0, action: { label: 'Update', fn: function () { nw.postMessage('skip-waiting'); } } });
-          });
-        });
-      }).catch(function () {});
-    });
-  }
-
-  /* ---------- public API ---------- */
-  W.PRTPL = {
-    version: CFG.version, setMotion: setMotion, exportCsv: exportCsv, toast: toast, signOut: signOut, can: can, session: session, setTheme: setTheme, setMode: setMode,
-    openPalette: function () { if (pal) openPal(); },
-    confirm: askConfirm, prompt: askPrompt, notice: notice, shortcuts: showShortcuts, esc: esc
-  };
-})();
-
-</script>
+<link rel="stylesheet" href="assets/prtpl.css" />
+<script src="assets/prtpl.js"></script>
 </head>
 <body>
 
-<!-- Floating nav -->
 <aside class="sidebar">
   <div class="party-name"><span class="dot"></span> HZL</div>
   <nav class="sidebar-nav">
     <button class="nav-item active" data-view="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</button>
-    <button class="nav-item" data-view="reports"><i class="fas fa-file-alt"></i> Reports</button>
-    <button class="nav-item" data-view="alerts"><i class="fas fa-bell"></i> Alerts</button>
-    <button class="nav-item" data-view="upload"><i class="fas fa-file-excel"></i> Upload Excel</button>
-    <button class="nav-item" data-view="log"><i class="fas fa-list"></i> Records Log</button>
-    <button class="nav-item" data-view="entry"><i class="fas fa-keyboard"></i> Data Entry</button>
-    <button class="nav-item" data-view="formulas"><i class="fas fa-calculator"></i> Formulas</button>
+    <button class="nav-item pro-tab" data-view="upload"><i class="fas fa-file-excel"></i> Upload Excel</button>
+    <button class="nav-item pro-tab" data-view="log"><i class="fas fa-list"></i> Records Log</button>
+    <button class="nav-item pro-tab" data-view="entry"><i class="fas fa-keyboard"></i> Data Entry</button>
+    <button class="nav-item pro-tab" data-view="formulas"><i class="fas fa-calculator"></i> Formulas</button>
   </nav>
-  <div class="user-chip"><span id="userLabel">Locked</span><button id="lockBtn"><i class="fas fa-lock"></i></button></div>
+  <div class="user-chip">
+    <button class="alert-btn" id="alertBtn" title="Pending rake details (not received)"><i class="fas fa-bell"></i><span class="alert-badge hidden" id="alertBadge">0</span></button>
+    <span id="userLabel">Locked</span><button id="lockBtn"><i class="fas fa-lock"></i></button>
+  </div>
 </aside>
 
 <main class="main">
 
-<!-- ============ DASHBOARD VIEW ============ -->
+<!-- ============ DASHBOARD ============ -->
 <section class="view active" id="view-dashboard">
   <div class="back-row">
-    <button class="back-btn" data-back="dashboard"><i class="fas fa-arrow-left"></i> Back</button>
+    <a class="back-btn" href="amm_home.html"><i class="fas fa-arrow-left"></i> Back</a>
     <div class="report-stamp">Performance Report updated upto <strong id="reportUpdatedUpto"></strong></div>
   </div>
   <div class="topbar">
     <div>
-      <h1>Performance Meter</h1>
+      <h1>HZL AMM Performance Dashboard</h1>
       <div class="period" id="periodLabel">AMM HZL</div>
     </div>
     <div class="topbar-actions">
       <select id="periodPick" class="month-pick" aria-label="Period"></select>
-      <button class="btn btn-secondary" id="resetDemo"><i class="fas fa-rotate"></i> Refresh</button>
-      <button class="btn btn-primary" id="saveDemo"><i class="fas fa-save"></i> Save Overload</button>
+      <button class="btn btn-secondary" id="reloadDash"><i class="fas fa-rotate"></i> Reload</button>
+      <button class="btn btn-primary" id="pngDash"><i class="fas fa-image"></i> Export PNG</button>
     </div>
+  </div>
+
+  <div class="card c-notice hidden" id="noticeCard">
+    <div class="card-header"><h3><i class="fas fa-bullhorn"></i> Notice</h3></div>
+    <div class="notice-text" id="noticeText"></div>
   </div>
 
   <div class="grid-3">
@@ -1494,17 +381,8 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
     <div class="card-header"><h3><i class="fas fa-industry"></i> Mines Wise Performance</h3></div>
     <div class="mines-wrap">
       <table class="mines-table">
-        <thead><tr><th>MINES</th><th>Govinda</th><th>KMKA</th><th>NKCR</th><th>OKSR</th><th>GPCK</th><th>JRGR</th><th>DIPKA</th><th>SLOG</th><th>CCL</th><th>MCL</th></tr></thead>
-        <tbody>
-          <tr><td class="row-label">GCV (ARB)</td><td><input id="m_gcv_gov" readonly></td><td><input id="m_gcv_kmka" readonly></td><td><input id="m_gcv_nkcr" readonly></td><td><input id="m_gcv_oksr" readonly></td><td><input id="m_gcv_gpck" readonly></td><td><input id="m_gcv_jrgr" readonly></td><td><input id="m_gcv_dipka" readonly></td><td><input id="m_gcv_slog" readonly></td><td><input id="m_gcv_ccl" readonly></td><td><input id="m_gcv_mcl" readonly></td></tr>
-          <tr><td class="row-label">Quality Diff. ADB/ARB</td><td><input id="m_diff_gov" readonly></td><td><input id="m_diff_kmka" readonly></td><td><input id="m_diff_nkcr" readonly></td><td><input id="m_diff_oksr" readonly></td><td><input id="m_diff_gpck" readonly></td><td><input id="m_diff_jrgr" readonly></td><td><input id="m_diff_dipka" readonly></td><td><input id="m_diff_slog" readonly></td><td><input id="m_diff_ccl" readonly></td><td><input id="m_diff_mcl" readonly></td></tr>
-          <tr><td class="row-label">Performance on GCV Mines Wise</td><td><input id="m_perf_gov" readonly></td><td><input id="m_perf_kmka" readonly></td><td><input id="m_perf_nkcr" readonly></td><td><input id="m_perf_oksr" readonly></td><td><input id="m_perf_gpck" readonly></td><td><input id="m_perf_jrgr" readonly></td><td><input id="m_perf_dipka" readonly></td><td><input id="m_perf_slog" readonly></td><td><input id="m_perf_ccl" readonly></td><td><input id="m_perf_mcl" readonly></td></tr>
-          <tr><td class="row-label">Cost Rs. GCV Per Paisa</td><td><input id="m_cost_gov" readonly></td><td><input id="m_cost_kmka" readonly></td><td><input id="m_cost_nkcr" readonly></td><td><input id="m_cost_oksr" readonly></td><td><input id="m_cost_gpck" readonly></td><td><input id="m_cost_jrgr" readonly></td><td><input id="m_cost_dipka" readonly></td><td><input id="m_cost_slog" readonly></td><td><input id="m_cost_ccl" readonly></td><td><input id="m_cost_mcl" readonly></td></tr>
-          <tr><td class="row-label">Shortage</td><td><input id="m_shrt_gov" readonly></td><td><input id="m_shrt_kmka" readonly></td><td><input id="m_shrt_nkcr" readonly></td><td><input id="m_shrt_oksr" readonly></td><td><input id="m_shrt_gpck" readonly></td><td><input id="m_shrt_jrgr" readonly></td><td><input id="m_shrt_dipka" readonly></td><td><input id="m_shrt_slog" readonly></td><td><input id="m_shrt_ccl" readonly></td><td><input id="m_shrt_mcl" readonly></td></tr>
-          <tr><td class="row-label">Punitive Sum (POL1/POL2/POLA..)</td><td><input id="m_pun_gov" readonly></td><td><input id="m_pun_kmka" readonly></td><td><input id="m_pun_nkcr" readonly></td><td><input id="m_pun_oksr" readonly></td><td><input id="m_pun_gpck" readonly></td><td><input id="m_pun_jrgr" readonly></td><td><input id="m_pun_dipka" readonly></td><td><input id="m_pun_slog" readonly></td><td><input id="m_pun_ccl" readonly></td><td><input id="m_pun_mcl" readonly></td></tr>
-          <tr><td class="row-label">EHBC / FAUC / SD / TC</td><td><input id="m_ehbc_gov" readonly></td><td><input id="m_ehbc_kmka" readonly></td><td><input id="m_ehbc_nkcr" readonly></td><td><input id="m_ehbc_oksr" readonly></td><td><input id="m_ehbc_gpck" readonly></td><td><input id="m_ehbc_jrgr" readonly></td><td><input id="m_ehbc_dipka" readonly></td><td><input id="m_ehbc_slog" readonly></td><td><input id="m_ehbc_ccl" readonly></td><td><input id="m_ehbc_mcl" readonly></td></tr>
-          <tr><td class="row-label">ENHC Charges</td><td><input id="m_enhc_gov" readonly></td><td><input id="m_enhc_kmka" readonly></td><td><input id="m_enhc_nkcr" readonly></td><td><input id="m_enhc_oksr" readonly></td><td><input id="m_enhc_gpck" readonly></td><td><input id="m_enhc_jrgr" readonly></td><td><input id="m_enhc_dipka" readonly></td><td><input id="m_enhc_slog" readonly></td><td><input id="m_enhc_ccl" readonly></td><td><input id="m_enhc_mcl" readonly></td></tr>
-        </tbody>
+        <thead id="minesHead"></thead>
+        <tbody id="minesBody"></tbody>
       </table>
     </div>
   </div>
@@ -1520,45 +398,7 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
   </div>
 </section>
 
-<!-- ============ REPORTS VIEW ============ -->
-<section class="view" id="view-reports">
-  <div class="back-row"><button class="back-btn" data-back="reports"><i class="fas fa-arrow-left"></i> Back</button></div>
-  <div class="topbar"><div><h1>Reports</h1><div class="period">Generate, view &amp; download operational reports</div></div></div>
-  <div class="panel">
-    <table class="rep-table">
-      <thead><tr><th>Report Name</th><th>Type</th><th>Period</th><th>Status</th></tr></thead>
-      <tbody>
-        <tr><td>Monthly Production Summary</td><td>Production</td><td>Sep 2026</td><td><span class="badge badge-success">Ready</span></td></tr>
-        <tr><td>Zinc Grade Quality Report</td><td>Quality</td><td>Sep 2026</td><td><span class="badge badge-success">Ready</span></td></tr>
-        <tr><td>Energy Efficiency Analysis</td><td>Energy</td><td>Q3 2026</td><td><span class="badge badge-success">Ready</span></td></tr>
-        <tr><td>Weekly Compliance Check</td><td>Compliance</td><td>W39 2026</td><td><span class="badge badge-warning">Draft</span></td></tr>
-        <tr><td>Shift-wise Output Log</td><td>Production</td><td>02 Oct 2026</td><td><span class="badge badge-info">Processing</span></td></tr>
-      </tbody>
-    </table>
-  </div>
-</section>
-
-<!-- ============ ALERTS VIEW ============ -->
-<section class="view" id="view-alerts">
-  <div class="back-row"><button class="back-btn" data-back="alerts"><i class="fas fa-arrow-left"></i> Back</button></div>
-  <div class="topbar"><div><h1>Alerts</h1><div class="period">Real-time monitoring &amp; notifications</div></div></div>
-  <div class="stats-grid">
-    <div class="stat-card" style="border-top-color:#d1344a"><div class="label">Critical</div><div class="value" style="color:#d1344a">2</div></div>
-    <div class="stat-card" style="border-top-color:#c27a0a"><div class="label">Warning</div><div class="value" style="color:#c27a0a">3</div></div>
-    <div class="stat-card" style="border-top-color:#2f6fd0"><div class="label">Info</div><div class="value" style="color:#2f6fd0">2</div></div>
-    <div class="stat-card" style="border-top-color:#16875f"><div class="label">Resolved Today</div><div class="value" style="color:#16875f">5</div></div>
-  </div>
-  <div class="panel">
-    <h2>Active Alerts</h2>
-    <div class="alert-item critical"><div><h4>High Temperature in Roaster 3</h4><p>Temperature exceeded threshold (920°C). Immediate inspection required.</p><div class="alert-time">Today · 07:55 AM · Power Block</div></div></div>
-    <div class="alert-item critical"><div><h4>Energy Spike Detected</h4><p>Unexpected 18% increase in power draw at Smelter Unit A over last 30 mins.</p><div class="alert-time">Today · 07:55 AM · Smelter Unit A</div></div></div>
-    <div class="alert-item warning"><div><h4>Scheduled Maintenance Overdue</h4><p>Preventive maintenance for Conveyor Belt CB-12 was due yesterday.</p><div class="alert-time">Yesterday · 16:00 · Material Handling</div></div></div>
-    <div class="alert-item warning"><div><h4>Sample Pending Lab Analysis</h4><p>3 quality samples from Batch HZL-2839 awaiting results (SLA: 4 hrs remaining).</p><div class="alert-time">Today · 06:30 AM · Lab 2</div></div></div>
-    <div class="alert-item success"><div><h4>Batch #HZL-2841 Completed Successfully</h4><p>All quality parameters within specification. Output: 248.3 MT.</p><div class="alert-time">Today · 10:42 AM · Smelter Unit A</div></div></div>
-  </div>
-</section>
-
-<!-- ============ PASSWORD PAGE (shown before Upload, Log, Entry, Formulas) ============ -->
+<!-- ============ PASSWORD ============ -->
 <section class="view" id="view-lock">
   <div class="lock-row">
     <button class="lock-back" id="lockBack"><i class="fas fa-arrow-left"></i> Back to Dashboard</button>
@@ -1572,9 +412,9 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
   </div>
 </section>
 
-<!-- ============ UPLOAD EXCEL VIEW ============ -->
+<!-- ============ UPLOAD ============ -->
 <section class="view" id="view-upload">
-  <div class="back-row"><button class="back-btn" data-back="upload"><i class="fas fa-arrow-left"></i> Back</button></div>
+  <div class="back-row"><button class="back-btn" data-view-back><i class="fas fa-arrow-left"></i> Back</button></div>
   <div class="topbar"><div><h1>Upload Excel</h1><div class="period">Import rake records into the database</div></div></div>
   <div class="panel">
     <h2><i class="fas fa-file-excel"></i> Choose workbook</h2>
@@ -1597,14 +437,15 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
   </div>
 </section>
 
-<!-- ============ RECORDS LOG VIEW ============ -->
+<!-- ============ RECORDS LOG ============ -->
 <section class="view" id="view-log">
-  <div class="back-row"><button class="back-btn" data-back="log"><i class="fas fa-arrow-left"></i> Back</button></div>
+  <div class="back-row"><button class="back-btn" data-view-back><i class="fas fa-arrow-left"></i> Back</button></div>
   <div class="topbar"><div><h1>Records Log</h1><div class="period">Edit or delete saved rake records</div></div></div>
   <div class="panel">
     <div class="toolbar">
       <input class="search" id="logSearch" placeholder="Search by RR no, siding, area, FSA...">
       <button class="btn-soft" id="logReload"><i class="fas fa-rotate"></i> Reload</button>
+      <button class="btn-go" id="logSaveAll"><i class="fas fa-floppy-disk"></i> Save All</button>
       <span class="muted" id="logCount"></span>
     </div>
     <div class="toolbar" id="logFilters">
@@ -1623,9 +464,9 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
   </div>
 </section>
 
-<!-- ============ DATA ENTRY VIEW ============ -->
+<!-- ============ DATA ENTRY ============ -->
 <section class="view" id="view-entry">
-  <div class="back-row"><button class="back-btn" data-back="entry"><i class="fas fa-arrow-left"></i> Back</button></div>
+  <div class="back-row"><button class="back-btn" data-view-back><i class="fas fa-arrow-left"></i> Back</button></div>
   <div class="topbar"><div><h1>Data Entry</h1><div class="period">Record coal rake loading, receipt, freight &amp; cost data</div></div></div>
   <div class="panel">
     <h2><i class="fas fa-plus-circle"></i> New Rake Record</h2>
@@ -1643,8 +484,9 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
       </div>
     </form>
   </div>
+
   <div class="panel">
-    <h2><i class="fas fa-bullseye"></i> <span id="rakeTitle">Target Rake</span></h2>
+    <h2><i class="fas fa-bullseye"></i> Target Rake</h2>
     <div class="toolbar">
       <select id="rakeQuarter" class="field" style="max-width:200px">
         <option value="Q1">Q1 (Apr–Jun)</option><option value="Q2">Q2 (Jul–Sep)</option>
@@ -1665,11 +507,38 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
       <div class="form-group"><label for="gcvCostTarget">Per GCV Cost Target (₹)</label><input type="number" id="gcvCostTarget" min="0" step="0.001" placeholder="e.g. 0.400"></div>
     </div>
   </div>
+
+  <div class="panel">
+    <h2><i class="fas fa-sliders"></i> Manual Override</h2>
+    <p class="muted">Switch a dashboard value ON and type a fixed figure. It replaces the formula for the quarter chosen above until you switch it OFF or press Reset.</p>
+    <div class="toolbar" style="margin-top:.8rem">
+      <label class="switch" title="Override on / off"><input type="checkbox" id="ovrSwitch"><span class="slider"></span></label>
+      <select id="ovrField" class="field" style="max-width:360px" aria-label="Dashboard value"></select>
+      <input type="number" step="any" id="ovrValue" class="field" style="max-width:180px" placeholder="Manual value">
+      <button class="btn-go" id="ovrSave"><i class="fas fa-floppy-disk"></i> Save value</button>
+      <button class="btn-soft" id="ovrReset"><i class="fas fa-rotate-left"></i> Reset to formula</button>
+    </div>
+    <div class="muted" id="ovrScopeNote"></div>
+    <div class="tbl-wrap" style="max-height:none;margin-top:.8rem"><table class="tbl" id="ovrTbl"></table></div>
+    <div class="status" id="ovrStatus"></div>
+  </div>
+
+  <div class="panel">
+    <h2><i class="fas fa-bullhorn"></i> Dashboard Notice</h2>
+    <p class="muted">Type a notice and switch it ON to show it on the dashboard. Switch it OFF (or leave the box empty) and nothing is shown.</p>
+    <div class="toolbar" style="margin-top:.8rem">
+      <label class="switch" title="Show notice on dashboard"><input type="checkbox" id="noticeOn"><span class="slider"></span></label>
+      <span class="muted">Show on dashboard</span>
+    </div>
+    <textarea class="notice-input" id="noticeInput" placeholder="Type the notice here..."></textarea>
+    <div class="form-actions"><button class="btn-go" id="noticeSave"><i class="fas fa-floppy-disk"></i> Save Notice</button></div>
+    <div class="status" id="noticeStatus"></div>
+  </div>
 </section>
 
-<!-- ============ FORMULAS VIEW ============ -->
+<!-- ============ FORMULAS ============ -->
 <section class="view" id="view-formulas">
-  <div class="back-row"><button class="back-btn" data-back="formulas"><i class="fas fa-arrow-left"></i> Back</button></div>
+  <div class="back-row"><button class="back-btn" data-view-back><i class="fas fa-arrow-left"></i> Back</button></div>
   <div class="topbar">
     <div><h1>Formulas</h1><div class="period">Change the calculation rules here. The dashboard uses the new values as soon as you save.</div></div>
     <div class="topbar-actions"><button class="btn btn-secondary" id="saveFormulas"><i class="fas fa-save"></i> Save Formulas</button></div>
@@ -1690,94 +559,36 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
     </div>
   </div>
   <div class="panel">
-    <h2><i class="fas fa-info-circle"></i> How every dashboard value is calculated</h2>
-    <p class="muted">Use this list to trace a wrong value. RR = RR weight (rr_wt), Recv = received weight (recv_wt), Qtr = the selected quarter. "Sum" means the total for the quarter, unless a mine or area filter is named.</p>
-
-    <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Key Performance (top left card)</h4>
+    <h2><i class="fas fa-info-circle"></i> How the main dashboard values are calculated</h2>
+    <p class="muted">RR = RR weight, Recv = received weight, GCV ARB / ADB = grades from the record. Sums are for the selected quarter.</p>
     <ul class="formula-list">
-      <li>Per Day Required Rake for Target = sum of "Asking Per Day" from the Target Rake table (Data Entry)</li>
-      <li>Performance on Rake Materialization = sum of "Asking (%)" from the Target Rake table</li>
-      <li>Performance on GCV (SECL/CCL/MCL) = sum of (RR × GCV ARB) ÷ sum of RR</li>
-      <li>Position of GCV for Achieve Target = (sum of (RR × GCV ADB) ÷ sum of RR) − Performance on GCV</li>
-      <li>Position of GCV for SECL / CCL / MCL Rakes = that area's sum of GCV ADB − sum of GCV ARB</li>
-    </ul>
-
-    <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Area Targets (Qtr)</h4>
-    <ul class="formula-list">
-      <li>Target of Qtr = sum of Qtr Target for the area (Data Entry)</li>
-      <li>Rake Loaded Till = count of area rakes dated up to the report date (or quarter end if no report date)</li>
-      <li>Balance Rake = Target of Qtr − Rake Loaded Till</li>
-      <li>Asking Per Day = sum of "Asking Per Day" for the area from the Target Rake table</li>
-    </ul>
-
-    <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Shortage / Excess Coal</h4>
-    <ul class="formula-list">
-      <li>Avg Shrt / Excess (%) = (sum of Recv − sum of RR) ÷ number of rakes (the code gives MT per rake, not %)</li>
-      <li>Shortage / Excess MT per rake = (sum of Recv − sum of RR) ÷ sum of RR × 100 (the code gives %, not MT)</li>
-      <li>Avg. Wt. GCV (per area) = simple average of GCV ARB for the area's rakes</li>
-      <li>Per GCV Cost (per area) = sum of Landed Cost ÷ sum of GCV ARB for the area</li>
-    </ul>
-
-    <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Billing Performance</h4>
-    <ul class="formula-list">
-      <li>Rate per MT (used below) = band rate from the Formulas table, chosen by "Shortage / Excess MT per rake" value</li>
-      <li>Performance on Quantity Reco = rate per MT × sum of RR; the per-MT box shows the rate</li>
-      <li>Performance on GCV Reco = sum of bonus_penalty from the database; per-MT box = that sum ÷ sum of RR</li>
-      <li>Service Charge SECL / CCL / MCL = area sum of RR × fixed service charge (Data Entry); per-MT box = charge ÷ area sum of RR</li>
-      <li>5% of Total Railway Penalty = Total Penalty × penalty share % (Formulas); per-MT box = ÷ sum of RR</li>
-      <li>TOTAL BILLING = Quantity Reco + GCV Reco + Service SECL + Service CCL + Service MCL − 5% penalty (the 5% line is negative, shown red); per-MT box = ÷ sum of RR</li>
+      <li>Performance on GCV = sum of (RR × GCV ARB) ÷ sum of RR. Position of GCV for Achieve Target = (sum of (RR × GCV ADB) ÷ sum of RR) − Performance on GCV</li>
+      <li>Shortage / Excess % = (sum of Recv − sum of RR) ÷ sum of RR × 100; MT per rake = (sum of Recv − sum of RR) ÷ number of rakes</li>
+      <li>Quantity Reco = rate from the shortage table × sum of Recv; GCV Reco = sum of bonus_penalty from the database</li>
+      <li>Service Charge SECL / CCL / MCL = area sum of Recv × fixed service charge (Data Entry)</li>
+      <li>5% of Total Railway Penalty = Total Penalty × penalty share % (Formulas); Total Penalty = Overload + Punitive + EHBC + ENHC (Dead Freight is shown but NOT included)</li>
+      <li>TOTAL BILLING = Quantity Reco + GCV Reco + Service SECL + Service CCL + Service MCL − 5% penalty</li>
       <li>Expected Billing of the Qtr = TOTAL BILLING ÷ days passed in the quarter × total days in the quarter</li>
-    </ul>
-
-    <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Rake Performance</h4>
-    <ul class="formula-list">
-      <li>Per Day Rakes – Achieve = number of rakes ÷ total days in the quarter; Target = Per Day Required Rake</li>
-      <li>Per Day Quantity – Achieve = sum of RR ÷ total days in the quarter; Target = number of rakes × MT per rake (Formulas)</li>
-      <li>Per GCV Cost – Achieve = SECL Per GCV Cost; Target = Per GCV Cost Target (Data Entry)</li>
-      <li>Avg. CH.Wt. = average Ch Weight; Avg. RR.Wt. = average RR Weight; Avg. Plant Rec. Wt. = average Recv</li>
-      <li>Average GCV = average GCV ADB of the rakes</li>
-      <li>Total RR Weight = sum of RR; Total Plant Receive = sum of Recv</li>
-    </ul>
-
-    <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Railway Freight Penalties</h4>
-    <ul class="formula-list">
-      <li>Underload Charge = sum of ul_ch (Data Entry) for the quarter; per-MT box = charge ÷ sum of RR</li>
-      <li>Overload Charge = sum of ol_ch (Data Entry) for the quarter; per-MT box = charge ÷ sum of RR</li>
-      <li>Punitive Sum = sum of POL group charges; EHBC / FAUC / TC = sum of EHBC group; ENHC = sum of ENHC charge; Dead Freight = sum of dead freight charges</li>
-      <li>TOTAL PENALTY = Overload + Punitive + EHBC + ENHC (Dead Freight is shown in grey and is NOT included); per-MT box = ÷ sum of RR</li>
-      <li>5% of Total Penalty = TOTAL PENALTY × penalty share % (Formulas)</li>
-    </ul>
-
-    <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Mines Wise Performance (one column per mine)</h4>
-    <ul class="formula-list">
-      <li>Mine rows are matched by siding name (for example, a siding containing KMKA counts for KMKA); CCL and MCL use the area field</li>
-      <li>GCV (ARB) = sum of (RR × GCV ARB) ÷ sum of RR for the mine</li>
-      <li>Quality Diff. ADB/ARB = (sum of GCV ADB × RR ÷ sum of RR) − (sum of GCV ARB × RR ÷ sum of RR) for the mine</li>
-      <li>Performance on GCV Mines Wise = sum of bonus_penalty for the mine</li>
-      <li>Cost Rs. GCV Per Paisa = sum of Landed Cost ÷ sum of GCV ARB</li>
-      <li>Shortage = sum of Recv − sum of RR</li>
-      <li>Punitive, EHBC and ENHC rows = sums of the matching freight columns</li>
-    </ul>
-
-    <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Monthly &amp; Quarterly Performance</h4>
-    <ul class="formula-list">
-      <li>Rs. Per GCV Cost (month) = sum of Landed Cost ÷ sum of GCV ARB for that month</li>
-      <li>Per Day Qty (month) = sum of RR for the month ÷ days elapsed in that month</li>
-      <li>WT. GCV (month) = sum of (RR × GCV ARB) ÷ sum of RR for the month</li>
-      <li>Quarterly values repeat the same formulas across the whole quarter; Quarterly Billing = that quarter's TOTAL BILLING</li>
-      <li>% = number of rakes ÷ quarter target × 100 (capped at 100%; shown red when below 100%)</li>
-    </ul>
-
-    <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Calculated in Data Entry and the database</h4>
-    <ul class="formula-list">
-      <li>Mines Loading Duration = P/T to C/T time difference, shown as HH:MM hrs</li>
-      <li>Sick Box = Supply Box − Load Box</li>
-      <li>Bonus penalty (bonus_penalty, gcv_bonus_penalty_per_mt) = calculated by the database trigger on insert/update of grade, GCV ARB or RR weight; the dashboard only reads it</li>
+      <li>Area Target, Loaded Till, Balance and Asking Per Day come from the Target Rake table in Data Entry</li>
+      <li>Mines are matched by siding name (GOVIND, KMKA, NKCR, OKSR, GPCK, JRGR, DIPKA, SLOG); CCL and MCL use the area field</li>
+      <li>Mines Loading Duration = P/T to C/T time difference; Sick Box = Supply Box − Load Box; Underload Quantity = Ch Weight − RR Weight</li>
     </ul>
   </div>
 </section>
 
 </main>
+
+<!-- ============ ALERT POPUP ============ -->
+<div class="modal-back hidden" id="alertModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2><i class="fas fa-bell"></i> Pending Rake Details (not received)</h2>
+      <button class="btn-soft btn-sm" id="alertClose"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="alert-tabs" id="alertTabs"></div>
+    <div class="alert-body" id="alertBody"></div>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 
@@ -1788,7 +599,7 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
 /* ==================== CONFIG ==================== */
 const SUPABASE_URL = 'https://pycmkjrmdieaqsbgrher.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5Y21ranJtZGllYXFzYmdyaGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwMjMxNzAsImV4cCI6MjEwNjU5OTE3MH0.9IE2c2FZ4BPv6Rvhfa_VniQ7LJvQ_c4EGDXFihYR4Lc';
-const APP_PASSWORD = '1234';   // password for Upload Excel, Records Log, Data Entry and Formulas
+const APP_PASSWORD = '1234';
 
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -1796,7 +607,9 @@ const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const $ = id => document.getElementById(id);
 const pad2 = n => String(n).padStart(2, '0');
 const num = v => (v === '' || v == null || isNaN(+v)) ? 0 : +v;
+const isNum = v => v !== null && v !== undefined && v !== '' && !isNaN(Number(v));
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 let toastTimer;
 function toast(msg, err) {
@@ -1807,15 +620,16 @@ function toast(msg, err) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
 }
+function setStatus(id, msg, cls) { const el = $(id); el.textContent = msg; el.className = 'status ' + (cls || ''); }
+function todayStr() { const d = new Date(); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
 
 /* ==================== PASSWORD + VIEWS ==================== */
 const PROTECTED = ['upload', 'log', 'entry', 'formulas'];
 const VIEW_NAMES = { upload: 'Upload Excel', log: 'Records Log', entry: 'Data Entry', formulas: 'Formulas' };
 let isUnlocked = false;
 let pendingView = 'dashboard';
-let viewHistory = ['dashboard'];
 
-function showView(name, fromBack) {
+function showView(name) {
   if (PROTECTED.includes(name) && !isUnlocked) {
     pendingView = name;
     $('lockTitle').textContent = 'Enter password to open ' + VIEW_NAMES[name];
@@ -1824,30 +638,23 @@ function showView(name, fromBack) {
     name = 'lock';
     setTimeout(() => $('pwdInput').focus(), 50);
   }
-  if (!fromBack && name !== viewHistory[viewHistory.length - 1]) viewHistory.push(name);
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
   const navKey = name === 'lock' ? pendingView : name;
   document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.view === navKey));
-
   if (name === 'dashboard') loadDashboard();
   if (name === 'log') loadLog();
   if (name === 'entry') initEntry();
   if (name === 'formulas') renderFormulas();
 }
 
-function goBack() {
-  viewHistory.pop();
-  const prev = viewHistory[viewHistory.length - 1] || 'dashboard';
-  showView(prev, true);
-  if (!viewHistory.length) viewHistory = ['dashboard'];
-}
-
 function tryUnlock() {
   if ($('pwdInput').value === APP_PASSWORD) {
     isUnlocked = true;
+    document.body.classList.add('unlocked');
     $('pwdInput').value = '';
     $('pwdErr').textContent = '';
     $('userLabel').textContent = 'Unlocked';
+    $('lockBtn').innerHTML = '<i class="fas fa-lock-open"></i>';
     showView(pendingView);
   } else {
     $('pwdErr').textContent = 'Wrong password';
@@ -1856,25 +663,37 @@ function tryUnlock() {
 }
 $('unlockBtn').addEventListener('click', tryUnlock);
 $('pwdInput').addEventListener('keydown', e => { if (e.key === 'Enter') tryUnlock(); });
-$('lockBack').addEventListener('click', () => showView('dashboard'));
+$('lockBack').addEventListener('click', () => { pendingView = 'dashboard'; showView('dashboard'); });
 $('lockBtn').addEventListener('click', () => {
-  isUnlocked = false;
-  $('userLabel').textContent = 'Locked';
-  showView('dashboard');
+  if (isUnlocked) {
+    isUnlocked = false;
+    document.body.classList.remove('unlocked');
+    $('userLabel').textContent = 'Locked';
+    $('lockBtn').innerHTML = '<i class="fas fa-lock"></i>';
+    showView('dashboard');
+  } else {
+    pendingView = 'dashboard';
+    $('lockTitle').textContent = 'Enter password';
+    $('pwdInput').value = '';
+    $('pwdErr').textContent = '';
+    showView('lock');
+    setTimeout(() => $('pwdInput').focus(), 50);
+  }
 });
 document.querySelectorAll('.nav-item').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
-document.querySelectorAll('.back-btn').forEach(b => b.addEventListener('click', () => { window.location.href = 'amm_home.html'; }));
+document.querySelectorAll('[data-view-back]').forEach(b => b.addEventListener('click', () => showView('dashboard')));
 
-/* ==================== FORMULAS (editable rules, stored under period_key 'global') ==================== */
+/* ==================== GLOBAL SETTINGS: formulas, notice ==================== */
 const DEFAULT_FORMULAS = {
-  bands: [[0.05, 5], [0.3, 0], [0.5, -1], [1, -2], [1.5, -3]],   // [up to %, rate per MT]
-  aboveRate: -4,        // rate when above the last limit
-  qtyPerRake: 3900,     // Per Day Quantity target = rakes x this
-  penaltyPct: 5         // % of total penalty used in the billing lines
+  bands: [[0.05, 5], [0.3, 0], [0.5, -1], [1, -2], [1.5, -3]],
+  aboveRate: -4,
+  qtyPerRake: 3900,
+  penaltyPct: 5
 };
 let FORMULAS = structuredClone(DEFAULT_FORMULAS);
+let NOTICE = { on: false, text: '' };
 
-async function loadFormulas() {
+async function loadGlobal() {
   try {
     const { data } = await db.from('hzl_dashboard_values').select('field_key, field_value').eq('period_key', 'global');
     (data || []).forEach(r => {
@@ -1885,8 +704,11 @@ async function loadFormulas() {
       if (r.field_key === 'f_above_rate') FORMULAS.aboveRate = Number(v);
       if (r.field_key === 'f_qty_per_rake') FORMULAS.qtyPerRake = Number(v);
       if (r.field_key === 'f_pen_pct') FORMULAS.penaltyPct = Number(v);
+      if (r.field_key === 'notice') {
+        try { const n = JSON.parse(v) || {}; NOTICE = { on: !!n.on, text: String(n.text || '') }; } catch (e) {}
+      }
     });
-  } catch (e) { console.warn('Formulas not loaded, using defaults', e); }
+  } catch (e) { console.warn('Settings not loaded, using defaults', e); }
 }
 
 function shortageRate(s) {
@@ -1909,27 +731,49 @@ async function saveFormulas() {
   const upTo = [], rate = [];
   document.querySelectorAll('#bandTbl input[data-band]').forEach(inp => {
     const i = +inp.dataset.band;
-    if (inp.dataset.k === 'upTo') upTo[i] = Number(inp.value);
-    else rate[i] = Number(inp.value);
+    if (inp.dataset.k === 'upTo') upTo[i] = Number(inp.value); else rate[i] = Number(inp.value);
   });
   FORMULAS.bands = upTo.map((u, i) => [u, rate[i]]);
   FORMULAS.aboveRate = Number($('fAboveRate').value);
   FORMULAS.qtyPerRake = Number($('fQtyPerRake').value);
   FORMULAS.penaltyPct = Number($('fPenPct').value);
-
   const rows = [
     { field_key: 'f_bands', field_value: JSON.stringify(FORMULAS.bands) },
     { field_key: 'f_above_rate', field_value: String(FORMULAS.aboveRate) },
     { field_key: 'f_qty_per_rake', field_value: String(FORMULAS.qtyPerRake) },
     { field_key: 'f_pen_pct', field_value: String(FORMULAS.penaltyPct) }
   ].map(r => ({ ...r, period_key: 'global', sort_order: 0 }));
-
   const { error } = await db.from('hzl_dashboard_values').upsert(rows, { onConflict: 'period_key,field_key' });
   if (error) { toast('Save failed: ' + error.message, true); return; }
   toast('Formulas saved');
   loadDashboard();
 }
 $('saveFormulas').addEventListener('click', saveFormulas);
+
+function renderNotice() {
+  const show = !!(NOTICE.on && NOTICE.text);
+  $('noticeCard').classList.toggle('hidden', !show);
+  $('noticeText').textContent = NOTICE.text || '';
+}
+function fillNoticeForm() {
+  $('noticeOn').checked = !!NOTICE.on;
+  if (document.activeElement !== $('noticeInput')) $('noticeInput').value = NOTICE.text || '';
+}
+async function saveNotice() {
+  const next = { on: $('noticeOn').checked, text: $('noticeInput').value.trim() };
+  const { error } = await db.from('hzl_dashboard_values').upsert(
+    [{ period_key: 'global', field_key: 'notice', field_value: JSON.stringify(next), sort_order: 0 }],
+    { onConflict: 'period_key,field_key' });
+  if (error) { setStatus('noticeStatus', 'Save failed: ' + error.message, 'err'); return; }
+  NOTICE = next;
+  setStatus('noticeStatus',
+    next.on && next.text ? 'Notice is showing on the dashboard'
+      : next.on ? 'Switch is ON but the box is empty, so nothing is shown' : 'Notice is hidden', 'ok');
+  toast('Notice saved');
+  renderNotice();
+}
+$('noticeSave').addEventListener('click', saveNotice);
+$('noticeOn').addEventListener('change', saveNotice);
 
 /* ==================== DATABASE COLUMN MAP ==================== */
 const DB_COLS = [
@@ -1968,13 +812,13 @@ function toDbValue(col, v) {
   return String(v).trim();
 }
 function excelDate(v) {
-  if (v instanceof Date) return v.toISOString().slice(0, 10);
+  if (v instanceof Date) { if (isNaN(v)) return null; return `${v.getFullYear()}-${pad2(v.getMonth() + 1)}-${pad2(v.getDate())}`; }
   if (typeof v === 'number') return new Date(Math.round((v - 25569) * 86400 * 1000)).toISOString().slice(0, 10);
   const s = String(v).trim();
   const m = s.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})$/);
   if (m) { const y = m[3].length === 2 ? '20' + m[3] : m[3]; return `${y}-${pad2(m[2])}-${pad2(m[1])}`; }
   if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
-  const d = new Date(s); return isNaN(d) ? null : d.toISOString().slice(0, 10);
+  const d = new Date(s); return isNaN(d) ? null : `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 }
 function excelTime(v) {
   if (typeof v === 'number') {
@@ -1986,9 +830,9 @@ function excelTime(v) {
   return m ? `${pad2(m[1])}:${m[2]}:${pad2(m[3] || 0)}` : null;
 }
 function durationText(pt, ct) {
-  const toM = t => { if (!t) return null; const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+  const toM = t => { if (!t) return null; const [h, m] = String(t).slice(0, 5).split(':').map(Number); return h * 60 + m; };
   const p = toM(pt), c = toM(ct);
-  if (p == null || c == null) return null;
+  if (p == null || c == null || isNaN(p) || isNaN(c)) return null;
   const d = Math.abs(c - p);
   return `${pad2(Math.floor(d / 60))}:${pad2(d % 60)} hrs`;
 }
@@ -1996,8 +840,6 @@ function durationText(pt, ct) {
 /* ==================== UPLOAD EXCEL ==================== */
 let parsedRows = [];
 let workbook = null;
-
-function setStatus(id, msg, cls) { const el = $(id); el.textContent = msg; el.className = 'status ' + (cls || ''); }
 
 $('drop').addEventListener('click', () => $('fileInput').click());
 $('drop').addEventListener('dragover', e => { e.preventDefault(); $('drop').classList.add('over'); });
@@ -2013,7 +855,7 @@ function readFile(file) {
   const reader = new FileReader();
   reader.onload = e => {
     try {
-      workbook = XLSX.read(new Uint8Array(e.target.result), { type: 'array', cellDates: true });
+      workbook = XLSX.read(new Uint8Array(e.target.result), { type: 'array', cellDates: false });
       $('sheetPick').innerHTML = workbook.SheetNames.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
       loadSheet(workbook.SheetNames[0]);
       setStatus('uploadStatus', `Loaded ${file.name}`, 'ok');
@@ -2030,14 +872,12 @@ function loadSheet(name) {
   const ws = workbook.Sheets[name];
   const aoa = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: true });
   if (!aoa.length) { setStatus('uploadStatus', 'Sheet is empty', 'err'); return; }
-
   let hdr = aoa.findIndex(r => r.filter(c => String(c).trim() !== '').length >= 3);
   if (hdr < 0) hdr = 0;
   const headers = aoa[hdr].map(h => String(h).trim());
   const colMap = headers.map(h => HEADER_ALIASES[norm(h)] || null);
   const ignored = headers.filter((h, i) => h && !colMap[i]);
   const mapped = headers.map((h, i) => ({ h, db: colMap[i] })).filter(x => x.h);
-
   $('mapping').innerHTML = mapped.map(x => x.db
     ? `<span class="chip">${esc(x.h)} → ${x.db}</span>`
     : `<span class="chip skip">${esc(x.h)} (not in DB, skipped)</span>`).join('');
@@ -2048,14 +888,14 @@ function loadSheet(name) {
     if (row.every(c => String(c).trim() === '')) continue;
     const data = {};
     const errors = [];
-    colMap.forEach((db, i) => {
-      if (!db || READONLY_DB.has(db)) return;
-      data[db] = toDbValue(db, row[i]);
+    colMap.forEach((col, i) => {
+      if (!col || READONLY_DB.has(col)) return;
+      data[col] = toDbValue(col, row[i]);
     });
     if (!data.date) errors.push('no date');
     if (!data.area) errors.push('no area');
-    if (!data.duration) data.duration = durationText(data.time_pt, data.time_ct);
-    if (data.sick_box == null && data.supply_box != null && data.load_box != null) data.sick_box = data.supply_box - data.load_box;
+    data.duration = durationText(data.time_pt, data.time_ct);
+    if (data.supply_box != null && data.load_box != null) data.sick_box = data.supply_box - data.load_box;
     parsedRows.push({ rowNo: r + 1, data, errors });
   }
   renderPreview(ignored);
@@ -2085,7 +925,7 @@ $('cancelImport').addEventListener('click', () => {
 $('importBtn').addEventListener('click', async () => {
   const good = parsedRows.filter(r => !r.errors.length);
   if (!good.length) { toast('Nothing to import', true); return; }
-  if (!(await PRTPL.confirm(`Save ${good.length} rows to the database?`, { title: 'Import rows', okLabel: 'Save rows', danger: false }))) return;
+  if (!confirm(`Save ${good.length} rows to the database?`)) return;
   const btn = $('importBtn');
   btn.disabled = true;
   let ok = 0; const fail = [];
@@ -2094,7 +934,7 @@ $('importBtn').addEventListener('click', async () => {
     let next = maxRow && maxRow.length ? maxRow[0].sr_no + 1 : 1;
     for (const r of good) {
       const row = { ...r.data, sr_no: r.data.sr_no ?? next++ };
-      Object.keys(row).forEach(k => { if (READONLY_DB.has(k)) delete row[k]; });
+      READONLY_DB.forEach(k => delete row[k]);
       const { error } = await db.from('hzl_rake_records').upsert(row, { onConflict: 'rr_no' });
       if (error) fail.push(`row ${r.rowNo}: ${error.message}`); else ok++;
     }
@@ -2109,14 +949,14 @@ $('importBtn').addEventListener('click', async () => {
   }
 });
 
-/* ==================== RECORDS LOG (all columns, edit / delete) ==================== */
+/* ==================== RECORDS LOG ==================== */
+const LOG_MAX = 300;
 let logRecords = [];
 const LOG_COLS = ['id','sr_no','area','date','siding','unit','tranch','fsa','allot_date','seniority_no',
   'time_pt','time_ct','time_dot','duration','supply_box','load_box','sick_box','box_type',
   'net_wt','recv_wt','grn_qty','gcv_adb','gcv_arb','arb_tm','ch_wt','rr_wt','rr_no','rr_date',
-  'ul_qty','ul_paid_cil','ul_on_us','pol_group','ehbc_group','enhc_charge','total_fright',
-  'dead_fr_qty','dead_fr_chg','grade','landed_cost','declared_grade','remarks','ol_qty','ul_ch','ol_ch',
-  'created_at','updated_at','gcv_bonus_penalty_per_mt','bonus_penalty'];
+  'ul_qty','ul_paid_cil','ul_on_us','ol_qty','ul_ch','ol_ch','pol_group','ehbc_group','enhc_charge','total_fright',
+  'dead_fr_qty','dead_fr_chg','grade','landed_cost','declared_grade','remarks','created_at','updated_at','gcv_bonus_penalty_per_mt','bonus_penalty'];
 
 async function loadLog() {
   const { data, error } = await db.from('hzl_rake_records').select('*').order('sr_no', { ascending: true }).limit(5000);
@@ -2143,9 +983,10 @@ function renderLog() {
     (!lf.siding || String(r.siding || '').toUpperCase().includes(lf.siding)) &&
     (!lf.from || String(r.date || '').slice(0, 10) >= lf.from) &&
     (!lf.to || String(r.date || '').slice(0, 10) <= lf.to));
-  $('logCount').textContent = `${rows.length} of ${logRecords.length} records`;
+  const shown = rows.length > LOG_MAX ? rows.slice(-LOG_MAX) : rows;
+  $('logCount').textContent = `${rows.length} of ${logRecords.length} records` + (rows.length > LOG_MAX ? ` (showing the latest ${LOG_MAX}, search to narrow)` : '');
   const head = `<thead><tr><th>Actions</th>${LOG_COLS.map(c => `<th>${c}</th>`).join('')}</tr></thead>`;
-  const body = rows.map(r => `<tr data-id="${esc(r.id)}">
+  const body = shown.map(r => `<tr data-id="${esc(r.id)}">
     <td class="act">
       <button class="btn-soft btn-sm" data-save="${esc(r.id)}"><i class="fas fa-floppy-disk"></i></button>
       <button class="btn-soft btn-sm btn-danger" data-del="${esc(r.id)}"><i class="fas fa-trash"></i></button>
@@ -2165,25 +1006,56 @@ $('lfClear').addEventListener('click', () => {
   renderLog();
 });
 
+function rowPatch(tr) {
+  const patch = {};
+  tr.querySelectorAll('input[data-col]').forEach(inp => {
+    const col = inp.dataset.col;
+    if (READONLY_DB.has(col)) return;
+    patch[col] = toDbValue(col, inp.value);
+  });
+  return patch;
+}
+// Edited rows turn yellow as soon as a value is typed
+$('logTbl').addEventListener('input', e => {
+  const tr = e.target.closest('tr[data-id]');
+  if (tr && e.target.dataset.col) tr.classList.add('dirty');
+});
+// Save every edited row in one go
+$('logSaveAll').addEventListener('click', async () => {
+  const trs = [...$('logTbl').querySelectorAll('tr.dirty')];
+  if (!trs.length) { toast('No edited rows to save'); return; }
+  const btn = $('logSaveAll');
+  btn.disabled = true;
+  let ok = 0; const fail = [];
+  try {
+    for (const tr of trs) {
+      const { error } = await db.from('hzl_rake_records').update(rowPatch(tr)).eq('id', tr.dataset.id);
+      if (error) fail.push(`id ${tr.dataset.id}: ${error.message}`);
+      else { ok++; tr.classList.remove('dirty'); }
+    }
+    setStatus('logStatus', `Saved ${ok} of ${trs.length} edited rows.` + (fail.length ? ' Failed: ' + fail.slice(0, 5).join('; ') : ''), fail.length ? 'err' : 'ok');
+    toast(`Saved ${ok} row${ok === 1 ? '' : 's'}${fail.length ? `, ${fail.length} failed` : ''}`, !!fail.length);
+    if (!fail.length) loadLog();
+  } catch (err) {
+    console.error(err);
+    toast('Save All failed: ' + err.message, true);
+  } finally {
+    btn.disabled = false;
+  }
+});
 $('logTbl').addEventListener('click', async e => {
   const saveBtn = e.target.closest('[data-save]');
   const delBtn = e.target.closest('[data-del]');
   if (saveBtn) {
     const tr = saveBtn.closest('tr');
-    const patch = {};
-    tr.querySelectorAll('input[data-col]').forEach(inp => {
-      const col = inp.dataset.col;
-      if (READONLY_DB.has(col)) return;
-      patch[col] = toDbValue(col, inp.value);
-    });
-    const { error } = await db.from('hzl_rake_records').update(patch).eq('id', saveBtn.dataset.save);
+    const { error } = await db.from('hzl_rake_records').update(rowPatch(tr)).eq('id', saveBtn.dataset.save);
     if (error) { setStatus('logStatus', 'Update failed: ' + error.message, 'err'); return; }
     setStatus('logStatus', 'Record updated', 'ok');
     toast('Record updated');
     loadLog();
   }
   if (delBtn) {
-    if (!(await PRTPL.confirm('Delete this record permanently?', { title: 'Delete record?', okLabel: 'Delete' }))) return;
+    if (!confirm('Delete this record permanently?')) return;
     const { error } = await db.from('hzl_rake_records').delete().eq('id', delBtn.dataset.del);
     if (error) { setStatus('logStatus', 'Delete failed: ' + error.message, 'err'); return; }
     setStatus('logStatus', 'Record deleted', 'ok');
@@ -2192,7 +1064,68 @@ $('logTbl').addEventListener('click', async e => {
   }
 });
 
-/* ==================== DATA ENTRY (new record + target rake) ==================== */
+/* ==================== ALERT: PENDING / NOT RECEIVED (bell) ==================== */
+const ALERT_FIELDS = [['rr_wt', 'RR Weight'], ['recv_wt', 'Received Wt.'], ['grn_qty', 'GRN Qty.'], ['gcv_arb', 'GCV ARB'], ['grade', 'Grade']];
+const isBlank = v => v === null || v === undefined || String(v).trim() === '';
+let ALERTS = [];
+let ALERT_SEL = null;
+let PENDING_FILL = null;
+
+async function loadAlerts() {
+  try {
+    const { data, error } = await db.from('hzl_rake_records').select('*')
+      .or(ALERT_FIELDS.map(([k]) => k + '.is.null').join(','))
+      .order('date', { ascending: false }).limit(300);
+    if (error) throw error;
+    ALERTS = (data || [])
+      .map(r => ({ r, miss: ALERT_FIELDS.filter(([k]) => isBlank(r[k])) }))
+      .filter(x => x.miss.length);
+    const badge = $('alertBadge');
+    badge.textContent = ALERTS.length > 99 ? '99+' : ALERTS.length;
+    badge.classList.toggle('hidden', !ALERTS.length);
+    if (!$('alertModal').classList.contains('hidden')) renderAlerts();
+  } catch (err) { console.warn('Alerts not loaded', err); }
+}
+
+function renderAlerts() {
+  const tabs = $('alertTabs'), body = $('alertBody');
+  if (!ALERTS.length) {
+    tabs.innerHTML = '';
+    body.innerHTML = '<p class="muted">All rakes have their details received. Nothing pending.</p>';
+    return;
+  }
+  if (!ALERTS.some(x => String(x.r.id) === String(ALERT_SEL))) ALERT_SEL = ALERTS[0].r.id;
+  tabs.innerHTML = ALERTS.map(x => {
+    const name = x.r.rr_no || ('Sr ' + (x.r.sr_no ?? '-'));
+    return `<button class="alert-tab ${String(x.r.id) === String(ALERT_SEL) ? 'active' : ''}" data-id="${esc(x.r.id)}">${esc(name)}<small>${x.miss.length}</small></button>`;
+  }).join('');
+  const cur = ALERTS.find(x => String(x.r.id) === String(ALERT_SEL));
+  const r = cur.r;
+  const info = [['RR No', r.rr_no || '-'], ['Sr No', r.sr_no ?? '-'], ['Date', r.date || '-'], ['Area', r.area || '-'], ['Siding', r.siding || '-']];
+  body.innerHTML =
+    `<div class="alert-info">${info.map(([k, v]) => `<span class="chip">${k}: ${esc(v)}</span>`).join('')}</div>` +
+    cur.miss.map(([k, label]) => `<div class="alert-miss"><span>${esc(label)}</span><span>Not received</span></div>`).join('') +
+    (isBlank(r.sr_no)
+      ? '<p class="muted alert-fill">This rake has no Sr No, so open it from Records Log to fill it.</p>'
+      : `<button class="btn-go alert-fill" data-fill="${esc(r.sr_no)}"><i class="fas fa-pen-to-square"></i> Fill up (Sr No ${esc(r.sr_no)})</button>`);
+}
+
+$('alertBtn').addEventListener('click', () => { $('alertModal').classList.remove('hidden'); renderAlerts(); });
+$('alertClose').addEventListener('click', () => $('alertModal').classList.add('hidden'));
+$('alertModal').addEventListener('click', e => {
+  if (e.target.id === 'alertModal') { $('alertModal').classList.add('hidden'); return; }
+  const f = e.target.closest('[data-fill]');
+  if (f) {
+    PENDING_FILL = f.dataset.fill;
+    $('alertModal').classList.add('hidden');
+    showView('entry');
+    return;
+  }
+  const t = e.target.closest('.alert-tab');
+  if (t) { ALERT_SEL = t.dataset.id; renderAlerts(); }
+});
+
+/* ==================== DATA ENTRY: NEW RECORD ==================== */
 const ENTRY_OPT = {
   area: ['SECL','WCL','CCL','MCL'], unit: ['CPP','IPP','EAC'], tranch: ['I','II','III','IV','V','VI','VII','VIII','IX'],
   grade: ['G-07','G-08','G-09','G-10','G-11','G-12','G-13','G-14','G-15'], box: ['N+NHL','BOXN','BOXNHL','BCN']
@@ -2210,8 +1143,8 @@ const ENTRY_SECTIONS = [
     { key: 'allot_date', label: 'Date Of Allotment', type: 'date' },
     { key: 'seniority_no', label: 'Seniority No', type: 'number' } ]},
   { title: 'Mines Loading Time', icon: 'fa-clock', fields: [
-    { key: 'time_pt', label: 'P/T', type: 'time' }, { key: 'time_ct', label: 'C/T', type: 'time' },
-    { key: 'time_dot', label: 'D/O/T', type: 'time' }, { key: 'duration', label: 'Mines Loading Duration', type: 'calc', tag: 'auto' } ]},
+    { key: 'time_pt', label: 'P/T (24 hrs)', type: 'time' }, { key: 'time_ct', label: 'C/T (24 hrs)', type: 'time' },
+    { key: 'time_dot', label: 'D/O/T (24 hrs)', type: 'time' }, { key: 'duration', label: 'Mines Loading Duration', type: 'calc', tag: 'auto' } ]},
   { title: 'Box Details', icon: 'fa-box', fields: [
     { key: 'supply_box', label: 'Supply Box', type: 'number' }, { key: 'load_box', label: 'Load Box', type: 'number' },
     { key: 'sick_box', label: 'Sick Box', type: 'calc', tag: 'auto' },
@@ -2228,7 +1161,7 @@ const ENTRY_SECTIONS = [
   { title: 'Railway Receipt', icon: 'fa-train', fields: [
     { key: 'rr_no', label: 'RR Number', type: 'text' }, { key: 'rr_date', label: 'RR Date', type: 'date' } ]},
   { title: 'Underload & Overload', icon: 'fa-arrow-down-wide-short', fields: [
-    { key: 'ul_qty', label: 'Underload Quantity', type: 'calc', tag: 'auto' },
+    { key: 'ul_qty', label: 'Underload Quantity (Ch Wt − RR Wt)', type: 'calc', tag: 'auto' },
     { key: 'ul_paid_cil', label: 'Underload Qty Paid Coal India', type: 'number', step: 0.01 },
     { key: 'ul_on_us', label: 'Underload Qty On Us', type: 'number', step: 0.01 },
     { key: 'ol_qty', label: 'Overload Quantity', type: 'number', step: 0.01, unit: 'MT' },
@@ -2244,7 +1177,8 @@ const ENTRY_SECTIONS = [
   { title: 'Grade & Cost', icon: 'fa-medal', fields: [
     { key: 'grade', label: 'Grade', type: 'select', options: ENTRY_OPT.grade },
     { key: 'landed_cost', label: 'Landed cost', type: 'number', step: 0.01, unit: '₹' },
-    { key: 'declared_grade', label: 'Loading Declared Grade', type: 'select', options: ENTRY_OPT.grade, optname: 'grade' } ]}
+    { key: 'declared_grade', label: 'Loading Declared Grade', type: 'select', options: ENTRY_OPT.grade, optname: 'grade' },
+    { key: 'remarks', label: 'Remarks', type: 'text' } ]}
 ];
 
 function buildEntryForm() {
@@ -2257,14 +1191,32 @@ function buildEntryForm() {
         if (f.type === 'select') input = `<select class="field" id="f_${f.key}" name="${f.key}" data-addnew="${f.optname || f.key}" ${f.req ? 'required' : ''}><option value="">Select</option>${f.options.map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('')}</select>`;
         else if (f.type === 'calc') input = `<input id="f_${f.key}" name="${f.key}" readonly placeholder="Auto">`;
         else {
-          if (f.type === 'time') input = `<input id="f_${f.key}" name="${f.key}" type="text" inputmode="numeric" maxlength="5" pattern="([01]?[0-9]|2[0-3]):[0-5][0-9]" placeholder="HH:MM" title="24-hour time, HH:MM">`;
+          if (f.type === 'time') input = `<input id="f_${f.key}" name="${f.key}" type="text" inputmode="numeric" maxlength="5" placeholder="HH:MM" title="24-hour time, HH:MM">`;
           else input = `<input id="f_${f.key}" name="${f.key}" type="${f.type}" ${f.step ? `step="${f.step}"` : ''} ${f.req ? 'required' : ''}>`;
           if (f.unit) input = `<div class="unit-wrap">${input}<span class="unit">${f.unit}</span></div>`;
         }
         return `<div class="form-group">${label}${input}</div>`;
       }).join('')}</div>
     </div>`).join('');
-  ['time_pt','time_ct','supply_box','load_box','ch_wt','rr_wt'].forEach(k => { const e = $('f_' + k); if (e) e.addEventListener('input', recalcForm); });
+
+  ['supply_box', 'load_box', 'ch_wt', 'rr_wt'].forEach(k => $('f_' + k).addEventListener('input', recalcForm));
+  ['time_pt', 'time_ct', 'time_dot'].forEach(k => {
+    const el = $('f_' + k);
+    el.addEventListener('input', () => {
+      const d = el.value.replace(/\D/g, '').slice(0, 4);
+      el.value = d.length > 2 ? d.slice(0, 2) + ':' + d.slice(2) : d;
+      recalcForm();
+    });
+    el.addEventListener('blur', () => {
+      let d = el.value.replace(/\D/g, '');
+      if (!d) return;
+      if (d.length <= 2) d = d.padStart(2, '0') + '00'; else if (d.length === 3) d = '0' + d;
+      const h = +d.slice(0, 2), m = +d.slice(2);
+      if (h > 23 || m > 59) { el.value = ''; toast('Enter time as 00:00 to 23:59', true); }
+      else el.value = d.slice(0, 2) + ':' + d.slice(2);
+      recalcForm();
+    });
+  });
 }
 
 function recalcForm() {
@@ -2277,16 +1229,55 @@ function recalcForm() {
 
 let entryReady = false;
 async function initEntry() {
-  if (entryReady) return;
-  entryReady = true;
-  buildEntryForm();
-  enhanceSelects();
-  const now = new Date(), m = now.getMonth() + 1;
-  $('rakeQuarter').value = m >= 4 && m <= 6 ? 'Q1' : m >= 7 && m <= 9 ? 'Q2' : m >= 10 ? 'Q3' : 'Q4';
-  $('rakeReportDate').value = todayStr();
+  if (!entryReady) {
+    entryReady = true;
+    buildEntryForm();
+    enhanceSelects();
+    $('rakeQuarter').value = currentQuarterCode();
+    $('rakeReportDate').value = todayStr();
+    $('rakeQuarter').addEventListener('change', async () => { await loadRake(); await loadSettings(); await renderOverridePanel(); });
+    $('rakeReportDate').addEventListener('change', async () => { await refreshLoaded(); scheduleSaveRake(); renderOverridePanel(); });
+    $('clearForm').addEventListener('click', resetEntryForm);
+    $('searchRecord').addEventListener('click', searchRecord);
+    $('searchSr').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); searchRecord(); } });
+    $('updateRecord').addEventListener('click', updateRecord);
+    $('carryFwd').addEventListener('click', carryForwardClick);
+    $('rakeBody').addEventListener('input', e => {
+      const i = e.target.dataset.i;
+      if (i == null) return;
+      rake[i].target = +e.target.value || 0;
+      renderRake();
+      scheduleSaveRake();
+    });
+    SETTING_KEYS.forEach(k => $(k).addEventListener('input', () => {
+      clearTimeout(settingsTimer);
+      settingsTimer = setTimeout(async () => {
+        await db.from('hzl_dashboard_values').upsert(SETTING_KEYS.map(x => ({
+          period_key: dashPeriodKey(), field_key: x, field_value: $(x).value, sort_order: 0
+        })), { onConflict: 'period_key,field_key' });
+        toast('Saved');
+      }, 600);
+    }));
+    OVR_FIELDS_LIST.forEach(([id, label]) => $('ovrField').insertAdjacentHTML('beforeend', `<option value="${id}">${esc(label)}</option>`));
+    $('ovrField').addEventListener('change', renderOverridePanel);
+    $('ovrSwitch').addEventListener('change', onOverrideSwitch);
+    $('ovrSave').addEventListener('click', saveOverride);
+    $('ovrReset').addEventListener('click', () => resetOverride($('ovrField').value));
+    $('ovrValue').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); saveOverride(); } });
+    $('ovrTbl').addEventListener('click', e => { const b = e.target.closest('[data-ovr-reset]'); if (b) resetOverride(b.dataset.ovrReset); });
+    $('entryForm').addEventListener('submit', saveRecord);
+    await resetEntryForm();
+  }
   await loadRake();
   await loadSettings();
-  await resetEntryForm();
+  fillNoticeForm();
+  await renderOverridePanel();
+  if (PENDING_FILL != null) {
+    const sr = PENDING_FILL;
+    PENDING_FILL = null;
+    $('searchSr').value = sr;
+    await searchRecord();
+  }
 }
 
 async function resetEntryForm() {
@@ -2296,63 +1287,7 @@ async function resetEntryForm() {
   $('f_sr_no').value = data && data.length ? data[0].sr_no + 1 : 1;
   recalcForm();
 }
-$('clearForm').addEventListener('click', resetEntryForm);
 
-$('entryForm').addEventListener('submit', async e => {
-  e.preventDefault();
-  const f = $('entryForm');
-  if (!f.checkValidity()) { f.reportValidity(); toast('Please fill the required fields', true); return; }
-  const row = {};
-  DB_COLS.forEach(col => {
-    const el = $('f_' + col);
-    if (!el || el.readOnly) return;
-    row[col] = toDbValue(col, el.value);
-  });
-  row.duration = durationText($('f_time_pt').value, $('f_time_ct').value);
-  row.sick_box = $('f_sick_box').value === '' ? null : +$('f_sick_box').value;
-  row.sr_no = +$('f_sr_no').value || null;
-  row.ul_qty = $('f_ul_qty').value === '' ? null : +$('f_ul_qty').value;
-  const { error } = await db.from('hzl_rake_records').insert(row);
-  if (error) { toast('Save failed: ' + error.message, true); return; }
-  toast('Record saved');
-  await syncRakeLoaded(row.date);
-  await resetEntryForm();
-});
-
-/* ---- Helpers: today's local date, ADD NEW dropdown options ---- */
-function todayStr() {
-  const d = new Date();
-  return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
-}
-let CUSTOM_OPTS = {};
-try { CUSTOM_OPTS = JSON.parse(localStorage.getItem('hzl_custom_opts') || '{}'); } catch (e) { CUSTOM_OPTS = {}; }
-function saveCustomOpts() { try { localStorage.setItem('hzl_custom_opts', JSON.stringify(CUSTOM_OPTS)); } catch (e) {} }
-function enhanceSelects(root = document) {
-  root.querySelectorAll('select[data-addnew]').forEach(sel => {
-    const name = sel.dataset.addnew;
-    const have = new Set([...sel.options].map(o => o.value));
-    (CUSTOM_OPTS[name] || []).forEach(v => {
-      if (!have.has(v)) { sel.insertBefore(new Option(v, v), sel.querySelector('option[value="__new__"]')); have.add(v); }
-    });
-    const old = sel.querySelector('option[value="__new__"]');
-    if (old) old.remove();
-    sel.appendChild(new Option('+ ADD NEW', '__new__'));
-  });
-}
-document.addEventListener('change', async e => {
-  const sel = e.target;
-  if (!(sel instanceof HTMLSelectElement) || sel.value !== '__new__') return;
-  const name = sel.dataset.addnew;
-  const v = ((await PRTPL.prompt('Enter a new ' + name.replace(/_/g, ' ') + ':', { title: 'Add new option', placeholder: 'Type the option name', okLabel: 'Add option' })) || '').trim();
-  if (!v) { sel.value = ''; return; }
-  if (!CUSTOM_OPTS[name]) CUSTOM_OPTS[name] = [];
-  if (!CUSTOM_OPTS[name].includes(v)) CUSTOM_OPTS[name].push(v);
-  saveCustomOpts();
-  enhanceSelects();
-  sel.value = v;
-}, true);
-
-/* ---- Search / Update existing record by Sr No ---- */
 function formRow() {
   const row = {};
   DB_COLS.forEach(col => {
@@ -2362,9 +1297,22 @@ function formRow() {
   });
   row.duration = durationText($('f_time_pt').value, $('f_time_ct').value);
   row.sick_box = $('f_sick_box').value === '' ? null : +$('f_sick_box').value;
-  row.sr_no = +$('f_sr_no').value || null;
   row.ul_qty = $('f_ul_qty').value === '' ? null : +$('f_ul_qty').value;
+  row.sr_no = +$('f_sr_no').value || null;
   return row;
+}
+
+async function saveRecord(e) {
+  e.preventDefault();
+  const f = $('entryForm');
+  if (!f.checkValidity()) { f.reportValidity(); toast('Please fill Area, Date and Siding', true); return; }
+  const row = formRow();
+  const { error } = await db.from('hzl_rake_records').insert(row);
+  if (error) { toast('Save failed: ' + error.message, true); return; }
+  toast('Record saved');
+  await syncRakeLoaded(row.date);
+  await resetEntryForm();
+  loadAlerts();
 }
 
 function fillForm(r) {
@@ -2394,8 +1342,6 @@ async function searchRecord() {
   fillForm(data[0]);
   $('searchNote').textContent = 'Loaded Sr No ' + sr;
 }
-$('searchRecord').addEventListener('click', searchRecord);
-$('searchSr').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); searchRecord(); } });
 
 async function updateRecord() {
   const f = $('entryForm');
@@ -2407,16 +1353,45 @@ async function updateRecord() {
   if (!found || !found.length) { toast('No record with Sr No ' + sr + ' to update', true); return; }
   const row = formRow();
   delete row.sr_no;
-  Object.keys(row).forEach(k => { if (READONLY_DB.has(k)) delete row[k]; });
+  READONLY_DB.forEach(k => delete row[k]);
   const { error } = await db.from('hzl_rake_records').update(row).eq('id', found[0].id);
   if (error) { toast('Update failed: ' + error.message, true); return; }
   toast('Record ' + sr + ' updated');
   $('searchNote').textContent = 'Updated Sr No ' + sr;
   await syncRakeLoaded(row.date);
+  loadAlerts();
 }
-$('updateRecord').addEventListener('click', updateRecord);
 
-/* ---- Target rake ---- */
+/* ---- ADD NEW dropdown options (saved in this browser) ---- */
+let CUSTOM_OPTS = {};
+try { CUSTOM_OPTS = JSON.parse(localStorage.getItem('hzl_custom_opts') || '{}'); } catch (e) { CUSTOM_OPTS = {}; }
+function saveCustomOpts() { try { localStorage.setItem('hzl_custom_opts', JSON.stringify(CUSTOM_OPTS)); } catch (e) {} }
+function enhanceSelects(root = document) {
+  root.querySelectorAll('select[data-addnew]').forEach(sel => {
+    const name = sel.dataset.addnew;
+    const have = new Set([...sel.options].map(o => o.value));
+    (CUSTOM_OPTS[name] || []).forEach(v => {
+      if (!have.has(v)) { sel.insertBefore(new Option(v, v), sel.querySelector('option[value="__new__"]')); have.add(v); }
+    });
+    const old = sel.querySelector('option[value="__new__"]');
+    if (old) old.remove();
+    sel.appendChild(new Option('+ ADD NEW', '__new__'));
+  });
+}
+document.addEventListener('change', e => {
+  const sel = e.target;
+  if (!(sel instanceof HTMLSelectElement) || sel.value !== '__new__') return;
+  const name = sel.dataset.addnew;
+  const v = (prompt('Enter a new ' + name.replace(/_/g, ' ') + ':') || '').trim();
+  if (!v) { sel.value = ''; return; }
+  if (!CUSTOM_OPTS[name]) CUSTOM_OPTS[name] = [];
+  if (!CUSTOM_OPTS[name].includes(v)) CUSTOM_OPTS[name].push(v);
+  saveCustomOpts();
+  enhanceSelects();
+  sel.value = v;
+});
+
+/* ==================== TARGET RAKE (per quarter) ==================== */
 const RAKE_TYPES = ['SECL','CCL','MCL'];
 const Q_START = { Q1: 4, Q2: 7, Q3: 10, Q4: 1 };
 const Q_END = { Q1: 6, Q2: 9, Q3: 12, Q4: 3 };
@@ -2427,6 +1402,7 @@ const qStart = (q, y) => `${y}-${pad2(Q_START[q])}-01`;
 const qEnd = (q, y) => { const m = Q_END[q]; return `${y}-${pad2(m)}-${pad2(new Date(Date.UTC(y, m, 0)).getUTCDate())}`; };
 const quarterKey = () => qKey($('rakeQuarter').value, curYear());
 const quarterEndDate = () => qEnd($('rakeQuarter').value, curYear());
+function currentQuarterCode() { const m = new Date().getMonth() + 1; return m >= 4 && m <= 6 ? 'Q1' : m >= 7 && m <= 9 ? 'Q2' : m >= 10 ? 'Q3' : 'Q4'; }
 function fyLabel(monthKey) { const [y, m] = monthKey.split('-').map(Number); return m >= 4 ? `${y}-${String(y + 1).slice(2)}` : `${y - 1}-${String(y).slice(2)}`; }
 function daysBetween(a, b) { const d = Math.round((new Date(b + 'T00:00:00Z') - new Date(a + 'T00:00:00Z')) / 86400000); return d > 0 ? d : 0; }
 function daysRemaining() { return daysBetween($('rakeReportDate').value || todayStr(), quarterEndDate()); }
@@ -2474,10 +1450,10 @@ async function refreshLoaded() {
 }
 
 function prevQuarter(q, y) {
-  if (q === 'Q1') return { quarter: 'Q4', year: y };
+  if (q === 'Q1') return { quarter: 'Q4', year: y - 1 };
   if (q === 'Q2') return { quarter: 'Q1', year: y };
   if (q === 'Q3') return { quarter: 'Q2', year: y };
-  return { quarter: 'Q3', year: y - 1 };
+  return { quarter: 'Q3', year: y };
 }
 async function carryForward() {
   const p = prevQuarter($('rakeQuarter').value, curYear());
@@ -2492,8 +1468,12 @@ async function carryForward() {
   }
   return true;
 }
+async function carryForwardClick() {
+  if (!confirm("Replace Qtr Target with the previous quarter's balance?")) return;
+  if (!(await carryForward())) { toast('No saved targets for previous quarter', true); return; }
+  renderRake(); await saveRake(false);
+}
 async function loadRake() {
-  $('rakeReportDate').value = todayStr();
   const q = $('rakeQuarter').value;
   const { data, error } = await db.from('hzl_rake_targets').select('box_type, qtr_target, report_date')
     .eq('quarter', q).eq('month', quarterKey());
@@ -2505,20 +1485,6 @@ async function loadRake() {
   await refreshLoaded();
   await saveRake(true);
 }
-$('rakeBody').addEventListener('input', e => {
-  const i = e.target.dataset.i;
-  if (i == null) return;
-  rake[i].target = +e.target.value || 0;
-  renderRake();
-  scheduleSaveRake();
-});
-$('rakeQuarter').addEventListener('change', async () => { await loadRake(); await loadSettings(); });
-$('rakeReportDate').addEventListener('change', async () => { await refreshLoaded(); scheduleSaveRake(); });
-$('carryFwd').addEventListener('click', async () => {
-  if (!(await PRTPL.confirm("Replace Qtr Target with the previous quarter's balance?", { title: 'Use previous balance?', okLabel: 'Replace targets', danger: true }))) return;
-  if (!(await carryForward())) { toast('No saved targets for previous quarter', true); return; }
-  renderRake(); await saveRake(false);
-});
 
 let rakeSaveChain = Promise.resolve(), rakeTimer;
 function scheduleSaveRake() { clearTimeout(rakeTimer); rakeTimer = setTimeout(() => saveRake(false), 600); }
@@ -2541,14 +1507,15 @@ function saveRake(silent) {
   return rakeSaveChain;
 }
 async function syncRakeLoaded(recordDate) {
-  const d = new Date(recordDate + 'T00:00:00');
-  const m = d.getMonth() + 1;
+  if (!recordDate) return;
+  const m = new Date(recordDate + 'T00:00:00').getMonth() + 1;
   const q = m >= 4 && m <= 6 ? 'Q1' : m >= 7 && m <= 9 ? 'Q2' : m >= 10 ? 'Q3' : 'Q4';
   if (q === $('rakeQuarter').value) { await refreshLoaded(); await saveRake(true); }
 }
 
-/* Service charge + GCV target stored per dashboard period */
+/* ---- Service charge + GCV target, per dashboard quarter ---- */
 const SETTING_KEYS = ['svcRate', 'gcvCostTarget'];
+let settingsTimer;
 function dashPeriodKey() { const q = $('rakeQuarter').value, y = curYear(); return `${q === 'Q4' ? y - 1 : y}-${q}`; }
 async function loadSettings() {
   SETTING_KEYS.forEach(k => $(k).value = '');
@@ -2556,18 +1523,88 @@ async function loadSettings() {
     .eq('period_key', dashPeriodKey()).in('field_key', SETTING_KEYS);
   (data || []).forEach(r => { if ($(r.field_key)) $(r.field_key).value = r.field_value ?? ''; });
 }
-let settingsTimer;
-SETTING_KEYS.forEach(k => $(k).addEventListener('input', () => {
-  clearTimeout(settingsTimer);
-  settingsTimer = setTimeout(async () => {
-    await db.from('hzl_dashboard_values').upsert(SETTING_KEYS.map(x => ({
-      period_key: dashPeriodKey(), field_key: x, field_value: $(x).value, sort_order: 0
-    })), { onConflict: 'period_key,field_key' });
-    toast('Saved');
-  }, 600);
-}));
 
-/* ==================== DASHBOARD (calculated, read-only except Overload) ==================== */
+/* ---- Manual override (per quarter, stored under period_key 'ovr:<quarter>') ---- */
+const OVR_FIELDS_LIST = [
+  ['perDayReqRake', 'Per Day Required Rake'], ['rakeMat', 'Performance on Rake Materialization'],
+  ['gcvPerf', 'Performance on GCV'], ['gcvPosTarget', 'Position of GCV for Achieve Target'],
+  ['gcvPosSecl', 'Position of GCV for SECL'], ['gcvPosCcl', 'Position of GCV for CCL'], ['gcvPosMcl', 'Position of GCV for MCL'],
+  ['tgtSecl', 'Target of Qtr SECL'], ['tgtCcl', 'Target of Qtr CCL'], ['tgtMcl', 'Target of Qtr MCL'],
+  ['loadSecl', 'Rake Loaded Till SECL'], ['loadCcl', 'Rake Loaded Till CCL'], ['loadMcl', 'Rake Loaded Till MCL'],
+  ['balSecl', 'Balance Rake SECL'], ['balCcl', 'Balance Rake CCL'], ['balMcl', 'Balance Rake MCL'],
+  ['askSecl', 'Asking Per Day SECL'], ['askCcl', 'Asking Per Day CCL'], ['askMcl', 'Asking Per Day MCL'],
+  ['avgShrt', 'Avg Shrt / Excess (%)'], ['normQty', 'Shortage / Excess MT per rake'],
+  ['seclGcv', 'Avg. Wt. GCV (SECL)'], ['seclGcvCost', 'Per GCV Cost (SECL)'],
+  ['cclGcv', 'Avg. Wt. GCV (CCL)'], ['cclGcvCost', 'Per GCV Cost (CCL)'],
+  ['mclGcv', 'Avg. Wt. GCV (MCL)'], ['mclGcvCost', 'Per GCV Cost (MCL)'],
+  ['billQty', 'Billing: Quantity Reco'], ['billQtyMt', 'Billing: Quantity Reco (per MT)'],
+  ['billGcv', 'Billing: GCV Reco'], ['billGcvMt', 'Billing: GCV Reco (per MT)'],
+  ['svcSecl', 'Service Charge SECL'], ['svcCcl', 'Service Charge CCL'], ['svcMcl', 'Service Charge MCL'],
+  ['pen5', 'Billing: 5% of Railway Penalty'], ['totalBill', 'Billing: TOTAL BILLING'], ['totalBillMt', 'Billing: TOTAL BILLING (per MT)'],
+  ['expBill', 'Billing: Expected Billing of the Qtr'],
+  ['pdRakeAch', 'Rake: Per Day Rakes Achieve'], ['pdQtyAch', 'Rake: Per Day Quantity Achieve'], ['pdGcvAch', 'Rake: Per GCV Cost Achieve'],
+  ['avgChWt', 'Avg. CH.Wt.'], ['avgRrWt', 'Avg. RR.Wt.'], ['avgPlantWt', 'Avg. Plant Rec. Wt.'], ['avgGcv', 'Average GCV'],
+  ['totalRrWt', 'Total RR Weight'], ['totalPlantRec', 'Total Plant Receive'],
+  ['ulChg', 'Penalty: Underload Charge'], ['olChg', 'Penalty: Overload Charge'], ['punSum', 'Penalty: Punitive Sum'],
+  ['ehbc', 'Penalty: EHBC / FAUC / TC'], ['enhc', 'Penalty: ENHC Charges'], ['deadFr', 'Penalty: Dead Freight'],
+  ['totalPen', 'Penalty: TOTAL PENALTY'], ['pen5b', 'Penalty: 5% of Total Penalty']
+];
+const OVR_LABEL = Object.fromEntries(OVR_FIELDS_LIST);
+let OVR = {};
+
+async function fetchOverrides(period) {
+  const { data } = await db.from('hzl_dashboard_values').select('field_key, field_value').eq('period_key', 'ovr:' + period);
+  const o = {};
+  (data || []).forEach(r => { if (isNum(r.field_value)) o[r.field_key] = Number(r.field_value); });
+  return o;
+}
+async function renderOverridePanel() {
+  const p = dashPeriodKey();
+  const list = await fetchOverrides(p);
+  const id = $('ovrField').value;
+  $('ovrSwitch').checked = id in list;
+  if (document.activeElement !== $('ovrValue')) $('ovrValue').value = id in list ? list[id] : '';
+  $('ovrScopeNote').textContent = 'Applies to ' + periodLabel(p) + ' only.';
+  const ids = Object.keys(list);
+  $('ovrTbl').innerHTML = ids.length
+    ? `<thead><tr><th>Dashboard value</th><th>Manual value</th><th>Applies to</th><th></th></tr></thead><tbody>` +
+      ids.map(i => `<tr>
+        <td style="text-align:left">${esc(OVR_LABEL[i] || i)}</td>
+        <td>${Number(list[i]).toLocaleString('en-IN', { maximumFractionDigits: 2 })}</td>
+        <td>${periodLabel(p)}</td>
+        <td><button class="btn-soft btn-sm btn-danger" data-ovr-reset="${i}"><i class="fas fa-rotate-left"></i> Reset to formula</button></td>
+      </tr>`).join('') + '</tbody>'
+    : `<tbody><tr><td class="empty">No manual values for this quarter. Formulas are in use.</td></tr></tbody>`;
+}
+async function saveOverride() {
+  const id = $('ovrField').value;
+  const raw = $('ovrValue').value.trim();
+  if (!isNum(raw)) { setStatus('ovrStatus', 'Type a number for the manual value', 'err'); return; }
+  const { error } = await db.from('hzl_dashboard_values').upsert(
+    [{ period_key: 'ovr:' + dashPeriodKey(), field_key: id, field_value: String(Number(raw)), sort_order: 0 }],
+    { onConflict: 'period_key,field_key' });
+  if (error) { setStatus('ovrStatus', 'Save failed: ' + error.message, 'err'); return; }
+  setStatus('ovrStatus', 'Manual value saved', 'ok');
+  toast('Manual value saved');
+  await renderOverridePanel();
+  loadDashboard();
+}
+async function resetOverride(id) {
+  const { error } = await db.from('hzl_dashboard_values').delete().eq('period_key', 'ovr:' + dashPeriodKey()).eq('field_key', id);
+  if (error) { setStatus('ovrStatus', 'Reset failed: ' + error.message, 'err'); return; }
+  setStatus('ovrStatus', `${OVR_LABEL[id] || id} is back on its formula`, 'ok');
+  toast('Formula restored');
+  await renderOverridePanel();
+  loadDashboard();
+}
+async function onOverrideSwitch() {
+  const id = $('ovrField').value;
+  if ($('ovrSwitch').checked) { $('ovrValue').focus(); return; }
+  const list = await fetchOverrides(dashPeriodKey());
+  if (id in list) resetOverride(id); else renderOverridePanel();
+}
+
+/* ==================== DASHBOARD (calculated) ==================== */
 const PERIOD_KEYS = ['2026-Q1','2026-Q2','2026-Q3','2026-Q4'];
 const FISCAL = { 1: { start: 4, label: 'Apr–Jun' }, 2: { start: 7, label: 'Jul–Sep' }, 3: { start: 10, label: 'Oct–Dec' }, 4: { start: 1, label: 'Jan–Mar' } };
 const periodLabel = k => { const [fy, q] = k.split('-Q').map(Number); return `Q${q} (${FISCAL[q].label} ${q === 4 ? fy + 1 : fy})`; };
@@ -2593,15 +1630,15 @@ function parseAmount(v) { return Number(String(v ?? '').replace(/[^0-9.\-]/g, ''
 async function computeDashboard(period = PERIOD) {
   const { from, to } = quarterRange(period);
   const DAY = 86400000;
-  const qStart = new Date(from + 'T00:00:00'), qEnd = new Date(to + 'T00:00:00');
-  const totalDays = Math.round((qEnd - qStart) / DAY);
+  const qStartD = new Date(from + 'T00:00:00'), qEndD = new Date(to + 'T00:00:00');
+  const totalDays = Math.round((qEndD - qStartD) / DAY);
   const today = new Date(); today.setHours(0, 0, 0, 0);
-  const daysPassed = Math.min(totalDays, Math.max(0, Math.floor((today - qStart) / DAY) + 1));
+  const daysPassed = Math.min(totalDays, Math.max(0, Math.floor((today - qStartD) / DAY) + 1));
 
   const saved = {};
   try {
     const { data } = await db.from('hzl_dashboard_values').select('field_key, field_value')
-      .eq('period_key', period).in('field_key', ['olChg', 'svcRate', 'gcvCostTarget']);
+      .eq('period_key', period).in('field_key', ['svcRate', 'gcvCostTarget']);
     (data || []).forEach(r => saved[r.field_key] = r.field_value);
   } catch (e) {}
   const SERVICE_RATE = parseAmount(saved.svcRate);
@@ -2638,7 +1675,7 @@ async function computeDashboard(period = PERIOD) {
   out.billGcv = sumOf(recs, r => r.bonus_penalty);
   out.billGcvMt = rrTotal ? out.billGcv / rrTotal : 0;
 
-  [['Secl','SECL'],['Ccl','CCL'],['Mcl','MCL']].forEach(([key, name]) => {
+  [['Secl', 'SECL'], ['Ccl', 'CCL'], ['Mcl', 'MCL']].forEach(([key, name]) => {
     const aT = tgts.filter(t => t.box_type === name), aR = recs.filter(r => r.area === name);
     const loaded = aR.filter(r => r.date <= cutoff).length, target = sumOf(aT, t => t.qtr_target);
     out['tgt' + key] = target; out['load' + key] = loaded; out['bal' + key] = target - loaded;
@@ -2658,7 +1695,7 @@ async function computeDashboard(period = PERIOD) {
   const punSum = sumOf(recs, r => r.pol_group), ehbcSum = sumOf(recs, r => r.ehbc_group);
   const enhcSum = sumOf(recs, r => r.enhc_charge), deadSum = sumOf(recs, r => r.dead_fr_chg);
   const ulChgSum = sumOf(recs, r => r.ul_ch), olChgSum = sumOf(recs, r => r.ol_ch);
-  const totalPen = olChgSum + punSum + ehbcSum + enhcSum;   // dead freight is shown in grey, NOT part of total penalty
+  const totalPen = olChgSum + punSum + ehbcSum + enhcSum;
   const pen5 = totalPen * FORMULAS.penaltyPct / 100;
   out.ulChg = ulChgSum; out.ulChgMt = perMt(ulChgSum);
   out.olChg = olChgSum; out.olChgMt = perMt(olChgSum);
@@ -2668,7 +1705,7 @@ async function computeDashboard(period = PERIOD) {
   out.deadFr = deadSum; out.deadFrMt = perMt(deadSum);
   out.totalPen = totalPen; out.totalPenMt = perMt(totalPen);
   out.pen5b = pen5; out.pen5bMt = perMt(pen5);
-  out.pen5 = -pen5; out.pen5Mt = perMt(-pen5);   // negative: deducted from billing (shown red)
+  out.pen5 = -pen5; out.pen5Mt = perMt(-pen5);
   out.totalBill = out.billQty + out.billGcv + out.svcSecl + out.svcCcl + out.svcMcl + out.pen5;
   out.totalBillMt = perMt(out.totalBill);
   out.expBill = daysPassed ? (out.totalBill / daysPassed) * totalDays : 0;
@@ -2685,10 +1722,10 @@ async function computeDashboard(period = PERIOD) {
   out.pdGcvTgt = parseAmount(saved.gcvCostTarget);
 
   const has = (r, n) => String(r.siding || '').toUpperCase().includes(n);
-  const MINES = [['gov', r => has(r,'GOVIND')], ['kmka', r => has(r,'KMKA')], ['nkcr', r => has(r,'NKCR')],
-    ['oksr', r => has(r,'OKSR')], ['gpck', r => has(r,'GPCK')], ['jrgr', r => has(r,'JRGR')],
-    ['dipka', r => has(r,'DIPKA')], ['slog', r => has(r,'SLOG')], ['ccl', r => r.area === 'CCL'], ['mcl', r => r.area === 'MCL']];
-  MINES.forEach(([k, match]) => {
+  const MINE_MATCH = [['gov', r => has(r, 'GOVIND')], ['kmka', r => has(r, 'KMKA')], ['nkcr', r => has(r, 'NKCR')],
+    ['oksr', r => has(r, 'OKSR')], ['gpck', r => has(r, 'GPCK')], ['jrgr', r => has(r, 'JRGR')],
+    ['dipka', r => has(r, 'DIPKA')], ['slog', r => has(r, 'SLOG')], ['ccl', r => r.area === 'CCL'], ['mcl', r => r.area === 'MCL']];
+  MINE_MATCH.forEach(([k, match]) => {
     const m = recs.filter(match);
     const rr = sumOf(m, r => r.rr_wt), arb = sumOf(m, r => r.gcv_arb), adb = sumOf(m, r => r.gcv_adb);
     const recv = sumOf(m, r => r.recv_wt), landed = sumOf(m, r => r.landed_cost);
@@ -2707,7 +1744,7 @@ async function computeDashboard(period = PERIOD) {
   return out;
 }
 
-/* Display: zero shows "-", money in whole rupees with en-IN grouping, decimals also get commas */
+/* Display: zero shows "-", money in whole rupees with en-IN grouping */
 const INT_FIELDS = new Set(['billQty','billGcv','svcSecl','svcCcl','svcMcl','pen5','totalBill','expBill','ulChg','olChg',
   'punSum','ehbc','enhc','deadFr','totalPen','pen5b','tgtSecl','tgtCcl','tgtMcl','loadSecl','loadCcl','loadMcl',
   'balSecl','balCcl','balMcl']);
@@ -2723,35 +1760,49 @@ function formatCell(id, n) {
       : Math.abs(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   return sign + body;
 }
-/* Trend table numbers: whole numbers for 1 and above, real decimals below 1 (e.g. 0.1) */
 function fmtTrendNum(n) {
   if (n == null) return '-';
   return Math.abs(n) >= 1 ? Math.round(n).toLocaleString('en-IN') : n.toLocaleString('en-IN', { maximumFractionDigits: 2 });
 }
+
+/* Manual overrides replace the displayed value and are highlighted */
 function renderCalculated(values) {
   Object.entries(values).forEach(([id, val]) => {
     if (id.startsWith('_')) return;
     const el = $(id);
     if (!el || el === document.activeElement) return;
-    const n = Number(val);
+    const manual = OVR[id] !== undefined;
+    const n = manual ? OVR[id] : Number(val);
     el.value = formatCell(id, n);
     el.classList.toggle('neg', n < 0);
     el.classList.toggle('pos', n >= 0);
+    el.classList.toggle('overridden', manual);
+    el.title = manual ? 'Manual value for this quarter. Reset it in Data Entry > Manual Override.' : '';
   });
 }
 
-const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+/* Mines table (built once; ids are m_<row>_<mine>) */
+const MINE_KEYS = ['gov','kmka','nkcr','oksr','gpck','jrgr','dipka','slog','ccl','mcl'];
+const MINE_HEAD = ['Govinda','KMKA','NKCR','OKSR','GPCK','JRGR','DIPKA','SLOG','CCL','MCL'];
+const MINE_ROWS = [['gcv','GCV (ARB)'],['diff','Quality Diff. ADB/ARB'],['perf','Performance on GCV Mines Wise'],['cost','Cost Rs. GCV Per Paisa'],
+  ['shrt','Shortage'],['pun','Punitive Sum (POL1/POL2/POLA..)'],['ehbc','EHBC / FAUC / SD / TC'],['enhc','ENHC Charges']];
+function buildMines() {
+  $('minesHead').innerHTML = '<tr><th>MINES</th>' + MINE_HEAD.map(h => `<th>${h}</th>`).join('') + '</tr>';
+  $('minesBody').innerHTML = MINE_ROWS.map(([k, l]) => `<tr><td class="row-label">${l}</td>` +
+    MINE_KEYS.map(m => `<td><input id="m_${k}_${m}" readonly></td>`).join('') + '</tr>').join('');
+}
+
+const MONTH_NAMES = MONTHS;
 function trendStats(rs, days) {
   const rr = sumOf(rs, r => r.rr_wt), arb = sumOf(rs, r => r.gcv_arb), landed = sumOf(rs, r => r.landed_cost);
   return { cost: arb ? landed / arb : null, qty: days && rr ? rr / days : null, gcv: rr ? sumProd(rs, 'gcv_arb', 'rr_wt') / rr : null };
 }
 async function loadTrend() {
   const fy = PERIOD.split('-Q')[0];
-  const keys = [`${fy}-Q2`, `${fy}-Q3`, `${fy}-Q4`];
+  const keys = [`${fy}-Q1`, `${fy}-Q2`, `${fy}-Q3`, `${fy}-Q4`];
   const results = await Promise.all(keys.map(k => computeDashboard(k)));
   const DAY = 86400000, today = new Date(); today.setHours(0, 0, 0, 0);
   const inr = n => n == null ? '-' : '₹ ' + n.toFixed(3);
-  const int = fmtTrendNum;
   const rupee = n => n == null ? '-' : '₹ ' + fmtTrendNum(n);
   let html = '';
   keys.forEach((k, qi) => {
@@ -2762,17 +1813,17 @@ async function loadTrend() {
       const mk = ms.getFullYear() + '-' + pad2(ms.getMonth() + 1);
       const mr = recs.filter(r => String(r.date || '').slice(0, 7) === mk);
       const days = Math.min(Math.round((me - ms) / DAY), Math.max(0, Math.floor((today - ms) / DAY) + 1));
-      return { label: `${MONTHS[ms.getMonth()]}-${String(ms.getFullYear()).slice(2)}`, ...trendStats(mr, days) };
+      return { label: `${MONTH_NAMES[ms.getMonth()]}-${String(ms.getFullYear()).slice(2)}`, ...trendStats(mr, days) };
     });
     const q = trendStats(recs, o._daysPassed);
     const billing = recs.length ? o.totalBill : null;
     const pct = o._tgtTotal ? Math.min(100, recs.length / o._tgtTotal * 100) : null;
     const pctCls = pct != null && pct < 100 ? 'qtr low' : 'qtr';
     months.forEach((m, i) => {
-      html += `<tr><td>${m.label}</td><td>${inr(m.cost)}</td><td>${int(m.qty)}</td><td>${int(m.gcv)}</td>`;
+      html += `<tr><td>${m.label}</td><td>${inr(m.cost)}</td><td>${fmtTrendNum(m.qty)}</td><td>${fmtTrendNum(m.gcv)}</td>`;
       if (i === 0) html += `<td class="qtr" rowspan="3">${periodLabel(k)}</td>
         <td class="qtr" rowspan="3">${inr(q.cost)}</td><td class="qtr" rowspan="3">${rupee(billing)}</td>
-        <td class="qtr" rowspan="3">${int(q.qty)}</td><td class="qtr" rowspan="3">${int(q.gcv)}</td>
+        <td class="qtr" rowspan="3">${fmtTrendNum(q.qty)}</td><td class="qtr" rowspan="3">${fmtTrendNum(q.gcv)}</td>
         <td class="${pctCls}" rowspan="3">${pct == null ? '-' : pct.toFixed(2) + '%'}</td>`;
       html += '</tr>';
     });
@@ -2784,11 +1835,15 @@ let loadSeq = 0;
 async function loadDashboard() {
   const seq = ++loadSeq;
   document.querySelectorAll('.pctTxt').forEach(e => e.textContent = FORMULAS.penaltyPct);
+  renderNotice();
+  loadAlerts();
   try {
+    OVR = await fetchOverrides(PERIOD);
     const calc = await computeDashboard();
     if (seq !== loadSeq) return;
     renderCalculated(calc);
-    $('reportUpdatedUpto').textContent = calc._lastRake ? new Date(calc._lastRake + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : '';
+    $('reportUpdatedUpto').textContent = calc._lastRake
+      ? new Date(calc._lastRake + 'T00:00:00').toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' }) : '';
     loadTrend().catch(console.error);
   } catch (err) {
     console.error(err);
@@ -2808,32 +1863,34 @@ function fillPeriodPicker() {
     subscribeLive();
   });
 }
+$('reloadDash').addEventListener('click', loadDashboard);
 
 let liveChannel = null;
+let liveTimer;
+const liveReload = () => { clearTimeout(liveTimer); liveTimer = setTimeout(loadDashboard, 500); };
 function subscribeLive() {
   try {
     if (liveChannel) db.removeChannel(liveChannel);
     liveChannel = db.channel('hzl-live-' + PERIOD)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'hzl_rake_records' }, () => loadDashboard())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'hzl_rake_targets' }, () => loadDashboard())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'hzl_dashboard_values' }, () => loadFormulas().then(loadDashboard))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'hzl_rake_records' }, liveReload)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'hzl_rake_targets' }, liveReload)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'hzl_dashboard_values' }, () => loadGlobal().then(loadDashboard))
       .subscribe();
   } catch (err) { console.warn('Realtime unavailable', err); }
 }
 
-$('saveDemo').addEventListener('click', async () => {
-  const { error } = await db.from('hzl_dashboard_values').upsert([{ period_key: PERIOD, field_key: 'olChg',
-    field_value: $('olChg').value, sort_order: 0 }], { onConflict: 'period_key,field_key' });
-  if (error) { toast('Save failed: ' + error.message, true); return; }
-  toast('Overload saved');
-  await loadDashboard();
+/* ---- Export PNG of the dashboard ---- */
+$('pngDash').addEventListener('click', async () => {
+  const btn = $('pngDash');
+  btn.disabled = true;
   try {
+    toast('Preparing image...');
+    await loadDashboard();
     await document.fonts.ready;
     const liveEl = document.querySelector('#view-dashboard');
     const liveInputs = [...liveEl.querySelectorAll('input')];
     const COPY = ['background-color', 'color', 'font-family', 'font-size', 'font-weight', 'font-variant-numeric',
       'text-align', 'border', 'border-radius', 'padding', 'width', 'height', 'line-height'];
-    // Size the capture to the widest part of the dashboard (cards or wide tables), not a fixed width
     const tableW = Math.max(0, ...[...liveEl.querySelectorAll('.trend-table, .mines-table')].map(t => t.scrollWidth));
     const W = Math.ceil(Math.max(liveEl.getBoundingClientRect().width, liveEl.scrollWidth, tableW + 120));
     const H = Math.ceil(Math.max(liveEl.getBoundingClientRect().height, liveEl.scrollHeight));
@@ -2842,7 +1899,6 @@ $('saveDemo').addEventListener('click', async () => {
       x: 0, y: 0, scrollX: 0, scrollY: 0,
       width: W, height: H, windowWidth: W, windowHeight: H,
       onclone: doc => {
-        // Let scrollable tables draw in full instead of being cut at their box
         doc.querySelectorAll('.trend-wrap, .mines-wrap, .tbl-wrap, .card, .main').forEach(n => {
           n.style.overflow = 'visible';
           n.style.maxHeight = 'none';
@@ -2850,18 +1906,15 @@ $('saveDemo').addEventListener('click', async () => {
         doc.querySelectorAll('.trend-table, .mines-table').forEach(t => { t.style.minWidth = '0'; });
         const cloneRoot = doc.querySelector('#view-dashboard');
         if (cloneRoot) cloneRoot.style.width = W + 'px';
-        // Solid base colour so the page never falls back to white
         doc.documentElement.style.background = '#e9eff8';
         doc.body.style.background = '#e9eff8';
         doc.body.style.backgroundAttachment = 'scroll';
-        // Freeze entrance animations, transforms and filters that html2canvas cannot draw
         doc.querySelectorAll('*').forEach(n => {
           n.style.animation = 'none';
           n.style.transition = 'none';
           n.style.transform = 'none';
           n.style.backdropFilter = 'none';
         });
-        // html2canvas does not paint <input> values, so swap each input for a div with the same look
         const root = doc.querySelector('#view-dashboard');
         [...root.querySelectorAll('input')].forEach((inp, i) => {
           const cs = getComputedStyle(liveInputs[i]);
@@ -2887,20 +1940,25 @@ $('saveDemo').addEventListener('click', async () => {
       a.remove();
       setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     }, 'image/png');
-  } catch (e) { console.error(e); toast('Saved, but PNG download failed', true); }
+  } catch (e) {
+    console.error(e);
+    toast('PNG export failed: ' + (e.message || e), true);
+  } finally {
+    btn.disabled = false;
+  }
 });
-$('resetDemo').addEventListener('click', loadDashboard);
-document.querySelectorAll('#view-dashboard input[id]').forEach(i => { i.readOnly = true; });
 
 /* ==================== INIT ==================== */
+buildMines();
 enhanceSelects();
 setInterval(() => { if (!document.hidden && $('view-dashboard').classList.contains('active')) loadDashboard(); }, 20000);
 (async () => {
-  await loadFormulas();
+  await loadGlobal();
   setPeriodLabel();
   fillPeriodPicker();
   loadDashboard();
   subscribeLive();
+  loadAlerts();
 })();
 </script>
 </body>
