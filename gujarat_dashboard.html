@@ -278,6 +278,28 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(33,132,71,.25)
 .switch input:checked + .slider{background:var(--navy2)}
 .switch input:checked + .slider::before{transform:translateX(20px)}
 .switch input:focus + .slider{box-shadow:0 0 0 3px rgba(33,132,71,.25)}
+
+/* LOCKED / UNLOCKED NAV: protected sheets appear only after unlocking */
+body:not(.unlocked) .pro-tab{display:none}
+
+/* ALERT BELL + POPUP */
+.user-chip .alert-btn{position:relative;padding:.3rem .65rem}
+.alert-badge{position:absolute;top:-7px;right:-7px;min-width:18px;height:18px;padding:0 4px;border-radius:999px;background:#e0475b;color:#fff;font:700 .65rem var(--body);display:grid;place-items:center}
+.modal-back{position:fixed;inset:0;z-index:500;background:rgba(10,30,18,.45);display:grid;place-items:center;padding:1rem}
+.modal{width:min(900px,96vw);max-height:86vh;display:flex;flex-direction:column;background:var(--card);border-radius:20px;box-shadow:var(--sh-hi);overflow:hidden}
+.modal-head{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:.9rem 1.2rem;background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff}
+.modal-head h2{font:700 1.05rem var(--head);display:flex;gap:.5rem;align-items:center}
+.alert-tabs{display:flex;gap:.4rem;overflow-x:auto;padding:.7rem 1rem;border-bottom:1px solid var(--line);flex-shrink:0}
+.alert-tab{border:1px solid var(--line);background:#f5faf5;color:var(--ink);border-radius:999px;padding:.35rem .8rem;font:700 .8rem var(--body);cursor:pointer;white-space:nowrap}
+.alert-tab small{margin-left:.4rem;background:#c2334a;color:#fff;border-radius:999px;padding:0 .4rem;font-size:.7rem}
+.alert-tab.active{background:var(--navy2);color:#fff;border-color:var(--navy2)}
+.alert-body{padding:1rem 1.2rem;overflow:auto}
+.alert-info{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.8rem}
+.alert-miss{display:flex;justify-content:space-between;gap:1rem;padding:.55rem .8rem;border-radius:12px;background:#fbe6ea;color:#a3142b;font-weight:700;margin-bottom:.4rem}
+.alert-miss span:last-child{font-weight:600}
+
+/* EDITED ROWS IN RECORDS LOG */
+.tbl tr.dirty td{background:#fff6d6!important}
 </style>
 <meta name="pr-access" content="amm:GPCL" />
 <meta name="description" content="Gujarat Performance | AMM Gujarat – Prithvi Realcon logistics and performance portal." />
@@ -294,12 +316,15 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(33,132,71,.25)
   <div class="party-name"><span class="dot"></span> Gujarat</div>
   <nav class="sidebar-nav">
     <button class="nav-item active" data-view="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</button>
-    <button class="nav-item" data-view="upload"><i class="fas fa-file-excel"></i> Upload Excel</button>
-    <button class="nav-item" data-view="log"><i class="fas fa-list"></i> Records Log</button>
-    <button class="nav-item" data-view="entry"><i class="fas fa-keyboard"></i> Data Entry</button>
-    <button class="nav-item" data-view="formulas"><i class="fas fa-calculator"></i> Formulas</button>
+    <button class="nav-item pro-tab" data-view="upload"><i class="fas fa-file-excel"></i> Upload Excel</button>
+    <button class="nav-item pro-tab" data-view="log"><i class="fas fa-list"></i> Records Log</button>
+    <button class="nav-item pro-tab" data-view="entry"><i class="fas fa-keyboard"></i> Data Entry</button>
+    <button class="nav-item pro-tab" data-view="formulas"><i class="fas fa-calculator"></i> Formulas</button>
   </nav>
-  <div class="user-chip"><span id="userLabel">Locked</span><button id="lockBtn"><i class="fas fa-lock"></i></button></div>
+  <div class="user-chip">
+    <button class="alert-btn" id="alertBtn" title="Pending rake details (not received)"><i class="fas fa-bell"></i><span class="alert-badge hidden" id="alertBadge">0</span></button>
+    <span id="userLabel">Locked</span><button id="lockBtn"><i class="fas fa-lock"></i></button>
+  </div>
 </aside>
 
 <main class="main">
@@ -453,6 +478,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(33,132,71,.25)
   <div class="panel">
     <div class="toolbar">
       <input class="search" id="logSearch" placeholder="Search by RR no, siding, area, date...">
+      <input type="month" id="fltMonth" class="field" style="max-width:170px" aria-label="Month" title="Month">
       <select id="fltArea" class="field" style="max-width:130px" aria-label="Area"></select>
       <select id="fltSiding" class="field" style="max-width:140px" aria-label="Siding"></select>
       <select id="fltDstn" class="field" style="max-width:130px" aria-label="Party"></select>
@@ -460,6 +486,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(33,132,71,.25)
       <input type="date" id="fltTo" class="field" style="max-width:160px" aria-label="To date" title="To date">
       <button class="btn-soft" id="fltClear"><i class="fas fa-filter-circle-xmark"></i> Clear</button>
       <button class="btn-soft" id="logReload"><i class="fas fa-rotate"></i> Reload</button>
+      <button class="btn-go" id="logSaveAll"><i class="fas fa-floppy-disk"></i> Save All</button>
       <span class="muted" id="logCount"></span>
     </div>
     <div class="tbl-wrap"><table class="tbl" id="logTbl"></table></div>
@@ -557,7 +584,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(33,132,71,.25)
     <p class="muted">RR = RR weight, Recv = received weight, GETS / TPHS = party type on the record. "Month" means the selected month. Materialisation uses rakes loaded up to the report date.</p>
     <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Plants and Weights</h4>
     <ul class="formula-list">
-      <li>Target of Month, Rake Loaded Till, Balance Rake, Asking Per Day = per party (GETS, TPHS) and area (SECL, WCL) from Data Entry targets; loaded counts rakes up to the report date; asking per day = balance ÷ days from report date to the 3rd of the next month</li>
+      <li>Target of Month, Rake Loaded Till, Balance Rake, Asking Per Day = per party (GETS, TPHS) and area (SECL, WCL) from Data Entry targets; loaded counts rakes up to the report date; asking per day = balance ÷ days from today to the 3rd of the next month</li>
       <li>Avg. CH.Wt., Avg. RR.Wt., Avg. Plant Rec. Wt. = simple averages of the rakes; TOTAL RR WEIGHT = RR of rakes with received weight; PLANT RECEIVE = sum of received weight</li>
     </ul>
     <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Rake Performance</h4>
@@ -571,9 +598,14 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(33,132,71,.25)
       <li>Grade Slippage = Unloading Grade − Loading Grade (both read from the record). GCV Bonus/Penalty (₹/MT) = GCV Base Rate × slippage % ÷ 100. Bonus/Penalty (₹) = RR weight × that ₹/MT. The database calculates these three whenever a record is saved or the base rate / slippage % change; the page only reads them.</li>
       <li>Performance on GCV Reco = sum of the saved Bonus/Penalty (₹) of the month's rakes. Slippage 0 = +2%; 1 = −5%; 2 = −40%; 3 = −60%; above 3 = −100%. Blank or negative slippage is excluded.</li>
       <li>Service Charge SECL / WCL = RR weight of that area × rate (Data Entry)</li>
-      <li>Total Railway Penalty = Underload + Overload + Punitive + EHBC/FAUC/SD/TC + ENHC + Dead Freight (typed per month in Data Entry)</li>
+      <li>Total Railway Penalty = Underload (sum of Underload Qty On Us) + Overload + Punitive + EHBC/FAUC/SD/TC + ENHC + Dead Freight (typed per month in Data Entry)</li>
       <li>TOTAL BILLING = Quantity Reco + GCV Reco + Service SECL + Service WCL − Total Railway Penalty. Per MT: quantity reco ÷ plant receive, GCV reco ÷ RR weight of rakes with non-negative slippage, service ÷ area RR, penalty ÷ total RR; TOTAL per MT = quantity + GCV + average of the two service per MT + penalty per MT (as in the workbook)</li>
       <li>Expected Billing = TOTAL BILLING ÷ days passed in month × days in month</li>
+    </ul>
+    <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Railway Freight Penalties</h4>
+    <ul class="formula-list">
+      <li>Underload Charge = sum of Underload Qty On Us (ul_on_us) of the month's rakes; per MT = that amount ÷ total RR weight</li>
+      <li>Underload Qty Paid Coal India, Paid by SECL, Underload Qty On Us, Underload Charge and Overload Charge are typed manually on each record</li>
     </ul>
     <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Shortage / Excess</h4>
     <ul class="formula-list">
@@ -584,11 +616,25 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(33,132,71,.25)
     <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Mines Wise (matched by siding code)</h4>
     <ul class="formula-list">
       <li>GCV = RR-weighted GCV ARB; Quantity = sum RR; penalties = sums of the matching charge columns; Cost per MT = penalties ÷ RR of that mine</li>
+      <li>Underload Charges (mine) = sum of Underload Qty On Us (ul_on_us) of that mine's rakes</li>
+      <li>Shortage (Avg) = average RR weight − average plant received weight, over that mine's rakes with received weight</li>
     </ul>
   </div>
 </section>
 
 </main>
+
+<!-- ============ ALERT POPUP: PENDING (NOT RECEIVED) DETAILS, RR NO. WISE ============ -->
+<div class="modal-back hidden" id="alertModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2><i class="fas fa-bell"></i> Pending Rake Details (not received)</h2>
+      <button class="btn-soft btn-sm" id="alertClose"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="alert-tabs" id="alertTabs"></div>
+    <div class="alert-body" id="alertBody"></div>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 
@@ -670,9 +716,12 @@ function computeMonth({ period, recs, targets, settings, formulas, reportDate, o
   const lastDate = mrecs.reduce((m, r) => (r.date > m ? r.date : m), '');
   const rep = (reportDate && reportDate >= mi.start && reportDate <= mi.end) ? reportDate : (lastDate || mi.end);
   const daysPassed = Math.min(mi.dim, daysBetween(mi.start, rep) + 1);
-  // Asking Per Day runs through the 3rd of the following month (e.g. Oct 1 to Nov 3 = 33 days).
+  // Asking Per Day counts the days from TODAY to the 3rd of the following month
+  // (e.g. on Oct 30 -> Nov 3 = 4 days). For an old month whose window is already over, the report date is used.
   const askingEnd = `${shiftMonth(period, 1)}-03`;
-  const daysRemaining = daysBetween(rep, askingEnd);
+  const todayStr = new Date().toLocaleDateString('en-CA');   // local date as YYYY-MM-DD
+  const askFrom = todayStr > askingEnd ? rep : (todayStr < mi.start ? mi.start : todayStr);
+  const daysRemaining = daysBetween(askFrom, askingEnd);
   const upto = mrecs.filter(r => r.date <= rep);
   const withRecv = mrecs.filter(r => isNum(r.recv_wt));
   const rrAll = sumField(mrecs, 'rr_wt');
@@ -744,8 +793,9 @@ function computeMonth({ period, recs, targets, settings, formulas, reportDate, o
 
   // Penalty components: each may be overridden, and the total follows them.
   // If the total (or the b-pen line, which shows it as negative) is overridden, that value wins.
+  // Underload Charge = sum of ul_on_us (manual entry on each record).
   const pen = {
-    ul: pick('p-ul', sumField(mrecs, 'ul_ch')), ol: pick('p-ol', sumField(mrecs, 'ol_ch')),
+    ul: pick('p-ul', sumField(mrecs, 'ul_on_us')), ol: pick('p-ol', sumField(mrecs, 'ol_ch')),
     pun: pick('p-pun', sumField(mrecs, 'pol_group')),
     ehbc: pick('p-ehbc', sumField(mrecs, 'ehbc_group')), enhc: pick('p-enhc', sumField(mrecs, 'enhc_charge')),
     dead: pick('p-dead', num(S.deadFreight))
@@ -772,12 +822,16 @@ function computeMonth({ period, recs, targets, settings, formulas, reportDate, o
     const gcv = wAvg(ms, 'gcv_arb', 'rr_wt');
     const loadG = wAvg(ms, 'loading_gcv', 'rr_wt');
     const un = unloadingGradeNo(gcv), ld = unloadingGradeNo(loadG);
-    const pun = sumField(ms, 'pol_group'), ehbc = sumField(ms, 'ehbc_group'), enhc = sumField(ms, 'enhc_charge'), ul = sumField(ms, 'ul_ch');
+    // Underload Charges (mine wise) = sum of ul_on_us
+    const pun = sumField(ms, 'pol_group'), ehbc = sumField(ms, 'ehbc_group'), enhc = sumField(ms, 'enhc_charge'), ul = sumField(ms, 'ul_on_us');
+    // Shortage (Avg) = avg RR weight - avg plant received weight (rakes whose received weight is in)
+    const msRecv = ms.filter(r => isNum(r.recv_wt));
+    const shortAvg = msRecv.length ? avgField(msRecv, 'rr_wt') - avgField(msRecv, 'recv_wt') : 0;
     return {
       code, rr, gcv,
       unloadGrade: gradeText(un), loadGrade: gradeText(ld),
       slip: (un != null && ld != null) ? un - ld : null,
-      pun, ehbc, enhc, ul,
+      pun, ehbc, enhc, ul, shortAvg,
       perTon: rr ? (pun + ehbc + enhc) / rr : 0,
       bonus: ms.reduce((s, r) => s + bonusOf(r), 0)
     };
@@ -947,6 +1001,7 @@ function setPeriodLabel() {
 let loadSeq = 0;
 async function loadDashboard() {
   const seq = ++loadSeq;
+  loadAlerts();   // refresh the bell (pending / not received details)
   try {
     const st = await fetchState(PERIOD);
     if (seq !== loadSeq) return;
@@ -1059,7 +1114,8 @@ function renderDashboard(o, trend) {
     mrow('EHBC / FAUC / SD / TC', m => m.ehbc, fInt) +
     mrow('ENHC Charges', m => m.enhc, fInt) +
     mrow('Per Ton Cost', m => m.perTon, f2) +
-    mrow('Underload Charges', m => m.ul, fInt);
+    mrow('Underload Charges', m => m.ul, fInt) +
+    mrow('Shortage (Avg)', m => m.shortAvg, f2);
 
   $('trendBody').innerHTML = trend.map(t => {
     const ded = -t.penTotal;
@@ -1118,6 +1174,63 @@ function subscribeLive() {
 }
 
 $('reloadDash').addEventListener('click', loadDashboard);
+
+/* ==================== ALERT: PENDING / NOT RECEIVED DETAILS (RR NO. WISE TABS) ==================== */
+// A rake shows in the bell while any of these values is still empty.
+const ALERT_FIELDS = [
+  ['rr_wt', 'RR Weight'], ['recv_wt', 'Received Wt.'], ['grn_qty', 'GRN Qty.'],
+  ['gcv_arb', 'GCV ARB'], ['unloading_grade', 'Unloading Grade']
+];
+const isBlank = v => v === null || v === undefined || String(v).trim() === '';
+let ALERTS = [];
+let ALERT_SEL = null;
+
+async function loadAlerts() {
+  try {
+    const { data, error } = await db.from(TBL).select('*')
+      .or(ALERT_FIELDS.map(([k]) => k + '.is.null').join(','))
+      .order('date', { ascending: false }).limit(300);
+    if (error) throw error;
+    ALERTS = (data || [])
+      .map(r => ({ r, miss: ALERT_FIELDS.filter(([k]) => isBlank(r[k])) }))
+      .filter(x => x.miss.length);
+    const badge = $('alertBadge');
+    badge.textContent = ALERTS.length > 99 ? '99+' : ALERTS.length;
+    badge.classList.toggle('hidden', !ALERTS.length);
+    if (!$('alertModal').classList.contains('hidden')) renderAlerts();
+  } catch (err) { console.warn('Alerts not loaded', err); }
+}
+
+function renderAlerts() {
+  const tabs = $('alertTabs'), body = $('alertBody');
+  if (!ALERTS.length) {
+    tabs.innerHTML = '';
+    body.innerHTML = '<p class="muted">All rakes have their details received. Nothing pending.</p>';
+    return;
+  }
+  if (!ALERTS.some(x => String(x.r.id) === String(ALERT_SEL))) ALERT_SEL = ALERTS[0].r.id;
+  tabs.innerHTML = ALERTS.map(x => {
+    const name = x.r.rr_no || ('Sr ' + (x.r.sr_no ?? '-'));
+    return `<button class="alert-tab ${String(x.r.id) === String(ALERT_SEL) ? 'active' : ''}" data-id="${esc(x.r.id)}">${esc(name)}<small>${x.miss.length}</small></button>`;
+  }).join('');
+  const cur = ALERTS.find(x => String(x.r.id) === String(ALERT_SEL));
+  const r = cur.r;
+  const info = [
+    ['RR No', r.rr_no || '-'], ['Sr No', r.sr_no ?? '-'], ['Date', r.date || '-'],
+    ['Area', r.area || '-'], ['Siding', r.siding || '-'], ['Party', r.dstn || '-']
+  ];
+  body.innerHTML =
+    `<div class="alert-info">${info.map(([k, v]) => `<span class="chip">${k}: ${esc(v)}</span>`).join('')}</div>` +
+    cur.miss.map(([k, label]) => `<div class="alert-miss"><span>${esc(label)}</span><span>Not received</span></div>`).join('');
+}
+
+$('alertBtn').addEventListener('click', () => { $('alertModal').classList.remove('hidden'); renderAlerts(); });
+$('alertClose').addEventListener('click', () => $('alertModal').classList.add('hidden'));
+$('alertModal').addEventListener('click', e => {
+  if (e.target.id === 'alertModal') { $('alertModal').classList.add('hidden'); return; }
+  const t = e.target.closest('.alert-tab');
+  if (t) { ALERT_SEL = t.dataset.id; renderAlerts(); }
+});
 
 /* ==================== EXPORT PNG ==================== */
 const EXPORT_W = 1500, EXPORT_ROOT_PX = 15, EXPORT_BG = '#f1f8f2';
@@ -1276,6 +1389,7 @@ function enrichRecord(row) {
   if (row.gross_wt != null && row.tare_wt != null) row.net_wt = +(row.gross_wt - row.tare_wt).toFixed(2);
   if (row.ch_wt != null && row.rr_wt != null) row.dead_fr_qty = +(row.ch_wt - row.rr_wt).toFixed(2);
   if (row.ch_wt != null && row.rr_wt != null) row.ul_qty = +(row.ch_wt - row.rr_wt).toFixed(2);
+  // ul_paid_cil, ul_paid_secl, ul_on_us, ul_ch and ol_ch are manual entries and are never calculated here.
   // Grade Slippage, GCV Bonus/Penalty (Rs/MT) and Bonus/Penalty (Rs) are calculated by the database trigger.
   return row;
 }
@@ -1306,6 +1420,7 @@ function showView(name) {
 function tryUnlock() {
   if ($('pwdInput').value === APP_PASSWORD) {
     isUnlocked = true;
+    document.body.classList.add('unlocked');   // shows Upload Excel / Records Log / Data Entry / Formulas
     $('pwdInput').value = '';
     $('pwdErr').textContent = '';
     $('userLabel').textContent = 'Unlocked';
@@ -1319,9 +1434,21 @@ $('unlockBtn').addEventListener('click', tryUnlock);
 $('pwdInput').addEventListener('keydown', e => { if (e.key === 'Enter') tryUnlock(); });
 $('lockBack').addEventListener('click', () => showView('dashboard'));
 $('lockBtn').addEventListener('click', () => {
-  isUnlocked = false;
-  $('userLabel').textContent = 'Locked';
-  showView('dashboard');
+  if (isUnlocked) {
+    // lock again: the protected sheets disappear from the top bar
+    isUnlocked = false;
+    document.body.classList.remove('unlocked');
+    $('userLabel').textContent = 'Locked';
+    showView('dashboard');
+  } else {
+    // open the password page; after unlocking, the protected sheets appear in the top bar
+    pendingView = 'dashboard';
+    $('lockTitle').textContent = 'Enter password';
+    $('pwdInput').value = '';
+    $('pwdErr').textContent = '';
+    showView('lock');
+    setTimeout(() => $('pwdInput').focus(), 50);
+  }
 });
 document.querySelectorAll('.nav-item').forEach(b => b.addEventListener('click', () => showView(b.dataset.view)));
 
@@ -1470,9 +1597,10 @@ async function loadLog() {
 function renderLog() {
   const q = $('logSearch').value.toLowerCase();
   const fA = $('fltArea').value, fS = $('fltSiding').value, fD = $('fltDstn').value;
-  const fF = $('fltFrom').value, fT = $('fltTo').value;
+  const fF = $('fltFrom').value, fT = $('fltTo').value, fM = $('fltMonth').value;
   const rows = logRecords.filter(r =>
     (!q || JSON.stringify(r).toLowerCase().includes(q)) &&
+    (!fM || (r.date && String(r.date).slice(0, 7) === fM)) &&
     (!fA || up(r.area) === up(fA)) &&
     (!fS || up(r.siding) === up(fS)) &&
     (!fD || up(r.dstn) === up(fD)) &&
@@ -1512,25 +1640,59 @@ function fillLogFilters() {
   set('fltSiding', 'siding', 'All Sidings');
   set('fltDstn', 'dstn', 'All Parties');
 }
-['fltArea', 'fltSiding', 'fltDstn', 'fltFrom', 'fltTo'].forEach(id => $(id).addEventListener('change', renderLog));
+['fltMonth', 'fltArea', 'fltSiding', 'fltDstn', 'fltFrom', 'fltTo'].forEach(id => $(id).addEventListener('change', renderLog));
 $('fltClear').addEventListener('click', () => {
-  ['logSearch', 'fltArea', 'fltSiding', 'fltDstn', 'fltFrom', 'fltTo'].forEach(id => $(id).value = '');
+  ['logSearch', 'fltMonth', 'fltArea', 'fltSiding', 'fltDstn', 'fltFrom', 'fltTo'].forEach(id => $(id).value = '');
   renderLog();
 });
 $('logSearch').addEventListener('input', renderLog);
 $('logReload').addEventListener('click', loadLog);
+
+// Build the update payload of one log row (calculated columns are left to the database trigger)
+function rowPatch(tr) {
+  const patch = {};
+  tr.querySelectorAll('input[data-col]').forEach(inp => {
+    const col = inp.dataset.col;
+    if (col === 'id' || GCV_CALC_COLS.includes(col)) return;   // calculated by the database
+    patch[col] = toDbValue(col, inp.value);
+  });
+  enrichRecord(patch);
+  return patch;
+}
+// Mark a row as edited (yellow) as soon as a value is typed
+$('logTbl').addEventListener('input', e => {
+  const tr = e.target.closest('tr[data-id]');
+  if (tr && e.target.dataset.col) tr.classList.add('dirty');
+});
+// Save every edited row in one go
+$('logSaveAll').addEventListener('click', async () => {
+  const trs = [...$('logTbl').querySelectorAll('tr.dirty')];
+  if (!trs.length) { toast('No edited rows to save'); return; }
+  const btn = $('logSaveAll');
+  btn.disabled = true;
+  let ok = 0; const fail = [];
+  try {
+    for (const tr of trs) {
+      const { error } = await db.from(TBL).update(rowPatch(tr)).eq('id', tr.dataset.id);
+      if (error) fail.push(`id ${tr.dataset.id}: ${error.message}`);
+      else { ok++; tr.classList.remove('dirty'); }
+    }
+    setStatus('logStatus', `Saved ${ok} of ${trs.length} edited rows.` + (fail.length ? ' Failed: ' + fail.slice(0, 5).join('; ') : ''), fail.length ? 'err' : 'ok');
+    toast(`Saved ${ok} row${ok === 1 ? '' : 's'}${fail.length ? `, ${fail.length} failed` : ''}`, !!fail.length);
+    if (!fail.length) loadLog();   // reload so the calculated GCV columns show their new values
+  } catch (err) {
+    console.error(err);
+    toast('Save All failed: ' + err.message, true);
+  } finally {
+    btn.disabled = false;
+  }
+});
 $('logTbl').addEventListener('click', async e => {
   const saveBtn = e.target.closest('[data-save]');
   const delBtn = e.target.closest('[data-del]');
   if (saveBtn) {
     const tr = saveBtn.closest('tr');
-    const patch = {};
-    tr.querySelectorAll('input[data-col]').forEach(inp => {
-      const col = inp.dataset.col;
-      if (col === 'id' || GCV_CALC_COLS.includes(col)) return;   // calculated by the database
-      patch[col] = toDbValue(col, inp.value);
-    });
-    enrichRecord(patch);
+    const patch = rowPatch(tr);
     const { error } = await db.from(TBL).update(patch).eq('id', saveBtn.dataset.save);
     if (error) { setStatus('logStatus', 'Update failed: ' + error.message, 'err'); return; }
     setStatus('logStatus', 'Record updated', 'ok');
