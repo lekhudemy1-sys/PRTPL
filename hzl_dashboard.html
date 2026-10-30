@@ -383,10 +383,22 @@ body:not(.unlocked) .pro-tab{display:none}
   </div>
 
   <div class="card trend-card">
-    <div class="card-header"><h3><i class="fas fa-calendar-alt"></i> Monthly &amp; Quarterly Performance</h3></div>
+    <div class="card-header">
+      <h3><i class="fas fa-calendar-alt"></i> Quarterly Performance</h3>
+    </div>
     <div class="trend-wrap">
-      <table class="trend-table">
-        <thead><tr><th>Month</th><th>Rs. Per GCV Cost</th><th>Per Day Qty.</th><th>WT. GCV</th><th>Quarter</th><th>Quarterly Avg. Rs./- GCV</th><th>Quarterly Billing</th><th>Quarterly Avg. Qty.</th><th>AVG. WT. GCV</th><th>%</th></tr></thead>
+      <table class="trend-table" style="min-width:780px">
+        <thead>
+          <tr>
+            <th>Quarter</th>
+            <th>Rakes</th>
+            <th>Quantity<br><small style="font-weight:500;opacity:.85">(RR Wt)</small></th>
+            <th>Billing<br><small style="font-weight:500;opacity:.85">(Service Charge)</small></th>
+            <th>Bonus<br><small style="font-weight:500;opacity:.85">(Qty Reco)</small></th>
+            <th>Deduction<br><small style="font-weight:500;opacity:.85">(5% Penalty)</small></th>
+            <th>Amount</th>
+          </tr>
+        </thead>
         <tbody id="trendBody"></tbody>
       </table>
     </div>
@@ -1801,34 +1813,32 @@ async function loadTrend() {
   const fy = PERIOD.split('-Q')[0];
   const keys = [`${fy}-Q1`, `${fy}-Q2`, `${fy}-Q3`, `${fy}-Q4`];
   const results = await Promise.all(keys.map(k => computeDashboard(k)));
-  const DAY = 86400000, today = new Date(); today.setHours(0, 0, 0, 0);
-  const inr = n => n == null ? '-' : '₹ ' + n.toFixed(3);
-  const rupee = n => n == null ? '-' : '₹ ' + fmtTrendNum(n);
+
   let html = '';
-  keys.forEach((k, qi) => {
-    const o = results[qi], recs = o._recs, start = new Date(o._from + 'T00:00:00');
-    const months = [0, 1, 2].map(i => {
-      const ms = new Date(start.getFullYear(), start.getMonth() + i, 1);
-      const me = new Date(start.getFullYear(), start.getMonth() + i + 1, 1);
-      const mk = ms.getFullYear() + '-' + pad2(ms.getMonth() + 1);
-      const mr = recs.filter(r => String(r.date || '').slice(0, 7) === mk);
-      const days = Math.min(Math.round((me - ms) / DAY), Math.max(0, Math.floor((today - ms) / DAY) + 1));
-      return { label: `${MONTH_NAMES[ms.getMonth()]}-${String(ms.getFullYear()).slice(2)}`, ...trendStats(mr, days) };
-    });
-    const q = trendStats(recs, o._daysPassed);
-    const billing = recs.length ? o.totalBill : null;
-    const pct = o._tgtTotal ? Math.min(100, recs.length / o._tgtTotal * 100) : null;
-    const pctCls = pct != null && pct < 100 ? 'qtr low' : 'qtr';
-    months.forEach((m, i) => {
-      html += `<tr><td>${m.label}</td><td>${inr(m.cost)}</td><td>${fmtTrendNum(m.qty)}</td><td>${fmtTrendNum(m.gcv)}</td>`;
-      if (i === 0) html += `<td class="qtr" rowspan="3">${periodLabel(k)}</td>
-        <td class="qtr" rowspan="3">${inr(q.cost)}</td><td class="qtr" rowspan="3">${rupee(billing)}</td>
-        <td class="qtr" rowspan="3">${fmtTrendNum(q.qty)}</td><td class="qtr" rowspan="3">${fmtTrendNum(q.gcv)}</td>
-        <td class="${pctCls}" rowspan="3">${pct == null ? '-' : pct.toFixed(2) + '%'}</td>`;
-      html += '</tr>';
-    });
+  keys.forEach((k, i) => {
+    const o = results[i];
+    const recs = o._recs || [];
+    const rakes = recs.length;
+    const quantity = o.totalRrWt || 0;                                    // Total RR Weight
+    const billing = (o.svcSecl || 0) + (o.svcCcl || 0) + (o.svcMcl || 0); // Service charge SECL+CCL+MCL
+    const bonus = o.billQty || 0;                                         // Performance on Quantity Reco
+    const deduction = Math.abs(o.pen5 || 0);                              // 5% of total railway penalty
+    const amount = (quantity + bonus) - deduction;
+
+    const isCurrent = k === PERIOD;
+
+    html += `<tr${isCurrent ? ' style="background:#e0f5ef"' : ''}>
+      <td class="qtr" style="font-weight:700">${periodLabel(k)}</td>
+      <td>${rakes || '-'}</td>
+      <td>${fmtTrendNum(quantity)}</td>
+      <td>${fmtTrendNum(billing)}</td>
+      <td>${fmtTrendNum(bonus)}</td>
+      <td class="low">${fmtTrendNum(deduction)}</td>
+      <td style="font-weight:700;color:#0c7a55">${fmtTrendNum(amount)}</td>
+    </tr>`;
   });
-  $('trendBody').innerHTML = html;
+
+  $('trendBody').innerHTML = html || '<tr><td colspan="7" class="empty">No data</td></tr>';
 }
 
 let loadSeq = 0;
