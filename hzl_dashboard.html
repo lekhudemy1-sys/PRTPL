@@ -1587,7 +1587,10 @@ const OVR_FIELDS_LIST = [
   ['totalRrWt', 'Total RR Weight'], ['totalPlantRec', 'Total Plant Receive'],
   ['ulChg', 'Penalty: Underload Charge'], ['olChg', 'Penalty: Overload Charge'], ['punSum', 'Penalty: Punitive Sum'],
   ['ehbc', 'Penalty: EHBC / FAUC / TC'], ['enhc', 'Penalty: ENHC Charges'], ['deadFr', 'Penalty: Dead Freight'],
-  ['totalPen', 'Penalty: TOTAL PENALTY'], ['pen5b', 'Penalty: 5% of Total Penalty']
+  ['totalPen', 'Penalty: TOTAL PENALTY'], ['pen5b', 'Penalty: 5% of Total Penalty'],
+  ['trendRakes', 'Quarterly Performance: Rakes'], ['trendQty', 'Quarterly Performance: Quantity (RR Wt)'],
+  ['trendBilling', 'Quarterly Performance: Billing (Service Charge)'], ['trendBonus', 'Quarterly Performance: Bonus'],
+  ['trendDeduction', 'Quarterly Performance: Deduction (5% Penalty)'], ['trendAmount', 'Quarterly Performance: Amount']
 ];
 const OVR_LABEL = Object.fromEntries(OVR_FIELDS_LIST);
 let OVR = {};
@@ -1630,8 +1633,18 @@ async function saveOverride() {
   loadDashboard();
 }
 async function resetOverride(id) {
-  const { error } = await db.from('hzl_dashboard_values').delete().eq('period_key', 'ovr:' + dashPeriodKey()).eq('field_key', id);
+  const pk = 'ovr:' + dashPeriodKey();
+  const { error } = await db.from('hzl_dashboard_values').delete().eq('period_key', pk).eq('field_key', id);
   if (error) { setStatus('ovrStatus', 'Reset failed: ' + error.message, 'err'); return; }
+  // Some databases accept the delete but remove nothing (no delete permission). Check, and blank the value instead.
+  const { data: left } = await db.from('hzl_dashboard_values').select('field_key').eq('period_key', pk).eq('field_key', id);
+  if (left && left.length) {
+    const { error: e2 } = await db.from('hzl_dashboard_values').upsert(
+      [{ period_key: pk, field_key: id, field_value: '', sort_order: 0 }], { onConflict: 'period_key,field_key' });
+    if (e2) { setStatus('ovrStatus', 'Reset failed: ' + e2.message, 'err'); return; }
+  }
+  $('ovrValue').value = '';
+  $('ovrSwitch').checked = false;
   setStatus('ovrStatus', `${OVR_LABEL[id] || id} is back on its formula`, 'ok');
   toast('Formula restored');
   await renderOverridePanel();
@@ -1853,29 +1866,36 @@ function trendStats(rs, days) {
 async function loadTrend() {
   const fy = PERIOD.split('-Q')[0];
   const keys = [`${fy}-Q1`, `${fy}-Q2`, `${fy}-Q3`, `${fy}-Q4`];
-  const results = await Promise.all(keys.map(k => computeDashboard(k)));
+  const [results, ovrs] = await Promise.all([
+    Promise.all(keys.map(k => computeDashboard(k))),
+    Promise.all(keys.map(k => fetchOverrides(k)))
+  ]);
 
   let html = '';
   keys.forEach((k, i) => {
-    const o = results[i];
-    const recs = o._recs || [];
-    const rakes = recs.length;
-    const quantity = o.totalRrWt || 0;                                    // Total RR Weight
-    const billing = (o.svcSecl || 0) + (o.svcCcl || 0) + (o.svcMcl || 0); // Service charge SECL+CCL+MCL
-    const bonus = (o.billGcv || 0) + (o.billQty || 0);                    // Performance on GCV Reco + Quantity Reco
-    const deduction = Math.abs(o.pen5 || 0);                              // 5% of total railway penalty
-    const amount = bonus - deduction;                                     // Bonus - Deduction
+    const o = results[i], ov = ovrs[i] || {};
+    const pick = (id, calc) => ov[id] !== undefined ? ov[id] : calc;
+    const rakes = pick('trendRakes', (o._recs || []).length);
+    const quantity = pick('trendQty', o.totalRrWt || 0);                                                    // Total RR Weight
+    const billing = pick('trendBilling', (o.svcSecl || 0) + (o.svcCcl || 0) + (o.svcMcl || 0));           // Service charge SECL+CCL+MCL
+    const bonus = pick('trendBonus', (o.billGcv || 0) + (o.billQty || 0));                                // GCV Reco + Quantity Reco
+    const deduction = pick('trendDeduction', Math.abs(o.pen5 || 0));                                      // 5% of total railway penalty
+    const amount = pick('trendAmount', bonus - deduction);                                                // Bonus - Deduction
 
+    const td = (id, text, cls = '', style = '') => {
+      const man = ov[id] !== undefined;
+      return `<td${cls ? ` class="${cls}"` : ''} style="${style}${man ? ';background:#fff3cf;color:#7a4f00;box-shadow:inset 0 0 0 2px #d6a21a' : ''}"${man ? ' title="Manual value. Reset it in Data Entry > Manual Override."' : ''}>${text}</td>`;
+    };
     const isCurrent = k === PERIOD;
 
     html += `<tr${isCurrent ? ' style="background:#e0f5ef"' : ''}>
       <td class="qtr" style="font-weight:700">${periodLabel(k)}</td>
-      <td>${rakes || '-'}</td>
-      <td>${fmtTrendNum(quantity)}</td>
-      <td>${fmtTrendNum(billing)}</td>
-      <td>${fmtTrendNum(bonus)}</td>
-      <td class="low">${fmtTrendNum(deduction)}</td>
-      <td style="font-weight:700;color:${amount < 0 ? '#b3162b' : '#0c7a55'}">${fmtTrendNum(amount)}</td>
+      ${td('trendRakes', rakes ? fmtTrendNum(rakes) : '-')}
+      ${td('trendQty', fmtTrendNum(quantity))}
+      ${td('trendBilling', fmtTrendNum(billing))}
+      ${td('trendBonus', fmtTrendNum(bonus))}
+      ${td('trendDeduction', fmtTrendNum(deduction), 'low')}
+      ${td('trendAmount', fmtTrendNum(amount), '', 'font-weight:700;color:' + (amount < 0 ? '#b3162b' : '#0c7a55'))}
     </tr>`;
   });
 
