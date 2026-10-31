@@ -1465,6 +1465,15 @@ async function parseSheet(){const sheet=$('#x-s').value,ws=S.xl.wb.Sheets[sheet]
   const o={_row:i+1,_s:'ok',_err:'',direction:dir,source_sheet:sheet,source_row:i+1,raw};
   FIELDS.forEach(f=>{const j=map[f];o[f]=j==null||r[j]==null||String(r[j]).trim()===''?null:String(r[j]).trim()});
   out.push(o)}
+ /* D.O. mismatch fix: a block's D.O. = majority D.O. of its truck rows */
+ const dd=v=>String(v??'').replace(/\D/g,''),TT=/D\.?\s*O\.?\s*No\.?\s*[-:]?\s*(\d{10})/i,blk=[],hdr={};let b=0;
+ rows.forEach((r,i)=>{const t=r.find(c=>typeof c==='string'&&TT.test(c));if(t){b++;hdr[b]=t.match(TT)[1]}blk[i]=b});
+ const grp={};out.forEach(o=>{const k=blk[o._row-1];if(k&&/^\d+$/.test(o.sn_no||'')&&o.do_no)(grp[k]=grp[k]||[]).push(o)});
+ S.xl.fixes=[];S.xl.hdrWarn=[];S.xl.fixMap={};
+ Object.entries(grp).forEach(([k,rs])=>{const c={};rs.forEach(o=>{const d=dd(o.do_no);c[d]=(c[d]||0)+1});
+  const maj=Object.entries(c).sort((a,b)=>b[1]-a[1])[0][0];
+  if(hdr[k]&&hdr[k]!==maj)S.xl.hdrWarn.push(`Block title says ${hdr[k]} but its ${rs.length} rows are ${maj}; rows used`);
+  rs.forEach(o=>{if(dd(o.do_no)!==maj){S.xl.fixes.push(`Row ${o._row}: ${o.do_no} → ${maj}`);S.xl.fixMap[o._row]=o.do_no;o.raw={...o.raw,orig_do_no:String(o.do_no)}}o.do_no=maj})});
  S.xl.rows=out;S.xl.skip=0;drawX()}
 function parseDoList(rows,h,heads,sheet){
  const DOF={snno:'sn_no',colliery:'colliery',partyname:'party_name',issuedate:'issue_date',issuedt:'issue_date',sized:'sized',lapsingdate:'lapsing_date',lapsingdt:'lapsing_date',dono:'do_no',doqty:'do_qty',asking:'asking',dailylift:'daily_lift',dailydispatch:'daily_dispatch',section:'section'};
@@ -1488,8 +1497,8 @@ function parseDoList(rows,h,heads,sheet){
  S.xl.rows=out;S.xl.skip=0;drawX()}
 function xMsg(m){S.xl.rows=[];$('#t-x').innerHTML=`<tbody><tr><td class="empty">${esc(m)}</td></tr></tbody>`;$('#x-i').textContent=m;cntX()}
 function cntX(){const ok=S.xl.rows.filter(r=>r._s=='ok').length;$('#c-ok').textContent=fI(ok);$('#c-dup').textContent='0';$('#c-err').textContent=fI(S.xl.rows.length-ok);$('#x-imp').disabled=!ok||S.xl.busy}
-function drawX(){cntX();const t=$('#x-t').value,T=TB[t],r=S.xl.rows;$('#x-i').textContent=`${r.length} rows · blank lines skipped · showing first 150`;
- $('#t-x').innerHTML=`<thead><tr><th>Row</th><th>Dir</th>${T.f.map(f=>`<th>${f[1]}</th>`).join('')}</tr></thead><tbody>`+r.slice(0,150).map(o=>`<tr><td class="muted">${o._row}</td><td>${o.direction}</td>${T.f.map(([k,,ty])=>`<td>${o[k]==null?'–':ty=='n'?fQ(o[k]):esc(o[k])}</td>`).join('')}</tr>`).join('')+'</tbody>'}
+function drawX(){cntX();const t=$('#x-t').value,T=TB[t],r=S.xl.rows;const fx=S.xl.fixes||[],hw=S.xl.hdrWarn||[];$('#x-i').textContent=`${r.length} rows · blank lines skipped · showing first 150`+(fx.length?` · ${fx.length} D.O. corrected`:'')+(hw.length?` · ${hw.length} block title(s) disagree with their rows`:'');$('#x-i').title=[...fx,...hw].join('\n');
+ $('#t-x').innerHTML=`<thead><tr><th>Row</th><th>Dir</th>${T.f.map(f=>`<th>${f[1]}</th>`).join('')}</tr></thead><tbody>`+r.slice(0,150).map(o=>`<tr${S.xl.fixMap&&S.xl.fixMap[o._row]!==undefined?' style="background:#fffbeb" title="D.O. corrected"':''}><td class="muted">${o._row}</td><td>${o.direction}</td>${T.f.map(([k,,ty])=>`<td>${o[k]==null?'–':ty=='n'?fQ(o[k]):esc(o[k])}</td>`).join('')}</tr>`).join('')+'</tbody>'}
 function loadX(file){const rd=new FileReader();rd.onload=e=>{try{S.xl.wb=XLSX.read(e.target.result,{type:'array'})}catch(x){return toast('Cannot read file: '+x.message,true)}
  const n=S.xl.wb.SheetNames,s=$('#x-s');s.disabled=false;s.innerHTML=n.map(x=>`<option>${esc(x)}</option>`).join('');guess();parseSheet().catch(x=>toast(exErr(x),true))};rd.readAsArrayBuffer(file)}
 const guess=()=>{const n=S.xl.wb.SheetNames;$('#x-s').value=n[0]};
