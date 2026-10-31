@@ -489,6 +489,7 @@ body:not(.unlocked) .pro-tab{display:none}
     </div>
     <form id="entryForm" novalidate>
       <div id="formSections"></div>
+      <div id="customEntry"></div>
       <div class="form-actions">
         <button type="submit" class="btn-go"><i class="fas fa-save"></i> Save</button>
         <button type="button" class="btn-go" id="updateRecord"><i class="fas fa-pen-to-square"></i> Update</button>
@@ -545,6 +546,29 @@ body:not(.unlocked) .pro-tab{display:none}
     <textarea class="notice-input" id="noticeInput" placeholder="Type the notice here..."></textarea>
     <div class="form-actions"><button class="btn-go" id="noticeSave"><i class="fas fa-floppy-disk"></i> Save Notice</button></div>
     <div class="status" id="noticeStatus"></div>
+  </div>
+
+  <div class="panel">
+    <h2><i class="fas fa-table-columns"></i> Custom Columns</h2>
+    <p class="muted">Add a column here. It appears in Data Entry (Custom Columns section) and as extra columns at the end of Records Log. Values are saved with each record.</p>
+    <div class="form-grid" style="margin-top:.8rem">
+      <div class="form-group"><label for="ccLabel">Column name</label><input class="field" id="ccLabel" placeholder="e.g. Wagon Seal No"></div>
+      <div class="form-group"><label for="ccType">Type</label>
+        <select class="field" id="ccType"><option value="text">Text</option><option value="number">Number</option><option value="date">Date</option><option value="select">Dropdown</option></select></div>
+      <div class="form-group hidden" id="ccOptsWrap"><label for="ccOpts">Dropdown options (comma separated)</label><input class="field" id="ccOpts" placeholder="e.g. Yes, No, Partial"></div>
+    </div>
+    <div class="form-actions"><button class="btn-go" id="ccAdd"><i class="fas fa-plus"></i> Add column</button></div>
+    <div style="margin-top:1rem" id="ccList"></div>
+  </div>
+
+  <div class="panel">
+    <h2><i class="fas fa-bell"></i> Alerts</h2>
+    <p class="muted">Pick the columns that must be filled. A record with any selected column empty appears in the bell, with the empty columns listed.</p>
+    <div class="toolbar" style="margin-top:.8rem">
+      <select class="field" id="alertPick" style="max-width:320px"></select>
+      <button class="btn-soft" id="alertAdd"><i class="fas fa-plus"></i> Add to alerts</button>
+    </div>
+    <div id="alertChips" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.6rem"></div>
   </div>
 </section>
 
@@ -997,15 +1021,16 @@ function renderLog() {
     (!lf.to || String(r.date || '').slice(0, 10) <= lf.to));
   const shown = rows.length > LOG_MAX ? rows.slice(-LOG_MAX) : rows;
   $('logCount').textContent = `${rows.length} of ${logRecords.length} records` + (rows.length > LOG_MAX ? ` (showing the latest ${LOG_MAX}, search to narrow)` : '');
-  const head = `<thead><tr><th>Actions</th>${LOG_COLS.map(c => `<th>${c}</th>`).join('')}</tr></thead>`;
+  const head = `<thead><tr><th>Actions</th>${LOG_COLS.map(c => `<th>${c}</th>`).join('')}${customLogHead()}</tr></thead>`;
   const body = shown.map(r => `<tr data-id="${esc(r.id)}">
     <td class="act">
       <button class="btn-soft btn-sm" data-save="${esc(r.id)}"><i class="fas fa-floppy-disk"></i></button>
       <button class="btn-soft btn-sm btn-danger" data-del="${esc(r.id)}"><i class="fas fa-trash"></i></button>
     </td>
     ${LOG_COLS.map(c => `<td><input data-col="${c}" value="${esc(r[c] ?? '')}" ${READONLY_DB.has(c) ? 'readonly' : ''}></td>`).join('')}
+    ${customLogCells(r)}
   </tr>`).join('');
-  $('logTbl').innerHTML = head + `<tbody>${body || '<tr><td class="empty" colspan="' + (LOG_COLS.length + 1) + '">No records.</td></tr>'}</tbody>`;
+  $('logTbl').innerHTML = head + `<tbody>${body || '<tr><td class="empty" colspan="' + (LOG_COLS.length + 1 + CUSTOM_COLS.length) + '">No records.</td></tr>'}</tbody>`;
 }
 $('logSearch').addEventListener('input', renderLog);
 $('logReload').addEventListener('click', loadLog);
@@ -1022,9 +1047,10 @@ function rowPatch(tr) {
   const patch = {};
   tr.querySelectorAll('input[data-col]').forEach(inp => {
     const col = inp.dataset.col;
-    if (READONLY_DB.has(col)) return;
+    if (READONLY_DB.has(col) || col.startsWith('x:')) return;
     patch[col] = toDbValue(col, inp.value);
   });
+  customPatch(tr, patch);
   return patch;
 }
 // Edited rows turn yellow as soon as a value is typed
@@ -1077,7 +1103,7 @@ $('logTbl').addEventListener('click', async e => {
 });
 
 /* ==================== ALERT: PENDING / NOT RECEIVED (bell) ==================== */
-const ALERT_FIELDS = [['rr_wt', 'RR Weight'], ['recv_wt', 'Received Wt.'], ['grn_qty', 'GRN Qty.'], ['gcv_arb', 'GCV ARB'], ['grade', 'Grade']];
+let ALERT_FIELDS = [['rr_wt', 'RR Weight'], ['recv_wt', 'Received Wt.'], ['grn_qty', 'GRN Qty.'], ['gcv_arb', 'GCV ARB'], ['grade', 'Grade']];
 const isBlank = v => v === null || v === undefined || String(v).trim() === '';
 let ALERTS = [];
 let ALERT_SEL = null;
@@ -1085,12 +1111,9 @@ let PENDING_FILL = null;
 
 async function loadAlerts() {
   try {
-    const { data, error } = await db.from('hzl_rake_records').select('*')
-      .or(ALERT_FIELDS.map(([k]) => k + '.is.null').join(','))
-      .order('date', { ascending: false }).limit(300);
-    if (error) throw error;
-    ALERTS = (data || [])
-      .map(r => ({ r, miss: ALERT_FIELDS.filter(([k]) => isBlank(r[k])) }))
+    const data = await loadAlertRows();
+    ALERTS = data
+      .map(r => ({ r, miss: ALERT_FIELDS.filter(([k]) => isBlank(valOf(r, k))) }))
       .filter(x => x.miss.length);
     const badge = $('alertBadge');
     badge.textContent = ALERTS.length > 99 ? '99+' : ALERTS.length;
@@ -1294,6 +1317,7 @@ async function initEntry() {
 
 async function resetEntryForm() {
   $('entryForm').reset();
+  LOADED_EXTRA = {};
   $('f_date').value = todayStr();
   const { data } = await db.from('hzl_rake_records').select('sr_no').order('sr_no', { ascending: false }).limit(1);
   $('f_sr_no').value = data && data.length ? data[0].sr_no + 1 : 1;
@@ -1311,6 +1335,7 @@ function formRow() {
   row.sick_box = $('f_sick_box').value === '' ? null : +$('f_sick_box').value;
   row.ul_qty = $('f_ul_qty').value === '' ? null : +$('f_ul_qty').value;
   row.sr_no = +$('f_sr_no').value || null;
+  row.extra = { ...LOADED_EXTRA, ...customFormValues() };
   return row;
 }
 
@@ -1328,6 +1353,7 @@ async function saveRecord(e) {
 }
 
 function fillForm(r) {
+  fillCustomEntry(r);
   DB_COLS.forEach(col => {
     const el = $('f_' + col);
     if (!el || el.readOnly) return;
@@ -1962,8 +1988,222 @@ $('pngDash').addEventListener('click', async () => {
 buildMines();
 enhanceSelects();
 setInterval(() => { if (!document.hidden && $('view-dashboard').classList.contains('active')) loadDashboard(); }, 20000);
+/* ==================== CUSTOM COLUMNS + ALERT COLUMNS ==================== */
+const EXTRA_TBL = 'hzl_dashboard_values';                 // settings table (same place as the notice and formulas)
+let CUSTOM_COLS = [];                      // [{ key: 'cf_...', label, type: 'text' | 'number' | 'date' | 'select', options: [] }]
+let ALERT_KEYS = ['rr_wt', 'recv_wt', 'grn_qty', 'gcv_arb', 'grade'];       // columns that must be filled; a record with any of them empty shows in the bell
+let LOADED_EXTRA = {};                     // extra values of the record open in Data Entry (kept when that record is updated)
+let CUSTOM_SIG = null;
+const TYPE_NAME = { text: 'Text', number: 'Number', date: 'Date', select: 'Dropdown' };
+
+const isCustomKey = k => String(k).startsWith('cf_');
+const customDef = k => CUSTOM_COLS.find(c => c.key === k);
+function allColumnDefs() {
+  const built = ENTRY_SECTIONS.flatMap(s => s.fields)
+    .filter(f => f.type !== 'calc' && f.key !== 'sr_no')
+    .map(f => ({ key: f.key, label: f.label }));
+  return [...built, ...CUSTOM_COLS.map(c => ({ key: c.key, label: c.label }))];
+}
+function colLabel(k) { const d = allColumnDefs().find(x => x.key === k); return d ? d.label : k; }
+// value of a column for a record: built-in columns are real fields, custom ones live in the extra JSON
+const valOf = (r, k) => isCustomKey(k) ? (r.extra || {})[k] : r[k];
+
+async function saveExtraSetting(field, value) {
+  const { error } = await db.from(EXTRA_TBL).upsert(
+    [{ period_key: 'global', field_key: field, field_value: JSON.stringify(value), sort_order: 0 }],
+    { onConflict: 'period_key,field_key' });
+  if (error) { toast('Save failed: ' + error.message, true); return false; }
+  return true;
+}
+async function loadExtraSettings() {
+  try {
+    const { data, error } = await db.from(EXTRA_TBL).select('field_key, field_value')
+      .eq('period_key', 'global').in('field_key', ['custom_cols', 'alert_cols']);
+    if (error) throw error;
+    (data || []).forEach(r => {
+      let v = null;
+      try { v = JSON.parse(r.field_value); } catch (e) { v = null; }
+      if (r.field_key === 'custom_cols' && Array.isArray(v)) CUSTOM_COLS = v;
+      if (r.field_key === 'alert_cols' && Array.isArray(v)) ALERT_KEYS = v;
+    });
+  } catch (e) { console.warn('Custom column settings not loaded, using defaults', e); }
+  applyAlertKeys();
+  renderCustomEntry();
+  renderCustomAdmin();
+}
+function applyAlertKeys() {
+  ALERT_FIELDS = ALERT_KEYS
+    .filter(k => !isCustomKey(k) || customDef(k))
+    .map(k => [k, colLabel(k)]);
+}
+
+/* ---- Data Entry: custom inputs ---- */
+function renderCustomEntry() {
+  const sig = JSON.stringify(CUSTOM_COLS);
+  if (sig === CUSTOM_SIG) return;
+  CUSTOM_SIG = sig;
+  const box = $('customEntry');
+  if (!box) return;
+  if (!CUSTOM_COLS.length) { box.innerHTML = ''; return; }
+  box.innerHTML = `<div class="section">
+      <div class="section-title"><i class="fas fa-table-columns"></i> Custom Columns</div>
+      <div class="form-grid">${CUSTOM_COLS.map(c => {
+        const id = 'f_' + c.key;
+        let input;
+        if (c.type === 'select') input = `<select class="field" id="${id}"><option value="">Select</option>${(c.options || []).map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('')}</select>`;
+        else input = `<input class="field" id="${id}" type="${c.type === 'number' ? 'number' : c.type === 'date' ? 'date' : 'text'}"${c.type === 'number' ? ' step="any"' : ''}>`;
+        return `<div class="form-group"><label for="${id}">${esc(c.label)}</label>${input}</div>`;
+      }).join('')}</div>
+    </div>`;
+}
+function customValue(c, raw) {
+  const v = String(raw ?? '').trim();
+  if (v === '') return null;
+  if (c.type === 'number') { const n = Number(v.replace(/,/g, '')); return isNaN(n) ? null : n; }
+  return v;
+}
+function customFormValues() {
+  const out = {};
+  CUSTOM_COLS.forEach(c => {
+    const el = $('f_' + c.key);
+    if (el) out[c.key] = customValue(c, el.value);
+  });
+  return out;
+}
+function fillCustomEntry(rec) {
+  LOADED_EXTRA = { ...(rec.extra || {}) };
+  CUSTOM_COLS.forEach(c => {
+    const el = $('f_' + c.key);
+    if (!el) return;
+    const v = LOADED_EXTRA[c.key];
+    el.value = v == null ? '' : v;
+  });
+}
+
+/* ---- Data Entry: manage custom columns ---- */
+function renderCustomAdmin() {
+  const list = $('ccList');
+  if (list) {
+    list.innerHTML = CUSTOM_COLS.length ? CUSTOM_COLS.map(c =>
+      `<div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:.5rem .8rem;border:1px solid #e1e8f3;border-radius:12px;margin-bottom:.4rem;background:#f4f7fd">
+        <span><b>${esc(c.label)}</b> &middot; ${TYPE_NAME[c.type] || esc(c.type)}${c.type === 'select' ? ' &middot; ' + esc((c.options || []).join(', ')) : ''}</span>
+        <button class="btn-soft btn-sm btn-danger" data-cc-del="${esc(c.key)}"><i class="fas fa-trash"></i> Remove</button>
+      </div>`).join('')
+      : '<p class="muted">No custom columns yet.</p>';
+  }
+  renderAlertSetting();
+}
+async function addCustomColumn() {
+  const label = $('ccLabel').value.trim();
+  const type = $('ccType').value;
+  if (!label) { toast('Type a column name', true); return; }
+  if (CUSTOM_COLS.some(c => c.label.toLowerCase() === label.toLowerCase())) { toast('A column with this name already exists', true); return; }
+  const options = type === 'select' ? $('ccOpts').value.split(',').map(s => s.trim()).filter(Boolean) : [];
+  if (type === 'select' && !options.length) { toast('Type the dropdown options separated by commas', true); return; }
+  const next = [...CUSTOM_COLS, { key: 'cf_' + Date.now().toString(36), label, type, options }];
+  if (!(await saveExtraSetting('custom_cols', next))) return;
+  CUSTOM_COLS = next;
+  $('ccLabel').value = ''; $('ccOpts').value = '';
+  toast('Column added');
+  renderCustomEntry(); renderCustomAdmin(); loadAlerts();
+}
+async function removeCustomColumn(key) {
+  if (!confirm('Remove this column from the forms? Values already saved stay in the database.')) return;
+  const next = CUSTOM_COLS.filter(c => c.key !== key);
+  const nextAlerts = ALERT_KEYS.filter(k => k !== key);
+  if (!(await saveExtraSetting('custom_cols', next))) return;
+  await saveExtraSetting('alert_cols', nextAlerts);
+  CUSTOM_COLS = next;
+  ALERT_KEYS = nextAlerts;
+  applyAlertKeys();
+  renderCustomEntry(); renderCustomAdmin(); loadAlerts();
+  toast('Column removed');
+}
+
+/* ---- Data Entry: alert columns ---- */
+function renderAlertSetting() {
+  const sel = $('alertPick'), chips = $('alertChips');
+  if (!sel || !chips) return;
+  const defs = allColumnDefs();
+  const chosen = ALERT_KEYS.filter(k => defs.some(d => d.key === k));
+  sel.innerHTML = '<option value="">Select a column...</option>' +
+    defs.filter(d => !chosen.includes(d.key)).map(d => `<option value="${esc(d.key)}">${esc(d.label)}</option>`).join('');
+  chips.innerHTML = chosen.length
+    ? chosen.map(k => `<span class="chip">${esc(colLabel(k))} <button type="button" data-alert-rm="${esc(k)}" style="border:0;background:none;cursor:pointer;color:inherit;font-weight:800">&times;</button></span>`).join('')
+    : '<span class="muted">No alert columns selected. The bell shows nothing.</span>';
+}
+async function setAlertKeys(next) {
+  if (!(await saveExtraSetting('alert_cols', next))) return;
+  ALERT_KEYS = next;
+  applyAlertKeys();
+  renderAlertSetting();
+  loadAlerts();
+}
+function addAlertColumn() {
+  const k = $('alertPick').value;
+  if (!k) return;
+  setAlertKeys([...ALERT_KEYS.filter(x => x !== k), k]);
+  toast('Alert column added');
+}
+function removeAlertColumn(k) {
+  setAlertKeys(ALERT_KEYS.filter(x => x !== k));
+  toast('Alert column removed');
+}
+document.addEventListener('click', e => {
+  if (e.target.closest('#ccAdd')) { addCustomColumn(); return; }
+  const del = e.target.closest('[data-cc-del]');
+  if (del) { removeCustomColumn(del.dataset.ccDel); return; }
+  if (e.target.closest('#alertAdd')) { addAlertColumn(); return; }
+  const rm = e.target.closest('[data-alert-rm]');
+  if (rm) removeAlertColumn(rm.dataset.alertRm);
+});
+document.addEventListener('change', e => {
+  if (e.target && e.target.id === 'ccType') $('ccOptsWrap').classList.toggle('hidden', e.target.value !== 'select');
+});
+
+/* ---- Records Log: custom columns ---- */
+function customLogHead() { return CUSTOM_COLS.map(c => `<th>${esc(c.label)}</th>`).join(''); }
+function customLogCells(r) {
+  return CUSTOM_COLS.map(c => `<td><input data-col="x:${c.key}" value="${esc((r.extra || {})[c.key] ?? '')}"></td>`).join('');
+}
+// adds the custom values of an edited row to its extra JSON (other keys in extra are kept)
+function customPatch(tr, patch) {
+  if (!CUSTOM_COLS.length) return;
+  const rec = logRecords.find(x => String(x.id) === String(tr.dataset.id));
+  const extra = { ...((rec && rec.extra) || {}) };
+  tr.querySelectorAll('input[data-col^="x:"]').forEach(inp => {
+    const k = inp.dataset.col.slice(2);
+    const def = customDef(k);
+    if (def) extra[k] = customValue(def, inp.value);
+  });
+  patch.extra = extra;
+}
+
+/* ---- Alerts: rows that have any selected column empty ---- */
+async function loadAlertRows() {
+  if (!ALERT_FIELDS.length) return [];
+  if (ALERT_FIELDS.some(([k]) => isCustomKey(k))) {
+    // custom values sit inside the extra JSON, so read the table page by page and check in the browser
+    const out = [];
+    const PAGE = 1000;
+    for (let from = 0; ; from += PAGE) {
+      const { data, error } = await db.from('hzl_rake_records').select('*').order('id', { ascending: true }).range(from, from + PAGE - 1);
+      if (error) throw error;
+      out.push(...(data || []));
+      if (!data || data.length < PAGE) break;
+    }
+    return out;
+  }
+  const { data, error } = await db.from('hzl_rake_records').select('*')
+    .or(ALERT_FIELDS.map(([k]) => k + '.is.null').join(','))
+    .order('date', { ascending: false }).limit(300);
+  if (error) throw error;
+  return data || [];
+}
+
 (async () => {
   await loadGlobal();
+  await loadExtraSettings();
   setPeriodLabel();
   fillPeriodPicker();
   loadDashboard();
