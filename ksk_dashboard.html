@@ -1,5 +1,14 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8">
+<html lang="en"><head><script id="err-hook">
+(function(){var box;
+ function show(t){try{if(!box){box=document.createElement('pre');box.style.cssText='position:fixed;left:8px;right:8px;top:8px;z-index:2147483647;max-height:45vh;overflow:auto;background:#7f1d1d;color:#fff;padding:10px 12px;border-radius:10px;font:12px/1.4 ui-monospace,monospace;white-space:pre-wrap;cursor:pointer';box.title='Click to close';box.onclick=function(){box.remove();box=null};(document.body||document.documentElement).appendChild(box)}box.textContent+=(box.textContent?'\n\n':'')+t}catch(x){}}
+ window.addEventListener('error',function(e){var m=String(e.message||'');if(!m||/ResizeObserver/i.test(m)||(e.target&&e.target!==window&&e.target!==document))return;
+  show('ERROR: '+m+'\nline '+e.lineno+':'+e.colno+'  '+String(e.filename||'').split('/').pop()+(e.error&&e.error.stack?'\n'+String(e.error.stack).split('\n').slice(0,6).join('\n'):''))},true);
+ window.addEventListener('unhandledrejection',function(e){var r=e.reason,m=String((r&&r.message)||r||'');if(/AbortError/i.test(m))return;
+  show('PROMISE: '+m+(r&&r.stack?'\n'+String(r.stack).split('\n').slice(0,6).join('\n'):''))});
+})();
+</script>
+<meta charset="utf-8">
 <meta name="robots" content="noindex, nofollow" />
 <meta name="referrer" content="strict-origin-when-cross-origin" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
