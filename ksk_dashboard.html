@@ -1312,7 +1312,7 @@ function calc(d,ov){ov=ov||d.ov||{};const m={},isRCR=String(d.section||'').toUpp
  dt=pk('disp_trips',D.trips),dq=pk('disp_qty',r3(D.net)),bal=pk('washery_bal',r3((d.section=='WASHERY'?wash:rec)-dq));
  return{...d,trips,rec_qty:rec,mines_bal:mines,wash_coal:wash,reject:rej,disp_trips:dt,disp_qty:dq,washery_bal:bal,m}}
 const isClosed=x=>x.mines_bal<=.005&&(x.section=='ROAD'||x.washery_bal<=.005);
-const stRank=x=>isClosed(x)?2:(pd(x.lapsing_date)&&pd(x.lapsing_date)<new Date(new Date().toDateString())?1:0);
+const stRank=x=>isClosed(x)?2:0;
 const stPill=x=>['<span class="st open">Open</span>','<span class="st over">Overdue</span>','<span class="st done">Closed</span>'][stRank(x)];
 
 async function load(){if(!db)return setSt('Not connected','err');setSt('Loading…');
@@ -1720,16 +1720,23 @@ async function init(){setupLog();buildDo();$('#f-in').append(mkForm('ksk_inward'
  await load();let tm;db.channel('ksk').on('postgres_changes',{event:'*',schema:'public'},()=>{if(S.edit)return;clearTimeout(tm);tm=setTimeout(()=>{load();S.view=='log'&&renderLog()},1500)}).subscribe();setInterval(()=>S.view=='dashboard'&&!S.edit&&load(),60000)}
 init();
 </script><script id="rcr-update">
-/* ===== RCR update: Rake details + Plant & loading as separate tables and separate data entry; no-section list ===== */
+/* ===== RCR update v2: one Rake + Plant table, separate data entry, no-section list, Open status, Asking = Mines Bal / Days Left ===== */
 (function(){
  /* 1. take the two groups out of the RCR D.O. table */
  TD.r.g=TD.r.g.filter(g=>g[0]!=='Rake details'&&g[0]!=='Plant & loading');
  const IN2=[['do_no','D.O. No.','id'],['colliery','Colliery','t'],['party_name','Party','t'],['lapsing_date','Lapsing','dt']];
- TD.rk={id:'#t-rk',g:[['',IN2,0],['Rake details',[['rr_no','RR No.','t'],['rr_date','RR Date','dt'],['rr_qty','RR Qty','q'],['ch_qty','CH Qty','q']],4]]};
- TD.pl={id:'#t-pl',g:[['',IN2,0],['Plant & loading',[['plant_rec_qty','Plant Rec Qty','q'],['grade','Loading Grade','t'],['loaded','Loaded D.O. No','t']],3]]};
- S.sort.rk={k:'_s',d:1};S.sort.pl={k:'_s',d:1};
- if(!document.getElementById('rcr-css')){const st=document.createElement('style');st.id='rcr-css';st.textContent='#p-r>.glass.xt .sc{height:320px}';document.head.appendChild(st)}
- $('#p-r').insertAdjacentHTML('beforeend','<div class="glass r xt"><div class="glass-h"><h2>RCR Rake details</h2><span class="sub" id="n-rk"></span></div><div class="sc"><table id="t-rk"></table></div></div><div class="glass r xt"><div class="glass-h"><h2>RCR Plant &amp; loading</h2><span class="sub" id="n-pl"></span></div><div class="sc"><table id="t-pl"></table></div></div>');
+ TD.rk={id:'#t-rk',g:[['',IN2,0],['Rake details',[['rr_no','RR No.','t'],['rr_date','RR Date','dt'],['rr_qty','RR Qty','q'],['ch_qty','CH Qty','q']],4],['Plant & loading',[['plant_rec_qty','Plant Rec Qty','q'],['grade','Loading Grade','t'],['loaded','Loaded D.O. No','t']],3]]};
+ S.sort.rk={k:'_s',d:1};
+ if(!document.getElementById('rcr-css')){const st=document.createElement('style');st.id='rcr-css';st.textContent='#p-r>.glass.xt .sc{height:360px}.st.over{background:rgba(5,150,105,.12)!important;color:#047857!important;font-size:0!important}.st.over::after{content:"Open";font-size:9.5px}';document.head.appendChild(st)}
+ $('#p-r').insertAdjacentHTML('beforeend','<div class="glass r xt"><div class="glass-h"><h2>RCR Rake details &amp; Plant loading</h2><span class="sub" id="n-rk"></span></div><div class="sc"><table id="t-rk"></table></div></div>');
+
+ /* Asking = Mines Bal. / Days Left (days to the lapsing date, minimum 1); Days Left column added */
+ MB.splice(1,0,['days_left','Days Left','t']);
+ const _calc=calc;
+ calc=function(d,ov){const r=_calc(d,ov),L=pd(r.lapsing_date),T=new Date(new Date().toDateString());
+  let dl=null,ask=null;
+  if(L){dl=Math.round((L-T)/864e5);const mb=num(r.mines_bal);ask=mb===null?null:(mb>0?r3(mb/Math.max(1,dl)):0)}
+  r.days_left=dl;r.asking=ask;return r};
 
  /* 2. separate data entry tabs */
  $('.stab[data-e=out]').insertAdjacentHTML('afterend','<button class="stab" data-e="rk">Rake details</button><button class="stab" data-e="pl">Plant &amp; loading</button>');
@@ -1771,7 +1778,8 @@ init();
 
  /* 3. hide the moved fields in the D.O. & values form (their values are kept) and add the no-section list */
  const mf=$('#do-f');
- if(mf){['rr_no','rr_date','rr_qty','ch_qty','plant_rec_qty','loading_grade','loaded_do_no'].forEach(k=>{const e=mf.elements[k],l=e&&e.closest('label');if(l)l.classList.add('hidden')});
+ if(mf){const al=mf.elements.asking&&mf.elements.asking.closest('label');if(al)al.classList.add('hidden');const am=$('#ask-miss');if(am)am.classList.add('hidden');
+  ['rr_no','rr_date','rr_qty','ch_qty','plant_rec_qty','loading_grade','loaded_do_no'].forEach(k=>{const e=mf.elements[k],l=e&&e.closest('label');if(l)l.classList.add('hidden')});
   [...mf.querySelectorAll('.note')].filter(n=>/Rake details/i.test(n.textContent)).forEach(n=>n.classList.add('hidden'));
   const an=$('#ask-miss')||$('#do-pick').closest('label');an.insertAdjacentHTML('afterend','<div class="full" id="sec-miss"></div>')}
  const VALID=['WASHERY','RCR','ROAD'],noSec=()=>S.rows.filter(x=>!VALID.includes(String(x.section||'').toUpperCase().trim()));
@@ -1781,11 +1789,12 @@ init();
 
  /* 4. draw the two new tables and keep the lists fresh on every render */
  const _ra=renderAll;
- renderAll=function(){_ra();const R=filt(['RCR']),a=drawT('rk',R),b=drawT('pl',R);
-  $('#n-rk').textContent=a+' shown';$('#n-pl').textContent=b+' shown';
+ renderAll=function(){_ra();const R=filt(['RCR']),a=drawT('rk',R);
+  $('#n-rk').textContent=a+' shown';
   const ns=noSec();if(ns.length){const al=$('#alert');al.classList.remove('hidden');
    al.innerHTML+=(al.innerHTML?'<br>':'')+`<b>${ns.length} D.O.(s) have no section and are not shown in any table:</b> ${esc(ns.slice(0,25).map(x=>x.do_no).join(', '))}${ns.length>25?' …':''}. Set the section under Data entry → D.O. &amp; values.`}
-  IDS.forEach(opts);secMiss()};
+  IDS.forEach(opts);secMiss();
+  $$('.ed[data-k=asking],.ed[data-k=days_left]').forEach(i=>{i.readOnly=true;i.title='Calculated: Mines Bal. ÷ Days Left';i.style.background='#f1f5f9'})};
  renderAll();
 })();
 </script>
