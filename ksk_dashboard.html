@@ -1313,14 +1313,14 @@ ksk_dashboard_values:{l:'D.O. values',dc:null,ord:'sn_no',f:[['do_no','D.O. No.'
 ksk_multi_upload_rows:{l:'Multi Upload',dc:'disp_date',ord:'id',f:[['do_no','D.O. No.','t'],['section','Section','t'],['sn','Sr. No.','t'],['disp_date','Dispatch Date','d'],['vehicle_no','Vehicle No.','t'],['gate_pass','Gate Pass','t'],['unique_no','Unique No.','t'],['net_wt','Net Wt. (MT)','n'],['source_sheet','Source Sheet','t'],['source_row','Source Row','i']],x:['do_no','vehicle_no','gate_pass','unique_no','source_sheet'],sk:'net_wt'}};
 const lab=(t,k)=>TB[t].f.find(f=>f[0]==k)[1];
 /* rcrS is filled by load(); it must exist from the start because the layout patches call renderAll() before data arrives */
-const S={edit:false,draft:{},vals:[],inS:{},rcrS:{},dsS:{},rows:[],view:'dashboard',page:'w',sort:{w:{k:'_s',d:1},r:{k:'_s',d:1},o:{k:'_s',d:1}},pg:0,xl:{wb:null,rows:[],busy:false,skip:0}};
+const S={edit:false,draft:{},vals:[],inS:{},rcrS:{},dsS:{},rkAlloc:{},allocRows:[],allocErr:null,rows:[],view:'dashboard',page:'w',sort:{w:{k:'_s',d:1},r:{k:'_s',d:1},o:{k:'_s',d:1}},pg:0,xl:{wb:null,rows:[],busy:false,skip:0}};
 
 /* ---- formulas (each can be overridden per D.O. via ov; override = formula disconnected) ---- */
-function calc(d,ov){ov=ov||d.ov||{};const m={},isRCR=normSec(d.section)==='RCR',I=(isRCR?S.rcrS:S.inS)[d.do_no]||{trips:0,net:0},D=S.dsS[d.do_no]||{trips:0,net:0};
+function calc(d,ov){ov=ov||d.ov||{};const m={},isRCR=normSec(d.section)==='RCR',I=(isRCR?S.rcrS:S.inS)[d.do_no]||{trips:0,net:0},D=S.dsS[d.do_no]||{trips:0,net:0},A=S.rkAlloc[d.do_no]||{trips:0,net:0};
  const pk=(k,f)=>{const v=num(ov[k]);if(v!==null){m[k]=1;return v}return f};
  /* RCR alone uses Multi Upload rows for Trips and Rec. Qty. All non-RCR sections retain their original formulas and overrides. */
  const trips=pk('trips',I.trips),rec=pk('rec_qty',r3(I.net)),mines=pk('mines_bal',r3((num(d.do_qty)||0)-rec)),wash=pk('wash_coal',r3(rec*WASH)),rej=pk('reject',r3(rec*REJ)),
- dt=pk('disp_trips',D.trips),dq=pk('disp_qty',r3(D.net)),bal=pk('washery_bal',r3((normSec(d.section)=='WASHERY'?wash:rec)-dq));
+ dt=pk('disp_trips',isRCR?A.trips:D.trips),dq=pk('disp_qty',r3(isRCR?A.net:D.net)),bal=pk('washery_bal',r3((normSec(d.section)=='WASHERY'?wash:rec)-dq));
  return{...d,trips,rec_qty:rec,mines_bal:mines,wash_coal:wash,reject:rej,disp_trips:dt,disp_qty:dq,washery_bal:bal,m}}
 const isClosed=x=>x.mines_bal<=.005&&(x.section=='ROAD'||x.washery_bal<=.005);
 const stRank=x=>isClosed(x)?2:0;
@@ -1867,14 +1867,77 @@ init();
   el.innerHTML=m.length?`<div class="note" style="margin-bottom:6px"><b>No section set (${m.length})</b>: these D.O.s are not shown in any dashboard table. Click one to set its section.</div><div class="toolbar">${m.map(x=>`<button type="button" class="btn small" data-nosec="${x.do_no}">${x.do_no}${x.colliery?' · '+esc(x.colliery):''}</button>`).join('')}</div>`:'<div class="note">Every D.O. has a section.</div>'}
  document.addEventListener('click',e=>{const b=e.target.closest('[data-nosec]');if(!b)return;const s=$('#do-sec');if(s)s.value='';pickOpts();$('#do-pick').value=b.dataset.nosec;fillDoForm();const sf=$('#do-f').elements.section;sf&&sf.focus()});
 
+
+ /* 8. Rake → D.O. allocation. RCR Dispatch by Rake = sum of allocated qty for the D.O.; Balance at IUIK = Rec. Qty − Dispatch by Rake (calculated in background). */
+ async function loadAlloc(){
+  if(!db)return;
+  try{
+   const data=await fetchAll(()=>db.from('ksk_rcr_rake_alloc').select('*').order('id'));
+   const map={};
+   (data||[]).forEach(r=>{const k=String(r.do_no);map[k]||(map[k]={trips:0,net:0});map[k].trips++;map[k].net+=num(r.qty)||0});
+   S.rkAlloc=map;S.allocRows=data||[];S.allocErr=null;
+  }catch(err){
+   S.rkAlloc={};S.allocRows=[];
+   const s=((err&&err.message)||'')+' '+((err&&err.code)||'');
+   S.allocErr=/does not exist|42P01|schema cache|could not find the table/i.test(s)
+    ?'Table ksk_rcr_rake_alloc is missing: run ksk_rcr_rake_alloc_setup.sql in Supabase, then reload'
+    :exErr(err);
+  }
+ }
+ function alSetMsg(t,err){const m=$('#al-f .msg');if(!m)return;m.textContent=t||'';m.className='msg'+(err?' err':'')}
+ function alFill(){
+  const f=$('#al-f');if(!f)return;
+  const cur={rr:f.elements.rr_no.value,dn:f.elements.do_no.value};
+  f.elements.rr_no.innerHTML='<option value="">Select rake…</option>'+(S.rakes||[]).map(x=>`<option value="${esc(x.rr_no)}">${esc(x.rr_no)}${x.loaded_do_no?' · loaded '+esc(x.loaded_do_no):''}</option>`).join('');
+  f.elements.do_no.innerHTML='<option value="">Select RCR D.O.…</option>'+S.rows.filter(x=>normSec(x.section)==='RCR').map(x=>`<option value="${x.do_no}">${x.do_no}${x.colliery?' · '+esc(x.colliery):''}</option>`).join('');
+  f.elements.rr_no.value=cur.rr;f.elements.do_no.value=cur.dn;
+ }
+ function drawAlloc(){
+  const t=$('#t-al');if(!t)return;alFill();
+  const rows=S.allocRows||[];
+  const n=$('#al-n');if(n)n.textContent=S.allocErr?'not set up':rows.length+' allocations';
+  if(S.allocErr){t.innerHTML=`<tbody><tr><td class="empty">${esc(S.allocErr)}</td></tr></tbody>`;return}
+  const tot=rows.reduce((s,x)=>s+(num(x.qty)||0),0);
+  t.innerHTML='<thead><tr><th>RR No.</th><th>D.O. No.</th><th class="num">Qty (MT)</th><th></th></tr></thead><tbody>'+
+   (rows.length
+     ?rows.map(x=>`<tr><td class="id">${esc(x.rr_no)}</td><td class="id">${esc(x.do_no)}</td><td class="num">${fQ(x.qty)}</td><td><button type="button" class="btn small" data-al="${esc(x.id)}">Delete</button></td></tr>`).join('')
+     :'<tr><td class="empty" colspan="4">No allocations yet.</td></tr>')+'</tbody>'+
+   (rows.length?`<tfoot><tr><td>Total · ${rows.length}</td><td></td><td class="num">${fQ(tot)}</td><td></td></tr></tfoot>`:'');
+ }
+ el.insertAdjacentHTML('beforeend','<div class="glass" style="grid-column:1/-1"><div class="glass-h"><h2>Rake → D.O. allocation</h2><span class="sub" id="al-n"></span></div><div class="sc" style="padding:12px">'+
+  '<form id="al-f" novalidate style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;align-items:end">'+
+  '<label class="fld"><span>RR No. *</span><select name="rr_no"></select></label>'+
+  '<label class="fld"><span>D.O. No. *</span><select name="do_no"></select></label>'+
+  '<label class="fld"><span>Qty allocated (MT) *</span><input name="qty" type="number" step="any" autocomplete="off"></label>'+
+  '<div><button class="btn primary" id="al-save">Save allocation</button></div>'+
+  '<div class="msg" style="grid-column:1/-1"></div></form>'+
+  '<div class="note" style="margin-top:8px">Dispatch by Rake of an RCR D.O. = sum of its allocations here. Balance at IUIK = Rec. Qty − Dispatch by Rake, calculated automatically. Saving the same rake and D.O. again replaces the quantity.</div>'+
+  '<table id="t-al" style="margin-top:10px"></table></div></div>');
+ $('#al-f').addEventListener('submit',async e=>{
+  e.preventDefault();const f=e.target,rr=f.elements.rr_no.value,dn=Number(f.elements.do_no.value),q=num(f.elements.qty.value);
+  if(!rr)return alSetMsg('Select a RR No.',true);
+  if(!Number.isInteger(dn))return alSetMsg('Select an RCR D.O. No.',true);
+  if(q===null||q<0)return alSetMsg('Enter a valid quantity',true);
+  const b=$('#al-save');b.disabled=true;
+  const{error}=await db.from('ksk_rcr_rake_alloc').upsert({rr_no:rr,do_no:dn,qty:q,updated_at:new Date().toISOString()},{onConflict:'rr_no,do_no'});
+  b.disabled=false;
+  if(error)return alSetMsg(S.allocErr||exErr(error),true);
+  f.elements.qty.value='';toast('Allocation saved');alSetMsg('');await load();
+ });
+ $('#t-al').addEventListener('click',async e=>{const b=e.target.closest('[data-al]');if(!b)return;
+  if(!(await PRTPL.confirm('Delete this rake allocation?',{title:'Delete allocation?',okLabel:'Delete'})))return;
+  const{error}=await db.from('ksk_rcr_rake_alloc').delete().eq('id',b.dataset.al);
+  if(error)return toast(exErr(error),true);toast('Allocation deleted');await load();
+ });
+
  /* 7. Wrap the renderer and the loader so the rake table stays in step */
  const _ra=renderAll;
- renderAll=function(){_ra();drawRk();const ns=noSec();if(ns.length){const al=$('#alert');al.classList.remove('hidden');al.innerHTML+=(al.innerHTML?'<br>':'')+`<b>${ns.length} D.O.(s) have no section and are not shown in any table:</b> ${esc(ns.slice(0,25).map(x=>x.do_no).join(', '))}${ns.length>25?' …':''}. Set the section under Data entry → D.O. &amp; values.`}secMiss()};
+ renderAll=function(){_ra();drawRk();drawAlloc();const ns=noSec();if(ns.length){const al=$('#alert');al.classList.remove('hidden');al.innerHTML+=(al.innerHTML?'<br>':'')+`<b>${ns.length} D.O.(s) have no section and are not shown in any table:</b> ${esc(ns.slice(0,25).map(x=>x.do_no).join(', '))}${ns.length>25?' …':''}. Set the section under Data entry → D.O. &amp; values.`}secMiss()};
  const _load=load;
- load=async function(){await _load();await loadRakes()};
+ load=async function(){await loadAlloc();await _load();await loadRakes()};
 
  /* init() already started load() before this script ran, so load the rakes now */
- renderAll();loadRakes();
+ load();
 })();
 </script>
 <style id="no-scroll">
