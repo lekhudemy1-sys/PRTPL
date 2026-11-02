@@ -1737,82 +1737,144 @@ async function init(){setupLog();buildDo();$('#f-in').append(mkForm('ksk_inward'
  await load();let tm;db.channel('ksk').on('postgres_changes',{event:'*',schema:'public'},()=>{if(S.edit)return;clearTimeout(tm);tm=setTimeout(()=>{load();S.view=='log'&&renderLog()},1500)}).subscribe();setInterval(()=>S.view=='dashboard'&&!S.edit&&load(),60000)}
 init();
 </script><script id="rcr-update">
-/* ===== RCR update v2: one Rake + Plant table, separate data entry, no-section list, Open status, Asking = Mines Bal / Days Left ===== */
+/* ===== RCR rake register v3 =====
+   RCR rakes are a separate register keyed by RR No. (unique). They are not tied to a D.O.
+   Own table: ksk_rcr_rakes. Own "RCR rake" tab in Data entry with its own Add button.
+   The RCR D.O. table keeps only D.O. fields. Washery and Road logic is unchanged. */
 (function(){
- /* 1. take the two groups out of the RCR D.O. table */
- TD.r.g=TD.r.g.filter(g=>g[0]!=='Rake details'&&g[0]!=='Plant & loading');
- const IN2=[['do_no','D.O. No.','id'],['colliery','Colliery','t'],['party_name','Party','t'],['lapsing_date','Lapsing','dt']];
- TD.rk={id:'#t-rk',g:[['',IN2,0],['Rake details',[['rr_no','RR No.','t'],['rr_date','RR Date','dt'],['rr_qty','RR Qty','q'],['ch_qty','CH Qty','q']],4],['Plant & loading',[['plant_rec_qty','Plant Rec Qty','q'],['grade','Loading Grade','t'],['loaded','Loaded D.O. No','t']],3]]};
- S.sort.rk={k:'_s',d:1};
- if(!document.getElementById('rcr-css')){const st=document.createElement('style');st.id='rcr-css';st.textContent='#p-r>.glass.xt .sc{height:360px}.st.over{background:rgba(5,150,105,.12)!important;color:#047857!important;font-size:0!important}.st.over::after{content:"Open";font-size:9.5px}';document.head.appendChild(st)}
- $('#t-r').closest('.glass').insertAdjacentHTML('afterend','<div class="glass r xt"><div class="glass-h"><h2>RCR Rake details &amp; Plant loading</h2><span class="sub" id="n-rk"></span></div><div class="sc"><table id="t-rk"></table></div></div>');
+ S.rakes=[];S.rkEdit=null;
+ const RK_F=[['rr_no','RR No. * (unique)','t'],['rr_date','RR Date (dd-mm-yyyy or text)','t'],['rr_qty','RR Qty','n'],['ch_qty','CH Qty','n'],['plant_rec_qty','Plant Rec Qty','n'],['loading_grade','Loading Grade','t'],['loaded_do_no','Loaded D.O. No.','t']];
 
- /* Asking = Mines Bal. / Days Left (days to the lapsing date, minimum 1); Days Left column added */
- MB.splice(1,0,['days_left','Days Left','t']);
+ /* 1. RCR D.O. table: the rake groups now live in the rake table */
+ TD.r.g=TD.r.g.filter(g=>g[0]!=='Rake details'&&g[0]!=='Plant & loading');
+
+ /* 2. Asking = Mines Bal. / Days Left (D.O. based, as before) */
+ if(!MB.some(c=>c[0]==='days_left'))MB.splice(1,0,['days_left','Days Left','t']);
  const _calc=calc;
  calc=function(d,ov){const r=_calc(d,ov),L=pd(r.lapsing_date),T=new Date(new Date().toDateString());
   let dl=null,ask=null;
   if(L){dl=Math.round((L-T)/864e5);const mb=num(r.mines_bal);ask=mb===null?null:(mb>0?r3(mb/Math.max(1,dl)):0)}
   r.days_left=dl;r.asking=ask;return r};
 
- /* 2. separate data entry tabs */
- $('.stab[data-e=out]').insertAdjacentHTML('afterend','<button class="stab" data-e="rk">Rake details</button><button class="stab" data-e="pl">Plant &amp; loading</button>');
- $('#e-out').insertAdjacentHTML('afterend','<div id="e-rk" class="eg hidden"></div><div id="e-pl" class="eg hidden"></div>');
- const TABS=['do','in','out','rk','pl'];
- $$('.stab').forEach(b=>b.addEventListener('click',()=>{$$('.stab').forEach(x=>x.classList.toggle('active',x==b));TABS.forEach(n=>{const e=$('#e-'+n);e&&e.classList.toggle('hidden',n!=b.dataset.e)})}));
+ /* 3. Dashboard: rake table card under the RCR D.O. table */
+ if(!document.getElementById('rcr-css')){const st=document.createElement('style');st.id='rcr-css';st.textContent='#p-r>.glass.xt .sc{height:360px}.st.over{background:rgba(5,150,105,.12)!important;color:#047857!important;font-size:0!important}.st.over::after{content:"Open";font-size:9.5px}';document.head.appendChild(st)}
+ $('#t-r').closest('.glass').insertAdjacentHTML('afterend','<div class="glass r xt"><div class="glass-h"><h2>RCR Rake details &amp; Plant loading</h2><span class="sub" id="n-rk"></span></div><div class="sc"><table id="t-rk"></table></div></div>');
 
- const DEF={
-  rk:{t:'RCR Rake details',f:[['rr_no','RR No.','t'],['rr_date','RR Date (dd-mm-yyyy or text)','t'],['rr_qty','RR Qty','n'],['ch_qty','CH Qty','n']],empty:x=>!x.rr_no&&!x.rr_date&&num(x.rr_qty)===null&&num(x.ch_qty)===null},
-  pl:{t:'RCR Plant & loading',f:[['plant_rec_qty','Plant Rec Qty','n'],['loading_grade','Loading Grade','t'],['loaded_do_no','Loaded D.O. No.','t']],empty:x=>num(x.plant_rec_qty)===null&&!x.grade&&!x.loaded}};
- const IDS=Object.keys(DEF);
- const rcrRows=()=>S.rows.filter(x=>normSec(x.section)==='RCR');
- function fill(id){const f=$('#e-'+id+' form'),d=S.vals.find(x=>String(x.do_no)===f.elements.dn.value);DEF[id].f.forEach(([k])=>f.elements[k].value=d&&d[k]!=null?d[k]:'')}
- function opts(id){const el=$('#e-'+id),sel=el.querySelector('select'),rows=rcrRows(),key=rows.map(x=>x.do_no).join();
-  if(el.dataset.key!==key){const cur=sel.value;sel.innerHTML='<option value="">Select RCR D.O.</option>'+rows.map(x=>`<option value="${x.do_no}">${x.do_no} · ${esc(x.colliery||'')}</option>`).join('');sel.value=rows.some(x=>String(x.do_no)===cur)?cur:'';el.dataset.key=key}
-  const m=rows.filter(DEF[id].empty);
-  el.querySelector('.miss').innerHTML=m.length?`<div class="note" style="margin-bottom:6px"><b>Not filled (${m.length})</b>: click a D.O. to fill it</div><div class="toolbar">${m.map(x=>`<button type="button" class="btn small" data-pick="${x.do_no}">${x.do_no}${x.colliery?' · '+esc(x.colliery):''}</button>`).join('')}</div>`:'<div class="note">All RCR D.O.s are filled.</div>'}
- function mkPane(id){const el=$('#e-'+id),D=DEF[id];el.style.gridTemplateColumns='minmax(0,640px)';
-  el.innerHTML=`<div class="panel" style="--c:#d97706"><h3>${esc(D.t)}</h3><form class="form" novalidate><label class="fld full"><span>RCR D.O. *</span><select name="dn"></select></label><div class="full miss"></div>`
-   +D.f.map(([k,l,t])=>`<label class="fld"><span>${esc(l)}</span><input name="${k}" type="${t=='n'?'number':'text'}" ${t=='n'?'step="any"':''}></label>`).join('')
-   +'<div class="msg"></div><div class="row"><button type="button" class="btn ghost" data-c>Clear fields</button><button class="btn primary">Save</button></div></form></div>';
-  const f=el.querySelector('form');
-  f.elements.dn.addEventListener('change',()=>fill(id));
-  el.addEventListener('click',e=>{const b=e.target.closest('[data-pick]');if(b){f.elements.dn.value=b.dataset.pick;fill(id);return}if(e.target.closest('[data-c]'))D.f.forEach(([k])=>f.elements[k].value='')});
-  f.addEventListener('submit',async e=>{e.preventDefault();const m=f.querySelector('.msg'),dn=f.elements.dn.value;m.className='msg';m.textContent='';
-   if(!dn){m.className='msg err';m.textContent='Select an RCR D.O. first';return}
-   const p={};
-   for(const[k,l,t]of D.f){const s=f.elements[k].value.trim();
-    if(t==='n'){if(s==='')p[k]=null;else{const n=num(s);if(n===null){m.className='msg err';m.textContent=l+': enter a valid number';return}p[k]=n}}
-    else p[k]=k==='rr_date'?normD(s):(s||null)}
-   p.updated_at=new Date().toISOString();
-   const b=f.querySelector('.primary');b.disabled=true;
-   const{error}=await db.from('ksk_dashboard_values').update(p).eq('do_no',dn);b.disabled=false;
-   if(error){m.className='msg err';m.textContent=exErr(error);return}
-   toast('Saved');await load();fill(id);
-   const pk=$('#do-pick');if(pk&&pk.value===dn&&typeof fillDoForm==='function')fillDoForm()});
-  opts(id)}
- IDS.forEach(mkPane);
+ function rkErr(e){const s=((e&&e.message)||'')+' '+((e&&e.code)||'');
+  if(/does not exist|42P01|schema cache|could not find the table/i.test(s))return'Table ksk_rcr_rakes is missing: run ksk_rcr_rakes_setup.sql in Supabase, then reload';
+  if(/23505|duplicate key/i.test(s))return'This RR No. already exists. Use Edit on the saved list instead.';
+  return exErr(e)}
 
- /* 3. hide the moved fields in the D.O. & values form (their values are kept) and add the no-section list */
+ function drawRk(){
+  const t=$('#t-rk');if(!t)return;
+  const rows=S.rakes||[];
+  const cols=[['rr_no','RR No.','id'],['rr_date','RR Date','dt'],['rr_qty','RR Qty','q'],['ch_qty','CH Qty','q'],['plant_rec_qty','Plant Rec Qty','q'],['loading_grade','Loading Grade','t'],['loaded_do_no','Loaded D.O. No','t']];
+  const rkCell=(c,x)=>{const k=c[0],ty=c[2],v=x[k];
+   if(ty=='dt')return`<td>${fD(v)}</td>`;
+   if(ty=='id')return`<td class="id">${esc(v)}</td>`;
+   if(ty=='q')return`<td class="num">${v==null?'–':fQ(v)}</td>`;
+   return v==null||v===''?`<td><span class="muted">–</span></td>`:`<td class="t" title="${esc(v)}">${esc(v)}</td>`};
+  const tot=k=>rows.reduce((s,x)=>s+(num(x[k])||0),0);
+  t.innerHTML=`<thead><tr class="grp"><th colspan="4" class="g4">Rake details</th><th colspan="3" class="g3">Plant &amp; loading</th></tr><tr>${cols.map((c,i)=>`<th class="${c[2]=='q'?'num':''}${i==4?' gs':''}">${esc(c[1])}</th>`).join('')}</tr></thead>`+
+   (rows.length
+     ?'<tbody>'+rows.map(x=>'<tr>'+cols.map(c=>rkCell(c,x)).join('')+'</tr>').join('')+'</tbody><tfoot><tr>'+cols.map((c,i)=>i==0?`<td>Total · ${rows.length}</td>`:(c[0]=='rr_qty'||c[0]=='ch_qty'||c[0]=='plant_rec_qty')?`<td class="num">${fQ(tot(c[0]))}</td>`:'<td></td>').join('')+'</tr></tfoot>'
+     :'<tbody><tr><td class="empty" colspan="7">No RCR rakes saved yet. Use Data entry → RCR rake → Add new rake.</td></tr></tbody>');
+  const n=$('#n-rk');if(n)n.textContent=rows.length+' rakes';
+ }
+
+ /* 4. Data entry: its own tab, its own Add button, and a saved list with Edit */
+ $('.stab[data-e=out]').insertAdjacentHTML('afterend','<button class="stab" data-e="rk">RCR rake</button>');
+ $('#e-out').insertAdjacentHTML('afterend','<div id="e-rk" class="eg hidden"></div>');
+ $$('.stab').forEach(b=>b.addEventListener('click',()=>{$$('.stab').forEach(x=>x.classList.toggle('active',x==b));['do','in','out','rk'].forEach(n=>$('#e-'+n).classList.toggle('hidden',n!=b.dataset.e))}));
+
+ const el=$('#e-rk');el.style.gridTemplateColumns='minmax(0,520px) minmax(0,1fr)';
+ el.innerHTML=`<div class="panel" style="--c:#d97706"><h3 id="rk-h">Add RCR rake</h3>
+  <form id="rk-f" class="form" novalidate>
+   ${RK_F.map(([k,l,t])=>`<label class="fld ${k=='rr_no'?'full':''}"><span>${esc(l)}</span><input name="${k}" type="${t=='n'?'number':'text'}" ${t=='n'?'step="any"':''} autocomplete="off"></label>`).join('')}
+   <div class="msg"></div>
+   <div class="row"><button type="button" class="btn ghost" id="rk-new">＋ Add new rake</button><button type="button" class="btn red hidden" id="rk-del">Delete</button><button class="btn primary" id="rk-save">Save rake</button></div>
+  </form></div>
+  <div class="glass"><div class="glass-h"><h2>Saved RCR rakes</h2><span class="sub" id="rk-n"></span></div><div class="sc"><table id="t-rkl"></table></div></div>`;
+
+ function rkFill(x){const f=$('#rk-f');RK_F.forEach(([k])=>f.elements[k].value=(x&&x[k]!=null)?x[k]:'')}
+ function rkSetMsg(t,err){const m=$('#rk-f .msg');m.textContent=t||'';m.className='msg'+(err?' err':'')}
+ function rkMode(rr){S.rkEdit=rr||null;const f=$('#rk-f');f.elements.rr_no.readOnly=!!rr;$('#rk-h').textContent=rr?'Edit RCR rake · '+rr:'Add RCR rake';$('#rk-del').classList.toggle('hidden',!rr);rkSetMsg('')}
+
+ function drawRkList(){
+  const t=$('#t-rkl');if(!t)return;
+  const rows=S.rakes||[];
+  $('#rk-n').textContent=rows.length+' saved';
+  t.innerHTML='<thead><tr><th>RR No.</th><th>RR Date</th><th class="num">RR Qty</th><th class="num">CH Qty</th><th class="num">Plant Rec</th><th>Grade</th><th>Loaded D.O.</th><th></th></tr></thead><tbody>'+
+   (rows.length
+     ?rows.map(x=>`<tr><td class="id">${esc(x.rr_no)}</td><td>${fD(x.rr_date)}</td><td class="num">${fQ(x.rr_qty)}</td><td class="num">${fQ(x.ch_qty)}</td><td class="num">${fQ(x.plant_rec_qty)}</td><td>${esc(x.loading_grade||'–')}</td><td>${esc(x.loaded_do_no||'–')}</td><td><button type="button" class="btn small" data-rk="${esc(x.rr_no)}">Edit</button></td></tr>`).join('')
+     :'<tr><td class="empty" colspan="8">No rakes yet.</td></tr>')+'</tbody>';
+ }
+
+ async function loadRakes(){
+  if(!db)return;
+  const{data,error}=await db.from('ksk_rcr_rakes').select('*').order('rr_no');
+  if(error){S.rakes=[];drawRk();drawRkList();return toast(rkErr(error),true)}
+  S.rakes=data||[];drawRk();drawRkList();
+  if(S.rkEdit&&!S.rakes.some(x=>String(x.rr_no)===String(S.rkEdit)))rkMode(null);
+ }
+
+ /* Add button: clears the form and unlocks RR No. */
+ $('#rk-new').onclick=()=>{$('#rk-f').reset();rkMode(null);$('#rk-f').elements.rr_no.focus()};
+
+ /* Edit from the saved list */
+ $('#t-rkl').addEventListener('click',e=>{const b=e.target.closest('[data-rk]');if(!b)return;const x=S.rakes.find(r=>String(r.rr_no)===b.dataset.rk);if(!x)return;rkFill(x);rkMode(x.rr_no);rkSetMsg('')});
+
+ /* Save: insert a new rake, or update the rake being edited. RR No. is unique in the database. */
+ $('#rk-f').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const f=e.target,g=k=>f.elements[k].value.trim();
+  const rr=g('rr_no');if(!rr)return rkSetMsg('RR No. is required',true);
+  const p={};
+  for(const [k,l,t] of RK_F){const s=g(k);
+   if(t=='n'){if(s===''){p[k]=null;continue}const n=num(s);if(n===null)return rkSetMsg(l+': enter a valid number',true);p[k]=n}
+   else p[k]=s||null}
+  p.rr_no=rr;
+  p.rr_date=normD(p.rr_date)||null;
+  p.updated_at=new Date().toISOString();
+  const b=$('#rk-save');b.disabled=true;
+  const q=S.rkEdit?db.from('ksk_rcr_rakes').update(p).eq('rr_no',S.rkEdit):db.from('ksk_rcr_rakes').insert(p);
+  const{error}=await q;b.disabled=false;
+  if(error)return rkSetMsg(rkErr(error),true);
+  toast(S.rkEdit?'RCR rake updated':'RCR rake saved');
+  rkMode(rr);
+  await loadRakes();
+ });
+
+ /* Delete the rake being edited */
+ $('#rk-del').onclick=async()=>{
+  const rr=S.rkEdit;if(!rr)return;
+  if(!(await PRTPL.confirm(`Delete RCR rake ${rr}? This cannot be undone.`,{title:'Delete rake?',okLabel:'Delete'})))return;
+  const{error}=await db.from('ksk_rcr_rakes').delete().eq('rr_no',rr);
+  if(error)return rkSetMsg(rkErr(error),true);
+  toast('RCR rake deleted');$('#rk-f').reset();rkMode(null);await loadRakes();
+ };
+
+ /* 5. D.O. form: the rake fields belong to the rake register now, so hide them here */
  const mf=$('#do-f');
  if(mf){const al=mf.elements.asking&&mf.elements.asking.closest('label');if(al)al.classList.add('hidden');const am=$('#ask-miss');if(am)am.classList.add('hidden');
   ['rr_no','rr_date','rr_qty','ch_qty','plant_rec_qty','loading_grade','loaded_do_no'].forEach(k=>{const e=mf.elements[k],l=e&&e.closest('label');if(l)l.classList.add('hidden')});
   [...mf.querySelectorAll('.note')].filter(n=>/Rake details/i.test(n.textContent)).forEach(n=>n.classList.add('hidden'));
   const an=$('#ask-miss')||$('#do-pick').closest('label');an.insertAdjacentHTML('afterend','<div class="full" id="sec-miss"></div>')}
+
+ /* 6. D.O.s with no section are not shown anywhere: list them and let the user set one */
  const VALID=['WASHERY','RCR','ROAD'],noSec=()=>S.rows.filter(x=>!VALID.includes(normSec(x.section)));
  function secMiss(){const el=$('#sec-miss');if(!el)return;const m=noSec();
   el.innerHTML=m.length?`<div class="note" style="margin-bottom:6px"><b>No section set (${m.length})</b>: these D.O.s are not shown in any dashboard table. Click one to set its section.</div><div class="toolbar">${m.map(x=>`<button type="button" class="btn small" data-nosec="${x.do_no}">${x.do_no}${x.colliery?' · '+esc(x.colliery):''}</button>`).join('')}</div>`:'<div class="note">Every D.O. has a section.</div>'}
  document.addEventListener('click',e=>{const b=e.target.closest('[data-nosec]');if(!b)return;const s=$('#do-sec');if(s)s.value='';pickOpts();$('#do-pick').value=b.dataset.nosec;fillDoForm();const sf=$('#do-f').elements.section;sf&&sf.focus()});
 
- /* 4. draw the two new tables and keep the lists fresh on every render */
+ /* 7. Wrap the renderer and the loader so the rake table stays in step */
  const _ra=renderAll;
- renderAll=function(){_ra();const R=filt(['RCR']),a=drawT('rk',R);
-  $('#n-rk').textContent=a+' shown';
-  const ns=noSec();if(ns.length){const al=$('#alert');al.classList.remove('hidden');
-   al.innerHTML+=(al.innerHTML?'<br>':'')+`<b>${ns.length} D.O.(s) have no section and are not shown in any table:</b> ${esc(ns.slice(0,25).map(x=>x.do_no).join(', '))}${ns.length>25?' …':''}. Set the section under Data entry → D.O. &amp; values.`}
-  IDS.forEach(opts);secMiss();
-  $$('.ed[data-k=asking],.ed[data-k=days_left]').forEach(i=>{i.readOnly=true;i.title='Calculated: Mines Bal. ÷ Days Left';i.style.background='#f1f5f9'})};
- renderAll();
+ renderAll=function(){_ra();drawRk();const ns=noSec();if(ns.length){const al=$('#alert');al.classList.remove('hidden');al.innerHTML+=(al.innerHTML?'<br>':'')+`<b>${ns.length} D.O.(s) have no section and are not shown in any table:</b> ${esc(ns.slice(0,25).map(x=>x.do_no).join(', '))}${ns.length>25?' …':''}. Set the section under Data entry → D.O. &amp; values.`}secMiss()};
+ const _load=load;
+ load=async function(){await _load();await loadRakes()};
+
+ /* init() already started load() before this script ran, so load the rakes now */
+ renderAll();loadRakes();
 })();
 </script>
 <style id="no-scroll">
