@@ -1798,4 +1798,13 @@ init();
  renderAll();
 })();
 </script>
+<style id="no-scroll">
+/* Dashboard tables show in full: no inner vertical scroll, so Total rows sit at the end of each table and always appear in the image. The page scrolls instead; very wide tables still scroll sideways. */
+main{overflow-y:auto!important}
+#v-dashboard.view,#v-dashboard .page,#v-dashboard #p-r{height:auto!important;min-height:0!important;flex:none!important;overflow:visible!important}
+#v-dashboard .glass:not(.hero){height:auto!important;min-height:0!important;flex:none!important}
+#v-dashboard .sc,#v-dashboard #p-r>.glass .sc,#v-dashboard #p-r>.glass.xt .sc{height:auto!important;max-height:none!important;flex:none!important;overflow-x:auto!important;overflow-y:hidden!important}
+#v-dashboard thead th,#v-dashboard tfoot td{position:static!important}
+#v-dashboard .page{padding-bottom:12px}
+</style>
 </body></html>
