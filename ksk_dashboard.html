@@ -1719,4 +1719,74 @@ const dp=$('#drop');dp.onclick=()=>$('#x-f').click();$('#x-f').onchange=e=>e.tar
 async function init(){setupLog();buildDo();$('#f-in').append(mkForm('ksk_inward',{done:load}));$('#f-out').append(mkForm('ksk_dispatch',{done:load}));if(!db){toast('Paste your Supabase anon key at the top of the script (KEY).',true);return setSt('Not connected','err')}
  await load();let tm;db.channel('ksk').on('postgres_changes',{event:'*',schema:'public'},()=>{if(S.edit)return;clearTimeout(tm);tm=setTimeout(()=>{load();S.view=='log'&&renderLog()},1500)}).subscribe();setInterval(()=>S.view=='dashboard'&&!S.edit&&load(),60000)}
 init();
-</script></body></html>
+</script><script id="rcr-update">
+/* ===== RCR update: Rake details + Plant & loading as separate tables and separate data entry; no-section list ===== */
+(function(){
+ /* 1. take the two groups out of the RCR D.O. table */
+ TD.r.g=TD.r.g.filter(g=>g[0]!=='Rake details'&&g[0]!=='Plant & loading');
+ const IN2=[['do_no','D.O. No.','id'],['colliery','Colliery','t'],['party_name','Party','t'],['lapsing_date','Lapsing','dt']];
+ TD.rk={id:'#t-rk',g:[['',IN2,0],['Rake details',[['rr_no','RR No.','t'],['rr_date','RR Date','dt'],['rr_qty','RR Qty','q'],['ch_qty','CH Qty','q']],4]]};
+ TD.pl={id:'#t-pl',g:[['',IN2,0],['Plant & loading',[['plant_rec_qty','Plant Rec Qty','q'],['grade','Loading Grade','t'],['loaded','Loaded D.O. No','t']],3]]};
+ S.sort.rk={k:'_s',d:1};S.sort.pl={k:'_s',d:1};
+ if(!document.getElementById('rcr-css')){const st=document.createElement('style');st.id='rcr-css';st.textContent='#p-r>.glass.xt .sc{height:320px}';document.head.appendChild(st)}
+ $('#p-r').insertAdjacentHTML('beforeend','<div class="glass r xt"><div class="glass-h"><h2>RCR Rake details</h2><span class="sub" id="n-rk"></span></div><div class="sc"><table id="t-rk"></table></div></div><div class="glass r xt"><div class="glass-h"><h2>RCR Plant &amp; loading</h2><span class="sub" id="n-pl"></span></div><div class="sc"><table id="t-pl"></table></div></div>');
+
+ /* 2. separate data entry tabs */
+ $('.stab[data-e=out]').insertAdjacentHTML('afterend','<button class="stab" data-e="rk">Rake details</button><button class="stab" data-e="pl">Plant &amp; loading</button>');
+ $('#e-out').insertAdjacentHTML('afterend','<div id="e-rk" class="eg hidden"></div><div id="e-pl" class="eg hidden"></div>');
+ const TABS=['do','in','out','rk','pl'];
+ $$('.stab').forEach(b=>b.addEventListener('click',()=>{$$('.stab').forEach(x=>x.classList.toggle('active',x==b));TABS.forEach(n=>{const e=$('#e-'+n);e&&e.classList.toggle('hidden',n!=b.dataset.e)})}));
+
+ const DEF={
+  rk:{t:'RCR Rake details',f:[['rr_no','RR No.','t'],['rr_date','RR Date (dd-mm-yyyy or text)','t'],['rr_qty','RR Qty','n'],['ch_qty','CH Qty','n']],empty:x=>!x.rr_no&&!x.rr_date&&num(x.rr_qty)===null&&num(x.ch_qty)===null},
+  pl:{t:'RCR Plant & loading',f:[['plant_rec_qty','Plant Rec Qty','n'],['loading_grade','Loading Grade','t'],['loaded_do_no','Loaded D.O. No.','t']],empty:x=>num(x.plant_rec_qty)===null&&!x.grade&&!x.loaded}};
+ const IDS=Object.keys(DEF);
+ const rcrRows=()=>S.rows.filter(x=>String(x.section||'').toUpperCase().trim()==='RCR');
+ function fill(id){const f=$('#e-'+id+' form'),d=S.vals.find(x=>String(x.do_no)===f.elements.dn.value);DEF[id].f.forEach(([k])=>f.elements[k].value=d&&d[k]!=null?d[k]:'')}
+ function opts(id){const el=$('#e-'+id),sel=el.querySelector('select'),rows=rcrRows(),key=rows.map(x=>x.do_no).join();
+  if(el.dataset.key!==key){const cur=sel.value;sel.innerHTML='<option value="">Select RCR D.O.</option>'+rows.map(x=>`<option value="${x.do_no}">${x.do_no} · ${esc(x.colliery||'')}</option>`).join('');sel.value=rows.some(x=>String(x.do_no)===cur)?cur:'';el.dataset.key=key}
+  const m=rows.filter(DEF[id].empty);
+  el.querySelector('.miss').innerHTML=m.length?`<div class="note" style="margin-bottom:6px"><b>Not filled (${m.length})</b>: click a D.O. to fill it</div><div class="toolbar">${m.map(x=>`<button type="button" class="btn small" data-pick="${x.do_no}">${x.do_no}${x.colliery?' · '+esc(x.colliery):''}</button>`).join('')}</div>`:'<div class="note">All RCR D.O.s are filled.</div>'}
+ function mkPane(id){const el=$('#e-'+id),D=DEF[id];el.style.gridTemplateColumns='minmax(0,640px)';
+  el.innerHTML=`<div class="panel" style="--c:#d97706"><h3>${esc(D.t)}</h3><form class="form" novalidate><label class="fld full"><span>RCR D.O. *</span><select name="dn"></select></label><div class="full miss"></div>`
+   +D.f.map(([k,l,t])=>`<label class="fld"><span>${esc(l)}</span><input name="${k}" type="${t=='n'?'number':'text'}" ${t=='n'?'step="any"':''}></label>`).join('')
+   +'<div class="msg"></div><div class="row"><button type="button" class="btn ghost" data-c>Clear fields</button><button class="btn primary">Save</button></div></form></div>';
+  const f=el.querySelector('form');
+  f.elements.dn.addEventListener('change',()=>fill(id));
+  el.addEventListener('click',e=>{const b=e.target.closest('[data-pick]');if(b){f.elements.dn.value=b.dataset.pick;fill(id);return}if(e.target.closest('[data-c]'))D.f.forEach(([k])=>f.elements[k].value='')});
+  f.addEventListener('submit',async e=>{e.preventDefault();const m=f.querySelector('.msg'),dn=f.elements.dn.value;m.className='msg';m.textContent='';
+   if(!dn){m.className='msg err';m.textContent='Select an RCR D.O. first';return}
+   const p={};
+   for(const[k,l,t]of D.f){const s=f.elements[k].value.trim();
+    if(t==='n'){if(s==='')p[k]=null;else{const n=num(s);if(n===null){m.className='msg err';m.textContent=l+': enter a valid number';return}p[k]=n}}
+    else p[k]=k==='rr_date'?normD(s):(s||null)}
+   p.updated_at=new Date().toISOString();
+   const b=f.querySelector('.primary');b.disabled=true;
+   const{error}=await db.from('ksk_dashboard_values').update(p).eq('do_no',dn);b.disabled=false;
+   if(error){m.className='msg err';m.textContent=exErr(error);return}
+   toast('Saved');await load();fill(id);
+   const pk=$('#do-pick');if(pk&&pk.value===dn&&typeof fillDoForm==='function')fillDoForm()});
+  opts(id)}
+ IDS.forEach(mkPane);
+
+ /* 3. hide the moved fields in the D.O. & values form (their values are kept) and add the no-section list */
+ const mf=$('#do-f');
+ if(mf){['rr_no','rr_date','rr_qty','ch_qty','plant_rec_qty','loading_grade','loaded_do_no'].forEach(k=>{const e=mf.elements[k],l=e&&e.closest('label');if(l)l.classList.add('hidden')});
+  [...mf.querySelectorAll('.note')].filter(n=>/Rake details/i.test(n.textContent)).forEach(n=>n.classList.add('hidden'));
+  const an=$('#ask-miss')||$('#do-pick').closest('label');an.insertAdjacentHTML('afterend','<div class="full" id="sec-miss"></div>')}
+ const VALID=['WASHERY','RCR','ROAD'],noSec=()=>S.rows.filter(x=>!VALID.includes(String(x.section||'').toUpperCase().trim()));
+ function secMiss(){const el=$('#sec-miss');if(!el)return;const m=noSec();
+  el.innerHTML=m.length?`<div class="note" style="margin-bottom:6px"><b>No section set (${m.length})</b>: these D.O.s are not shown in any dashboard table. Click one to set its section.</div><div class="toolbar">${m.map(x=>`<button type="button" class="btn small" data-nosec="${x.do_no}">${x.do_no}${x.colliery?' · '+esc(x.colliery):''}</button>`).join('')}</div>`:'<div class="note">Every D.O. has a section.</div>'}
+ document.addEventListener('click',e=>{const b=e.target.closest('[data-nosec]');if(!b)return;const s=$('#do-sec');if(s)s.value='';pickOpts();$('#do-pick').value=b.dataset.nosec;fillDoForm();const sf=$('#do-f').elements.section;sf&&sf.focus()});
+
+ /* 4. draw the two new tables and keep the lists fresh on every render */
+ const _ra=renderAll;
+ renderAll=function(){_ra();const R=filt(['RCR']),a=drawT('rk',R),b=drawT('pl',R);
+  $('#n-rk').textContent=a+' shown';$('#n-pl').textContent=b+' shown';
+  const ns=noSec();if(ns.length){const al=$('#alert');al.classList.remove('hidden');
+   al.innerHTML+=(al.innerHTML?'<br>':'')+`<b>${ns.length} D.O.(s) have no section and are not shown in any table:</b> ${esc(ns.slice(0,25).map(x=>x.do_no).join(', '))}${ns.length>25?' …':''}. Set the section under Data entry → D.O. &amp; values.`}
+  IDS.forEach(opts);secMiss()};
+ renderAll();
+})();
+</script>
+</body></html>
