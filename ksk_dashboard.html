@@ -1728,7 +1728,7 @@ init();
  TD.rk={id:'#t-rk',g:[['',IN2,0],['Rake details',[['rr_no','RR No.','t'],['rr_date','RR Date','dt'],['rr_qty','RR Qty','q'],['ch_qty','CH Qty','q']],4],['Plant & loading',[['plant_rec_qty','Plant Rec Qty','q'],['grade','Loading Grade','t'],['loaded','Loaded D.O. No','t']],3]]};
  S.sort.rk={k:'_s',d:1};
  if(!document.getElementById('rcr-css')){const st=document.createElement('style');st.id='rcr-css';st.textContent='#p-r>.glass.xt .sc{height:360px}.st.over{background:rgba(5,150,105,.12)!important;color:#047857!important;font-size:0!important}.st.over::after{content:"Open";font-size:9.5px}';document.head.appendChild(st)}
- $('#p-r').insertAdjacentHTML('beforeend','<div class="glass r xt"><div class="glass-h"><h2>RCR Rake details &amp; Plant loading</h2><span class="sub" id="n-rk"></span></div><div class="sc"><table id="t-rk"></table></div></div>');
+ $('#t-r').closest('.glass').insertAdjacentHTML('afterend','<div class="glass r xt"><div class="glass-h"><h2>RCR Rake details &amp; Plant loading</h2><span class="sub" id="n-rk"></span></div><div class="sc"><table id="t-rk"></table></div></div>');
 
  /* Asking = Mines Bal. / Days Left (days to the lapsing date, minimum 1); Days Left column added */
  MB.splice(1,0,['days_left','Days Left','t']);
