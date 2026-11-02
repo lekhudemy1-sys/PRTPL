@@ -630,7 +630,7 @@ body:not(.unlocked) .pro-tab{display:none}
   </div>
   <div class="panel">
     <h2><i class="fas fa-info-circle"></i> How every dashboard value is calculated</h2>
-    <p class="muted">RR = RR weight, Recv = received weight, GETS / TPHS = party type on the record. "Month" means the selected month. Materialisation uses rakes loaded up to the report date.</p>
+    <p class="muted">RR = RR weight, Recv = received weight, GETS / TPHS = party type on the record. "Month" means the selected 4th-to-3rd billing cycle. Materialisation uses rakes loaded up to the report date.</p>
     <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Plants and Weights</h4>
     <ul class="formula-list">
       <li>Target of Month, Rake Loaded Till, Balance Rake, Asking Per Day = per party (GETS, TPHS) and area (SECL, WCL) from Data Entry targets; loaded counts rakes up to the report date; asking per day = balance ÷ days from today to the 3rd of the next month</li>
@@ -720,10 +720,17 @@ function wAvg(arr, vKey, wKey) {
 function avgField(arr, key) { const v = arr.filter(r => isNum(r[key])); return v.length ? v.reduce((s, r) => s + Number(r[key]), 0) / v.length : 0; }
 function ratio(a, b) { return b ? a / b : 0; }
 function daysBetween(a, b) { const d = Math.round((new Date(b + 'T00:00:00Z') - new Date(a + 'T00:00:00Z')) / 86400000); return d > 0 ? d : 0; }
+// Billing cycle: 4th of the month to 3rd of the next month (labelled by the starting month)
 function monthInfo(period) {
-  const [Y, M] = period.split('-').map(Number);
-  const dim = new Date(Date.UTC(Y, M, 0)).getUTCDate();
-  return { start: `${period}-01`, end: `${period}-${pad2(dim)}`, dim };
+  const start = `${period}-04`;
+  const end = `${shiftMonth(period, 1)}-03`;
+  const dim = daysBetween(start, end) + 1;
+  return { start, end, dim };
+}
+// Which cycle a date belongs to: days 1-3 belong to the cycle that started on the 4th of the previous month
+function cycleKeyOf(dateStr) {
+  const key = dateStr.slice(0, 7);
+  return Number(dateStr.slice(8, 10)) >= 4 ? key : shiftMonth(key, -1);
 }
 function shiftMonth(period, k) {
   const [Y, M] = period.split('-').map(Number);
@@ -930,8 +937,13 @@ function toast(msg, err) {
 }
 const unwrap = res => { if (res.error) throw res.error; return res.data || []; };
 const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`; };
-const currentMonthKey = () => todayISO().slice(0, 7);
+const currentMonthKey = () => cycleKeyOf(todayISO());
 const periodLabel = p => { const [Y, M] = p.split('-').map(Number); return `${MONTHS[M - 1]}-${Y}`; };
+const cycleLabel = p => {
+  const i = monthInfo(p);
+  const fmt = s => { const [Y, M, D] = s.split('-').map(Number); return `${pad2(D)} ${MONTHS[M - 1]} ${Y}`; };
+  return `${fmt(i.start)} – ${fmt(i.end)}`;
+};
 
 const fInt = n => { if (!Number.isFinite(n)) return '-'; const r = Math.round(n); return r === 0 ? '-' : (r < 0 ? '-' : '') + Math.abs(r).toLocaleString('en-IN'); };
 const f2 = n => { if (!Number.isFinite(n) || Math.abs(n) < 0.005) return '-'; return (n < 0 ? '-' : '') + Math.abs(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
@@ -1045,7 +1057,7 @@ function fillPeriodPicker() {
   });
 }
 function setPeriodLabel() {
-  $('periodLabel').textContent = `AMM Gujarat • ${periodLabel(PERIOD)}` +
+  $('periodLabel').textContent = `AMM Gujarat • ${cycleLabel(PERIOD)}` +
     (OVR_APPLIED ? ` • ${OVR_APPLIED} manual value${OVR_APPLIED > 1 ? 's' : ''}` : '');
 }
 
