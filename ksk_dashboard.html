@@ -1813,8 +1813,8 @@ init();
  async function loadRakes(){
   if(!db)return;
   const{data,error}=await db.from('ksk_rcr_rakes').select('*').order('rr_no');
-  if(error){S.rakes=[];drawRk();drawRkList();return toast(rkErr(error),true)}
-  S.rakes=data||[];drawRk();drawRkList();
+  if(error){S.rakes=[];drawRk();drawRkList();drawAlloc();return toast(rkErr(error),true)}
+  S.rakes=data||[];drawRk();drawRkList();drawAlloc();
   if(S.rkEdit&&!S.rakes.some(x=>String(x.rr_no)===String(S.rkEdit)))rkMode(null);
  }
 
