@@ -2008,4 +2008,18 @@ main{overflow-y:auto!important}
   console.error('[KSK]',r);if(window.PRTPL)PRTPL.toast('Error detail: '+m,{type:'err',ms:15000})});
 })();
 </script>
+
+<script id="daysleft-fix">
+(function(){
+ const _cell=cell;
+ cell=function(c,x){
+  const h=_cell(c,x);
+  if(c[0]==='days_left'&&!S.edit&&num(x.days_left)!==null&&num(x.days_left)<0)
+   return h.replace(/title="[^"]*">[^<]*</,'title="-">-<');
+  return h;
+ };
+ if(typeof renderAll==='function')renderAll();
+})();
+</script>
+ 
 </body></html>
