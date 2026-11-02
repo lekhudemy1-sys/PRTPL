@@ -1285,6 +1285,7 @@ const r3=v=>Math.round(v*1000)/1000,p2=n=>String(n).padStart(2,'0');
 const fQ=v=>num(v)===null?'–':num(v).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
 const fI=v=>num(v)===null?'–':num(v).toLocaleString('en-IN',{maximumFractionDigits:0});
 const sum=(a,k)=>a.reduce((s,x)=>s+(num(x[k])||0),0);
+const normSec=s=>String(s??'').toUpperCase().trim();
 function pd(s){if(s instanceof Date)return s;if(!s)return null;s=String(s).trim();let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/),y,mo,d;
  if(m){y=+m[1];mo=+m[2];d=+m[3]}else{m=s.match(/^(\d{1,2})\s*[-/.]\s*(\d{1,2})\s*[-/.]\s*(\d{2,4})$/);if(!m)return null;d=+m[1];mo=+m[2];y=+m[3];if(y<1000)y+=2000}
  const t=new Date(y,mo-1,d);return isNaN(t)?null:t}
@@ -1311,14 +1312,15 @@ ksk_dispatch:{l:'Dispatch',dc:'disp_date',ord:'id',f:[['sn_no','Sr. No.','t'],['
 ksk_dashboard_values:{l:'D.O. values',dc:null,ord:'sn_no',f:[['do_no','D.O. No.','i',1],['section','Section','t'],['sn_no','Sn. No.','i'],['colliery','Colliery','t'],['party_name','Party','t'],['issue_date','Issue','t'],['sized','Sized','t'],['lapsing_date','Lapsing','t'],['do_qty','D.O. Qty','n'],['asking','Asking','n'],['daily_lift','Daily Lift','n'],['daily_dispatch','Daily Dispatch','n'],['plant_rec_qty','Plant Rec Qty (Manual)','n'],['loading_grade','Loading Grade (Manual)','t'],['loaded_do_no','Loaded D.O. No. (Manual)','t'],['rr_no','RR No','t'],['rr_date','RR Date','t'],['rr_qty','RR Qty','n'],['ch_qty','CH Qty','n']],x:['colliery','party_name','sized','loading_grade','loaded_do_no'],sk:'do_qty'},
 ksk_multi_upload_rows:{l:'Multi Upload',dc:'disp_date',ord:'id',f:[['do_no','D.O. No.','t'],['section','Section','t'],['sn','Sr. No.','t'],['disp_date','Dispatch Date','d'],['vehicle_no','Vehicle No.','t'],['gate_pass','Gate Pass','t'],['unique_no','Unique No.','t'],['net_wt','Net Wt. (MT)','n'],['source_sheet','Source Sheet','t'],['source_row','Source Row','i']],x:['do_no','vehicle_no','gate_pass','unique_no','source_sheet'],sk:'net_wt'}};
 const lab=(t,k)=>TB[t].f.find(f=>f[0]==k)[1];
-const S={edit:false,draft:{},vals:[],inS:{},dsS:{},rows:[],view:'dashboard',page:'w',sort:{w:{k:'_s',d:1},r:{k:'_s',d:1},o:{k:'_s',d:1}},pg:0,xl:{wb:null,rows:[],busy:false,skip:0}};
+/* rcrS is filled by load(); it must exist from the start because the layout patches call renderAll() before data arrives */
+const S={edit:false,draft:{},vals:[],inS:{},rcrS:{},dsS:{},rows:[],view:'dashboard',page:'w',sort:{w:{k:'_s',d:1},r:{k:'_s',d:1},o:{k:'_s',d:1}},pg:0,xl:{wb:null,rows:[],busy:false,skip:0}};
 
 /* ---- formulas (each can be overridden per D.O. via ov; override = formula disconnected) ---- */
-function calc(d,ov){ov=ov||d.ov||{};const m={},isRCR=String(d.section||'').toUpperCase()==='RCR',I=(isRCR?S.rcrS:S.inS)[d.do_no]||{trips:0,net:0},D=S.dsS[d.do_no]||{trips:0,net:0};
+function calc(d,ov){ov=ov||d.ov||{};const m={},isRCR=normSec(d.section)==='RCR',I=(isRCR?S.rcrS:S.inS)[d.do_no]||{trips:0,net:0},D=S.dsS[d.do_no]||{trips:0,net:0};
  const pk=(k,f)=>{const v=num(ov[k]);if(v!==null){m[k]=1;return v}return f};
  /* RCR alone uses Multi Upload rows for Trips and Rec. Qty. All non-RCR sections retain their original formulas and overrides. */
  const trips=pk('trips',I.trips),rec=pk('rec_qty',r3(I.net)),mines=pk('mines_bal',r3((num(d.do_qty)||0)-rec)),wash=pk('wash_coal',r3(rec*WASH)),rej=pk('reject',r3(rec*REJ)),
- dt=pk('disp_trips',D.trips),dq=pk('disp_qty',r3(D.net)),bal=pk('washery_bal',r3((d.section=='WASHERY'?wash:rec)-dq));
+ dt=pk('disp_trips',D.trips),dq=pk('disp_qty',r3(D.net)),bal=pk('washery_bal',r3((normSec(d.section)=='WASHERY'?wash:rec)-dq));
  return{...d,trips,rec_qty:rec,mines_bal:mines,wash_coal:wash,reject:rej,disp_trips:dt,disp_qty:dq,washery_bal:bal,m}}
 const isClosed=x=>x.mines_bal<=.005&&(x.section=='ROAD'||x.washery_bal<=.005);
 const stRank=x=>isClosed(x)?2:0;
@@ -1329,7 +1331,10 @@ async function load(){if(!db)return setSt('Not connected','err');setSt('Loading�
  let m=[];
  try{m=await fetchAll(()=>db.from('ksk_multi_upload_rows').select('id,do_key,do_no,net_wt').order('id'))}catch(err){setSt('Error','err');return toast(exErr(err),true)}
  const e=v.error||i.error||d.error;if(e){setSt('Error','err');return toast(exErr(e),true)}
- S.vals=v.data;S.inS={};S.rcrS={};S.dsS={};i.data.forEach(r=>S.inS[String(r.do_no)]={trips:r.trips,net:num(r.net_qty)||0});d.data.forEach(r=>S.dsS[String(r.do_no)]={trips:r.trips,net:num(r.net_qty)||0});
+ S.vals=(v.data||[]).map(x=>({...x,section:normSec(x.section)||'WASHERY'}));
+ S.inS={};S.rcrS={};S.dsS={};
+ (i.data||[]).forEach(r=>S.inS[String(r.do_no)]={trips:r.trips,net:num(r.net_qty)||0});
+ (d.data||[]).forEach(r=>S.dsS[String(r.do_no)]={trips:r.trips,net:num(r.net_qty)||0});
  /* Multi Upload is used only for RCR: Trips = row count and Rec. Qty = sum of net_wt. */
  (m||[]).forEach(r=>{const k=String(r.do_key||r.do_no||'');if(!k)return;S.rcrS[k]||(S.rcrS[k]={trips:0,net:0});S.rcrS[k].trips++;S.rcrS[k].net+=num(r.net_wt)||0});
  /* Plant receipt, loading grade and loaded D.O. number are intentionally manual master fields. */
@@ -1337,7 +1342,10 @@ async function load(){if(!db)return setSt('Not connected','err');setSt('Loading�
  const nm=[...new Set(S.rows.map(x=>(x.colliery||'').trim()).filter(Boolean).map(s=>s.toLowerCase()))].sort(),c=$('#f-col').value;
  $('#f-col').innerHTML='<option value="">All collieries</option>'+nm.map(n=>`<option value="${esc(n)}">${esc(n.replace(/^./,m=>m.toUpperCase()))}</option>`).join('');$('#f-col').value=c;
  const dl=S.rows.map(x=>`<option value="${x.do_no}">${x.do_no} · ${esc(x.colliery||'')}</option>`).join('');
- $('#l-do').innerHTML='<option value="">All D.O.s</option>'+dl;$('#s-do').innerHTML=dl;renderAll();pickOpts()}
+ const lo=$('#l-do').value,so=$('#s-do').value;
+ $('#l-do').innerHTML='<option value="">All D.O.s</option>'+dl;$('#l-do').value=lo;
+ $('#s-do').innerHTML=dl;if(so)$('#s-do').value=so;
+ renderAll();pickOpts()}
 
 /* ---- dashboard ---- */
 const INFO=[['colliery','Colliery','t'],['party_name','Party','t'],['issue_date','Issue','dt'],['sized','Sized','t'],['lapsing_date','Lapsing','dt'],['do_no','D.O. No.','id'],['do_qty','D.O. Qty','q']];
@@ -1364,7 +1372,7 @@ function renderAll(){const W=filt(['WASHERY']),R=filt(['RCR']),O=filt(['ROAD']),
  $('#c-w').innerHTML=card('D.O. quantity',sum(aw,'do_qty'),'',aw.length+' D.O.s')+card('Received',sum(aw,'rec_qty'),'',`${sum(aw,'do_qty')?(sum(aw,'rec_qty')/sum(aw,'do_qty')*100).toFixed(1):0}% of D.O. qty`)+card('Dispatched',sum(aw,'disp_qty'),'k',`${sum(aw,'wash_coal')?(sum(aw,'disp_qty')/sum(aw,'wash_coal')*100).toFixed(1):0}% of 85% output`)+card('Washery balance',sum(aw,'washery_bal'),'o','Output not yet dispatched')+card('Mines balance',sum(aw,'mines_bal'),'r','D.O. qty not yet received');
  $('#c-r').innerHTML=card('D.O. quantity',sum(ar,'do_qty'),'r',ar.length+' RCR + Road D.O.s')+card('Lifted',sum(ar,'rec_qty'),'r','RCR + Road')+card('Balance in mines',sum(ar,'mines_bal'),'x','Not yet lifted')+card('RCR balance at IUIK',sum(ar.filter(x=>x.section=='RCR'),'washery_bal'),'o','Lifted − rake dispatch')+card('Active D.O.s',ar.filter(x=>!isClosed(x)).length,'s','Balance above zero','i');
  const n=[drawT('w',W),drawT('r',R),drawT('o',O)];$('#n-w').textContent=`${W.length} of ${aw.length} shown`;$('#n-r').textContent=`${R.length} shown`;$('#n-o').textContent=`${O.length} shown`;
- const known=new Set(S.vals.map(x=>String(x.do_no))),un=[...new Set([...Object.keys(S.inS),...Object.keys(S.rcrS),...Object.keys(S.dsS)])].filter(d=>!known.has(String(d)));
+ const known=new Set(S.vals.map(x=>String(x.do_no))),un=[...new Set([...Object.keys(S.inS||{}),...Object.keys(S.rcrS||{}),...Object.keys(S.dsS||{})])].filter(d=>!known.has(String(d)));
  $('#alert').classList.toggle('hidden',!un.length);$('#alert').innerHTML=un.length?`<b>${un.length} D.O. number(s) in the Excel data are not in the D.O. list, so they are not shown:</b> ${esc(un.slice(0,25).join(', '))}${un.length>25?' … and '+(un.length-25)+' more':''}. Add them under Data entry → D.O. &amp; values.`:''}
 function setPage(p){S.page=p;$$('.seg button').forEach(b=>b.classList.toggle('active',b.dataset.p==p));['w','r','s'].forEach(x=>$('#p-'+x).classList.toggle('hidden',x!=p));$('#flt').classList.toggle('hidden',p=='s');p=='s'?loadSum():renderAll()}
 async function loadSum(){const d=S.rows.find(x=>x.do_no==$('#s-do').value)||S.rows[0];if(!d)return;$('#s-do').value=d.do_no;$('#h-do').textContent=d.do_no;
@@ -1394,8 +1402,8 @@ function mkForm(t,o={}){const T=TB[t],v=o.values||{},f=document.createElement('f
  f.addEventListener('submit',async e=>{e.preventDefault();const m=f.querySelector('.msg'),p={};m.className='msg';m.textContent='';
   for(const[k,l,ty,rq]of T.f){let x=f.elements[k].value.trim();if(ty=='n'||ty=='i'){x=x===''?null:Number(x);if(x!==null&&(!Number.isFinite(x)||(ty=='i'&&!Number.isInteger(x))))return m.className='msg err',m.textContent=l+': enter a valid number'}else x=x||null;
    if(k=='vehicle_no'&&x)x=x.toUpperCase();if(rq&&x===null)return m.className='msg err',m.textContent=l+' is required';p[k]=typeof x=='number'?String(x):x}
-  if(!DIR[t]&&!S.vals.some(d=>d.do_no==p.do_no)&&!(await PRTPL.confirm(`D.O. ${p.do_no} is not in the dashboard list. Save anyway?`,{title:'D.O. not in list',okLabel:'Save anyway',danger:false})))return;
-  if(DIR[t]&&!S.vals.some(d=>String(d.do_no)==p.do_no)&&!(await PRTPL.confirm(`D.O. ${p.do_no} is not in the dashboard list. Save anyway?`,{title:'D.O. not in list',okLabel:'Save anyway',danger:false})))return;
+  /* warn once if the D.O. is not in the dashboard list (the D.O. number is stored as text in the entry tables) */
+  if(!S.vals.some(d=>String(d.do_no)==String(p.do_no))&&!(await PRTPL.confirm(`D.O. ${p.do_no} is not in the dashboard list. Save anyway?`,{title:'D.O. not in list',okLabel:'Save anyway',danger:false})))return;
   const b=f.querySelector('.primary');b.disabled=true;
   const dir=DIR[t]?{direction:DIR[t]}:{};
   const{error}=o.edit?await db.from(SRC(t)).update({...p,...dir}).eq('id',v.id):await db.from(SRC(t)).insert({...p,...dir,source_sheet:'MANUAL'});
@@ -1422,10 +1430,10 @@ function buildDo(){const fl=(n,l,t='text',x='')=>`<label class="fld ${x}"><span>
  f.addEventListener('submit',async e=>{e.preventDefault();const m=f.querySelector('.msg'),g=k=>f.elements[k].value.trim(),n=k=>g(k)===''?null:Number(g(k));m.className='msg';m.textContent='';
   const dn=n('do_no');if(!Number.isInteger(dn))return m.className='msg err',m.textContent='D.O. No is required (whole number)';
   const ov={};OVK.forEach(([k])=>{const v=n('ov_'+k);if(v!==null&&Number.isFinite(v))ov[k]=v});
-  const p={do_no:dn,section:g('section'),sn_no:n('sn_no'),colliery:g('colliery')||null,party_name:g('party_name')||null,issue_date:normD(g('issue_date')),sized:g('sized')||null,lapsing_date:normD(g('lapsing_date')),do_qty:n('do_qty'),asking:n('asking'),daily_lift:n('daily_lift'),daily_dispatch:n('daily_dispatch'),plant_rec_qty:n('plant_rec_qty'),loading_grade:g('loading_grade')||null,loaded_do_no:g('loaded_do_no')||null,rr_no:g('rr_no')||null,rr_date:normD(g('rr_date')),rr_qty:n('rr_qty'),ch_qty:n('ch_qty'),ov,updated_at:new Date().toISOString()};
+  const p={do_no:dn,section:normSec(g('section')),sn_no:n('sn_no'),colliery:g('colliery')||null,party_name:g('party_name')||null,issue_date:normD(g('issue_date')),sized:g('sized')||null,lapsing_date:normD(g('lapsing_date')),do_qty:n('do_qty'),asking:n('asking'),daily_lift:n('daily_lift'),daily_dispatch:n('daily_dispatch'),plant_rec_qty:n('plant_rec_qty'),loading_grade:g('loading_grade')||null,loaded_do_no:g('loaded_do_no')||null,rr_no:g('rr_no')||null,rr_date:normD(g('rr_date')),rr_qty:n('rr_qty'),ch_qty:n('ch_qty'),ov,updated_at:new Date().toISOString()};
   const{error}=await db.from('ksk_dashboard_values').upsert(p,{onConflict:'do_no'});if(error)return m.className='msg err',m.textContent=exErr(error);toast('D.O. saved');await load();$('#do-pick').value=dn;fillDoForm()})}
-function ph(){const f=$('#do-f');if(!f)return;const dn=Number(f.elements.do_no.value),base=S.vals.find(x=>x.do_no==dn)||{do_no:dn,section:f.elements.section.value,do_qty:num(f.elements.do_qty.value)||0},ov={};
- OVK.forEach(([k])=>{const v=num(f.elements['ov_'+k].value);if(v!==null)ov[k]=v});const d={...base,section:f.elements.section.value,do_qty:num(f.elements.do_qty.value)||0};
+function ph(){const f=$('#do-f');if(!f)return;const dn=Number(f.elements.do_no.value),base=S.vals.find(x=>x.do_no==dn)||{do_no:dn,section:normSec(f.elements.section.value),do_qty:num(f.elements.do_qty.value)||0},ov={};
+ OVK.forEach(([k])=>{const v=num(f.elements['ov_'+k].value);if(v!==null)ov[k]=v});const d={...base,section:normSec(f.elements.section.value),do_qty:num(f.elements.do_qty.value)||0};
  OVK.forEach(([k])=>{const o2={...ov};delete o2[k];f.elements['ov_'+k].placeholder='formula: '+fQ(calc(d,o2)[k])})}
 function pickOpts(){const pk=$('#do-pick');if(!pk)return;const cur=pk.value;
  pk.innerHTML='<option value="">➕ New D.O.</option>'+S.rows.filter(x=>!$('#do-sec').value||x.section==$('#do-sec').value).map(x=>`<option value="${x.do_no}">${x.do_no} · ${x.section} · ${esc(x.colliery||'')}</option>`).join('');pk.value=S.rows.some(x=>x.do_no==cur&&(!$('#do-sec').value||x.section==$('#do-sec').value))?cur:'';ph();askMiss()}
@@ -1501,7 +1509,7 @@ function parseDoList(rows,h,heads,sheet){
  for(let i=h+1;i<rows.length;i++){const r=rows[i],v=f=>map[f]==null?null:r[map[f]];
   const dn=v('do_no');if(dn==null||String(dn).trim()==='')continue;
   const dnum=Number(String(dn).replace(/,/g,''));
-  const sec=String(v('section')??'WASHERY').toUpperCase().trim();
+  const sec=normSec(v('section')||'WASHERY');
   const ok=Number.isInteger(dnum);
   out.push({_row:i+1,_s:ok?'ok':'er',_err:ok?'':'D.O. No is not a whole number',
    do_no:ok?dnum:null,section:['WASHERY','RCR','ROAD'].includes(sec)?sec:'WASHERY',
@@ -1757,7 +1765,7 @@ init();
   rk:{t:'RCR Rake details',f:[['rr_no','RR No.','t'],['rr_date','RR Date (dd-mm-yyyy or text)','t'],['rr_qty','RR Qty','n'],['ch_qty','CH Qty','n']],empty:x=>!x.rr_no&&!x.rr_date&&num(x.rr_qty)===null&&num(x.ch_qty)===null},
   pl:{t:'RCR Plant & loading',f:[['plant_rec_qty','Plant Rec Qty','n'],['loading_grade','Loading Grade','t'],['loaded_do_no','Loaded D.O. No.','t']],empty:x=>num(x.plant_rec_qty)===null&&!x.grade&&!x.loaded}};
  const IDS=Object.keys(DEF);
- const rcrRows=()=>S.rows.filter(x=>String(x.section||'').toUpperCase().trim()==='RCR');
+ const rcrRows=()=>S.rows.filter(x=>normSec(x.section)==='RCR');
  function fill(id){const f=$('#e-'+id+' form'),d=S.vals.find(x=>String(x.do_no)===f.elements.dn.value);DEF[id].f.forEach(([k])=>f.elements[k].value=d&&d[k]!=null?d[k]:'')}
  function opts(id){const el=$('#e-'+id),sel=el.querySelector('select'),rows=rcrRows(),key=rows.map(x=>x.do_no).join();
   if(el.dataset.key!==key){const cur=sel.value;sel.innerHTML='<option value="">Select RCR D.O.</option>'+rows.map(x=>`<option value="${x.do_no}">${x.do_no} · ${esc(x.colliery||'')}</option>`).join('');sel.value=rows.some(x=>String(x.do_no)===cur)?cur:'';el.dataset.key=key}
@@ -1791,7 +1799,7 @@ init();
   ['rr_no','rr_date','rr_qty','ch_qty','plant_rec_qty','loading_grade','loaded_do_no'].forEach(k=>{const e=mf.elements[k],l=e&&e.closest('label');if(l)l.classList.add('hidden')});
   [...mf.querySelectorAll('.note')].filter(n=>/Rake details/i.test(n.textContent)).forEach(n=>n.classList.add('hidden'));
   const an=$('#ask-miss')||$('#do-pick').closest('label');an.insertAdjacentHTML('afterend','<div class="full" id="sec-miss"></div>')}
- const VALID=['WASHERY','RCR','ROAD'],noSec=()=>S.rows.filter(x=>!VALID.includes(String(x.section||'').toUpperCase().trim()));
+ const VALID=['WASHERY','RCR','ROAD'],noSec=()=>S.rows.filter(x=>!VALID.includes(normSec(x.section)));
  function secMiss(){const el=$('#sec-miss');if(!el)return;const m=noSec();
   el.innerHTML=m.length?`<div class="note" style="margin-bottom:6px"><b>No section set (${m.length})</b>: these D.O.s are not shown in any dashboard table. Click one to set its section.</div><div class="toolbar">${m.map(x=>`<button type="button" class="btn small" data-nosec="${x.do_no}">${x.do_no}${x.colliery?' · '+esc(x.colliery):''}</button>`).join('')}</div>`:'<div class="note">Every D.O. has a section.</div>'}
  document.addEventListener('click',e=>{const b=e.target.closest('[data-nosec]');if(!b)return;const s=$('#do-sec');if(s)s.value='';pickOpts();$('#do-pick').value=b.dataset.nosec;fillDoForm();const sf=$('#do-f').elements.section;sf&&sf.focus()});
