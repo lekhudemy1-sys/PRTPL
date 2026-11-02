@@ -1807,4 +1807,63 @@ main{overflow-y:auto!important}
 #v-dashboard thead th,#v-dashboard tfoot td{position:static!important}
 #v-dashboard .page{padding-bottom:12px}
 </style>
+<script id="img-fix">
+/* ===== Image download fix: no sticky rows, no clipping, size-safe, totals always drawn ===== */
+(function(){
+ if(!document.getElementById('cap-css')){const st=document.createElement('style');st.id='cap-css';
+  st.textContent='#cap-root th,#cap-root td,#cap-root thead,#cap-root tfoot,#cap-root tr{position:static!important}'
+  +'#cap-root .glass,#cap-root .sc,#cap-root .page{overflow:visible!important;height:auto!important;max-height:none!important;flex:none!important;min-height:0!important}'
+  +'#cap-root .sc{display:block!important}'
+  +'#cap-root table{width:100%!important;table-layout:auto!important}'
+  +'#cap-root td.t{max-width:none!important;overflow:visible!important;text-overflow:clip!important}'
+  +'#cap-root td.tf{background-color:#eef2f9!important;font-weight:800;border-top:2px solid rgba(15,23,42,.28)!important}'
+  +'#cap-root td.tf.g1,#cap-root td.tf.g2,#cap-root td.tf.g3,#cap-root td.tf.g4{background-image:linear-gradient(rgba(var(--t),.18),rgba(var(--t),.18))}';
+  document.head.appendChild(st)}
+ const frame=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+ async function captureFixed(){
+  if(!window.html2canvas)return toast('Image library did not load',true);
+  if(typeof S!=='undefined'&&S.edit)return toast('Exit edit mode before downloading the image',true);
+  const old=document.getElementById('cap-root');if(old)old.remove();
+  toast('Preparing image…');
+  const w=document.createElement('div');
+  try{
+   if(document.fonts&&document.fonts.ready)await document.fonts.ready;
+   w.id='cap-root';w.className='capwrap';
+   w.style.cssText='position:absolute;left:0;top:0;width:1500px;z-index:-1;pointer-events:none;background:#f6f8fc';
+   w.innerHTML='<div class="caph"><span>KSK Mahanadi · Stock summary</span><span>'+new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'})+'</span></div>';
+   ['#p-w','#p-r'].forEach(s=>{const c=document.querySelector(s).cloneNode(true);c.classList.remove('hidden');c.removeAttribute('id');
+    c.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));w.appendChild(c)});
+   document.body.appendChild(w);
+   /* Total rows become ordinary last rows of each table, so nothing can hide or shift them */
+   w.querySelectorAll('table').forEach(t=>{const tf=t.tFoot;if(!tf)return;let tb=t.tBodies[0];if(!tb){tb=document.createElement('tbody');t.insertBefore(tb,tf)}
+    [...tf.rows].forEach(r=>{[...r.cells].forEach(c=>c.classList.add('tf'));tb.appendChild(r)});tf.remove()});
+   await frame();
+   /* widen to the widest table so no right-hand column is cut, then let both tables fill that width */
+   const need=Math.ceil(Math.max(1500,...[...w.querySelectorAll('table')].map(t=>t.scrollWidth+48)));
+   w.style.width=need+'px';
+   await frame();
+   const W=Math.ceil(Math.max(w.scrollWidth,w.offsetWidth)),H=Math.ceil(Math.max(w.scrollHeight,w.offsetHeight));
+   /* keep the canvas inside browser limits so the bottom (Total rows) is never cut off */
+   const maxArea=(navigator.maxTouchPoints>0)?16e6:64e6;
+   let sc=Math.min(2,15000/W,15000/H,Math.sqrt(maxArea/(W*H)));sc=Math.max(.25,Math.floor(sc*100)/100);
+   const cv=await html2canvas(w,{backgroundColor:'#f6f8fc',scale:sc,logging:false,useCORS:true,width:W,height:H,windowWidth:W,windowHeight:H,scrollX:0,scrollY:0,x:0,y:0,
+    onclone:d=>{d.documentElement.style.cssText+=';height:auto!important;overflow:visible!important';
+     d.body.style.cssText+=';height:auto!important;overflow:visible!important;display:block!important'}});
+   if(!cv||cv.width<2||cv.height<2)throw new Error('empty image');
+   cv.toBlob(b=>{if(!b)return toast('Image is too large for this device. Try on a computer.',true);
+    const a=document.createElement('a');a.download='ksk-mahanadi-'+iso(new Date())+'.png';a.href=URL.createObjectURL(b);
+    document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+    toast(sc<1?'Image downloaded (reduced size, table is very large)':'Image downloaded')},'image/png');
+  }catch(e){toast('Image failed: '+(e.message||e),true)}
+  finally{w.remove()}
+ }
+ const b=document.getElementById('dl');if(b)b.onclick=captureFixed;
+ window.captureFixed=captureFixed;
+ /* show the real error text (temporary help) next to the generic message */
+ window.addEventListener('error',e=>{const m=String(e.message||'');if(!m||/ResizeObserver|Script error/i.test(m)||(e.target&&e.target!==window))return;
+  console.error('[KSK]',e.error||m);if(window.PRTPL)PRTPL.toast('Error detail: '+m+(e.lineno?' (line '+e.lineno+')':''),{type:'err',ms:15000})});
+ window.addEventListener('unhandledrejection',e=>{const r=e.reason,m=String((r&&r.message)||r||'');if(!m||/AbortError|ResizeObserver|Failed to fetch|NetworkError/i.test(m))return;
+  console.error('[KSK]',r);if(window.PRTPL)PRTPL.toast('Error detail: '+m,{type:'err',ms:15000})});
+})();
+</script>
 </body></html>
