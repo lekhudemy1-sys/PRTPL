@@ -301,6 +301,9 @@ body:not(.unlocked) .pro-tab{display:none}
 /* EDITED ROWS IN RECORDS LOG */
 .tbl tr.dirty td{background:#fff6d6!important}
 
+/* RECORDS LOG TOTAL ROW (follows the filters, numeric columns only) */
+#logTbl tfoot td{position:sticky;bottom:0;z-index:1;background:#d9ecd9;color:var(--ink);font-weight:800;font-variant-numeric:tabular-nums;border-top:2px solid var(--navy2);border-bottom:0;padding:.55rem .6rem;white-space:nowrap;text-align:center}
+
 /* DASHBOARD NOTICE BOX */
 .c-notice{--c:#d9a21a;--t:#fff3d6;--l:#f1d98f;--d:#7d5c10}
 .notice-text{white-space:pre-wrap;word-break:break-word;font-size:.9rem;font-weight:600;line-height:1.55;color:var(--ink);background:#fff8e4;border:1px solid #f1d98f;border-radius:14px;padding:.8rem 1rem}
@@ -1706,7 +1709,7 @@ function renderLog() {
     (!fT || (r.date && r.date <= fT)));
   // Only the latest rows are drawn (thousands of editable inputs would freeze the page); search narrows the list.
   const shown = rows.length > LOG_MAX ? rows.slice(-LOG_MAX) : rows;
-  $('logCount').textContent = `${rows.length} of ${logRecords.length} records` + (rows.length > LOG_MAX ? ` (showing the latest ${LOG_MAX}, search to narrow)` : '');
+  $('logCount').textContent = `${rows.length} of ${logRecords.length} records` + (rows.length > LOG_MAX ? ` (showing the latest ${LOG_MAX}, search to narrow; Total covers all ${rows.length})` : '');
   // Put the three GCV calculation columns near the grade fields so they are easy to find.
   const cols = ['id', ...DB_COLS.filter(c => !GCV_CALC_COLS.includes(c)).flatMap(c =>
     c === 'unloading_grade' ? [c, ...GCV_CALC_COLS] : [c]
@@ -1726,7 +1729,16 @@ function renderLog() {
     ${cols.map(c => `<td><input data-col="${c}" value="${esc(r[c] ?? '')}" ${readonlyCols.has(c) ? 'readonly' : ''}></td>`).join('')}
     ${customLogCells(r)}
   </tr>`).join('');
-  $('logTbl').innerHTML = head + `<tbody>${body || '<tr><td class="empty" colspan="' + (cols.length + 1 + CUSTOM_COLS.length) + '">No records.</td></tr>'}</tbody>`;
+  // TOTAL ROW: sums only the numerical columns, over every record that passes the filters/search above.
+  // Text, date and time columns stay empty; id and Sr No are identifiers, so they are not summed either.
+  const fTot = n => (Math.abs(n) < 0.005 ? '0' : n.toLocaleString('en-IN', { maximumFractionDigits: 2 }));
+  const colSum = c => rows.reduce((s, r) => s + (isNum(r[c]) ? Number(r[c]) : 0), 0);
+  const foot = rows.length
+    ? `<tfoot><tr><td>Total (${rows.length})</td>${cols.map(c =>
+        `<td>${(c !== 'id' && c !== 'sr_no' && NUMERIC_COLS.has(c)) ? fTot(colSum(c)) : ''}</td>`).join('')}${CUSTOM_COLS.map(c =>
+        `<td>${c.type === 'number' ? fTot(rows.reduce((s, r) => s + (isNum((r.extra || {})[c.key]) ? Number((r.extra || {})[c.key]) : 0), 0)) : ''}</td>`).join('')}</tr></tfoot>`
+    : '';
+  $('logTbl').innerHTML = head + `<tbody>${body || '<tr><td class="empty" colspan="' + (cols.length + 1 + CUSTOM_COLS.length) + '">No records.</td></tr>'}</tbody>` + foot;
 }
 function fillLogFilters() {
   const set = (id, key, label) => {
