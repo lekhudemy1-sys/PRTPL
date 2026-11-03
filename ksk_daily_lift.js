@@ -53,7 +53,7 @@
         }),
         fetchAll(function () {
           return db.from('ksk_sheet_rows')
-            .select('do_key,net_wt,source_sheet,rec_date')
+            .select('do_key,net_wt,source_sheet,disp_date')
             .eq('direction', 'OUT')
             .order('id');
         }),
@@ -72,7 +72,7 @@
       var inL  = lastDayPerDO(inw,  function (r) { return String(r.do_key || ''); },
                               function (r) { return r.rec_date; },  function (r) { return r.net_wt; });
       var outL = lastDayPerDO(outw, function (r) { return String(r.do_key || ''); },
-                              function (r) { return r.rec_date; },  function (r) { return r.net_wt; });
+                              function (r) { return r.disp_date; }, function (r) { return r.net_wt; });
       var rcrL = lastDayPerDO(mul,  function (r) { return String(r.do_key || r.do_no || ''); },
                               function (r) { return r.disp_date; }, function (r) { return r.net_wt; });
 
