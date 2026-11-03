@@ -1974,7 +1974,9 @@ main{overflow-y:auto!important}
    w.style.cssText='position:absolute;left:0;top:0;width:1500px;z-index:-1;pointer-events:none;background:#f6f8fc';
    w.innerHTML='<div class="caph"><span>KSK Mahanadi · Stock summary</span><span>'+new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'})+'</span></div>';
    ['#p-w','#p-r'].forEach(s=>{const c=document.querySelector(s).cloneNode(true);c.classList.remove('hidden');c.removeAttribute('id');
-    c.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));w.appendChild(c)});
+ c.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));
+ c.querySelectorAll('.glass.xt').forEach(n=>n.remove());   /* hide RCR Rake details & Plant loading from image */
+ w.appendChild(c)});
    document.body.appendChild(w);
    /* Total rows become ordinary last rows of each table, so nothing can hide or shift them */
    w.querySelectorAll('table').forEach(t=>{const tf=t.tFoot;if(!tf)return;let tb=t.tBodies[0];if(!tb){tb=document.createElement('tbody');t.insertBefore(tb,tf)}
