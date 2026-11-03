@@ -1,6 +1,10 @@
 /* ==========================================================
-   KSK Mahanadi – Daily Lift = previous day's lift per D.O.
-   Applies to WASHERY and RCR. ROAD keeps its manual Daily Lift.
+   KSK Mahanadi – Daily Lift = total lifted on the D.O.'s
+   LAST LIFTING DAY (not literally yesterday).
+   WASHERY : last day with received (IN) rows  -> daily_lift
+             last day with dispatch (OUT) rows -> daily_dispatch
+   RCR     : last day with multi-upload truck rows -> daily_lift
+   ROAD keeps its manual Daily Lift.
 
    Install: open ksk_mahanadi.html and add this line just before </body>
    (after the existing scripts):
@@ -10,87 +14,109 @@
   if (typeof S === 'undefined' || typeof calc !== 'function' || typeof load !== 'function') return;
 
   var LIFT_SECS = ['WASHERY', 'RCR'];
-  S.yLift = {};
-  S.yDate = '';
+  S.lastLift = {};   // do_key -> { inD, inQ, outD, outQ, rcrD, rcrQ }
 
-  /* previous day in the device's local date (IST on Indian devices) */
-  function prevDay() {
-    var d = new Date();
-    d.setDate(d.getDate() - 1);
-    return iso(d);
+  /* group rows by D.O. and date, then pick the latest date with qty > 0 */
+  function lastDayPerDO(rows, keyFn, dateFn, qtyFn) {
+    var byDo = {};
+    rows.forEach(function (r) {
+      var k = keyFn(r), d = String(dateFn(r) || '').slice(0, 10);
+      if (!k || !d) return;
+      var o = (byDo[k] = byDo[k] || {});
+      o[d] = (o[d] || 0) + (num(qtyFn(r)) || 0);
+    });
+    var out = {};
+    Object.keys(byDo).forEach(function (k) {
+      var best = '';
+      Object.keys(byDo[k]).forEach(function (d) {
+        if (byDo[k][d] > 0 && d > best) best = d;
+      });
+      if (best) out[k] = { d: best, q: r3(byDo[k][best]) };
+    });
+    return out;
   }
 
-  /* Washery: inward receipts dated yesterday (ksk_sheet_rows, direction IN)
-     RCR:     multi-upload truck rows dated yesterday (ksk_multi_upload_rows)  */
-  async function loadYesterdayLift() {
-    var ys = prevDay();
-    S.yDate = ys;
-    S.yLift = {};
+  async function loadLastLift() {
+    S.lastLift = {};
 
     var lab = MB.find(function (c) { return c[0] === 'daily_lift'; });
-    if (lab) lab[1] = 'Daily Lift (' + fD(ys) + ')';
+    if (lab) lab[1] = 'Daily Lift (Last Lift Day)';
 
     if (!db) return;
     try {
       var results = await Promise.all([
         fetchAll(function () {
           return db.from('ksk_sheet_rows')
-            .select('do_key,net_wt,source_sheet')
+            .select('do_key,net_wt,source_sheet,rec_date')
             .eq('direction', 'IN')
-            .eq('rec_date', ys)
+            .order('id');
+        }),
+        fetchAll(function () {
+          return db.from('ksk_sheet_rows')
+            .select('do_key,net_wt,source_sheet,rec_date')
+            .eq('direction', 'OUT')
             .order('id');
         }),
         fetchAll(function () {
           return db.from('ksk_multi_upload_rows')
-            .select('do_key,do_no,net_wt')
-            .eq('disp_date', ys)
+            .select('do_key,do_no,net_wt,disp_date')
             .order('id');
         })
       ]);
-      var inw = results[0] || [], mul = results[1] || [], yl = {};
 
-      inw.forEach(function (r) {
-        if (String(r.source_sheet || '').indexOf('MULTI:') === 0) return;
-        var k = String(r.do_key || '');
-        if (!k) return;
-        var o = (yl[k] = yl[k] || { W: 0, R: 0 });
-        o.W += num(r.net_wt) || 0;
-      });
+      var notMulti = function (r) { return String(r.source_sheet || '').indexOf('MULTI:') !== 0; };
+      var inw  = (results[0] || []).filter(notMulti);
+      var outw = (results[1] || []).filter(notMulti);
+      var mul  = results[2] || [];
 
-      mul.forEach(function (r) {
-        var k = String(r.do_key || r.do_no || '');
-        if (!k) return;
-        var o = (yl[k] = yl[k] || { W: 0, R: 0 });
-        o.R += num(r.net_wt) || 0;
-      });
+      var inL  = lastDayPerDO(inw,  function (r) { return String(r.do_key || ''); },
+                              function (r) { return r.rec_date; },  function (r) { return r.net_wt; });
+      var outL = lastDayPerDO(outw, function (r) { return String(r.do_key || ''); },
+                              function (r) { return r.rec_date; },  function (r) { return r.net_wt; });
+      var rcrL = lastDayPerDO(mul,  function (r) { return String(r.do_key || r.do_no || ''); },
+                              function (r) { return r.disp_date; }, function (r) { return r.net_wt; });
 
-      Object.keys(yl).forEach(function (k) {
-        yl[k].W = r3(yl[k].W);
-        yl[k].R = r3(yl[k].R);
+      var all = {};
+      [inL, outL, rcrL].forEach(function (m) { Object.keys(m).forEach(function (k) { all[k] = 1; }); });
+      Object.keys(all).forEach(function (k) {
+        S.lastLift[k] = {
+          inD:  (inL[k]  || {}).d, inQ:  (inL[k]  || {}).q || 0,
+          outD: (outL[k] || {}).d, outQ: (outL[k] || {}).q || 0,
+          rcrD: (rcrL[k] || {}).d, rcrQ: (rcrL[k] || {}).q || 0
+        };
       });
-      S.yLift = yl;
     } catch (e) {
-      S.yLift = {};
+      S.lastLift = {};
       toast('Daily lift could not be loaded: ' + exErr(e), true);
     }
   }
 
-  /* override daily_lift inside the calculation for Washery and RCR */
+  /* override daily lift / dispatch inside the calculation */
   var _calc = calc;
   calc = function (d, ov) {
     var r = _calc(d, ov);
     var sec = normSec(d.section);
     if (LIFT_SECS.indexOf(sec) > -1) {
-      var y = (S.yLift || {})[String(d.do_no)] || { W: 0, R: 0 };
-      r.daily_lift = sec === 'RCR' ? y.R : y.W;
+      var y = (S.lastLift || {})[String(d.do_no)] || {};
+      if (sec === 'RCR') {
+        r.daily_lift = y.rcrQ || 0;
+        r.daily_lift_date = y.rcrD || '';
+      } else {
+        r.daily_lift = y.inQ || 0;
+        r.daily_lift_date = y.inD || '';
+        if ('daily_dispatch' in r) {
+          r.daily_dispatch = y.outQ || 0;
+          r.daily_dispatch_date = y.outD || '';
+        }
+      }
     }
     return r;
   };
 
-  /* fetch yesterday's lift before every dashboard load */
+  /* fetch before every dashboard load */
   var _load = load;
   load = async function () {
-    await loadYesterdayLift();
+    await loadLastLift();
     return _load();
   };
 
