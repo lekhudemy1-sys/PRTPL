@@ -515,7 +515,11 @@ body:not(.unlocked) .pro-tab{display:none}
   <div class="panel">
     <h2><i class="fas fa-plus-circle"></i> New Rake Record</h2>
     <div class="toolbar">
-      <input class="search" id="recSearch" placeholder="Sr No" aria-label="Sr No" style="max-width:260px">
+      <select id="recSearchBy" class="field" style="max-width:130px" aria-label="Search by" title="Search by">
+        <option value="sr_no">Sr No</option>
+        <option value="rr_no">RR No</option>
+      </select>
+      <input class="search" id="recSearch" placeholder="Enter Sr No" aria-label="Search value" style="max-width:260px">
       <button type="button" class="btn-soft" id="recSearchBtn"><i class="fas fa-search"></i> Search</button>
       <span class="muted" id="editBadge"></span>
     </div>
@@ -1979,6 +1983,14 @@ async function initEntry() {
     $('updateBtn').addEventListener('click', updateRecord);
     $('recSearchBtn').addEventListener('click', searchRecord);
     $('recSearch').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); searchRecord(); } });
+    // Search by Sr No or RR No: switch the placeholder / keyboard hint with the dropdown
+    $('recSearchBy').addEventListener('change', () => {
+      const by = $('recSearchBy').value;
+      $('recSearch').placeholder = by === 'rr_no' ? 'Enter RR No' : 'Enter Sr No';
+      $('recSearch').inputMode = by === 'rr_no' ? 'text' : 'numeric';
+      $('recSearch').value = '';
+      $('recSearch').focus();
+    });
     $('tgtBody').addEventListener('change', onTargetInput);
     $('ovrField').addEventListener('change', renderOverrides);
     $('ovrSwitch').addEventListener('change', onOverrideSwitch);
@@ -1991,10 +2003,13 @@ async function initEntry() {
   }
   await resetEntryForm();
   await loadEntryPeriod();
-  // Coming from the alert bell: load that rake straight into the form
+  // Coming from the alert bell: load that rake straight into the form (by Sr No)
   if (PENDING_FILL != null) {
     const sr = PENDING_FILL;
     PENDING_FILL = null;
+    $('recSearchBy').value = 'sr_no';
+    $('recSearch').placeholder = 'Enter Sr No';
+    $('recSearch').inputMode = 'numeric';
     $('recSearch').value = sr;
     await searchRecord();
   }
@@ -2017,13 +2032,26 @@ async function resetEntryForm() {
   recalcForm();
 }
 
+// Find one saved record by Sr No or by RR No (chosen in the dropdown) and load it into the form
 async function searchRecord() {
+  const by = $('recSearchBy').value === 'rr_no' ? 'rr_no' : 'sr_no';
   const q = $('recSearch').value.trim();
-  if (!q) { toast('Enter Sr No', true); return; }
-  if (!isNum(q)) { toast('Sr No must be a number', true); return; }
-  const { data, error } = await db.from(TBL).select('*').eq('sr_no', Number(q)).limit(1);
+  if (!q) { toast(by === 'rr_no' ? 'Enter RR No' : 'Enter Sr No', true); return; }
+
+  let data, error;
+  if (by === 'sr_no') {
+    if (!isNum(q)) { toast('Sr No must be a number', true); return; }
+    ({ data, error } = await db.from(TBL).select('*').eq('sr_no', Number(q)).limit(1));
+  } else {
+    // RR No is text: exact match first, then a case-insensitive match (LIKE wildcards in the input are escaped)
+    ({ data, error } = await db.from(TBL).select('*').eq('rr_no', q).limit(1));
+    if (!error && !(data && data.length)) {
+      const safe = q.replace(/[\\%_]/g, '\\$&');
+      ({ data, error } = await db.from(TBL).select('*').ilike('rr_no', safe).limit(1));
+    }
+  }
   if (error) { toast('Search failed: ' + error.message, true); return; }
-  if (!data.length) { toast('No record found for Sr No ' + q, true); return; }
+  if (!data || !data.length) { toast('No record found for ' + (by === 'rr_no' ? 'RR No ' : 'Sr No ') + q, true); return; }
   const rec = data[0];
   $('entryForm').reset();
   DB_COLS.forEach(c => {
