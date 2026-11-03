@@ -174,6 +174,7 @@ body:not(.unlocked) .pro-tab{display:none}
 .tbl td input[readonly]{background:#f0f2f8;color:#4b5563}
 .tbl td.act{white-space:nowrap}
 .tbl .empty{padding:1.5rem;color:var(--mute)}
+.tbl tfoot td{position:sticky;bottom:0;z-index:1;background:#e0f5ef;color:#095e49;font-weight:800;border-top:2px solid var(--navy2)}
 .mapping{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.6rem}
 .chip{font-size:.72rem;font-weight:700;padding:.25rem .6rem;border-radius:999px;background:#e8f0fd;color:#1c437d}
 .chip.skip{background:#fdeaec;color:#b3162b}
@@ -301,11 +302,11 @@ body:not(.unlocked) .pro-tab{display:none}
     </div>
 
     <div class="card c-area">
-      <div class="card-header"><h3><i class="fas fa-map-marker-alt"></i> Area Targets (Cycle)</h3></div>
+      <div class="card-header"><h3><i class="fas fa-map-marker-alt"></i> Area Targets (Quarter)</h3></div>
       <table class="area-table">
         <thead><tr><th></th><th>SECL</th><th>CCL</th><th>MCL</th></tr></thead>
         <tbody>
-          <tr><td class="row-label">Target of Cycle</td><td><input id="tgtSecl" readonly></td><td><input id="tgtCcl" readonly></td><td><input id="tgtMcl" readonly></td></tr>
+          <tr><td class="row-label">Target of Quarter</td><td><input id="tgtSecl" readonly></td><td><input id="tgtCcl" readonly></td><td><input id="tgtMcl" readonly></td></tr>
           <tr><td class="row-label">Rake Loaded Till</td><td><input id="loadSecl" readonly></td><td><input id="loadCcl" readonly></td><td><input id="loadMcl" readonly></td></tr>
           <tr><td class="row-label">Balance Rake</td><td><input id="balSecl" readonly></td><td><input id="balCcl" readonly></td><td><input id="balMcl" readonly></td></tr>
           <tr><td class="row-label">Asking Per Day</td><td><input id="askSecl" readonly></td><td><input id="askCcl" readonly></td><td><input id="askMcl" readonly></td></tr>
@@ -336,7 +337,7 @@ body:not(.unlocked) .pro-tab{display:none}
       <div class="metric-row"><span class="metric-label">Service Charge MCL</span><div class="pair"><input class="metric-value" id="svcMcl" readonly><input class="metric-value" id="svcMclMt" readonly></div></div>
       <div class="metric-row"><span class="metric-label"><span class="pctTxt">5</span>% of Total Railway Penalty</span><div class="pair"><input class="metric-value" id="pen5" readonly><input class="metric-value" id="pen5Mt" readonly></div></div>
       <div class="metric-row total-row"><span class="metric-label">TOTAL BILLING</span><div class="pair"><input class="metric-value" id="totalBill" readonly><input class="metric-value" id="totalBillMt" readonly></div></div>
-      <div class="metric-row"><span class="metric-label">Expected Billing of the Cycle</span><input class="metric-value wide" id="expBill" readonly></div>
+      <div class="metric-row"><span class="metric-label">Expected Billing of the Quarter</span><input class="metric-value wide" id="expBill" readonly></div>
     </div>
 
     <div class="card c-rake">
@@ -385,13 +386,13 @@ body:not(.unlocked) .pro-tab{display:none}
 
   <div class="card trend-card">
     <div class="card-header">
-      <h3><i class="fas fa-calendar-alt"></i> Monthly Performance</h3>
+      <h3><i class="fas fa-calendar-alt"></i> Quarterly Performance</h3>
     </div>
     <div class="trend-wrap">
       <table class="trend-table" style="min-width:780px">
         <thead>
           <tr>
-            <th>Cycle</th>
+            <th>Quarter</th>
             <th>Rakes</th>
             <th>Quantity<br><small style="font-weight:500;opacity:.85">(RR Wt)</small></th>
             <th>Billing<br><small style="font-weight:500;opacity:.85">(Service Charge)</small></th>
@@ -508,7 +509,7 @@ body:not(.unlocked) .pro-tab{display:none}
     </div>
     <div class="tbl-wrap" style="max-height:none">
       <table class="tbl">
-        <thead><tr><th>SL. No.</th><th>Area</th><th>Cycle Target</th><th>Loaded Till</th><th>Balance Rake</th><th>Asking Per Day</th><th>Asking (%)</th></tr></thead>
+        <thead><tr><th>SL. No.</th><th>Area</th><th>Quarter Target</th><th>Loaded Till</th><th>Balance Rake</th><th>Asking Per Day</th><th>Asking (%)</th></tr></thead>
         <tbody id="rakeBody"></tbody>
         <tfoot><tr><td colspan="2">Total</td><td id="tTarget">0</td><td id="tLoaded">0</td><td id="tBalance">0</td><td id="tAskingDay">0</td><td id="tAskingPct">0</td></tr></tfoot>
       </table>
@@ -521,7 +522,7 @@ body:not(.unlocked) .pro-tab{display:none}
 
   <div class="panel">
     <h2><i class="fas fa-sliders"></i> Manual Override</h2>
-    <p class="muted">Switch a dashboard value ON and type a fixed figure. It replaces the formula for the cycle chosen above until you switch it OFF or press Reset.</p>
+    <p class="muted">Switch a dashboard value ON and type a fixed figure. It replaces the formula for the quarter chosen above until you switch it OFF or press Reset.</p>
     <div class="toolbar" style="margin-top:.8rem">
       <label class="switch" title="Override on / off"><input type="checkbox" id="ovrSwitch"><span class="slider"></span></label>
       <select id="ovrField" class="field" style="max-width:360px" aria-label="Dashboard value"></select>
@@ -594,7 +595,7 @@ body:not(.unlocked) .pro-tab{display:none}
   </div>
   <div class="panel">
     <h2><i class="fas fa-info-circle"></i> How the main dashboard values are calculated</h2>
-    <p class="muted">RR = RR weight, Recv = received weight, GCV ARB / ADB = grades from the record. Sums are for the selected cycle.</p>
+    <p class="muted">RR = RR weight, Recv = received weight, GCV ARB / ADB = grades from the record. Sums are for the selected quarter.</p>
     <ul class="formula-list">
       <li>Performance on GCV = sum of (RR × GCV ARB) ÷ sum of RR. Position of GCV for Achieve Target = (sum of (RR × GCV ADB) ÷ sum of RR) − Performance on GCV</li>
       <li>Shortage / Excess % = (sum of Recv − sum of RR) ÷ sum of RR × 100; MT per rake = (sum of Recv − sum of RR) ÷ number of rakes</li>
@@ -602,11 +603,11 @@ body:not(.unlocked) .pro-tab{display:none}
       <li>Service Charge SECL / CCL / MCL = area sum of Recv × fixed service charge (Data Entry)</li>
       <li>5% of Total Railway Penalty = Total Penalty × penalty share % (Formulas); Total Penalty = Overload + Punitive + EHBC + ENHC (Dead Freight is shown but NOT included)</li>
       <li>TOTAL BILLING = Quantity Reco + GCV Reco + Service SECL + Service CCL + Service MCL − 5% penalty</li>
-      <li>Expected Billing of the Cycle = TOTAL BILLING ÷ days passed in the cycle × total days in the cycle</li>
+      <li>Expected Billing of the Quarter = TOTAL BILLING ÷ days passed in the quarter × total days in the quarter</li>
       <li>Area Target, Loaded Till, Balance and Asking Per Day come from the Target Rake table in Data Entry</li>
       <li>Mines are matched by siding name (GOVIND, KMKA, NKCR, OKSR, GPCK, JRGR, DIPKA, SLOG); CCL and MCL use the area field</li>
       <li>Mines Wise GCV (ARB) = sum of (RR × GCV ARB) ÷ sum of RR, counting only the rakes that have a GCV ARB value</li>
-      <li>Monthly Performance: Bonus = GCV Reco + Quantity Reco; Deduction = 5% Penalty; Amount = Bonus − Deduction</li>
+      <li>Quarterly Performance: Bonus = GCV Reco + Quantity Reco; Deduction = 5% Penalty; Amount = Bonus − Deduction</li>
       <li>Mines Loading Duration = P/T to C/T time difference; Sick Box = Supply Box − Load Box; Underload Quantity = Ch Weight − RR Weight</li>
     </ul>
   </div>
@@ -1020,7 +1021,7 @@ function renderLog() {
     (!lf.from || String(r.date || '').slice(0, 10) >= lf.from) &&
     (!lf.to || String(r.date || '').slice(0, 10) <= lf.to));
   const shown = rows.length > LOG_MAX ? rows.slice(-LOG_MAX) : rows;
-  $('logCount').textContent = `${rows.length} of ${logRecords.length} records` + (rows.length > LOG_MAX ? ` (showing the latest ${LOG_MAX}, search to narrow)` : '');
+  $('logCount').textContent = `${rows.length} of ${logRecords.length} records` + (rows.length > LOG_MAX ? ` (showing the latest ${LOG_MAX}, search to narrow; totals cover all ${rows.length})` : '');
   const head = `<thead><tr><th>Actions</th>${LOG_COLS.map(c => `<th>${c}</th>`).join('')}${customLogHead()}</tr></thead>`;
   const body = shown.map(r => `<tr data-id="${esc(r.id)}">
     <td class="act">
@@ -1030,7 +1031,19 @@ function renderLog() {
     ${LOG_COLS.map(c => `<td><input data-col="${c}" value="${esc(r[c] ?? '')}" ${READONLY_DB.has(c) ? 'readonly' : ''}></td>`).join('')}
     ${customLogCells(r)}
   </tr>`).join('');
-  $('logTbl').innerHTML = head + `<tbody>${body || '<tr><td class="empty" colspan="' + (LOG_COLS.length + 1 + CUSTOM_COLS.length) + '">No records.</td></tr>'}</tbody>`;
+
+  // Total row: sum of every numeric column over ALL rows matching the search + filters
+  const SUM_COLS = new Set([...NUMERIC_COLS, 'bonus_penalty', 'gcv_bonus_penalty_per_mt']);
+  ['id', 'sr_no', 'seniority_no'].forEach(k => SUM_COLS.delete(k));
+  const fmtSum = n => (Math.round(n * 100) / 100).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+  const sumCol = f => rows.reduce((s, r) => { const v = f(r); return s + (isNum(v) ? Number(v) : 0); }, 0);
+  const foot = `<tfoot><tr>
+    <td>TOTAL</td>
+    ${LOG_COLS.map(c => `<td>${SUM_COLS.has(c) ? fmtSum(sumCol(r => r[c])) : ''}</td>`).join('')}
+    ${CUSTOM_COLS.map(c => `<td>${c.type === 'number' ? fmtSum(sumCol(r => (r.extra || {})[c.key])) : ''}</td>`).join('')}
+  </tr></tfoot>`;
+
+  $('logTbl').innerHTML = head + `<tbody>${body || '<tr><td class="empty" colspan="' + (LOG_COLS.length + 1 + CUSTOM_COLS.length) + '">No records.</td></tr>'}</tbody>` + foot;
 }
 $('logSearch').addEventListener('input', renderLog);
 $('logReload').addEventListener('click', loadLog);
@@ -1433,19 +1446,19 @@ document.addEventListener('change', e => {
 /* ==================== TARGET RAKE (per quarter) ==================== */
 const RAKE_TYPES = ['SECL','CCL','MCL'];
 let rake = [];
-// Billing cycle: 4th of a month to 3rd of the next month. A cycle is keyed by its starting month,
-// e.g. '2026-10' = 04 Oct 2026 – 03 Nov 2026. Days 1-3 belong to the cycle that started on the 4th of the previous month.
+// Quarters: Apr–Jun, Jul–Sep, Oct–Dec, Jan–Mar. A quarter is keyed by its first month,
+// e.g. '2026-07' = 01 Jul 2026 – 30 Sep 2026.
 const shiftKey = (k, n) => { const [Y, M] = k.split('-').map(Number); const d = new Date(Date.UTC(Y, M - 1 + n, 1)); return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}`; };
-const cycleFrom = k => `${k}-04`;                 // inclusive
-const cycleTo = k => `${shiftKey(k, 1)}-04`;      // exclusive
-const cycleEnd = k => `${shiftKey(k, 1)}-03`;     // inclusive
-const cycleKeyOf = d => Number(d.slice(8, 10)) >= 4 ? d.slice(0, 7) : shiftKey(d.slice(0, 7), -1);
+const cycleFrom = k => `${k}-01`;                 // inclusive
+const cycleTo = k => `${shiftKey(k, 3)}-01`;      // exclusive
+const cycleEnd = k => { const [Y, M] = k.split('-').map(Number); return new Date(Date.UTC(Y, M + 2, 0)).toISOString().slice(0, 10); };  // inclusive, last day of the 3rd month
+const cycleKeyOf = d => { const m = Number(d.slice(5, 7)); return `${d.slice(0, 4)}-${pad2(m - ((m - 1) % 3))}`; };
 const currentCycleKey = () => cycleKeyOf(todayStr());
 const fmtDate = s => { const [Y, M, D] = s.split('-').map(Number); return `${pad2(D)} ${MONTHS[M - 1]} ${Y}`; };
 const cycleLabel = k => `${fmtDate(cycleFrom(k))} – ${fmtDate(cycleEnd(k))}`;
-const quarterKey = () => $('rakeQuarter').value;                 // selected cycle key
+const quarterKey = () => $('rakeQuarter').value;                 // selected quarter key
 const quarterEndDate = () => cycleEnd(quarterKey());
-// Fiscal quarter code of a cycle (stored in the 'quarter' column, based on the cycle's starting month)
+// Fiscal quarter code (stored in the 'quarter' column, based on the quarter's starting month)
 const fiscalQuarterOf = k => { const m = Number(k.slice(5, 7)); return m >= 4 && m <= 6 ? 'Q1' : m >= 7 && m <= 9 ? 'Q2' : m >= 10 ? 'Q3' : 'Q4'; };
 function fyLabel(monthKey) { const [y, m] = monthKey.split('-').map(Number); return m >= 4 ? `${y}-${String(y + 1).slice(2)}` : `${y - 1}-${String(y).slice(2)}`; }
 function daysBetween(a, b) { const d = Math.round((new Date(b + 'T00:00:00Z') - new Date(a + 'T00:00:00Z')) / 86400000); return d > 0 ? d : 0; }
@@ -1494,7 +1507,7 @@ async function refreshLoaded() {
 }
 
 async function carryForward() {
-  const p = shiftKey($('rakeQuarter').value, -1);
+  const p = shiftKey($('rakeQuarter').value, -3);
   const { data } = await db.from('hzl_rake_targets').select('box_type, qtr_target')
     .eq('month', p);
   if (!data || !data.length) return false;
@@ -1507,8 +1520,8 @@ async function carryForward() {
   return true;
 }
 async function carryForwardClick() {
-  if (!confirm("Replace Cycle Target with the previous cycle's balance?")) return;
-  if (!(await carryForward())) { toast('No saved targets for previous cycle', true); return; }
+  if (!confirm("Replace Quarter Target with the previous quarter's balance?")) return;
+  if (!(await carryForward())) { toast('No saved targets for previous quarter', true); return; }
   renderRake(); await saveRake(false);
 }
 async function loadRake() {
@@ -1564,7 +1577,7 @@ const OVR_FIELDS_LIST = [
   ['perDayReqRake', 'Per Day Required Rake'], ['rakeMat', 'Performance on Rake Materialization'],
   ['gcvPerf', 'Performance on GCV'], ['gcvPosTarget', 'Position of GCV for Achieve Target'],
   ['gcvPosSecl', 'Position of GCV for SECL'], ['gcvPosCcl', 'Position of GCV for CCL'], ['gcvPosMcl', 'Position of GCV for MCL'],
-  ['tgtSecl', 'Target of Cycle SECL'], ['tgtCcl', 'Target of Cycle CCL'], ['tgtMcl', 'Target of Cycle MCL'],
+  ['tgtSecl', 'Target of Quarter SECL'], ['tgtCcl', 'Target of Quarter CCL'], ['tgtMcl', 'Target of Quarter MCL'],
   ['loadSecl', 'Rake Loaded Till SECL'], ['loadCcl', 'Rake Loaded Till CCL'], ['loadMcl', 'Rake Loaded Till MCL'],
   ['balSecl', 'Balance Rake SECL'], ['balCcl', 'Balance Rake CCL'], ['balMcl', 'Balance Rake MCL'],
   ['askSecl', 'Asking Per Day SECL'], ['askCcl', 'Asking Per Day CCL'], ['askMcl', 'Asking Per Day MCL'],
@@ -1576,16 +1589,16 @@ const OVR_FIELDS_LIST = [
   ['billGcv', 'Billing: GCV Reco'], ['billGcvMt', 'Billing: GCV Reco (per MT)'],
   ['svcSecl', 'Service Charge SECL'], ['svcCcl', 'Service Charge CCL'], ['svcMcl', 'Service Charge MCL'],
   ['pen5', 'Billing: 5% of Railway Penalty'], ['totalBill', 'Billing: TOTAL BILLING'], ['totalBillMt', 'Billing: TOTAL BILLING (per MT)'],
-  ['expBill', 'Billing: Expected Billing of the Cycle'],
+  ['expBill', 'Billing: Expected Billing of the Quarter'],
   ['pdRakeAch', 'Rake: Per Day Rakes Achieve'], ['pdQtyAch', 'Rake: Per Day Quantity Achieve'], ['pdGcvAch', 'Rake: Per GCV Cost Achieve'],
   ['avgChWt', 'Avg. CH.Wt.'], ['avgRrWt', 'Avg. RR.Wt.'], ['avgPlantWt', 'Avg. Plant Rec. Wt.'], ['avgGcv', 'Average GCV'],
   ['totalRrWt', 'Total RR Weight'], ['totalPlantRec', 'Total Plant Receive'],
   ['ulChg', 'Penalty: Underload Charge'], ['olChg', 'Penalty: Overload Charge'], ['punSum', 'Penalty: Punitive Sum'],
   ['ehbc', 'Penalty: EHBC / FAUC / TC'], ['enhc', 'Penalty: ENHC Charges'], ['deadFr', 'Penalty: Dead Freight'],
   ['totalPen', 'Penalty: TOTAL PENALTY'], ['pen5b', 'Penalty: 5% of Total Penalty'],
-  ['trendRakes', 'Monthly Performance: Rakes'], ['trendQty', 'Monthly Performance: Quantity (RR Wt)'],
-  ['trendBilling', 'Monthly Performance: Billing (Service Charge)'], ['trendBonus', 'Monthly Performance: Bonus'],
-  ['trendDeduction', 'Monthly Performance: Deduction (5% Penalty)'], ['trendAmount', 'Monthly Performance: Amount']
+  ['trendRakes', 'Quarterly Performance: Rakes'], ['trendQty', 'Quarterly Performance: Quantity (RR Wt)'],
+  ['trendBilling', 'Quarterly Performance: Billing (Service Charge)'], ['trendBonus', 'Quarterly Performance: Bonus'],
+  ['trendDeduction', 'Quarterly Performance: Deduction (5% Penalty)'], ['trendAmount', 'Quarterly Performance: Amount']
 ];
 const OVR_LABEL = Object.fromEntries(OVR_FIELDS_LIST);
 let OVR = {};
@@ -1612,7 +1625,7 @@ async function renderOverridePanel() {
         <td>${periodLabel(p)}</td>
         <td><button class="btn-soft btn-sm btn-danger" data-ovr-reset="${i}"><i class="fas fa-rotate-left"></i> Reset to formula</button></td>
       </tr>`).join('') + '</tbody>'
-    : `<tbody><tr><td class="empty">No manual values for this cycle. Formulas are in use.</td></tr></tbody>`;
+    : `<tbody><tr><td class="empty">No manual values for this quarter. Formulas are in use.</td></tr></tbody>`;
 }
 async function saveOverride() {
   const id = $('ovrField').value;
@@ -1653,11 +1666,11 @@ async function onOverrideSwitch() {
 }
 
 /* ==================== DASHBOARD (calculated) ==================== */
-const PERIOD_KEYS = Array.from({ length: 24 }, (_, i) => shiftKey('2026-04', i));   // cycles Apr-2026 .. Mar-2028
+const PERIOD_KEYS = Array.from({ length: 8 }, (_, i) => shiftKey('2026-04', i * 3));   // quarters Apr-2026 .. Jan-2028
 const fyStartOf = k => { const [Y, M] = k.split('-').map(Number); return M >= 4 ? `${Y}-04` : `${Y - 1}-04`; };
 function fillCycleSelects() { $('rakeQuarter').innerHTML = PERIOD_KEYS.map(k => `<option value="${k}">${periodLabel(k)}</option>`).join(''); }
-const FISCAL = { 1: { start: 4, label: 'Apr–Jun' }, 2: { start: 7, label: 'Jul–Sep' }, 3: { start: 10, label: 'Oct–Dec' }, 4: { start: 1, label: 'Jan–Mar' } };
-const periodLabel = k => `${MONTHS[Number(k.slice(5, 7)) - 1]}-${k.slice(0, 4)} (${cycleLabel(k)})`;
+// e.g. "Q2 Jul–Sep 2026"
+const periodLabel = k => { const m = Number(k.slice(5, 7)); return `${fiscalQuarterOf(k)} ${MONTHS[m - 1]}–${MONTHS[m + 1]} ${k.slice(0, 4)}`; };
 function currentPeriodKey() { return currentCycleKey(); }
 let PERIOD = new URLSearchParams(location.search).get('period');
 if (!PERIOD_KEYS.includes(PERIOD)) PERIOD = currentPeriodKey();
@@ -1832,7 +1845,7 @@ function renderCalculated(values) {
     el.classList.toggle('neg', n < 0);
     el.classList.toggle('pos', n >= 0);
     el.classList.toggle('overridden', manual);
-    el.title = manual ? 'Manual value for this cycle. Reset it in Data Entry > Manual Override.' : '';
+    el.title = manual ? 'Manual value for this quarter. Reset it in Data Entry > Manual Override.' : '';
   });
 }
 
@@ -1853,7 +1866,8 @@ function trendStats(rs, days) {
   return { cost: arb ? landed / arb : null, qty: days && rr ? rr / days : null, gcv: rr ? sumProd(rs, 'gcv_arb', 'rr_wt') / rr : null };
 }
 async function loadTrend() {
-  const keys = Array.from({ length: 12 }, (_, i) => shiftKey(fyStartOf(PERIOD), i));
+  // the 4 quarters of the financial year that contains the selected quarter
+  const keys = Array.from({ length: 4 }, (_, i) => shiftKey(fyStartOf(PERIOD), i * 3));
   const [results, ovrs] = await Promise.all([
     Promise.all(keys.map(k => computeDashboard(k))),
     Promise.all(keys.map(k => fetchOverrides(k)))
