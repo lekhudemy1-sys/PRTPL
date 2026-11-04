@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="color-scheme" content="light">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PERFORMANCE METER AMM BALCO</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Instrument+Sans:wght@400;500;600;700&display=swap");
+:root{
+  --bg:#f4eee6; --card:#fffdf9; --line:#e8d9c8; --ink:#3b2a1a; --mute:#7a6550;
+  --brown:#6b4c2a; --brown2:#8b6239;
+  --head:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --body:"Instrument Sans","Segoe UI",system-ui,sans-serif;
+  --sh:0 1px 2px rgba(59,42,26,.06),0 10px 24px -12px rgba(59,42,26,.18);
+  --sh-hi:0 2px 4px rgba(59,42,26,.06),0 22px 38px -16px rgba(59,42,26,.28);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{font-size:clamp(12px,.52vw + 8px,14.5px)}
+body{font-family:var(--body);color:var(--ink);min-height:100vh;line-height:1.4;overflow-x:hidden;background:var(--bg);color-scheme:light}
+
+.sidebar{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:100;display:flex;align-items:center;gap:1rem;
+  background:rgba(59,42,26,.94);backdrop-filter:blur(12px);color:#f5ebe0;border-radius:999px;padding:.35rem .5rem .35rem 1rem;
+  box-shadow:0 12px 32px -10px rgba(59,42,26,.5),0 0 0 1px rgba(255,255,255,.08);max-width:calc(100% - 1.5rem)}
+.party-name{font:700 1.05rem var(--head);display:flex;align-items:center;gap:.45rem;color:#fff;white-space:nowrap}
+.party-name .dot{width:8px;height:8px;border-radius:50%;background:#d4a017;box-shadow:0 0 0 3px rgba(212,160,23,.25)}
+.nav-item{display:flex;align-items:center;gap:.4rem;padding:.45rem .85rem;border-radius:999px;color:#fff;font-weight:500;font-size:.85rem;white-space:nowrap;background:rgba(212,160,23,.25);box-shadow:inset 0 0 0 1px rgba(212,160,23,.4)}
+
+.main{max-width:1480px;margin:0 auto;padding:4.5rem 1.15rem 1.4rem}
+
+.topbar{display:flex;flex-wrap:wrap;align-items:center;gap:.8rem;margin-bottom:1.15rem;padding:1rem 1.4rem;border-radius:20px;color:#fff;
+  background:radial-gradient(500px 200px at 90% 0,rgba(212,160,23,.32),transparent 70%),linear-gradient(120deg,var(--brown) 0%,var(--brown2) 55%,#a67c3d 100%);
+  box-shadow:0 18px 36px -18px rgba(59,42,26,.55)}
+.topbar h1{font:700 clamp(1.15rem,1.2vw + .75rem,1.7rem) var(--head);letter-spacing:-.02em}
+.period{font-size:.82rem;font-weight:500;color:#e8d5b5;margin-top:.08rem}
+.report-stamp{margin-left:auto;font-size:.8rem;font-weight:600;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:.4rem .95rem;display:inline-flex;align-items:center;gap:.45rem}
+.report-stamp::before{content:"";width:8px;height:8px;border-radius:50%;background:#d4a017;box-shadow:0 0 0 3px rgba(212,160,23,.3)}
+
+.card{--c:#8b6239;--t:#f7f0e6;--l:#d4b896;--d:#5c3d1e;--h:#faf6f0;--b:#e8d9c8;position:relative;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:1rem 1.1rem .9rem;box-shadow:var(--sh);overflow:hidden;transition:transform .25s,box-shadow .25s}
+.card::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,var(--c),var(--l))}
+.card:hover{transform:translateY(-2px);box-shadow:var(--sh-hi)}
+.card-header{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.6rem;flex-wrap:wrap}
+.card-header h3{font:700 .95rem var(--head);letter-spacing:-.01em;display:flex;align-items:center;gap:.5rem}
+.card-header h3 i{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:.8rem;color:#fff;background:linear-gradient(135deg,var(--c),var(--d));box-shadow:0 7px 12px -5px var(--c)}
+
+.c-kpi{--c:#8b6239;--t:#f7f0e6;--l:#d4b896;--d:#5c3d1e}
+.c-unit{--c:#a67c3d;--t:#f8f1e4;--l:#e0c9a0;--d:#6b4c2a}
+.c-short{--c:#9a6b3a;--t:#f7f0e6;--l:#d9c0a0;--d:#5c3d1e}
+.c-bill{--c:#8b6239;--t:#f7f0e6;--l:#d4b896;--d:#5c3d1e}
+.c-rake{--c:#c48a3a;--t:#fdf6e9;--l:#e8c98a;--d:#8b5e1e}
+.c-pen{--c:#b85c38;--t:#fdf0eb;--l:#e8b0a0;--d:#7a3020}
+.c-mines{--c:#6b4c2a;--t:#f5efe6;--l:#c9b090;--d:#3b2a1a}
+.c-cost{--c:#a67c3d;--t:#faf3e6;--l:#e0c9a0;--d:#6b4c2a}
+.c-trend{--c:#8b6b3a;--t:#f7f2e8;--l:#d4c0a0;--d:#5c4520}
+.c-upload{--c:#c48a3a;--t:#fdf6e9;--l:#e8c98a;--d:#8b5e1e}
+
+.metric-row{display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.38rem .2rem;border-bottom:1px dashed var(--line);border-radius:9px}
+.metric-row:last-child{border-bottom:0}
+.metric-row:hover{background:var(--h)}
+.metric-label{flex:1;font-size:.78rem;font-weight:700;color:var(--ink);text-align:left}
+.metric-value{min-width:6.2rem;border-radius:10px;background:var(--t);color:var(--ink);font:700 .88rem var(--body);font-variant-numeric:tabular-nums;text-align:right;padding:.35rem .6rem;white-space:nowrap}
+.metric-value.neg{color:#9b2c1a;background:#fdeceb}
+.metric-value.hi{background:linear-gradient(120deg,var(--brown),var(--brown2));color:#f5ebe0}
+.pair{display:flex;gap:.3rem}
+.pair .metric-value:first-child{min-width:6.8rem}
+.pair .metric-value:last-child{min-width:5rem}
+.dual-head{display:flex;justify-content:flex-end;gap:.3rem;padding:0 .2rem .15rem;margin-bottom:.05rem}
+.dual-head span{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.35px;color:var(--mute);text-align:center}
+.dual-head span:first-child{width:6.8rem}.dual-head span:last-child{width:5rem}
+.sub-title{margin:.55rem 0 .25rem;padding:.28rem .6rem;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--c);background:var(--t);border-radius:999px;display:inline-block}
+.total-row{margin-top:.3rem;padding:.45rem .65rem;border-radius:12px;background:linear-gradient(120deg,var(--brown),var(--brown2));box-shadow:0 8px 16px -8px rgba(59,42,26,.45)}
+.total-row .metric-label{color:#fff}
+.total-row .metric-value{background:rgba(255,230,180,.18);color:#ffe8b0}
+
+.area-table{width:100%;border-collapse:separate;border-spacing:4px}
+.area-table th{font:700 .68rem var(--body);text-transform:uppercase;letter-spacing:.35px;color:#fff;background:var(--d);border-radius:8px;padding:.4rem;text-align:center}
+.area-table th:first-child{background:none}
+.area-table .row-label{font-size:.74rem;font-weight:700;color:var(--ink);text-align:left;padding:0 .2rem}
+.area-table .cell{width:100%;border-radius:10px;background:var(--t);color:var(--ink);font:700 1rem var(--head);font-variant-numeric:tabular-nums;text-align:center;padding:.5rem .15rem}
+
+.avg-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.5rem}
+.highlight-box{background:var(--t);border-radius:12px;padding:.45rem .5rem;text-align:center;border:1px solid var(--b)}
+.highlight-box .label{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--mute);margin-bottom:.12rem}
+.highlight-box .val{font:700 1.1rem var(--head);color:var(--ink)}
+
+.mines-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--line)}
+.mines-table{width:100%;border-collapse:separate;border-spacing:0;min-width:700px}
+.mines-table th{background:linear-gradient(120deg,var(--brown),var(--brown2));color:#fff;font-size:.68rem;letter-spacing:.35px;text-transform:uppercase;font-weight:700;padding:.5rem .4rem;white-space:nowrap}
+.mines-table td{border-bottom:1px solid var(--line);padding:0;text-align:center}
+.mines-table tbody tr:nth-child(even) td{background:#faf6f0}
+.mines-table .row-label{text-align:left;font-size:.74rem;font-weight:700;color:var(--ink);padding:.42rem .65rem;min-width:10.5rem;white-space:nowrap;background:#f7f0e6;border-right:1px solid var(--line)}
+.mines-table .cell{font:700 .82rem var(--body);font-variant-numeric:tabular-nums;padding:.45rem .25rem;color:var(--ink);white-space:nowrap}
+
+.trend-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--line)}
+.trend-table{width:100%;min-width:880px;border-collapse:separate;border-spacing:0;font-variant-numeric:tabular-nums}
+.trend-table th{background:linear-gradient(120deg,var(--brown),var(--brown2));color:#fff;font-size:.66rem;letter-spacing:.3px;text-transform:uppercase;font-weight:700;padding:.5rem .4rem;text-align:center;white-space:nowrap}
+.trend-table td{padding:.4rem .45rem;text-align:center;font-size:.8rem;font-weight:700;color:var(--ink);border-bottom:1px solid var(--line);white-space:nowrap}
+.trend-table td:first-child{text-align:left;font-weight:700;color:var(--brown2)}
+.trend-table td.qtr{background:#f3e8d4;color:#5c3d1e}
+.trend-table td.low{background:#fdeceb;color:#9b2c1a}
+.trend-table tr.current{background:#f8f1e4}
+
+.upload-bar{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}
+.btn{font:600 .8rem var(--body);border:0;border-radius:999px;padding:.5rem .95rem;background:linear-gradient(120deg,var(--brown),var(--brown2));color:#fff;cursor:pointer;display:inline-flex;align-items:center;gap:.4rem;box-shadow:var(--sh)}
+.btn:hover{filter:brightness(1.08)}
+.btn.ghost{background:#fff;color:var(--brown);box-shadow:inset 0 0 0 1px var(--line)}
+.upload-status{font-size:.78rem;color:var(--mute)}
+.upload-status.ok{color:#3d6b2a;font-weight:600}
+.upload-status.err{color:#9b2c1a;font-weight:600}
+.source-line{font-size:.8rem;color:var(--ink);margin-top:.55rem;font-weight:600}
+.upload-hint{font-size:.74rem;color:var(--mute);margin-top:.35rem;line-height:1.5}
+
+.grid-3{display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:1rem;margin-bottom:1rem;align-items:stretch}
+.grid-2{display:grid;grid-template-columns:1.45fr .95fr;gap:1rem;margin-bottom:1rem}
+.grid-full{margin-bottom:1rem}
+@media (max-width:1150px){.grid-3{grid-template-columns:1fr 1fr}.grid-3>.card:nth-child(3){grid-column:1/-1}}
+@media (max-width:780px){.grid-3,.grid-2{grid-template-columns:1fr}.sidebar{left:.4rem;right:.4rem;transform:none;border-radius:16px}.report-stamp{margin-left:0}}
+.footer-note{text-align:center;font-size:.78rem;color:var(--mute);margin-top:.6rem;padding:.5rem}
+@media print{.upload-bar,.sidebar{display:none}.main{padding-top:.5rem}.card{break-inside:avoid;box-shadow:none}}
+</style>
+</head>
+<body>
+<div class="sidebar">
+  <div class="party-name"><span class="dot"></span> BALCO AMM</div>
+  <nav><span class="nav-item"><i class="fas fa-gauge-high"></i> Performance Meter</span></nav>
+</div>
+
+<main class="main">
+  <div class="topbar">
+    <div>
+      <h1 id="title">PERFORMANCE METER AMM BALCO</h1>
+      <div class="period">AMM BALCO · live from the BB MIS workbook</div>
+    </div>
+    <div class="report-stamp" id="stamp">Performance Report</div>
+  </div>
+
+  <!-- Data update panel -->
+  <div class="card c-upload">
+    <div class="card-header">
+      <h3><i class="fas fa-file-excel"></i> Data Update</h3>
+      <span class="upload-status" id="status"></span>
+    </div>
+    <div class="upload-bar">
+      <label class="btn">
+        <i class="fas fa-file-import"></i> Upload MIS Workbook
+        <input type="file" id="xlsFile" accept=".xlsm,.xlsx" hidden>
+      </label>
+      <button class="btn ghost" id="btnPng"><i class="fas fa-image"></i> Download PNG</button>
+    </div>
+    <div class="source-line" id="source"></div>
+    <div class="upload-hint">
+      The figures built into this page are permanent. To view a newer workbook, save it in Excel and upload it; the dashboard then shows that workbook's figures for this session. Every figure is read from the <b>Dashboard</b> sheet. The page finds each block by its heading (for example "MINES" or "RAILWAY FREIGHT PENALTIES"), so blocks may move, but keep the sheet name and the headings unchanged.
+    </div>
+  </div>
+
+  <!-- Row 1 -->
+  <div class="grid-3">
+    <div class="card c-kpi">
+      <div class="card-header"><h3><i class="fas fa-bullseye"></i> Key Positions</h3></div>
+      <div class="metric-row"><span class="metric-label">PER DAY REQUIRED RAKE FOR TARGET 194</span><span class="metric-value" data-cell="G5" data-fmt="num2"></span></div>
+      <div class="metric-row"><span class="metric-label">PERFORMACE ON RAKE MATERLIZATION</span><span class="metric-value" data-cell="G6" data-fmt="pct1"></span></div>
+      <div class="metric-row"><span class="metric-label">PERFORANCE ON GCV (GEVRA/KUS/DIP/MCK)</span><span class="metric-value" data-cell="G7" data-fmt="int"></span></div>
+      <div class="metric-row"><span class="metric-label">POSITION OF GCV FOR ACHIEVE TARGET</span><span class="metric-value" data-cell="G8" data-fmt="int"></span></div>
+      <div class="metric-row"><span class="metric-label">POSITION OF GCV FOR CPP RAKES</span><span class="metric-value" data-cell="G9" data-fmt="int"></span></div>
+      <div class="metric-row"><span class="metric-label">POSITION OF GCV FOR IPP RAKES</span><span class="metric-value" data-cell="G10" data-fmt="int"></span></div>
+    </div>
+
+    <div class="card c-unit">
+      <div class="card-header"><h3><i class="fas fa-layer-group"></i> UNIT</h3></div>
+      <table class="area-table">
+        <thead><tr><th></th><th>ALL</th><th>CPP</th><th>E/A</th><th>IPP</th></tr></thead>
+        <tbody>
+          <tr><td class="row-label">TARGET OF MONTH</td><td><div class="cell" data-cell="K6" data-fmt="int"></div></td><td><div class="cell" data-cell="L6" data-fmt="int"></div></td><td><div class="cell" data-cell="M6" data-fmt="int"></div></td><td><div class="cell" data-cell="N6" data-fmt="int"></div></td></tr>
+          <tr><td class="row-label">RAKE LOADED TILL</td><td><div class="cell" data-cell="K8" data-fmt="int"></div></td><td><div class="cell" data-cell="L8" data-fmt="int"></div></td><td><div class="cell" data-cell="M8" data-fmt="int"></div></td><td><div class="cell" data-cell="N8" data-fmt="int"></div></td></tr>
+          <tr><td class="row-label">BALANCE RAKE</td><td><div class="cell" data-cell="K9" data-fmt="int"></div></td><td><div class="cell" data-cell="L9" data-fmt="int"></div></td><td><div class="cell" data-cell="M9" data-fmt="int"></div></td><td><div class="cell" data-cell="N9" data-fmt="int"></div></td></tr>
+          <tr><td class="row-label">ASKING PER DAY</td><td><div class="cell" data-cell="K10" data-fmt="num2"></div></td><td><div class="cell" data-cell="L10" data-fmt="num2"></div></td><td><div class="cell" data-cell="M10" data-fmt="num2"></div></td><td><div class="cell" data-cell="N10" data-fmt="num2"></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card c-short">
+      <div class="card-header"><h3><i class="fas fa-scale-balanced"></i> SHORTAGE/EXCESS COAL</h3></div>
+      <div class="avg-grid">
+        <div class="highlight-box"><div class="label">Average</div><div class="val" data-cell="R7" data-fmt="num2"></div></div>
+        <div class="highlight-box"><div class="label">Normalised Qty. %</div><div class="val" data-cell="S6" data-fmt="num2"></div></div>
+      </div>
+      <div class="sub-title">Shortage/Excess MT · PER GCV COST</div>
+      <div class="metric-row"><span class="metric-label">(CPP)_ Avg. Wt. GCV</span><div class="pair"><span class="metric-value" data-cell="T8" data-fmt="int"></span><span class="metric-value" data-cell="U8" data-fmt="rs3"></span></div></div>
+      <div class="metric-row"><span class="metric-label">(EAC)_ Avg. Wt. GCV</span><div class="pair"><span class="metric-value" data-cell="T9" data-fmt="int"></span><span class="metric-value" data-cell="U9" data-fmt="rs3"></span></div></div>
+      <div class="metric-row"><span class="metric-label">(IPP)_ Avg. Wt. GCV</span><div class="pair"><span class="metric-value" data-cell="T10" data-fmt="int"></span><span class="metric-value" data-cell="U10" data-fmt="rs3"></span></div></div>
+      <div class="metric-row" style="margin-top:.35rem"><span class="metric-label">AVG. WT. GCV (CPP+EAC)</span><span class="metric-value hi" data-cell="Q8" data-fmt="int"></span></div>
+    </div>
+  </div>
+
+  <!-- Row 2 -->
+  <div class="grid-3">
+    <div class="card c-bill">
+      <div class="card-header"><h3><i class="fas fa-indian-rupee-sign"></i> PARTICULERS · BILLINGS</h3></div>
+      <div class="dual-head"><span>BILLINGS</span><span>PER MT</span></div>
+      <div class="metric-row"><span class="metric-label">PERFORANCE ON QUANTITY RECO</span><div class="pair"><span class="metric-value" data-cell="G15" data-fmt="rs"></span><span class="metric-value" data-cell="H15" data-fmt="rs2"></span></div></div>
+      <div class="metric-row"><span class="metric-label">PERFORANCE ON GCV RECO</span><div class="pair"><span class="metric-value" data-cell="G16" data-fmt="rs"></span><span class="metric-value" data-cell="H16" data-fmt="rs2"></span></div></div>
+      <div class="metric-row"><span class="metric-label">PERFORANCE ON SERVICE CHARGE (RAIL)</span><div class="pair"><span class="metric-value" data-cell="G17" data-fmt="rs"></span><span class="metric-value" data-cell="H17" data-fmt="rs2"></span></div></div>
+      <div class="metric-row"><span class="metric-label">PERFORANCE ON SERVICE CHARGE (ROAD)</span><div class="pair"><span class="metric-value" data-cell="G18" data-fmt="rs"></span><span class="metric-value" data-cell="H18" data-fmt="rs2"></span></div></div>
+      <div class="metric-row"><span class="metric-label">LOADING END DC CHARGES</span><div class="pair"><span class="metric-value" data-cell="G19" data-fmt="rs"></span><span class="metric-value" data-cell="H19" data-fmt="rs2"></span></div></div>
+      <div class="metric-row"><span class="metric-label">PROFORMANCE ON WAGONS SUPPLY</span><div class="pair"><span class="metric-value" data-cell="G20" data-fmt="rs"></span><span class="metric-value" data-cell="H20" data-fmt="rs2"></span></div></div>
+      <div class="metric-row total-row"><span class="metric-label">TOTAL BILLING</span><div class="pair"><span class="metric-value" data-cell="G21" data-fmt="rs"></span><span class="metric-value" data-cell="H21" data-fmt="rs2"></span></div></div>
+      <div class="metric-row" style="margin-top:.25rem"><span class="metric-label">EXPECTED BILLING OF THE MONTH</span><span class="metric-value hi" data-cell="G22" data-fmt="rs"></span></div>
+    </div>
+
+    <div class="card c-rake">
+      <div class="card-header"><h3><i class="fas fa-train"></i> Rake Performance</h3></div>
+      <div class="dual-head"><span>Achive</span><span>Target</span></div>
+      <div class="metric-row"><span class="metric-label">Per Day Rakes</span><div class="pair"><span class="metric-value" data-cell="M15" data-fmt="num2"></span><span class="metric-value" data-cell="O15" data-fmt="num2"></span></div></div>
+      <div class="metric-row"><span class="metric-label">Per Day Quantity</span><div class="pair"><span class="metric-value" data-cell="M17" data-fmt="int"></span><span class="metric-value" data-cell="O17" data-fmt="int"></span></div></div>
+      <div class="metric-row"><span class="metric-label">Per GCV Cost</span><div class="pair"><span class="metric-value" data-cell="M19" data-fmt="rs3"></span><span class="metric-value" data-cell="O19" data-fmt="rs2"></span></div></div>
+      <div class="sub-title" style="margin-top:.9rem">(CPP+E AUC) Summary</div>
+      <div class="metric-row"><span class="metric-label">(CPP+E AUC)_ Avg. CH.Wt.</span><span class="metric-value" data-cell="V23" data-fmt="int"></span></div>
+      <div class="metric-row"><span class="metric-label">(CPP+E AUC)_ Avg. RR.Wt.</span><span class="metric-value" data-cell="V24" data-fmt="int"></span></div>
+      <div class="metric-row"><span class="metric-label">(CPP+E AUC)_ per day RR Qty.</span><span class="metric-value" data-cell="V25" data-fmt="int"></span></div>
+    </div>
+
+    <div class="card c-pen">
+      <div class="card-header"><h3><i class="fas fa-triangle-exclamation"></i> RAILWAY FREIGHT PENALTIES</h3></div>
+      <div class="dual-head"><span>AMOUNT</span><span>PER MT</span></div>
+      <div class="metric-row"><span class="metric-label">UNDERLOAD CHARGE</span><div class="pair"><span class="metric-value" data-cell="T15" data-fmt="rs"></span><span class="metric-value" data-cell="U15" data-fmt="rs2"></span></div></div>
+      <div class="metric-row"><span class="metric-label">OVERLOAD CHARGE</span><div class="pair"><span class="metric-value" data-cell="T16" data-fmt="rs"></span><span class="metric-value" data-cell="U16" data-fmt="rs2"></span></div></div>
+      <div class="metric-row"><span class="metric-label">PUNITATIVE SUM</span><div class="pair"><span class="metric-value" data-cell="T17" data-fmt="rs"></span><span class="metric-value" data-cell="U17" data-fmt="rs2"></span></div></div>
+      <div class="metric-row"><span class="metric-label">EHBC/FAUC/TC</span><div class="pair"><span class="metric-value" data-cell="T18" data-fmt="rs"></span><span class="metric-value" data-cell="U18" data-fmt="rs2"></span></div></div>
+      <div class="metric-row"><span class="metric-label">ENHC CHARGES</span><div class="pair"><span class="metric-value" data-cell="T19" data-fmt="rs"></span><span class="metric-value" data-cell="U19" data-fmt="rs2"></span></div></div>
+      <div class="metric-row"><span class="metric-label">DEAD FREIGHT</span><div class="pair"><span class="metric-value" data-cell="T20" data-fmt="rs"></span><span class="metric-value" data-cell="U20" data-fmt="rs2"></span></div></div>
+      <div class="metric-row total-row"><span class="metric-label">TOTAL PENALTY</span><div class="pair"><span class="metric-value" data-cell="T21" data-fmt="rs"></span><span class="metric-value" data-cell="U21" data-fmt="rs2"></span></div></div>
+    </div>
+  </div>
+
+  <!-- Mines + Cost -->
+  <div class="grid-2">
+    <div class="card c-mines">
+      <div class="card-header"><h3><i class="fas fa-mountain"></i> MINES</h3></div>
+      <div class="mines-wrap">
+        <table class="mines-table">
+          <thead>
+            <tr><th>MINES</th><th>MCK</th><th>KMKA/NKCR/OKSR</th><th>JRGR/GPCK</th><th>DIPKA</th><th>SLOG</th><th>SLCC</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="row-label">GCV (ARB)</td><td class="cell" data-cell="F26" data-fmt="int"></td><td class="cell" data-cell="H26" data-fmt="int"></td><td class="cell" data-cell="K26" data-fmt="int"></td><td class="cell" data-cell="M26" data-fmt="int"></td><td class="cell" data-cell="O26" data-fmt="int"></td><td class="cell" data-cell="Q26" data-fmt="int"></td></tr>
+            <tr><td class="row-label">QUALITY DIFF. BETWEEN RAPID/ARB</td><td class="cell" data-cell="F27" data-fmt="int"></td><td class="cell" data-cell="H27" data-fmt="int"></td><td class="cell" data-cell="K27" data-fmt="int"></td><td class="cell" data-cell="M27" data-fmt="int"></td><td class="cell" data-cell="O27" data-fmt="int"></td><td class="cell" data-cell="Q27" data-fmt="int"></td></tr>
+            <tr><td class="row-label">PERFORANCE ON GCV MINES WISE</td><td class="cell" data-cell="F28" data-fmt="rs"></td><td class="cell" data-cell="H28" data-fmt="rs"></td><td class="cell" data-cell="K28" data-fmt="rs"></td><td class="cell" data-cell="M28" data-fmt="rs"></td><td class="cell" data-cell="O28" data-fmt="rs"></td><td class="cell" data-cell="Q28" data-fmt="rs"></td></tr>
+            <tr><td class="row-label">Cost Rs. GCV Per Paisa (Mines Wise)</td><td class="cell" data-cell="F29" data-fmt="rs3"></td><td class="cell" data-cell="H29" data-fmt="rs3"></td><td class="cell" data-cell="K29" data-fmt="rs3"></td><td class="cell" data-cell="M29" data-fmt="rs3"></td><td class="cell" data-cell="O29" data-fmt="rs3"></td><td class="cell" data-cell="Q29" data-fmt="rs3"></td></tr>
+            <tr><td class="row-label">SHORTAGE</td><td class="cell" data-cell="F30" data-fmt="int"></td><td class="cell" data-cell="H30" data-fmt="int"></td><td class="cell" data-cell="K30" data-fmt="int"></td><td class="cell" data-cell="M30" data-fmt="int"></td><td class="cell" data-cell="O30" data-fmt="int"></td><td class="cell" data-cell="Q30" data-fmt="int"></td></tr>
+            <tr><td class="row-label">PUNITATIVE SUM (POL1, POL2, POLA..)</td><td class="cell" data-cell="F31" data-fmt="rs"></td><td class="cell" data-cell="H31" data-fmt="rs"></td><td class="cell" data-cell="K31" data-fmt="rs"></td><td class="cell" data-cell="M31" data-fmt="rs"></td><td class="cell" data-cell="O31" data-fmt="rs"></td><td class="cell" data-cell="Q31" data-fmt="rs"></td></tr>
+            <tr><td class="row-label">EHBC /FAUC /SD /TC CHARGES</td><td class="cell" data-cell="F32" data-fmt="rs"></td><td class="cell" data-cell="H32" data-fmt="rs"></td><td class="cell" data-cell="K32" data-fmt="rs"></td><td class="cell" data-cell="M32" data-fmt="rs"></td><td class="cell" data-cell="O32" data-fmt="rs"></td><td class="cell" data-cell="Q32" data-fmt="rs"></td></tr>
+            <tr><td class="row-label">ENHC CHARGES</td><td class="cell" data-cell="F33" data-fmt="rs"></td><td class="cell" data-cell="H33" data-fmt="rs"></td><td class="cell" data-cell="K33" data-fmt="rs"></td><td class="cell" data-cell="M33" data-fmt="rs"></td><td class="cell" data-cell="O33" data-fmt="rs"></td><td class="cell" data-cell="Q33" data-fmt="rs"></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card c-cost">
+      <div class="card-header"><h3><i class="fas fa-calculator"></i> COST MODEL FINANCIAL</h3></div>
+      <div class="metric-row"><span class="metric-label">COST MODEL BILLING AS ON DATE :-</span><span class="metric-value hi" data-cell="V28" data-fmt="rs"></span></div>
+      <div class="metric-row"><span class="metric-label">COST MODEL BILLING OF THE MONTH (EXPECTED):-</span><span class="metric-value hi" data-cell="V29" data-fmt="rs"></span></div>
+      <div class="sub-title" style="margin-top:1.1rem">Status</div>
+      <div class="metric-row"><span class="metric-label">RECEIVED WEIGHT UP TO :</span><div class="pair"><span class="metric-value" data-cell="H36" data-fmt="date"></span><span class="metric-value" data-cell="J36" data-fmt="text"></span></div></div>
+      <div class="metric-row"><span class="metric-label">GCV RAPID UPTO:</span><div class="pair"><span class="metric-value" data-cell="O36" data-fmt="date"></span><span class="metric-value" data-cell="P36" data-fmt="text"></span></div></div>
+      <div class="metric-row"><span class="metric-label">GCV ARB UPTO :</span><div class="pair"><span class="metric-value" data-cell="T36" data-fmt="date"></span><span class="metric-value" data-cell="V36" data-fmt="text"></span></div></div>
+    </div>
+  </div>
+
+  <!-- Monthly Trend -->
+  <div class="grid-full">
+    <div class="card c-trend">
+      <div class="card-header"><h3><i class="fas fa-chart-line"></i> Monthly Trend</h3></div>
+      <div class="trend-wrap">
+        <table class="trend-table">
+          <thead>
+            <tr>
+              <th>Month</th><th>Rs.Per GCV Cost</th><th>Per Day Qty.</th><th>WT. GCV</th><th>Quarter</th>
+              <th>Quaterly Avg. Rs./- Gcv.</th><th>Quaterly Billing</th><th>Quaterly Avg. Qty.</th><th>AVG. WT. GCV</th><th>%</th>
+            </tr>
+          </thead>
+          <tbody id="trendBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-note">PERFORMANCE METER AMM BALCO · figures read from the Dashboard sheet of the BB MIS workbook</div>
+</main>
+
+<script type="application/json" id="snap-data">{"Dashboard!C3":"PERFORMANCE METER AMM BALCO_M/O  SEPTEMBER' 2026","Dashboard!X4":"Month","Dashboard!Y4":"Rs.Per GCV Cost","Dashboard!Z4":"Per Day Qty.","Dashboard!AA4":"WT. GCV","Dashboard!AB4":"Quarter","Dashboard!AC4":"Quaterly Avg. Rs./- Gcv.","Dashboard!AD4":"Quaterly Billing","Dashboard!AE4":"Quaterly Avg. Qty. ","Dashboard!AF4":"AVG. WT. GCV","Dashboard!AG4":"%","Dashboard!C5":"PER DAY REQUIRED RAKE FOR TARGET 194","Dashboard!G5":1.4482758620689655,"Dashboard!H5":"UNIT","Dashboard!K5":"ALL","Dashboard!L5":"CPP","Dashboard!M5":"E/A","Dashboard!N5":"IPP","Dashboard!R5":"SHORTAGE/EXCESS COAL","Dashboard!X5":45748,"Dashboard!Y5":0.654,"Dashboard!Z5":15465,"Dashboard!AA5":3681,"Dashboard!AB5":"APR-JUN'25 (Q1)","Dashboard!AC5":0.6903333333333334,"Dashboard!AD5":73256651,"Dashboard!AE5":15531.333333333334,"Dashboard!AF5":3515.6666666666665,"Dashboard!AG5":1,"Dashboard!C6":"PERFORMACE ON RAKE MATERLIZATION","Dashboard!G6":19.043478260869563,"Dashboard!H6":"TARGET OF MONTH","Dashboard!K6":115,"Dashboard!L6":70,"Dashboard!M6":20,"Dashboard!N6":25,"Dashboard!R6":"Average","Dashboard!S6":1.9366141088167117,"Dashboard!T6":"Normalised Qty. %","Dashboard!U6":"PER GCV COST","Dashboard!X6":45778,"Dashboard!Y6":0.692,"Dashboard!Z6":15120,"Dashboard!AA6":3480,"Dashboard!C7":"PERFORANCE ON GCV (GEVRA/KUS/DIP/MCK)","Dashboard!G7":3529.540457007454,"Dashboard!R7":73.10202702702699,"Dashboard!T7":"Shortage/Excess MT","Dashboard!X7":45809,"Dashboard!Y7":0.725,"Dashboard!Z7":16009,"Dashboard!AA7":3386,"Dashboard!C8":"POSITION OF GCV FOR ACHIEVE TARGET","Dashboard!G8":222.7192390985515,"Dashboard!H8":"RAKE LOADED TILL","Dashboard!K8":73,"Dashboard!L8":42,"Dashboard!M8":6,"Dashboard!N8":25,"Dashboard!Q8":3438.845165698545,"Dashboard!R8":"(CPP)_ Avg. Wt. GCV  ","Dashboard!T8":3420.285647753929,"Dashboard!U8":0.5599828781773689,"Dashboard!X8":45839,"Dashboard!Y8":0.753,"Dashboard!Z8":13572,"Dashboard!AA8":3237,"Dashboard!AB8":"JULY-SEPT'25 (Q2)","Dashboard!AC8":0.7237562192971884,"Dashboard!AD8":38862407,"Dashboard!AE8":12042.758777777779,"Dashboard!AF8":3384,"Dashboard!AG8":1,"Dashboard!C9":"POSITION OF GCV FOR CPP RAKES","Dashboard!G9":-312.79501736385237,"Dashboard!H9":"BALANCE RAKE","Dashboard!K9":42,"Dashboard!L9":28,"Dashboard!M9":14,"Dashboard!N9":0,"Dashboard!R9":"(EAC)_ Avg. Wt. GCV  ","Dashboard!T9":3568.761791310855,"Dashboard!U9":0.6320583830154047,"Dashboard!X9":45870,"Dashboard!Y9":0.709,"Dashboard!Z9":11979,"Dashboard!AA9":3530,"Dashboard!C10":"POSITION OF GCV FOR IPP RAKES","Dashboard!G10":-145.93770799923186,"Dashboard!H10":"ASKING PER DAY","Dashboard!K10":1.4482758620689655,"Dashboard!L10":19.043478260869563,"Dashboard!M10":0,"Dashboard!N10":0,"Dashboard!R10":"(IPP)_ Avg. Wt. GCV  ","Dashboard!T10":3704.062292000769,"Dashboard!U10":0,"Dashboard!X10":45901,"Dashboard!Y10":0.7092686578915653,"Dashboard!Z10":10577.276333333335,"Dashboard!AA10":3385,"Dashboard!X11":45931,"Dashboard!Y11":0.5642494138067371,"Dashboard!Z11":12344.103225806452,"Dashboard!AA11":3719,"Dashboard!AB11":"OCT-DEC'25 (Q3)","Dashboard!AC11":0.562083137935579,"Dashboard!AD11":87760841,"Dashboard!AE11":14643.367741935484,"Dashboard!AF11":3789.6666666666665,"Dashboard!AG11":1,"Dashboard!X12":45962,"Dashboard!Y12":0.538,"Dashboard!Z12":15430,"Dashboard!AA12":3912,"Dashboard!K13":"Rake Performance","Dashboard!M13":"Achive","Dashboard!O13":"Target","Dashboard!R13":"RAILWAY FREIGHT PENALTIES","Dashboard!X13":45992,"Dashboard!Y13":0.584,"Dashboard!Z13":16156,"Dashboard!AA13":3738,"Dashboard!C14":"PARTICULERS","Dashboard!G14":"BILLINGS","Dashboard!H14":"PER MT","Dashboard!R14":"PARTICULERS","Dashboard!T14":"AMOUNT","Dashboard!U14":"PER MT ","Dashboard!X14":46023,"Dashboard!Y14":0.57,"Dashboard!Z14":16811,"Dashboard!AA14":3562,"Dashboard!AB14":"JAN-MAR'26 (Q4)","Dashboard!AC14":0.5773333333333334,"Dashboard!AD14":84158592,"Dashboard!AE14":16509.666666666668,"Dashboard!AF14":3525.6666666666665,"Dashboard!AG14":1,"Dashboard!C15":"PERFORANCE ON  QUANTITY RECO","Dashboard!G15":530727.57,"Dashboard!H15":1.8639033840890198,"Dashboard!K15":"Per Day Rakes","Dashboard!M15":1.6,"Dashboard!O15":4,"Dashboard!R15":"UNDERLOAD CHARGE","Dashboard!T15":0,"Dashboard!U15":0,"Dashboard!X15":46054,"Dashboard!Y15":0.559,"Dashboard!Z15":16803,"Dashboard!AA15":3613,"Dashboard!C16":"PERFORANCE ON  GCV RECO","Dashboard!G16":1621715.018,"Dashboard!H16":6.122105052945506,"Dashboard!R16":"OVERLOAD CHARGE","Dashboard!T16":0,"Dashboard!U16":0,"Dashboard!X16":46082,"Dashboard!Y16":0.603,"Dashboard!Z16":15915,"Dashboard!AA16":3402,"Dashboard!C17":"PERFORANCE ON  SERVICE CHARGE (RAIL)","Dashboard!G17":1061455.1400000001,"Dashboard!H17":3.8000000000000007,"Dashboard!K17":"Per Day Quantity ","Dashboard!M17":6283.661666666668,"Dashboard!O17":16000,"Dashboard!R17":"PUNITATIVE SUM","Dashboard!T17":137330.4,"Dashboard!U17":0.4916416156786428,"Dashboard!X17":46113,"Dashboard!Y17":0.564,"Dashboard!Z17":13587,"Dashboard!AA17":3529,"Dashboard!AB17":"APR-JUN '26 (Q5)","Dashboard!AC17":0.5902819584585962,"Dashboard!AD17":66050864,"Dashboard!AE17":15067.371999999998,"Dashboard!AF17":3520.7718163430077,"Dashboard!AG17":0.9016364125081284,"Dashboard!C18":"PERFORANCE ON  SERVICE CHARGE (ROAD)","Dashboard!G18":353192,"Dashboard!H18":7,"Dashboard!R18":"EHBC/FAUC/TC","Dashboard!T18":35400,"Dashboard!U18":0.12673168646580768,"Dashboard!X18":46143,"Dashboard!Y18":0.646,"Dashboard!Z18":16193,"Dashboard!AA18":3425,"Dashboard!C19":"LOADING END DC CHARGES","Dashboard!G19":-126839.41000000002,"Dashboard!H19":0.4540839643962722,"Dashboard!K19":"Per GCV Cost","Dashboard!M19":0.5677024966802281,"Dashboard!O19":0.69,"Dashboard!R19":"ENHC CHARGES","Dashboard!T19":66360,"Dashboard!U19":0.2375682122562429,"Dashboard!X19":46174,"Dashboard!Y19":0.5608458753757886,"Dashboard!Z19":15422.115999999996,"Dashboard!AA19":3608.315449029024,"Dashboard!C20":"PROFORMANCE ON WAGONS SUPPLY","Dashboard!G20":12500,"Dashboard!H20":0.00592,"Dashboard!R20":"DEAD FREIGHT","Dashboard!T20":538855.1999999998,"Dashboard!U20":0.008931003904696339,"Dashboard!X20":46204,"Dashboard!Y20":0.576,"Dashboard!Z20":14282,"Dashboard!AA20":3545,"Dashboard!AB20":"JULY-SEPT'25 (Q6)","Dashboard!AC20":0.5755674988934093,"Dashboard!AD20":55135140.96251507,"Dashboard!AE20":10646.55388888889,"Dashboard!AF20":3513.6150552328486,"Dashboard!AG20":1.418726867909007,"Dashboard!C21":"TOTAL BILLING","Dashboard!G21":3452750.318,"Dashboard!H21":19.246012401430797,"Dashboard!R21":" TOTAL PENALTY","Dashboard!T21":777945.5999999999,"Dashboard!U21":0.8648725183053897,"Dashboard!X21":46235,"Dashboard!Y21":0.583,"Dashboard!Z21":11374,"Dashboard!AA21":3557,"Dashboard!C22":"EXPECTED BILLING OF THE MONTH","Dashboard!G22":3452750.318,"Dashboard!X22":46266,"Dashboard!Y22":0.5677024966802281,"Dashboard!Z22":6283.661666666668,"Dashboard!AA22":3438.845165698545,"Dashboard!T23":"(CPP+E AUC)_ Avg. CH.Wt. ","Dashboard!V23":3861.05,"Dashboard!T24":"(CPP+E AUC)_ Avg. RR.Wt. ","Dashboard!V24":3797.565,"Dashboard!A25":"    ","Dashboard!C25":"MINES","Dashboard!F25":"MCK","Dashboard!H25":"KMKA/NKCR/OKSR","Dashboard!K25":"JRGR/GPCK","Dashboard!M25":"DIPKA","Dashboard!O25":"SLOG","Dashboard!Q25":"SLCC","Dashboard!T25":"(CPP+E AUC)_ per day RR Qty.","Dashboard!V25":6132.913333333332,"Dashboard!C26":"GCV (ARB)","Dashboard!F26":2846.0045595847896,"Dashboard!H26":3655.5111075200102,"Dashboard!K26":3698.474496381413,"Dashboard!M26":3494.715323784535,"Dashboard!O26":3849.7650833183825,"Dashboard!Q26":0,"Dashboard!C27":"QUALITY DIFF. BETWEEN RAPID/ARB","Dashboard!F27":148.27777532942582,"Dashboard!H27":214.8572357827079,"Dashboard!K27":280.0086751472804,"Dashboard!M27":214.30382144496843,"Dashboard!O27":241.21502896883612,"Dashboard!Q27":0,"Dashboard!S27":"COST MODEL FINANCIAL","Dashboard!C28":"PERFORANCE ON GCV MINES WISE","Dashboard!F28":96257.42000000001,"Dashboard!H28":862703.9015000002,"Dashboard!K28":322432.8975,"Dashboard!M28":144040.33000000002,"Dashboard!O28":196280.469,"Dashboard!Q28":0,"Dashboard!S28":"                              COST MODEL BILLING AS ON DATE :-","Dashboard!V28":11099215.834463332,"Dashboard!C29":"Cost Rs. GCV Per Paisa (Mines Wise)","Dashboard!F29":0.629,"Dashboard!H29":0.54,"Dashboard!K29":0.501,"Dashboard!M29":0.632,"Dashboard!O29":0,"Dashboard!Q29":0,"Dashboard!S29":"       COST MODEL BILLING OF THE MONTH (EXPECTED):-","Dashboard!V29":11099215.834463332,"Dashboard!C30":"SHORTAGE","Dashboard!F30":170.95000000000027,"Dashboard!H30":43.01875000000018,"Dashboard!K30":54.76000000000058,"Dashboard!M30":101.82666666666692,"Dashboard!O30":41.01999999999971,"Dashboard!Q30":0,"Dashboard!C31":"PUNITATIVE SUM (POL1, POL2, POLA..)","Dashboard!F31":71884.8,"Dashboard!H31":7387.200000000001,"Dashboard!K31":6717.599999999999,"Dashboard!M31":45120,"Dashboard!O31":6220.8,"Dashboard!Q31":0,"Dashboard!C32":"EHBC /FAUC /SD /TC CHARGES","Dashboard!F32":0,"Dashboard!H32":0,"Dashboard!K32":0,"Dashboard!M32":35400,"Dashboard!O32":0,"Dashboard!Q32":0,"Dashboard!C33":"ENHC CHARGES","Dashboard!F33":0,"Dashboard!H33":0,"Dashboard!K33":0,"Dashboard!M33":66360,"Dashboard!O33":0,"Dashboard!Q33":0,"Dashboard!E36":"RECEIVED WEIGHT UP TO  :","Dashboard!H36":46295,"Dashboard!J36":"(1/1)","Dashboard!L36":"GCV RAPID UPTO: ","Dashboard!O36":46295,"Dashboard!P36":"(1/1)","Dashboard!R36":"GCV ARB UPTO :","Dashboard!T36":46293,"Dashboard!V36":"(1/2)","Dashboard!H37":"Performance Report updated upto.","Dashboard!N37":46295,"Dashboard!I40":"JRGR","Dashboard!J40":"DIPKA","Dashboard!K40":"SLOG","Dashboard!L40":"TOTAL","Dashboard!G41":"MCK","Dashboard!H41":"KMKA","Dashboard!I41":6717.599999999999,"Dashboard!J41":45120,"Dashboard!K41":6220.8,"Dashboard!L41":58058.4,"Dashboard!P41":"RAIL FRIGHT PENALTY","Dashboard!S41":239090.4,"Dashboard!G42":71884.8,"Dashboard!H42":7387.200000000001,"Dashboard!I42":0,"Dashboard!J42":70800,"Dashboard!K42":0,"Dashboard!L42":150072,"Dashboard!P42":"SUM FROM MINES WISE","Dashboard!S42":274490.4,"Dashboard!G43":0,"Dashboard!H43":0,"Dashboard!I43":0,"Dashboard!J43":66360,"Dashboard!K43":0,"Dashboard!L43":66360,"Dashboard!G44":0,"Dashboard!H44":0,"Dashboard!F47":46295}</script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+(function(){
+  const SNAP = JSON.parse(document.getElementById('snap-data').textContent);
+  const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const $ = id => document.getElementById(id);
+
+  let D = SNAP;          // current data: key "Sheet!A1" -> value
+  let meta = null;       // info about an uploaded workbook
+
+  /* ---------- formatting ---------- */
+
+  const isNum = v => typeof v === 'number' && isFinite(v);
+  const num = (v, d) => v.toLocaleString('en-IN', {minimumFractionDigits: d, maximumFractionDigits: d});
+  const money = (v, d) => (v < 0 ? '-' : '') + '₹ ' + num(Math.abs(v), d);
+  const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  function toDate(serial){
+    return new Date(Math.round((serial - 25569) * 86400000));   // Excel serial -> UTC date
+  }
+  function fmt(v, f){
+    if (v === null || v === undefined || v === '') return '–';
+    if (f === 'text') return esc(v);
+    if (f === 'date') {
+      if (!isNum(v)) return esc(v);
+      const d = toDate(v);
+      return String(d.getUTCDate()).padStart(2,'0') + '-' + String(d.getUTCMonth()+1).padStart(2,'0') + '-' + d.getUTCFullYear();
+    }
+    if (typeof v === 'string') {
+      const n = Number(v.replace(/[,₹\s]/g, ''));
+      if (v.trim() !== '' && isFinite(n)) v = n; else return esc(v);
+    }
+    if (!isNum(v)) return esc(String(v));
+    switch (f) {
+      case 'rs':   return money(v, 0);
+      case 'rs2':  return money(v, 2);
+      case 'rs3':  return money(v, 3);
+      case 'int':  return num(v, 0);
+      case 'num1': return num(v, 1);
+      case 'pct1': return num(v * 100, 1) + '%';
+      case 'pct2': return num(v * 100, 2) + '%';
+      default:     return num(v, 2);
+    }
+  }
+
+  /* ---------- dynamic cell lookup (finds each block by its heading) ---------- */
+
+  function colNum(s){ let n=0; for (const ch of s) n = n*26 + ch.charCodeAt(0) - 64; return n; }
+  function colName(n){ let s=''; while (n>0){ const m=(n-1)%26; s=String.fromCharCode(65+m)+s; n=Math.floor((n-1)/26); } return s; }
+  const parseRef = ref => { const m = /^([A-Z]+)(\d+)$/.exec(ref); return {c: colNum(m[1]), r: +m[2]}; };
+  const norm = s => String(s).replace(/\s+/g,' ').trim().toLowerCase();
+
+  // a = heading cell in the reference layout, t = its text, rect = [colFrom, colTo, rowFrom, rowTo] of cells that move with it
+  const BLOCKS = [
+    {a:'C3',  t:'performance meter',          prefix:true, rect:[3,3,3,3]},
+    {a:'C5',  t:'PER DAY REQUIRED RAKE',      prefix:true, rect:[3,7,5,10]},
+    {a:'H5',  t:'UNIT',                       rect:[8,14,5,10]},
+    {a:'R5',  t:'SHORTAGE/EXCESS COAL',       rect:[17,21,5,10]},
+    {a:'C14', t:'PARTICULERS',                rect:[3,8,14,22]},
+    {a:'K13', t:'Rake Performance',           rect:[11,15,13,19]},
+    {a:'R13', t:'RAILWAY FREIGHT PENALTIES',  rect:[18,22,13,25]},
+    {a:'C25', t:'MINES',                      rect:[3,17,25,33]},
+    {a:'S27', t:'COST MODEL FINANCIAL',       rect:[19,22,27,29]},
+    {a:'E36', t:'RECEIVED WEIGHT UP TO :',    rect:[5,22,36,37]}
+  ];
+  let OFF = [];
+
+  function computeOffsets(){
+    const cells = [];
+    for (const k of Object.keys(D)) {
+      const m = /^Dashboard!([A-Z]+)(\d+)$/.exec(k);
+      if (m && typeof D[k] === 'string') cells.push({c: colNum(m[1]), r: +m[2], t: norm(D[k])});
+    }
+    OFF = BLOCKS.map(b => {
+      const e = parseRef(b.a), want = norm(b.t);
+      let best = null, bd = 1e9;
+      cells.forEach(x => {
+        if (b.prefix ? x.t.startsWith(want) : x.t === want) {
+          const d = Math.abs(x.r - e.r) + Math.abs(x.c - e.c);   // closest match to the expected spot
+          if (d < bd) { bd = d; best = x; }
+        }
+      });
+      return best ? {dc: best.c - e.c, dr: best.r - e.r, ok: true} : {dc: 0, dr: 0, ok: false};
+    });
+  }
+
+  function key(ref){
+    if (ref.indexOf('!') >= 0) return ref;
+    const p = parseRef(ref);
+    const i = BLOCKS.findIndex(b => p.c >= b.rect[0] && p.c <= b.rect[1] && p.r >= b.rect[2] && p.r <= b.rect[3]);
+    const o = i >= 0 ? OFF[i] : {dc: 0, dr: 0};
+    return 'Dashboard!' + colName(p.c + o.dc) + (p.r + o.dr);
+  }
+
+  /* ---------- render ---------- */
+
+  function renderValues(){
+    document.querySelectorAll('[data-cell]').forEach(el => {
+      const v = D[key(el.dataset.cell)];
+      el.innerHTML = fmt(v, el.dataset.fmt || 'num2');
+      if (el.classList.contains('metric-value')) el.classList.toggle('neg', isNum(v) && v < 0);
+    });
+    const t = D[key('C3')];
+    if (t) {
+      const clean = String(t).replace(/\s+/g, ' ').trim();
+      $('title').textContent = clean;
+      document.title = clean;
+    }
+    $('stamp').textContent = 'Performance Report updated upto ' + fmt(D[key('N37')], 'date');
+  }
+
+  function renderTrend(){
+    // Find the trend table by its "Month" header cell, wherever it sits on the Dashboard sheet.
+    let hdr = null;
+    for (const k of Object.keys(D)) {
+      const m = /^Dashboard!([A-Z]+)(\d+)$/.exec(k);
+      if (m && typeof D[k] === 'string' && norm(D[k]) === 'month') { hdr = {c: colNum(m[1]), r: +m[2]}; break; }
+    }
+    if (!hdr) { $('trendBody').innerHTML = '<tr><td colspan="10">Monthly trend table (header "Month") not found on the Dashboard sheet.</td></tr>'; return; }
+
+    const get = (i, r) => D['Dashboard!' + colName(hdr.c + i) + r];   // 0 Month,1 Cost,2 Qty,3 WT.GCV,4 Quarter,5 AvgRs,6 Billing,7 AvgQty,8 AvgGCV,9 %
+
+    const rows = [];
+    for (let r = hdr.r + 1; r <= hdr.r + 200; r++) if (isNum(get(0, r))) rows.push(r);
+
+    const groups = [];
+    rows.forEach(r => {
+      const starts = !!get(4, r);
+      if (starts || !groups.length) groups.push([r]); else groups[groups.length - 1].push(r);
+    });
+
+    const lastRow = rows[rows.length - 1];
+    let html = '';
+    groups.forEach(g => {
+      const r0 = g[0], span = g.length, af = get(9, r0);
+      g.forEach((r, k) => {
+        const d = toDate(get(0, r));
+        html += '<tr' + (r === lastRow ? ' class="current"' : '') + '>' +
+          '<td>' + MON[d.getUTCMonth()] + '-' + String(d.getUTCFullYear()).slice(2) + '</td>' +
+          '<td>' + fmt(get(1, r), 'rs3') + '</td>' +
+          '<td>' + fmt(get(2, r), 'int') + '</td>' +
+          '<td>' + fmt(get(3, r), 'int') + '</td>';
+        if (k === 0) {
+          const low = isNum(af) && af < 1;
+          html += '<td class="qtr" rowspan="' + span + '">' + esc(get(4, r0) || '–') + '</td>' +
+            '<td class="qtr" rowspan="' + span + '">' + fmt(get(5, r0), 'rs3') + '</td>' +
+            '<td class="qtr" rowspan="' + span + '">' + fmt(get(6, r0), 'rs') + '</td>' +
+            '<td class="qtr" rowspan="' + span + '">' + fmt(get(7, r0), 'int') + '</td>' +
+            '<td class="qtr" rowspan="' + span + '">' + fmt(get(8, r0), 'int') + '</td>' +
+            '<td class="' + (low ? 'low' : 'qtr') + '" rowspan="' + span + '">' + fmt(af, 'pct2') + '</td>';
+        }
+        html += '</tr>';
+      });
+    });
+    $('trendBody').innerHTML = html;
+  }
+
+  function render(){ computeOffsets(); renderValues(); renderTrend(); renderSource(); }
+
+  function renderSource(){
+    const miss = BLOCKS.filter((b, i) => !OFF[i].ok).map(b => b.t);
+    $('source').innerHTML = (meta
+        ? 'Showing: <b>' + esc(meta.name) + '</b> · uploaded ' + esc(meta.when)
+        : 'Showing: built-in figures')
+      + (miss.length ? ' · <span style="color:#9b2c1a">Could not locate heading: ' + esc(miss.join(', ')) + '</span>' : '');
+  }
+  function setStatus(msg, cls){
+    const s = $('status');
+    s.textContent = msg;
+    s.className = 'upload-status' + (cls ? ' ' + cls : '');
+  }
+
+  /* ---------- upload workbook ---------- */
+
+  const NEEDED = {'Dashboard': null};   // null = all cells
+
+  $('xlsFile').addEventListener('change', e => {
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    if (typeof XLSX === 'undefined') { setStatus('Excel reader did not load. Check your internet connection.', 'err'); return; }
+    setStatus('Reading ' + file.name + ' …');
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const wb = XLSX.read(new Uint8Array(ev.target.result), {type: 'array'});
+        if (!wb.Sheets['Dashboard']) {
+          setStatus('This workbook has no sheet named "Dashboard". Sheets found: ' + wb.SheetNames.join(', '), 'err');
+          return;
+        }
+        const data = {};
+        Object.keys(NEEDED).forEach(name => {
+          const ws = wb.Sheets[name];
+          if (!ws) return;
+          const only = NEEDED[name];
+          (only || Object.keys(ws)).forEach(addr => {
+            if (addr[0] === '!') return;
+            const c = ws[addr];
+            if (!c || c.t === 'e' || c.v === undefined || c.v === null || c.v === '') return;
+            data[name + '!' + addr] = c.v;
+          });
+        });
+        const count = Object.keys(data).filter(k => k.indexOf('Dashboard!') === 0 && isNum(data[k])).length;
+        if (count < 50) {
+          setStatus('The Dashboard sheet has no calculated values. Open the workbook in Excel, let it calculate, save it, then upload again.', 'err');
+          return;
+        }
+        D = data;
+        meta = {name: file.name, when: new Date().toLocaleString('en-IN')};
+        render();
+        setStatus('Dashboard updated from ' + file.name + '.', 'ok');
+      } catch(err) {
+        setStatus('Could not read this file: ' + err.message, 'err');
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  });
+
+  /* ---------- other buttons ---------- */
+
+  $('btnPng').addEventListener('click', () => {
+    if (typeof html2canvas === 'undefined') { setStatus('Image tool did not load. Check your internet connection.', 'err'); return; }
+    setStatus('Preparing PNG …');
+    const bar = document.querySelector('.c-upload');
+    bar.style.display = 'none';
+    html2canvas(document.querySelector('.main'), {scale: 2, backgroundColor: '#f4eee6', useCORS: true}).then(canvas => {
+      canvas.toBlob(blob => {
+        const d = new Date();
+        const name = 'BALCO_AMM_Performance_' + d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0') + '.png';
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = name;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        bar.style.display = '';
+        setStatus('Downloaded ' + name + '.', 'ok');
+      }, 'image/png');
+    }).catch(err => {
+      bar.style.display = '';
+      setStatus('Could not create the PNG: ' + err.message, 'err');
+    });
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
