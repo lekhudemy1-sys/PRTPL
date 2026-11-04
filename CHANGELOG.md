@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.0.1] — 2026-11-04
+
+### Added
+- Data assistant: type **need backup** to download every table of the three databases (jz, pc, lf) as one zip. The zip has a folder per area (coal india, odr hzl, odr nalco, amm hzl, amm gujarat, amm pjpb, amm daily loading, ksk, other), one CSV per table, a `manifest.csv` with row counts checked against the server, and a `README.txt`.
+
+### Changed
+- Service worker cache bumped to `prtpl-v2.4` so the new assistant code reaches browsers.
+
 ## [3.0.0] — 2026-10-27
 
 ### Added

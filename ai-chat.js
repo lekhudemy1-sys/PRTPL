@@ -4,6 +4,7 @@
    ---------------------------------------------------------------
    Modules: rake dispatch, daily rake loading (+ image), Gujarat / HZL / PJPB billing and performance, ODR pending rakes, KSK inward and dispatch.
    Exports: CSV and PNG on every answer.
+   Backup: type "need backup" to download every table of the three databases as one zip (folder per area, one CSV per table, manifest.csv).
 */
 (function () {
   'use strict';
@@ -1175,6 +1176,146 @@
     };
   }
 
+  /* ===== full backup: every table in all three projects, one zip (send "need backup") ===== */
+  const BACKUP_RE = /\bback[\s-]?up\b/i;
+  const BK_DB = { jz: 'jz (dispatch, daily loading, ODR)', pc: 'pc (HZL, Gujarat, PJPB)', lf: 'lf (KSK, Jhabua)' };
+  // Folder for each known table. Any table the database exposes that is not listed goes to "other".
+  const BK_FOLDER = {
+    dispatch_entries: 'coal india',
+    HZL_ODR: 'odr hzl', hzl_filters: 'odr hzl',
+    NALCO_ODR: 'odr nalco', nalco_filters: 'odr nalco',
+    amm_daily_entries: 'amm daily loading',
+    hzl_rake_records: 'amm hzl', hzl_rake_targets: 'amm hzl', hzl_dashboard_values: 'amm hzl',
+    gujarat_rake_records: 'amm gujarat', gujarat_rake_targets: 'amm gujarat', gujarat_dashboard_values: 'amm gujarat',
+    pjpb_rake_records: 'amm pjpb', pjpb_rake_targets: 'amm pjpb', pjpb_periods: 'amm pjpb', pjpb_settings: 'amm pjpb', pjpb_areas: 'amm pjpb', pjpb_sources: 'amm pjpb',
+    ksk_sheet_rows: 'ksk', ksk_dashboard_values: 'ksk', ksk_rcr_rakes: 'ksk', ksk_rcr_rake_alloc: 'ksk', ksk_multi_upload_rows: 'ksk', ksk_inward_sum: 'ksk', ksk_dispatch_sum: 'ksk'
+  };
+  // Fallback list if the database cannot describe itself (which project each known table lives in)
+  const BK_PROJECT = { dispatch_entries: 'jz', HZL_ODR: 'jz', hzl_filters: 'jz', NALCO_ODR: 'jz', nalco_filters: 'jz', amm_daily_entries: 'jz',
+    hzl_rake_records: 'pc', hzl_rake_targets: 'pc', hzl_dashboard_values: 'pc', gujarat_rake_records: 'pc', gujarat_rake_targets: 'pc', gujarat_dashboard_values: 'pc',
+    pjpb_rake_records: 'pc', pjpb_rake_targets: 'pc', pjpb_periods: 'pc', pjpb_settings: 'pc', pjpb_areas: 'pc', pjpb_sources: 'pc',
+    ksk_sheet_rows: 'lf', ksk_dashboard_values: 'lf', ksk_rcr_rakes: 'lf', ksk_rcr_rake_alloc: 'lf', ksk_multi_upload_rows: 'lf', ksk_inward_sum: 'lf', ksk_dispatch_sum: 'lf' };
+
+  // Ask PostgREST for every table/view the key can see, with column lists.
+  async function bkDescribe(proj) {
+    const p = CONFIG[proj];
+    try {
+      const r = await fetch(p.url + '/rest/v1/', { headers: { apikey: p.key, Authorization: 'Bearer ' + p.key } });
+      if (!r.ok) return null;
+      const spec = await r.json();
+      const names = Object.keys(spec.paths || {}).map(s => s.replace(/^\//, '')).filter(n => n && n.indexOf('rpc/') !== 0);
+      return names.length ? { names: names, defs: spec.definitions || {} } : null;
+    } catch (e) { return null; }
+  }
+
+  // Every row of one table, page by page. Returns the server's exact count so nothing is silently cut short.
+  async function bkTable(proj, table, order, say) {
+    const p = CONFIG[proj], size = 1000, rows = [];
+    let total = null;
+    for (let from = 0; ; from += size) {
+      const h = { apikey: p.key, Authorization: 'Bearer ' + p.key, Range: from + '-' + (from + size - 1) };
+      if (from === 0) h.Prefer = 'count=exact';
+      const r = await fetch(p.url + '/rest/v1/' + encodeURIComponent(table) + '?select=*' + order, { headers: h });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      if (from === 0) { const m = (r.headers.get('Content-Range') || '').match(/\/(\d+)\s*$/); if (m) total = +m[1]; }
+      const d = await r.json();
+      if (!d.length) break;
+      for (let i = 0; i < d.length; i++) rows.push(d[i]);
+      say(table + ': ' + rows.length.toLocaleString('en-IN') + ' rows');
+      if (total != null ? rows.length >= total : d.length < size) break;
+    }
+    return { rows: rows, total: total };
+  }
+
+  // CSV the way PostgreSQL reads it back: NULL = empty cell, empty text = "".
+  function bkCsv(cols, rows) {
+    const cell = v => {
+      if (v === null || v === undefined) return '';
+      if (typeof v === 'object') v = JSON.stringify(v);
+      const s = String(v);
+      return s === '' ? '""' : /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    };
+    const lines = [cols.map(cell).join(',')];
+    rows.forEach(r => lines.push(cols.map(c => cell(r[c])).join(',')));
+    return '﻿' + lines.join('\r\n') + '\r\n';
+  }
+
+  // Minimal ZIP writer (no compression, no library): the browser downloads one file that unpacks into folders.
+  const BK_CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+  function bkCrc(u8) { let c = 0xFFFFFFFF; for (let i = 0; i < u8.length; i++) c = BK_CRC[(c ^ u8[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+  function bkZip(files) {
+    const now = new Date();
+    const dTime = (now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1);
+    const dDate = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+    const enc = new TextEncoder(), parts = [], central = [];
+    let offset = 0;
+    files.forEach(f => {
+      const name = enc.encode(f.name), data = f.data, crc = bkCrc(data);
+      const lh = new DataView(new ArrayBuffer(30));
+      lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(8, 0, true);
+      lh.setUint16(10, dTime, true); lh.setUint16(12, dDate, true); lh.setUint32(14, crc, true);
+      lh.setUint32(18, data.length, true); lh.setUint32(22, data.length, true); lh.setUint16(26, name.length, true); lh.setUint16(28, 0, true);
+      parts.push(new Uint8Array(lh.buffer), name, data);
+      const ch = new DataView(new ArrayBuffer(46));
+      ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true);
+      ch.setUint16(12, dTime, true); ch.setUint16(14, dDate, true); ch.setUint32(16, crc, true);
+      ch.setUint32(20, data.length, true); ch.setUint32(24, data.length, true); ch.setUint16(28, name.length, true);
+      ch.setUint32(42, offset, true);
+      central.push(new Uint8Array(ch.buffer), name);
+      offset += 30 + name.length + data.length;
+    });
+    const cdSize = central.reduce((s, p) => s + p.length, 0);
+    const end = new DataView(new ArrayBuffer(22));
+    end.setUint32(0, 0x06054b50, true); end.setUint16(8, files.length, true); end.setUint16(10, files.length, true);
+    end.setUint32(12, cdSize, true); end.setUint32(16, offset, true);
+    return new Blob(parts.concat(central, [new Uint8Array(end.buffer)]), { type: 'application/zip' });
+  }
+
+  async function runBackup(say) {
+    const now = new Date(), p2 = n => String(n).padStart(2, '0');
+    const stamp = now.getFullYear() + '-' + p2(now.getMonth() + 1) + '-' + p2(now.getDate()) + '_' + p2(now.getHours()) + p2(now.getMinutes());
+    const root = 'PRTPL_backup_' + stamp, files = [], manifest = [];
+    let tables = 0, rowsSaved = 0, problems = 0;
+    for (const proj of ['jz', 'pc', 'lf']) {
+      say('Listing tables in ' + BK_DB[proj] + '…');
+      const desc = await bkDescribe(proj);
+      const names = desc ? desc.names : Object.keys(BK_PROJECT).filter(t => BK_PROJECT[t] === proj);
+      const defs = desc ? desc.defs : {};
+      Object.keys(BK_PROJECT).filter(t => BK_PROJECT[t] === proj && names.indexOf(t) < 0).forEach(t => {
+        problems++; manifest.push({ database: proj, folder: BK_FOLDER[t] || 'other', table: t, rows_expected: null, rows_saved: 0, status: 'not visible with this connection', file: null });
+      });
+      for (const t of names) {
+        const folder = BK_FOLDER[t] || 'other';
+        const file = folder === 'other' ? 'other/' + proj + '_' + t + '.csv' : folder + '/' + t + '.csv';
+        const props = defs[t] && defs[t].properties ? Object.keys(defs[t].properties) : [];
+        try {
+          const res = await bkTable(proj, t, props.indexOf('id') >= 0 ? '&order=id' : '', msg => say(BK_DB[proj].split(' ')[0] + ' · ' + msg));
+          const cols = props.length ? props : Array.from(res.rows.reduce((s, r) => { Object.keys(r).forEach(k => s.add(k)); return s; }, new Set()));
+          const ok = res.total == null || res.total === res.rows.length;
+          if (!ok) problems++;
+          files.push({ name: root + '/' + file, data: new TextEncoder().encode(bkCsv(cols, res.rows)) });
+          manifest.push({ database: proj, folder: folder, table: t, rows_expected: res.total == null ? '' : res.total, rows_saved: res.rows.length, status: ok ? 'ok' : 'row count differs from server', file: file });
+          tables++; rowsSaved += res.rows.length;
+        } catch (e) {
+          problems++;
+          manifest.push({ database: proj, folder: folder, table: t, rows_expected: null, rows_saved: 0, status: 'error: ' + e.message, file: null });
+        }
+      }
+    }
+    const readme = [
+      'PRTPL backup ' + stamp + ' (made ' + now.toString() + ')',
+      '',
+      'Each folder is one area of the dashboards. Each CSV is one complete database table, with a header row.',
+      'manifest.csv lists every table with its row count and status. Check it first.',
+      'In CSV, an empty cell means NULL and "" means an empty text value.',
+      'Files are UTF-8 with a byte-order mark, so Excel opens them directly.',
+      ''
+    ].join('\r\n');
+    files.push({ name: root + '/README.txt', data: new TextEncoder().encode(readme) });
+    files.push({ name: root + '/manifest.csv', data: new TextEncoder().encode(bkCsv(['database', 'folder', 'table', 'rows_expected', 'rows_saved', 'status', 'file'], manifest)) });
+    return { name: root + '.zip', blob: bkZip(files), tables: tables, rows: rowsSaved, problems: problems };
+  }
+
   /* ===== export: CSV + PNG ===== */
   function cell(res, col, row) {
     if (col.key === 'label') return row.label;
@@ -1678,7 +1819,7 @@ textarea::placeholder{color:var(--mute)}
       const tl = d.querySelector('.tl'); let k = 0; tl.textContent = THINK_STEPS[0];
       const timer = setInterval(() => { k = (k + 1) % THINK_STEPS.length; tl.textContent = THINK_STEPS[k]; }, THINK_MS / THINK_STEPS.length);
       log.appendChild(d); scrollDown();
-      return { stop() { clearInterval(timer); d.remove(); } };
+      return { stop() { clearInterval(timer); d.remove(); }, say(t) { clearInterval(timer); tl.textContent = t; } };
     }
     const chipsHtml = chips => chips && chips.length ? '<div class="chips">' + chips.map(c => '<button class="chip" type="button" data-q="' + esc(c[1]) + '">' + esc(c[0]) + '</button>').join('') + '</div>' : '';
     function tableHtml(res) {
@@ -1720,6 +1861,24 @@ textarea::placeholder{color:var(--mute)}
       pv.appendChild(b); scrollDown();
     }
 
+    /* ---- backup: "need backup" downloads every table of all three projects as one zip ---- */
+    async function askBackup() {
+      const th = addThinking();
+      try {
+        const r = await runBackup(t => th.say(t));
+        th.stop();
+        download(r.name, r.blob);
+        const notes = [
+          r.tables + ' tables and ' + r.rows.toLocaleString('en-IN') + ' rows saved from the three databases.',
+          'Unzip it: one folder per dashboard area, one CSV per table, and manifest.csv listing every table with its row count.'
+        ];
+        if (r.problems) notes.push(r.problems + ' table(s) need a look. They are marked in manifest.csv.');
+        addBot({ kind: 'text', headline: r.problems ? 'Backup downloaded, with a few tables to check.' : 'Full backup downloaded.', notes: notes });
+      } catch (e) {
+        th.stop(); addError(e);
+      }
+    }
+
     /* ---- ask: every answer waits through the 3 second thinking state ---- */
     async function ask(text) {
       const q = String(text || '').trim();
@@ -1727,6 +1886,7 @@ textarea::placeholder{color:var(--mute)}
       const hero = log.querySelector('.hero'); if (hero) hero.remove();
       addUser(q); ta.value = ''; ta.style.height = '';
       setBusy(true);
+      if (BACKUP_RE.test(q)) { await askBackup(); setBusy(false); ta.focus(); return; }
       const th = addThinking(), t0 = Date.now();
       let res = null, err = null;
       try { res = await answer(q); } catch (e) { err = e; }
