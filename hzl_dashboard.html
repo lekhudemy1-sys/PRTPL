@@ -1852,7 +1852,7 @@ function renderCalculated(values) {
 /* Mines table (built once; ids are m_<row>_<mine>) */
 const MINE_KEYS = ['gov','kmka','nkcr','oksr','gpck','jrgr','dipka','slog','ccl','mcl'];
 const MINE_HEAD = ['Govinda','KMKA','NKCR','OKSR','GPCK','JRGR','DIPKA','SLOG','CCL','MCL'];
-const MINE_ROWS = [['gcv','GCV (ARB)'],['diff','Quality Diff. ADB/ARB'],['perf','Performance on GCV Mines Wise'],['cost','Cost Rs. GCV Per Paisa'],
+const MINE_ROWS = [['rakes','No. of Rakes'],['gcv','GCV (ARB)'],['diff','Quality Diff. ADB/ARB'],['perf','Performance on GCV Mines Wise'],['cost','Cost Rs. GCV Per Paisa'],
   ['shrt','Shortage'],['pun','Punitive Sum (POL1/POL2/POLA..)'],['ehbc','EHBC / FAUC / SD / TC'],['enhc','ENHC Charges']];
 function buildMines() {
   $('minesHead').innerHTML = '<tr><th>MINES</th>' + MINE_HEAD.map(h => `<th>${h}</th>`).join('') + '</tr>';
