@@ -892,6 +892,7 @@ function computeMonth({ period, recs, targets, settings, formulas, reportDate, o
     const shortAvg = msRecv.length ? avgField(msRecv, 'rr_wt') - avgField(msRecv, 'recv_wt') : 0;
     return {
       code, rr, gcv,
+      rakes: ms.length,
       unloadGrade: gradeText(un), loadGrade: gradeText(ld),
       slip: (un != null && ld != null) ? un - ld : null,
       pun, ehbc, enhc, ul, shortAvg,
