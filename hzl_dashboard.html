@@ -1782,6 +1782,7 @@ async function computeDashboard(period = PERIOD) {
     ['dipka', r => has(r, 'DIPKA')], ['slog', r => has(r, 'SLOG')], ['ccl', r => r.area === 'CCL'], ['mcl', r => r.area === 'MCL']];
   MINE_MATCH.forEach(([k, match]) => {
     const m = recs.filter(match);
+      out['m_rakes_' + k] = m.length;
     const hasNum = v => v !== null && v !== undefined && v !== '' && !isNaN(Number(v));
     const rr = sumOf(m, r => r.rr_wt), arb = sumOf(m, r => r.gcv_arb);
     const recv = sumOf(m, r => r.recv_wt), landed = sumOf(m, r => r.landed_cost);
@@ -1818,7 +1819,7 @@ const INT_FIELDS = new Set(['billQty','billGcv','svcSecl','svcCcl','svcMcl','pen
   'balSecl','balCcl','balMcl']);
 function formatCell(id, n) {
   if (!Number.isFinite(n)) return '';
-  const isInt = INT_FIELDS.has(id);
+  const isInt = INT_FIELDS.has(id) || id.startsWith('m_rakes_');
   if (Math.abs(n) < 0.005) return '-';
   const sign = n < 0 ? '-' : '';
   const body = isInt && Math.abs(n) >= 1
