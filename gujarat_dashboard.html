@@ -1176,7 +1176,8 @@ function renderDashboard(o, trend) {
 
   const M = o.mines;
   const mrow = (label, fn, fmt) => `<tr><td class="row-label">${label}</td>${M.map(m => { const v = fn(m); return `<td><input class="metric-value ${typeof v === 'number' && v < 0 ? 'neg' : ''}" readonly value="${typeof v === 'number' ? fmt(v) : (v || '-')}"></td>`; }).join('')}</tr>`;
-  $('minesBody').innerHTML =
+   $('minesBody').innerHTML =
+    mrow('Total Rakes', m => m.rakes, fInt) +
     mrow('GCV (ARB)', m => m.gcv, f2) +
     mrow('Quantity (RR)', m => m.rr, fInt) +
     mrow('Unloading End Grade', m => m.unloadGrade, s => s) +
