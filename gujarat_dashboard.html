@@ -429,7 +429,7 @@ body:not(.unlocked) .pro-tab{display:none}
     <div class="card-header"><h3><i class="fas fa-industry"></i> Mines Wise Performance</h3></div>
     <div class="mines-wrap">
       <table class="mines-table">
-        <thead><tr><th>MINES</th><th>BGCK</th><th>BGWK</th><th>GGS</th><th>MNOG</th><th>RJCB</th><th>UMSG</th></tr></thead>
+        <thead><tr><th>MINES</th><th>BGCK</th><th>BGWK</th><th>GGS</th><th>MNOG</th><th>RJCB</th><th>UMSG</th><th>DMGM SILO</th></tr></thead>
         <tbody id="minesBody"></tbody>
       </table>
     </div>
@@ -705,7 +705,7 @@ const pad2 = n => String(n).padStart(2, '0');
 const up = v => String(v ?? '').trim().toUpperCase();
 const AREAS = ['SECL', 'WCL', 'MCL'];
 const PARTIES = ['GETS', 'TPHS'];
-const MINES = ['BGCK', 'BGWK', 'GGS', 'MNOG', 'RJCB', 'UMSG'];
+const MINES = ['BGCK', 'BGWK', 'GGS', 'MNOG', 'RJCB', 'UMSG', 'DMGM SILO'];
 const DEFAULT_FORMULAS = {
   matTop: 2,
   matTiers: [[85, 0], [80, -5], [75, -7.5], [70, -10], [65, -20]],
