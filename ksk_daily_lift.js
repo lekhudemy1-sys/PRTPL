@@ -40,7 +40,7 @@
     S.lastLift = {};
 
     var lab = MB.find(function (c) { return c[0] === 'daily_lift'; });
-    if (lab) lab[1] = 'Daily Lift (Last Lift Day)';
+    if (lab) lab[1] = 'Daily Lift';
 
     if (!db) return;
     try {
