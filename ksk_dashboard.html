@@ -1255,7 +1255,7 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
 <section id="v-excel" class="view hidden"><div class="xg"><div><div class="glass xs"><select id="x-t"><option value="ksk_inward">Inward</option><option value="ksk_dispatch">Dispatch</option><option value="ksk_dashboard_values">D.O. list (Summary)</option></select>
  <div class="drop" id="drop"><b>Drop an Excel file here</b><br><small class="muted">or click (.xlsx, .xlsm, .xls)</small><input type="file" id="x-f" accept=".xlsx,.xlsm,.xls" hidden></div>
  <select id="x-s" disabled><option>Choose a file first</option></select><div class="cnt"><div><b id="c-ok">0</b>Rows</div><div><b id="c-dup">0</b>Skipped</div><div><b id="c-err">0</b>Error</div></div><div class="prog"><i id="x-p"></i></div><button id="x-imp" class="btn primary" disabled>Replace all data with these rows</button>
- <small class="muted">Every upload deletes all existing inward/dispatch rows and loads every non-empty row of the chosen sheet exactly as it appears. Manual entries are deleted too. Rows with a Direction/Type column are sorted by it; otherwise the dropdown above is used.</small></div></div>
+ <small class="muted">Every upload deletes all existing inward/dispatch rows and loads every row of the chosen sheet that has a D.O. No exactly as it appears. Rows without a D.O. No (blank lines and Total rows) are skipped. Manual entries are deleted too. Rows with a Direction/Type column are sorted by it; otherwise the dropdown above is used.</small></div></div>
  <div class="glass"><div class="glass-h"><h2>Preview</h2><span class="sub" id="x-i">Upload a file to preview</span></div><div class="sc"><table id="t-x"></table></div></div></div></section>
 <section id="v-multi" class="view hidden">
  <div class="xg"><div><div class="glass xs">
@@ -1485,6 +1485,8 @@ async function parseSheet(){const sheet=$('#x-s').value,ws=S.xl.wb.Sheets[sheet]
  for(let i=h+1;i<rows.length;i++){const r=rows[i];
   if(r.every(c=>c==null||String(c).trim()===''))continue;
   if(nk(r[map.do_no])=='dono')continue;
+  /* only rows that carry a D.O. No are loaded; totals, sub-totals and notes have none */
+  if(map.do_no==null||r[map.do_no]==null||String(r[map.do_no]).trim()==='')continue;
   const raw={};heads.forEach(({i:j,key})=>raw[key]=r[j]==null?null:String(r[j]).trim());
   const o={_row:i+1,_s:'ok',_err:'',direction:dir,source_sheet:sheet,source_row:i+1,raw};
   FIELDS.forEach(f=>{const j=map[f];o[f]=j==null||r[j]==null||String(r[j]).trim()===''?null:String(r[j]).trim()});
@@ -1521,7 +1523,7 @@ function parseDoList(rows,h,heads,sheet){
  S.xl.rows=out;S.xl.skip=0;drawX()}
 function xMsg(m){S.xl.rows=[];$('#t-x').innerHTML=`<tbody><tr><td class="empty">${esc(m)}</td></tr></tbody>`;$('#x-i').textContent=m;cntX()}
 function cntX(){const ok=S.xl.rows.filter(r=>r._s=='ok').length;$('#c-ok').textContent=fI(ok);$('#c-dup').textContent='0';$('#c-err').textContent=fI(S.xl.rows.length-ok);$('#x-imp').disabled=!ok||S.xl.busy}
-function drawX(){cntX();const t=$('#x-t').value,T=TB[t],r=S.xl.rows;const fx=S.xl.fixes||[],hw=S.xl.hdrWarn||[];$('#x-i').textContent=`${r.length} rows · blank lines skipped · showing first 150`+(fx.length?` · ${fx.length} D.O. corrected`:'')+(hw.length?` · ${hw.length} block title(s) disagree with their rows`:'');$('#x-i').title=[...fx,...hw].join('\n');
+function drawX(){cntX();const t=$('#x-t').value,T=TB[t],r=S.xl.rows;const fx=S.xl.fixes||[],hw=S.xl.hdrWarn||[];$('#x-i').textContent=`${r.length} rows with a D.O. No · showing first 150`+(fx.length?` · ${fx.length} D.O. corrected`:'')+(hw.length?` · ${hw.length} block title(s) disagree with their rows`:'');$('#x-i').title=[...fx,...hw].join('\n');
  $('#t-x').innerHTML=`<thead><tr><th>Row</th><th>Dir</th>${T.f.map(f=>`<th>${f[1]}</th>`).join('')}</tr></thead><tbody>`+r.slice(0,150).map(o=>`<tr${S.xl.fixMap&&S.xl.fixMap[o._row]!==undefined?' style="background:#fffbeb" title="D.O. corrected"':''}><td class="muted">${o._row}</td><td>${o.direction}</td>${T.f.map(([k,,ty])=>`<td>${o[k]==null?'–':ty=='n'?fQ(o[k]):esc(o[k])}</td>`).join('')}</tr>`).join('')+'</tbody>'}
 function loadX(file){const rd=new FileReader();rd.onload=e=>{try{S.xl.wb=XLSX.read(e.target.result,{type:'array'})}catch(x){return toast('Cannot read file: '+x.message,true)}
  const n=S.xl.wb.SheetNames,s=$('#x-s');s.disabled=false;s.innerHTML=n.map(x=>`<option>${esc(x)}</option>`).join('');guess();parseSheet().catch(x=>toast(exErr(x),true))};rd.readAsArrayBuffer(file)}
@@ -2024,38 +2026,52 @@ main{overflow-y:auto!important}
 })();
 </script>
  
-<script id="asof-date">
-/* ===== KSK Mahanadi: "As on date" view =====
-   Adds a date picker to the dashboard. When a date is set, every calculated value
-   (received, dispatched, balances, wash coal, trips, days left, asking, totals, cards)
-   is recalculated using only rows dated on or before that day.
-   Load AFTER the main script, in the same place as ksk_daily_lift.js. */
+<script id="range-dates">
+/* ===== KSK Mahanadi: From / To date range =====
+   From: starts at the first date in the data (Rec. Date for Inward, dispatch date for Dispatch and Multi Upload).
+   To:   optional. Blank = complete data up to the latest entry.
+   Every calculated value (received, dispatched, balances, wash coal, trips, days left, asking, totals, cards)
+   uses only the movements dated inside the chosen range. */
 (function(){
- if(typeof S==='undefined'||typeof calc!=='function'||typeof load!=='function'){console.error('[asof] dashboard not ready');return}
- S.asOn='';S.dated=null;S.undated=0;
+ if(typeof S==='undefined'||typeof calc!=='function'||typeof load!=='function'){console.error('[range] dashboard not ready');return}
+ S.asFrom='';S.asTo='';S.minDate='';S.dated=null;S.undated=0;
+ const MON={jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
 
- /* ---------- UI ---------- */
  const st=document.createElement('style');
- st.textContent='#asof{gap:8px}#asof-d.on{border-color:#d97706;background:#fffbeb}#asof-n{font-size:12px;color:var(--mut)}';
+ st.textContent='#asof{gap:8px}#asof input.on{border-color:#d97706;background:#fffbeb}#asof-n{font-size:12px;color:var(--mut)}';
  document.head.appendChild(st);
  const box=document.createElement('div');box.id='asof';box.className='toolbar';
- box.innerHTML='<label class="chk">As on date <input type="date" id="asof-d"></label>'
-  +'<button type="button" class="btn small" id="asof-t">Today</button>'
-  +'<button type="button" class="btn ghost small hidden" id="asof-c">Live</button>'
+ box.innerHTML='<label class="chk">From <input type="date" id="asof-f"></label>'
+  +'<label class="chk">To <input type="date" id="asof-t"></label>'
+  +'<button type="button" class="btn ghost small hidden" id="asof-c">Clear To</button>'
   +'<span id="asof-n"></span>';
  $('.bar2').insertBefore(box,$('#flt'));
- const inp=$('#asof-d');
+ const fIn=$('#asof-f'),tIn=$('#asof-t');
 
- /* ---------- dated summaries (same shape as the database views, cut off at the chosen date) ---------- */
+ /* filtering is on only when the To date is set, or the From date was moved away from the first date in the data */
+ const isFiltering=()=>!!S.asTo||(!!S.asFrom&&S.asFrom!==S.minDate);
+ /* the D.O. Summary shows dates as "06 Nov 2026" */
+ function parseShort(t){const m=String(t||'').trim().match(/^(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4})$/);if(!m||MON[m[2].toLowerCase()]===undefined)return null;return new Date(+m[3],MON[m[2].toLowerCase()],+m[1])}
+
  async function loadDated(){
-  const T=pd(S.asOn);S.undated=0;
-  const keep=v=>{const d=pd(v);if(!d){S.undated++;return false}return d<=T};
   const [sr,mu,al,rk]=await Promise.all([
    fetchAll(()=>db.from('ksk_sheet_rows').select('id,direction,do_key,do_no,rec_date,disp_date,net_wt').order('id')),
    fetchAll(()=>db.from('ksk_multi_upload_rows').select('id,do_key,do_no,disp_date,net_wt').order('id')),
    fetchAll(()=>db.from('ksk_rcr_rake_alloc').select('*').order('id')).catch(()=>[]),
    db.from('ksk_rcr_rakes').select('rr_no,rr_date').then(r=>r.data||[],()=>[])
   ]);
+
+  /* first date in the data: Rec. Date for Inward, dispatch date for Dispatch and Multi Upload */
+  let min=null;
+  const seen=v=>{const d=pd(v);if(d&&(!min||d<min))min=d};
+  sr.forEach(r=>{if(r.direction==='IN')seen(r.rec_date);else if(r.direction==='OUT')seen(r.disp_date)});
+  mu.forEach(r=>seen(r.disp_date));
+  S.minDate=min?iso(min):'';
+  if(!S.asFrom)S.asFrom=S.minDate;
+
+  S.undated=0;
+  const F=pd(S.asFrom),T=pd(S.asTo);
+  const keep=v=>{const d=pd(v);if(!d){S.undated++;return false}return (!F||d>=F)&&(!T||d<=T)};
   const rd={};rk.forEach(r=>rd[String(r.rr_no)]=r.rr_date);
   const inS={},dsS={},rcrS={},rkAlloc={};
   const add=(m,k,n)=>{if(!k)return;const o=m[k]||(m[k]={trips:0,net:0});o.trips++;o.net+=num(n)||0};
@@ -2064,59 +2080,66 @@ main{overflow-y:auto!important}
    else if(r.direction==='OUT'){if(keep(r.disp_date))add(dsS,k,r.net_wt)}});
   mu.forEach(r=>{if(keep(r.disp_date))add(rcrS,String(r.do_key||r.do_no||''),r.net_wt)});
   al.forEach(r=>{if(keep(rd[String(r.rr_no)]))add(rkAlloc,String(r.do_no),r.qty)});
-  S.dated={inS,dsS,rcrS,rkAlloc};
+  S.dated=isFiltering()?{inS,dsS,rcrS,rkAlloc}:null;
  }
 
- /* ---------- calc(): run the normal formulas on the dated summaries, then redo Days Left / Asking from that date ---------- */
+ /* calc(): when a range is chosen, run the normal formulas on the dated totals and redo Days Left / Asking from the To date (or today) */
  const _c=calc;
  calc=function(d,ov){
-  if(!S.asOn||!S.dated)return _c(d,ov);
+  if(!S.dated)return _c(d,ov);
   const bak={inS:S.inS,rcrS:S.rcrS,dsS:S.dsS,rkAlloc:S.rkAlloc};
   Object.assign(S,S.dated);
   let r;try{r=_c(d,ov)}finally{Object.assign(S,bak)}
-  const L=pd(r.lapsing_date),T=pd(S.asOn);
-  if(L&&T){const dl=Math.round((L-T)/864e5),mb=num(r.mines_bal);
-   r.days_left=dl;r.asking=mb===null?null:(mb>0?r3(mb/Math.max(1,dl)):0)}
+  const L=pd(r.lapsing_date),T=S.asTo?pd(S.asTo):new Date(new Date().toDateString());
+  if(L&&T){const dl=Math.round((L-T)/864e5),mb=num(r.mines_bal);r.days_left=dl;r.asking=mb===null?null:(mb>0?r3(mb/Math.max(1,dl)):0)}
   return r};
 
- /* ---------- load(): fetch dated rows first, then the normal loader ---------- */
+ function syncRange(){
+  const f=isFiltering();
+  fIn.value=S.asFrom||'';tIn.value=S.asTo||'';
+  fIn.classList.toggle('on',!!S.asFrom&&S.asFrom!==S.minDate);
+  tIn.classList.toggle('on',!!S.asTo);
+  $('#asof-c').classList.toggle('hidden',!S.asTo);
+  $('#asof-n').textContent=f
+   ?('Showing '+(S.asFrom?fD(S.asFrom):'from start')+' to '+(S.asTo?fD(S.asTo):'latest entry')+(S.undated?' · '+S.undated+' row(s) with no readable date left out':''))
+   :'Complete data';
+ }
+
+ /* load(): fetch the dated movements first, then run the normal loader */
  const _l=load;
  load=async function(){
-  if(S.asOn){try{await loadDated()}catch(e){S.dated=null;toast('Date filter failed: '+exErr(e),true)}}
+  if(db){try{await loadDated()}catch(e){S.dated=null;toast('Date filter failed: '+exErr(e),true)}}
   else S.dated=null;
-  await _l();note();
+  await _l();
+  syncRange();
  };
 
- /* ---------- D.O. Summary: hide movements after the chosen date ---------- */
+ /* D.O. Summary: hide movements outside the range */
  const _ls=loadSum;
  loadSum=async function(){
   await _ls();
-  if(!S.asOn)return;const T=pd(S.asOn);
-  $$('#s-body tbody tr').forEach(tr=>{if(tr.cells.length<5)return;const d=pd(tr.cells[0].textContent);if(d&&d>T)tr.remove()});
+  if(!isFiltering())return;
+  const F=pd(S.asFrom),T=pd(S.asTo);
+  $$('#s-body tbody tr').forEach(tr=>{if(tr.cells.length<5)return;const d=parseShort(tr.cells[0].textContent);if(!d)return;if((F&&d<F)||(T&&d>T))tr.remove()});
  };
  $('#s-do').onchange=loadSum;
  $('#refresh').onclick=()=>load();
 
- /* ---------- downloaded image: show the chosen date in its heading ---------- */
+ /* downloaded image: show the range in its heading */
  new MutationObserver(()=>{
-  const r=document.getElementById('cap-root');if(!r||!S.asOn||r.dataset.asof)return;r.dataset.asof='1';
+  const r=document.getElementById('cap-root');if(!r||!isFiltering()||r.dataset.range)return;r.dataset.range='1';
   const s=r.querySelector('.caph span:last-child');
-  if(s)s.textContent='As on '+pd(S.asOn).toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});
+  if(s)s.textContent=(S.asFrom?'From '+fD(S.asFrom):'')+(S.asTo?' to '+fD(S.asTo):' till latest entry');
  }).observe(document.body,{childList:true});
 
- /* ---------- controls ---------- */
- function note(){
-  $('#asof-n').textContent=S.asOn?('Position as on '+fD(S.asOn)+(S.undated?' · '+S.undated+' row(s) with no readable date ignored':'')):'';
- }
- async function setDate(v){
-  S.asOn=v||'';inp.value=S.asOn;inp.classList.toggle('on',!!S.asOn);
-  $('#asof-c').classList.toggle('hidden',!S.asOn);
-  await load();
-  if(S.page==='s')loadSum();
- }
- inp.onchange=()=>setDate(inp.value);
- $('#asof-t').onclick=()=>setDate(iso(new Date()));
- $('#asof-c').onclick=()=>setDate('');
+ /* controls */
+ async function setRange(){await load();if(S.page==='s')loadSum()}
+ fIn.onchange=()=>{S.asFrom=fIn.value;setRange()};
+ tIn.onchange=()=>{S.asTo=tIn.value;setRange()};
+ $('#asof-c').onclick=()=>{S.asTo='';setRange()};
+
+ /* first load with the range controls */
+ load();
 })();
 
 </script>
