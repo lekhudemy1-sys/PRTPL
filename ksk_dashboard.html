@@ -1286,12 +1286,45 @@ const fQ=v=>num(v)===null?'–':num(v).toLocaleString('en-IN',{minimumFractionDi
 const fI=v=>num(v)===null?'–':num(v).toLocaleString('en-IN',{maximumFractionDigits:0});
 const sum=(a,k)=>a.reduce((s,x)=>s+(num(x[k])||0),0);
 const normSec=s=>String(s??'').toUpperCase().trim();
-function pd(s){if(s instanceof Date)return s;if(!s)return null;s=String(s).trim();let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/),y,mo,d;
- if(m){y=+m[1];mo=+m[2];d=+m[3]}else{m=s.match(/^(\d{1,2})\s*[-/.]\s*(\d{1,2})\s*[-/.]\s*(\d{2,4})$/);if(!m)return null;d=+m[1];mo=+m[2];y=+m[3];if(y<1000)y+=2000}
- const t=new Date(y,mo-1,d);return isNaN(t)?null:t}
 const iso=t=>`${t.getFullYear()}-${p2(t.getMonth()+1)}-${p2(t.getDate())}`;
+
+/* ===== Date handling (one parser for Excel, forms, log and dashboard) =====
+   Indian default: DD/MM/YYYY. Ambiguous values (both parts <= 12) are read as DD/MM and
+   returned with the MM/DD reading in alt so the user can choose. Impossible dates are rejected. */
+const DATE_F=['rec_date','ch_date','disp_date'];
+const MON3={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
+const ISO_OK=(y,m,d)=>{const t=new Date(Date.UTC(y,m-1,d));return t.getUTCFullYear()===y&&t.getUTCMonth()===m-1&&t.getUTCDate()===d};
+const isoOf=(y,m,d)=>`${y}-${p2(m)}-${p2(d)}`;
+/* Returns {iso, amb, alt, note}. */
+function parseDate(v){
+  const none=note=>({iso:null,amb:false,alt:null,note});
+  const ok=(y,m,d)=>ISO_OK(y,m,d)?isoOf(y,m,d):null;
+  if(v==null||v==='')return none('');
+  if(v instanceof Date)return isNaN(v)?none('invalid date'):{iso:isoOf(v.getFullYear(),v.getMonth()+1,v.getDate()),amb:false,alt:null,note:''};
+  if(typeof v==='number'){
+    if(v>20000&&v<80000){const d=new Date(Math.round((v-25569)*864e5));return{iso:isoOf(d.getUTCFullYear(),d.getUTCMonth()+1,d.getUTCDate()),amb:false,alt:null,note:''}}
+    return none('number is not a date');
+  }
+  const s=String(v).trim().replace(/\s+/g,' ');
+  let m=s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})(?:[ T].*)?$/);
+  if(m){const iso=ok(+m[1],+m[2],+m[3]);return iso?{iso,amb:false,alt:null,note:''}:none('impossible date')}
+  m=s.match(/^(\d{1,2})[-\/. ]([A-Za-z]{3})[a-z]*[-\/., ]+(\d{2,4})$/);
+  if(m&&MON3[m[2].toLowerCase()]){let y=+m[3];if(y<100)y+=2000;const iso=ok(y,MON3[m[2].toLowerCase()],+m[1]);return iso?{iso,amb:false,alt:null,note:''}:none('impossible date')}
+  m=s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})$/);
+  if(m){
+    const a=+m[1],b=+m[2];let y=+m[3];if(y<100)y+=2000;
+    const dmy=ok(y,b,a),mdy=ok(y,a,b);
+    if(dmy&&mdy&&a!==b)return{iso:dmy,amb:true,alt:mdy,note:'ambiguous: read as DD/MM'};
+    if(dmy)return{iso:dmy,amb:false,alt:null,note:''};
+    if(mdy)return{iso:mdy,amb:false,alt:null,note:'read as MM/DD'};
+    return none('impossible date');
+  }
+  return none('unreadable');
+}
+function pd(s){if(s instanceof Date)return s;const p=parseDate(s);if(!p.iso)return null;const[y,m,d]=p.iso.split('-').map(Number);return new Date(y,m-1,d)}
 const fD=s=>{const d=pd(s);return d?d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):(s||'–')};
-const normD=s=>{s=(s||'').trim();if(!s)return null;const d=pd(s);return d?iso(d):s};
+const normD=s=>{s=(s??'').toString().trim();if(!s)return null;return parseDate(s).iso||s};
+
 function toast(m,e){const t=$('#toast');t.textContent=m;t.className='toast'+(e?' err':'');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.add('hidden'),3800)}
 function setSt(t,c){const s=$('#status');s.innerHTML='<span class="dot"></span>'+esc(t);s.className='pill '+(c||'')}
 const exErr=e=>{if(!e)return'Unknown error';const s=(e.message||'')+' '+(e.code||'')+' '+(e.details||'');
@@ -1385,7 +1418,7 @@ async function loadSum(){const d=S.rows.find(x=>x.do_no==$('#s-do').value)||S.ro
  if(oldMov.error||newMov.error)return toast(exErr(oldMov.error||newMov.error),true);
  const rc=[...(oldMov.data||[]).filter(x=>!String(x.source_sheet||'').startsWith('MULTI:')).map(x=>x.direction=='IN'?[x.rec_date,'IN',x.vehicle_no,x.net_wt,x.unique_no]:[x.disp_date,'OUT',x.vehicle_no,x.net_wt,x.unique_no]),...(newMov.data||[]).map(x=>[x.disp_date,'OUT',x.vehicle_no,x.net_wt,x.unique_no])].sort((a,b)=>String(b[0]||'').localeCompare(String(a[0]||''))).slice(0,50);
  $('#s-body').innerHTML=`<div class="cards">${card('D.O. quantity',d.do_qty,w?'':'r',d.section)}${card('Received / lifted',d.rec_qty,'',`${d.trips} trips`,'q')}${card('Mines balance',d.mines_bal,'r','D.O. qty − received')}${w?card('Wash coal 85%',d.wash_coal,'s','Reject 15%: '+fQ(d.reject)):''}${card('Dispatched',d.disp_qty,'k',d.disp_trips+' trips')}${card(w?'Washery balance':'Balance at IUIK',d.washery_bal,'o','')}</div>
- <div class="glass"><div class="glass-h"><h2>Recent movements</h2><span class="sub">latest entries</span></div><div class="sc"><table><thead><tr><th>Date</th><th>Type</th><th>Vehicle</th><th class="num">Net (MT)</th><th>Unique no.</th></tr></thead><tbody>${rc.map(r=>`<tr><td>${esc(r[0]||'–')}</td><td><span class="badge">${r[1]}</span></td><td>${esc(r[2])}</td><td class="num">${esc(r[3]??'–')}</td><td class="muted">${esc(r[4]||'')}</td></tr>`).join('')||'<tr><td colspan="5" class="empty">No entries for this D.O.</td></tr>'}</tbody></table></div></div>`}
+ <div class="glass"><div class="glass-h"><h2>Recent movements</h2><span class="sub">latest entries</span></div><div class="sc"><table><thead><tr><th>Date</th><th>Type</th><th>Vehicle</th><th class="num">Net (MT)</th><th>Unique no.</th></tr></thead><tbody>${rc.map(r=>`<tr><td>${esc(fD(r[0]))}</td><td><span class="badge">${r[1]}</span></td><td>${esc(r[2])}</td><td class="num">${esc(r[3]??'–')}</td><td class="muted">${esc(r[4]||'')}</td></tr>`).join('')||'<tr><td colspan="5" class="empty">No entries for this D.O.</td></tr>'}</tbody></table></div></div>`}
 async function capture(){if(S.edit)return toast('Exit edit mode before downloading the image',true);if(!window.html2canvas)return toast('Image library did not load',true);
  const w=document.createElement('div');w.className='capwrap';w.style.cssText='position:fixed;left:-20000px;top:0;width:1500px';w.innerHTML=`<div class="caph"><span>KSK Mahanadi · Stock summary</span><span>${new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'})}</span></div>`;
  ['#p-w','#p-r'].forEach(s=>{const c=$(s).cloneNode(true);c.classList.remove('hidden');c.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));c.removeAttribute('id');[c,...c.querySelectorAll('.sc,.glass,.page')].forEach(n=>n.style.cssText+=';height:auto!important;max-height:none!important;overflow:visible!important;flex:none!important');w.appendChild(c)});
@@ -1400,7 +1433,9 @@ function mkForm(t,o={}){const T=TB[t],v=o.values||{},f=document.createElement('f
  f.innerHTML=T.f.map(([k,l,ty,rq])=>`<label class="fld"><span>${l}${rq?' *':''}</span><input type="${ty=='d'?'date':ty=='t'?'text':'number'}" ${ty=='t'?'':'step="any"'} name="${k}" value="${esc(v[k]??'')}" ${k=='vehicle_no'?'style="text-transform:uppercase"':''}></label>`).join('')+`<div class="msg"></div><div class="row">${o.edit?'':'<button type="button" class="btn ghost" data-c>Clear</button>'}<button class="btn primary">${o.edit?'Save changes':'Save entry'}</button></div>`;
  f.querySelector('[data-c]')?.addEventListener('click',()=>f.reset());
  f.addEventListener('submit',async e=>{e.preventDefault();const m=f.querySelector('.msg'),p={};m.className='msg';m.textContent='';
-  for(const[k,l,ty,rq]of T.f){let x=f.elements[k].value.trim();if(ty=='n'||ty=='i'){x=x===''?null:Number(x);if(x!==null&&(!Number.isFinite(x)||(ty=='i'&&!Number.isInteger(x))))return m.className='msg err',m.textContent=l+': enter a valid number'}else x=x||null;
+  for(const[k,l,ty,rq]of T.f){let x=f.elements[k].value.trim();if(ty=='n'||ty=='i'){x=x===''?null:Number(x);if(x!==null&&(!Number.isFinite(x)||(ty=='i'&&!Number.isInteger(x))))return m.className='msg err',m.textContent=l+': enter a valid number'}
+   else if(ty=='d'){if(x===''){x=null}else{const p=parseDate(x);if(!p.iso)return m.className='msg err',m.textContent=l+': enter a valid date';x=p.iso}}
+   else x=x||null;
    if(k=='vehicle_no'&&x)x=x.toUpperCase();if(rq&&x===null)return m.className='msg err',m.textContent=l+' is required';p[k]=typeof x=='number'?String(x):x}
   /* warn once if the D.O. is not in the dashboard list (the D.O. number is stored as text in the entry tables) */
   if(!S.vals.some(d=>String(d.do_no)==String(p.do_no))&&!(await PRTPL.confirm(`D.O. ${p.do_no} is not in the dashboard list. Save anyway?`,{title:'D.O. not in list',okLabel:'Save anyway',danger:false})))return;
@@ -1459,7 +1494,7 @@ async function renderLog(){if(!db)return;const t=$('#l-t').value,T=TB[t],PS=500,
  let tot='';try{tot=' · total '+fQ(sum(await fetchAll(()=>logQ(T.sk).order(T.ord)),T.sk))+' MT ('+lab(t,T.sk)+')'}catch(e){}
  $('#l-info').textContent=`${count} row${count==1?'':'s'} · showing ${count?S.pg*PS+1:0}–${S.pg*PS+data.length}${tot}`;$('#l-pv').disabled=S.pg==0;$('#l-nx').disabled=(S.pg+1)*PS>=count;
  const ed=t!='ksk_dashboard_values'&&t!='ksk_multi_upload_rows'?'edit':'open';
- $('#t-log').innerHTML=`<thead><tr>${T.f.map(f=>`<th class="${f[2]=='n'?'num':''}">${f[1]}</th>`).join('')}<th></th></tr></thead><tbody>`+(data.length?data.map(r=>'<tr>'+T.f.map(([k,,ty])=>{const v=r[k];return v==null||v===''?'<td class="muted">–</td>':ty=='n'?`<td class="num">${fQ(v)}</td>`:ty=='i'?`<td class="num">${v}</td>`:ty=='d'&&t!='ksk_dashboard_values'?`<td>${esc(v)}</td>`:`<td class="t" title="${esc(v)}">${esc(v)}</td>`}).join('')+`${t=='ksk_multi_upload_rows'?'<td><span class="muted">From Multi Upload</span></td>':`<td><button class="btn small" data-a="${ed}" data-id="${r.id??r.do_no}">${ed=='edit'?'Edit':'Open'}</button>${ed=='edit'?` <button class="btn small red" data-a="del" data-id="${r.id}">Delete</button>`:''}</td>`}</tr>`).join(''):`<tr><td class="empty" colspan="${T.f.length+1}">No records match.</td></tr>`)+'</tbody>';
+ $('#t-log').innerHTML=`<thead><tr>${T.f.map(f=>`<th class="${f[2]=='n'?'num':''}">${f[1]}</th>`).join('')}<th></th></tr></thead><tbody>`+(data.length?data.map(r=>'<tr>'+T.f.map(([k,,ty])=>{const v=r[k];return v==null||v===''?'<td class="muted">–</td>':ty=='n'?`<td class="num">${fQ(v)}</td>`:ty=='i'?`<td class="num">${v}</td>`:/_date$/.test(k)?`<td>${fD(v)}</td>`:`<td class="t" title="${esc(v)}">${esc(v)}</td>`}).join('')+`${t=='ksk_multi_upload_rows'?'<td><span class="muted">From Multi Upload</span></td>':`<td><button class="btn small" data-a="${ed}" data-id="${r.id??r.do_no}">${ed=='edit'?'Edit':'Open'}</button>${ed=='edit'?` <button class="btn small red" data-a="del" data-id="${r.id}">Delete</button>`:''}</td>`}</tr>`).join(''):`<tr><td class="empty" colspan="${T.f.length+1}">No records match.</td></tr>`)+'</tbody>';
  $('#t-log')._r=data}
 async function expLog(){const t=$('#l-t').value;try{const d=await fetchAll(()=>logQ('*').order(TB[t].ord));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(d.map(r=>{const o={};TB[t].f.forEach(f=>o[f[1]]=r[f[0]]);return o})),TB[t].l);XLSX.writeFile(wb,`ksk-${TB[t].l}-${iso(new Date())}.xlsx`)}catch(e){toast(exErr(e),true)}}
 
@@ -1469,7 +1504,8 @@ const AL={snno:'sn_no',srno:'sn_no',chdate:'ch_date',dono:'do_no',grosswt:'gross
 const FIELDS=['sn_no','rec_date','ch_date','disp_date','excise_sr_no','unique_no','do_no','gate_pass','grade','vehicle_no','gross_wt','tare_wt','net_wt','rec_wt','party_name','mines','item','rptp_no'];
 async function parseSheet(){const sheet=$('#x-s').value,ws=S.xl.wb.Sheets[sheet];
  const isDo=$('#x-t').value=='ksk_dashboard_values';
- const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:isDo,defval:null,blankrows:false});
+ /* raw:true keeps Excel date serials and text dates intact; dates are then read by parseDate, not by display format */
+ const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:null,blankrows:false});
  const h=rows.findIndex(r=>r.some(c=>nk(c)=='dono'));
  if(h<0)return xMsg('No header row with "D.O. No" found in this sheet.');
  const heads=rows[h].map((c,i)=>({i,key:nk(c)})).filter(x=>x.key);
@@ -1488,8 +1524,14 @@ async function parseSheet(){const sheet=$('#x-s').value,ws=S.xl.wb.Sheets[sheet]
   /* only rows that carry a D.O. No are loaded; totals, sub-totals and notes have none */
   if(map.do_no==null||r[map.do_no]==null||String(r[map.do_no]).trim()==='')continue;
   const raw={};heads.forEach(({i:j,key})=>raw[key]=r[j]==null?null:String(r[j]).trim());
-  const o={_row:i+1,_s:'ok',_err:'',direction:dir,source_sheet:sheet,source_row:i+1,raw};
-  FIELDS.forEach(f=>{const j=map[f];o[f]=j==null||r[j]==null||String(r[j]).trim()===''?null:String(r[j]).trim()});
+  const o={_row:i+1,_s:'ok',_err:'',_amb:false,direction:dir,source_sheet:sheet,source_row:i+1,raw};
+  FIELDS.forEach(f=>{const j=map[f];const v=j==null?null:r[j];
+    if(v==null||String(v).trim()==='')return o[f]=null;
+    if(DATE_F.includes(f)){const p=parseDate(v);
+      if(!p.iso){o._s='er';o._err=`${f}: "${String(v)}" is not a readable date`;return o[f]=null}
+      if(p.amb)o._amb=true;
+      return o[f]=p.iso}
+    o[f]=String(v).trim()});
   out.push(o)}
  /* D.O. mismatch fix: a block's D.O. = majority D.O. of its truck rows */
  const dd=v=>String(v??'').replace(/\D/g,''),TT=/D\.?\s*O\.?\s*No\.?\s*[-:]?\s*(\d{10})/i,blk=[],hdr={};let b=0;
@@ -1507,6 +1549,7 @@ function parseDoList(rows,h,heads,sheet){
  if(map.do_no==null)return xMsg('No "D.O. No" column found.');
  const num=x=>{if(x==null||x==='')return null;const n=Number(String(x).replace(/,/g,''));return Number.isFinite(n)?n:null};
  const txt=x=>x instanceof Date?iso(x):(x==null||String(x).trim()===''?null:String(x).trim());
+ const dtx=x=>{const p=parseDate(x);return p.iso||txt(x)};
  const out=[];
  for(let i=h+1;i<rows.length;i++){const r=rows[i],v=f=>map[f]==null?null:r[map[f]];
   const dn=v('do_no');if(dn==null||String(dn).trim()==='')continue;
@@ -1516,16 +1559,16 @@ function parseDoList(rows,h,heads,sheet){
   out.push({_row:i+1,_s:ok?'ok':'er',_err:ok?'':'D.O. No is not a whole number',
    do_no:ok?dnum:null,section:['WASHERY','RCR','ROAD'].includes(sec)?sec:'WASHERY',
    sn_no:num(v('sn_no')),colliery:txt(v('colliery')),party_name:txt(v('party_name')),
-   issue_date:txt(v('issue_date')),sized:txt(v('sized')),lapsing_date:txt(v('lapsing_date')),
+   issue_date:dtx(v('issue_date')),sized:txt(v('sized')),lapsing_date:dtx(v('lapsing_date')),
    do_qty:num(v('do_qty')),asking:num(v('asking')),daily_lift:num(v('daily_lift')),daily_dispatch:num(v('daily_dispatch')),
    direction:'',source_sheet:sheet,source_row:i+1});
  }
  S.xl.rows=out;S.xl.skip=0;drawX()}
 function xMsg(m){S.xl.rows=[];$('#t-x').innerHTML=`<tbody><tr><td class="empty">${esc(m)}</td></tr></tbody>`;$('#x-i').textContent=m;cntX()}
 function cntX(){const ok=S.xl.rows.filter(r=>r._s=='ok').length;$('#c-ok').textContent=fI(ok);$('#c-dup').textContent='0';$('#c-err').textContent=fI(S.xl.rows.length-ok);$('#x-imp').disabled=!ok||S.xl.busy}
-function drawX(){cntX();const t=$('#x-t').value,T=TB[t],r=S.xl.rows;const fx=S.xl.fixes||[],hw=S.xl.hdrWarn||[];$('#x-i').textContent=`${r.length} rows with a D.O. No · showing first 150`+(fx.length?` · ${fx.length} D.O. corrected`:'')+(hw.length?` · ${hw.length} block title(s) disagree with their rows`:'');$('#x-i').title=[...fx,...hw].join('\n');
- $('#t-x').innerHTML=`<thead><tr><th>Row</th><th>Dir</th>${T.f.map(f=>`<th>${f[1]}</th>`).join('')}</tr></thead><tbody>`+r.slice(0,150).map(o=>`<tr${S.xl.fixMap&&S.xl.fixMap[o._row]!==undefined?' style="background:#fffbeb" title="D.O. corrected"':''}><td class="muted">${o._row}</td><td>${o.direction}</td>${T.f.map(([k,,ty])=>`<td>${o[k]==null?'–':ty=='n'?fQ(o[k]):esc(o[k])}</td>`).join('')}</tr>`).join('')+'</tbody>'}
-function loadX(file){const rd=new FileReader();rd.onload=e=>{try{S.xl.wb=XLSX.read(e.target.result,{type:'array'})}catch(x){return toast('Cannot read file: '+x.message,true)}
+function drawX(){cntX();const t=$('#x-t').value,T=TB[t],r=S.xl.rows;const fx=S.xl.fixes||[],hw=S.xl.hdrWarn||[];const amb=r.filter(o=>o._amb).length;$('#x-i').textContent=`${r.length} rows with a D.O. No · showing first 150`+(fx.length?` · ${fx.length} D.O. corrected`:'')+(hw.length?` · ${hw.length} block title(s) disagree with their rows`:'')+(amb?` · ${amb} ambiguous date(s) read as DD/MM`:'');$('#x-i').title=[...fx,...hw].join('\n');
+ $('#t-x').innerHTML=`<thead><tr><th>Row</th><th>Dir</th>${T.f.map(f=>`<th>${f[1]}</th>`).join('')}</tr></thead><tbody>`+r.slice(0,150).map(o=>`<tr${o._s=='er'?' style="background:#fef2f2" title="'+esc(o._err)+'"':o._amb?' style="background:#fffbeb" title="Ambiguous date: read as DD/MM"':S.xl.fixMap&&S.xl.fixMap[o._row]!==undefined?' style="background:#fffbeb" title="D.O. corrected"':''}><td class="muted">${o._row}</td><td>${o.direction}</td>${T.f.map(([k,,ty])=>`<td>${o[k]==null?'–':ty=='n'?fQ(o[k]):/_date$/.test(k)?fD(o[k]):esc(o[k])}</td>`).join('')}</tr>`).join('')+'</tbody>'}
+function loadX(file){const rd=new FileReader();rd.onload=e=>{try{S.xl.wb=XLSX.read(e.target.result,{type:'array',cellDates:true})}catch(x){return toast('Cannot read file: '+x.message,true)}
  const n=S.xl.wb.SheetNames,s=$('#x-s');s.disabled=false;s.innerHTML=n.map(x=>`<option>${esc(x)}</option>`).join('');guess();parseSheet().catch(x=>toast(exErr(x),true))};rd.readAsArrayBuffer(file)}
 const guess=()=>{const n=S.xl.wb.SheetNames;$('#x-s').value=n[0]};
 async function impX(){const all=S.xl.rows;if(!all.length||S.xl.busy)return;
@@ -1535,7 +1578,7 @@ async function impX(){const all=S.xl.rows;if(!all.length||S.xl.busy)return;
   if(!(await PRTPL.confirm(`Add or update ${fI(rows.length)} D.O.s in the D.O. list from this sheet? Asking, RR details and manual overrides already saved are kept.`,{title:'Update D.O. list',okLabel:'Update list',danger:false})))return;
   S.xl.busy=true;$('#x-imp').disabled=true;let n=0;
   try{for(let i=0;i<rows.length;i+=500){
-    const ch=rows.slice(i,i+500).map(({_row,_s,_err,direction,source_sheet,source_row,...r})=>r);
+    const ch=rows.slice(i,i+500).map(({_row,_s,_err,_amb,direction,source_sheet,source_row,...r})=>r);
     const{error}=await db.from('ksk_dashboard_values').upsert(ch,{onConflict:'do_no'});if(error)throw error;
     n+=ch.length;$('#x-p').style.width=(n/rows.length*100)+'%'}
    toast(`D.O. list updated: ${fI(n)} D.O.s`);S.xl.rows=[];$('#t-x').innerHTML='';$('#x-i').textContent='Upload a file to preview'}
@@ -1548,7 +1591,7 @@ async function impX(){const all=S.xl.rows;if(!all.length||S.xl.busy)return;
  S.xl.busy=true;$('#x-imp').disabled=true;let n=0;
  try{
   for(let i=0;i<rows.length;i+=500){
-   const ch=rows.slice(i,i+500).map(({_row,_s,_err,...r})=>({...r,direction:dir}));
+   const ch=rows.slice(i,i+500).map(({_row,_s,_err,_amb,...r})=>({...r,direction:dir}));
    const{error}=await db.rpc('ksk_upload_rows',{p_direction:dir,p:ch,p_clear:i==0});
    if(error)throw error;
    n+=ch.length;$('#x-p').style.width=(n/rows.length*100)+'%';
@@ -1565,17 +1608,7 @@ const mnum=v=>typeof v==='number'&&Number.isFinite(v);
 const ymd=(y,m,d)=>`${y}-${p2(m)}-${p2(d)}`;
 const muLog=m=>{const el=$('#m-log');el.textContent+=(el.textContent?'\n':'')+m};
 
-function muDate(v,f){
-  if(v==null||v==='')return null;
-  if(mnum(v)&&v>20000&&v<80000){const d=new Date(Math.round((v-25569)*864e5));return ymd(d.getUTCFullYear(),d.getUTCMonth()+1,d.getUTCDate())}
-  const m=String(v).trim().match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4,5})$/);
-  if(!m){f.push(`date "${v}" not readable`);return null}
-  let y=m[3];
-  if(y.length===5){f.push(`date "${v}": year fixed to ${y.slice(0,4)}`);y=y.slice(0,4)}
-  const mo=+m[2],d=+m[1];
-  if(mo<1||mo>12||d<1||d>31){f.push(`date "${v}" not valid`);return null}
-  return ymd(+y,mo,d);
-}
+function muDate(v,f){const p=parseDate(v);if(!p.iso){f.push(`date "${v}" not readable`);return null}if(p.amb)f.push(`date "${v}" is ambiguous, read as DD/MM`);return p.iso}
 function muTruck(v,f){
   if(v==null||String(v).trim()==='')return null;
   const o=String(v).toUpperCase().replace(/[\s.\-]/g,'');
@@ -1654,7 +1687,7 @@ function muLoad(file){
   const rd=new FileReader();
   rd.onload=ev=>{
     try{
-      const wb=XLSX.read(ev.target.result,{type:'array'});
+      const wb=XLSX.read(ev.target.result,{type:'array',cellDates:true});
       MU.rows=wb.SheetNames.filter(n=>!/summary/i.test(n)).map(n=>muParse(n,wb.Sheets[n]));
       $('#m-log').textContent='';
       muRender();
@@ -2034,7 +2067,7 @@ main{overflow-y:auto!important}
    uses only the movements dated inside the chosen range. */
 (function(){
  if(typeof S==='undefined'||typeof calc!=='function'||typeof load!=='function'){console.error('[range] dashboard not ready');return}
- S.asFrom='';S.asTo='';S.minDate='';S.dated=null;S.undated=0;
+ S.asFrom='';S.asFromSet=false;S.asTo='';S.minDate='';S.dated=null;S.undated=0;
  const MON={jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11};
 
  const st=document.createElement('style');
@@ -2049,7 +2082,7 @@ main{overflow-y:auto!important}
  const fIn=$('#asof-f'),tIn=$('#asof-t');
 
  /* filtering is on only when the To date is set, or the From date was moved away from the first date in the data */
- const isFiltering=()=>!!S.asTo||(!!S.asFrom&&S.asFrom!==S.minDate);
+ const isFiltering=()=>!!S.asTo||(!!S.asFromSet&&S.asFrom!==S.minDate);
  /* the D.O. Summary shows dates as "06 Nov 2026" */
  function parseShort(t){const m=String(t||'').trim().match(/^(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4})$/);if(!m||MON[m[2].toLowerCase()]===undefined)return null;return new Date(+m[3],MON[m[2].toLowerCase()],+m[1])}
 
@@ -2067,7 +2100,7 @@ main{overflow-y:auto!important}
   sr.forEach(r=>{if(r.direction==='IN')seen(r.rec_date);else if(r.direction==='OUT')seen(r.disp_date)});
   mu.forEach(r=>seen(r.disp_date));
   S.minDate=min?iso(min):'';
-  if(!S.asFrom)S.asFrom=S.minDate;
+  if(!S.asFromSet)S.asFrom=S.minDate;
 
   S.undated=0;
   const F=pd(S.asFrom),T=pd(S.asTo);
@@ -2134,7 +2167,7 @@ main{overflow-y:auto!important}
 
  /* controls */
  async function setRange(){await load();if(S.page==='s')loadSum()}
- fIn.onchange=()=>{S.asFrom=fIn.value;setRange()};
+ fIn.onchange=()=>{S.asFrom=fIn.value;S.asFromSet=true;setRange()};
  tIn.onchange=()=>{S.asTo=tIn.value;setRange()};
  $('#asof-c').onclick=()=>{S.asTo='';setRange()};
 
@@ -2142,6 +2175,89 @@ main{overflow-y:auto!important}
  load();
 })();
 
+</script>
+<script id="log-date-fix">
+/* ===== Log: date check and fix =====
+   Recommend: lists every date that is unreadable, ambiguous, in a non-standard format or with a suspicious year.
+              You tick the rows to fix and pick the reading for ambiguous ones.
+   Auto-fix:  changes only clear format problems (e.g. text stored as 07/11/2026 where the day is above 12). */
+(function(){
+ const DATECOLS={ksk_inward:['rec_date','ch_date'],ksk_dispatch:['disp_date'],ksk_multi_upload_rows:['disp_date'],ksk_dashboard_values:['issue_date','lapsing_date','rr_date']};
+ const host=document.createElement('div');host.className='toolbar';
+ host.innerHTML='<select id="l-fixt"><option value="rec">Fix type: Recommend</option><option value="auto">Fix type: Auto-fix</option></select>'+
+  '<button id="l-dchk" class="btn small">🗓 Check dates</button><span id="l-dmsg" class="muted" style="font-size:12px"></span>';
+ $('#l-go').parentElement.insertAdjacentElement('afterend',host);
+ const box=document.createElement('div');box.id='l-fixbox';box.className='glass hidden';box.style.cssText='padding:12px;max-height:45vh;overflow:auto;flex:none';
+ host.insertAdjacentElement('afterend',box);
+ let cur=null;
+ const today=iso(new Date());
+
+ async function scan(){
+  const t=$('#l-t').value,cols=DATECOLS[t]||[],key=t=='ksk_dashboard_values'?'do_no':'id';
+  if(!cols.length)return{t,key,items:[]};
+  const rows=await fetchAll(()=>{let q=db.from(SRC(t)).select('*').order(key);if(DIR[t])q=q.eq('direction',DIR[t]);return q});
+  const items=[];
+  rows.forEach(r=>cols.forEach(c=>{
+    const v=r[c];if(v==null||String(v).trim()==='')return;
+    const s=String(v).trim(),p=parseDate(v);
+    let kind=null;
+    if(!p.iso)kind='bad';
+    else if(p.amb)kind='ambiguous';
+    else if(p.note)kind='format';
+    else if(!/^\d{4}-\d{2}-\d{2}$/.test(s))kind='format';
+    if(!kind&&p.iso&&(p.iso<'2015-01-01'||(c!='lapsing_date'&&p.iso>today)))kind='year';
+    if(kind)items.push({key:r[key],col:c,raw:s,to:p.iso,alt:p.alt,kind,note:p.note||(kind=='year'?'year looks wrong':'')});
+  }));
+  cur={t,key,items};return cur;
+ }
+
+ async function apply(list){
+  let ok=0,fail=0;
+  for(let i=0;i<list.length;i+=20){
+   const res=await Promise.all(list.slice(i,i+20).map(x=>db.from(SRC(cur.t)).update({[x.col]:x.to}).eq(cur.key,x.key)));
+   res.forEach(r=>r.error?fail++:ok++);
+  }
+  toast(`Dates fixed: ${ok}${fail?' · failed: '+fail:''}`,fail>0);
+  await load();renderLog();
+ }
+
+ function draw(res){
+  box.classList.remove('hidden');
+  const it=res.items;
+  if(!it.length){box.innerHTML='<div class="empty">All dates in this table are readable and in one format.</div>';return}
+  box.innerHTML=`<div class="glass-h" style="border:0;padding:0 0 8px"><h2>${it.length} date(s) to review</h2><span class="sub">Recommend: tick what to fix. Auto-fix only changes clear format problems.</span></div>
+  <table><thead><tr><th><input type="checkbox" id="fx-all" checked></th><th>Record</th><th>Column</th><th>Stored now</th><th>Problem</th><th>Fix to</th></tr></thead><tbody>`+
+  it.map((x,i)=>`<tr><td><input type="checkbox" class="fx-c" data-i="${i}" ${x.to?'checked':'disabled'}></td><td>${esc(x.key)}</td><td>${esc(x.col)}</td><td>${esc(x.raw)}</td><td>${esc(x.note||x.kind)}</td><td>${x.to?`<select class="fx-s" data-i="${i}"><option value="${x.to}">${fD(x.to)}</option>${x.alt?`<option value="${x.alt}">${fD(x.alt)} (other reading)</option>`:''}</select>`:'<span class="muted">fix in Edit</span>'}</td></tr>`).join('')+
+  `</tbody></table><div class="toolbar" style="margin-top:10px"><button id="fx-go" class="btn teal small">Apply selected</button><button id="fx-x" class="btn ghost small">Close</button></div>`;
+ }
+
+ box.addEventListener('change',e=>{if(e.target.id=='fx-all')box.querySelectorAll('.fx-c:not(:disabled)').forEach(c=>c.checked=e.target.checked)});
+ box.addEventListener('click',async e=>{
+  if(e.target.id=='fx-x'){box.classList.add('hidden');return}
+  if(e.target.id!='fx-go')return;
+  const list=[...box.querySelectorAll('.fx-c:checked')].map(c=>{const x={...cur.items[+c.dataset.i]};const s=box.querySelector(`.fx-s[data-i="${c.dataset.i}"]`);if(s)x.to=s.value;return x}).filter(x=>x.to);
+  if(!list.length)return toast('Nothing selected',true);
+  if(!(await PRTPL.confirm(`Change ${list.length} date(s) in the database?`,{title:'Apply date fixes?',okLabel:'Apply',danger:false})))return;
+  await apply(list);
+  draw(await scan());
+ });
+
+ $('#l-dchk').onclick=async()=>{
+  const msg=$('#l-dmsg');msg.textContent='Checking…';
+  try{
+   let res=await scan();
+   if($('#l-fixt').value=='auto'){
+    const clear=res.items.filter(x=>x.kind=='format'&&x.to);
+    if(clear.length&&await PRTPL.confirm(`Auto-fix ${clear.length} date(s) with a clear format problem? Ambiguous and unreadable dates are left for you to review.`,{title:'Auto-fix dates?',okLabel:'Auto-fix',danger:false})){
+     await apply(clear);res=await scan();
+    }
+   }
+   msg.textContent=`${res.items.length} date(s) need a look`;
+   draw(res);
+  }catch(e){msg.textContent='';toast('Date check failed: '+exErr(e),true)}
+ };
+ $('#l-t').addEventListener('change',()=>box.classList.add('hidden'));
+})();
 </script>
 <script src="ksk_daily_lift.js"></script>
 </body></html>
