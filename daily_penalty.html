@@ -1,0 +1,198 @@
+<!-- ===================== AMM ADD-ON: paste this whole block just before </body> ===================== -->
+<style>
+/* ---- Save button + status pill (same Barlow / yellow-blue station-board style) ---- */
+.btn.save{background:#12306b;border-color:#12306b;color:#fff}
+.btn.save:hover{background:#0c2250}
+.btn.save[disabled]{opacity:.65;cursor:progress}
+.sbpill{display:inline-flex;align-items:center;gap:8px;background:#14181d;color:var(--yellow);border-radius:999px;padding:9px 14px;font-family:var(--font);font-weight:600;font-size:13px;cursor:pointer;user-select:none}
+.sbpill i{width:9px;height:9px;border-radius:50%;background:#8a94a0;flex:none}
+.sbpill.ok i{background:#4cc98a}.sbpill.dirty i{background:#ff8a4c}.sbpill.err i{background:#ff6a60}
+
+/* ---- Rail line-up: wheels now sit exactly on the rail, train rolls in on load / date change ---- */
+.rails{display:none}
+.track-scroll{padding-top:26px}
+.train{width:max-content;min-width:100%;padding-right:30px;padding-bottom:18px;box-sizing:border-box}
+.train::after{content:"";position:absolute;left:0;right:0;bottom:0;height:14px;opacity:.9;
+  background:linear-gradient(var(--ink),var(--ink)) 0 0/100% 3px no-repeat,
+             repeating-linear-gradient(90deg,var(--muted) 0 6px,transparent 6px 18px) 0 5px/100% 8px no-repeat}
+.loco{margin-bottom:0}
+.lw{position:absolute;bottom:-4px;left:12px;width:9px;height:9px;border-radius:50%;background:var(--ink);border:1.5px solid var(--surface)}
+.lw.r{left:auto;right:12px}
+@keyframes roll{from{transform:translateX(-70vw);opacity:0}20%{opacity:1}to{transform:none;opacity:1}}
+.train.run>.loco,.train.run>.grp{animation:roll 1.1s cubic-bezier(.22,.8,.25,1) both}
+
+/* ---- Full-page PNG capture helpers ---- */
+.capturing .sheet-bar,.capturing .hint,.capturing .tools,.capturing .td-act,.capturing .th-act{display:none!important}
+.capturing thead th,.capturing .pcell{position:static!important}
+.capturing .scroll,.capturing .sheet,.capturing .track-scroll{overflow:visible!important}
+.capturing thead th.pen{background:#0e2859!important}
+[data-theme="dark"].capturing thead th.pen,[data-theme="dark"] .capturing thead th.pen{background:#17306a!important}
+.capturing *{animation:none!important;transition:none!important}
+</style>
+
+<script>
+(function(){
+'use strict';
+var KEY='amm_penalty_dashboard_v1', CFG_KEY='amm_sb_cfg', TABLE='amm_penalty_entries';
+/* Put your Supabase details here (or just click the status pill and paste them once) */
+var SUPABASE_URL='YOUR_SUPABASE_URL';
+var SUPABASE_KEY='YOUR_SUPABASE_ANON_KEY';
+
+var $=function(s){return document.querySelector(s)};
+function curDate(){return $('#datePick').value}
+function note(m){var t=document.createElement('div');t.className='toast';t.innerHTML='<span></span>';t.firstChild.textContent=m;$('#toasts').appendChild(t);setTimeout(function(){t.remove()},3400)}
+
+/* ---------- Supabase (plain REST, no library) ---------- */
+function cfg(){
+  var c=null;try{c=JSON.parse(localStorage.getItem(CFG_KEY)||'null')}catch(e){}
+  var u=(c&&c.url)||SUPABASE_URL,k=(c&&c.key)||SUPABASE_KEY;
+  if(!u||!k||/^YOUR_/.test(u)||/^YOUR_/.test(k))return null;
+  return {url:u.replace(/\/+$/,''),key:k};
+}
+function askCfg(){
+  var u=prompt('Supabase Project URL (https://xxxx.supabase.co):');if(!u)return null;
+  var k=prompt('Supabase anon public key:');if(!k)return null;
+  localStorage.setItem(CFG_KEY,JSON.stringify({url:u.trim(),key:k.trim()}));return cfg();
+}
+function api(c,path,opt){
+  opt=opt||{};
+  return fetch(c.url+'/rest/v1/'+path,{
+    method:opt.method||'GET',
+    headers:Object.assign({apikey:c.key,Authorization:'Bearer '+c.key,'Content-Type':'application/json'},opt.headers||{}),
+    body:opt.body?JSON.stringify(opt.body):undefined
+  }).then(function(r){
+    if(!r.ok)return r.text().then(function(t){throw new Error(t||('HTTP '+r.status))});
+    return r.status===204?null:r.text().then(function(t){return t?JSON.parse(t):null});
+  });
+}
+
+/* ---------- local day helpers ---------- */
+function localDay(){try{var s=JSON.parse(localStorage.getItem(KEY)||'{}');return (s.days&&s.days[curDate()])||[]}catch(e){return []}}
+function norm(e){return [e.party,e.area,e.siding,+e.rakes,+e.rr,+e.ch,+e.freight,+e.o1,+e.o2,+e.o3,+e.ench].join('|')}
+function sig(l){return l.map(norm).join('~')}
+var saved={},savedAt={};
+
+/* ---------- UI: Save button + status pill ---------- */
+var tools=$('.tools');
+var pill=document.createElement('span');pill.className='sbpill';pill.innerHTML='<i></i><span></span>';
+pill.title='Click to change the Supabase URL / key';
+var sv=document.createElement('button');sv.className='btn save';sv.id='sbSave';sv.type='button';sv.title='Save this day to Supabase (Ctrl+S)';
+sv.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 18a4 4 0 0 0 .5-7.97A6 6 0 0 0 6 9a4.5 4.5 0 0 0 .5 9"/><path d="M12 12v8m0-8-3 3m3-3 3 3"/></svg>Save';
+tools.insertBefore(sv,tools.firstChild);tools.insertBefore(pill,tools.firstChild);
+function setPill(cls,txt){pill.className='sbpill '+cls;pill.lastChild.textContent=txt}
+function hhmm(d){return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)}
+function refreshState(){
+  if(sv.disabled)return;
+  if(!cfg()){setPill('err','Supabase not connected');return}
+  var d=curDate();
+  if(saved[d]===undefined)setPill('dirty','Not saved yet');
+  else if(sig(localDay())===saved[d])setPill('ok','Saved'+(savedAt[d]?' '+savedAt[d]:''));
+  else setPill('dirty','Unsaved changes');
+}
+setInterval(refreshState,1200);
+
+/* ---------- SAVE ---------- */
+function save(){
+  var c=cfg()||askCfg();
+  if(!c){note('Add your Supabase URL and key first');refreshState();return}
+  var d=curDate(),list=localDay().slice(),now=new Date().toISOString();
+  var rows=list.map(function(e,i){
+    var uq=+e.ch-+e.rr,up=uq<0?0:uq*(+e.freight),op=(+e.o1)+(+e.o2)+(+e.o3);
+    return {id:e.id,sheet_date:d,sort_order:i,party:e.party,area:e.area,siding:e.siding,rakes:+e.rakes,
+      rr:+e.rr,ch:+e.ch,freight:+e.freight,o1:+e.o1,o2:+e.o2,o3:+e.o3,ench:+e.ench,
+      underload_qty:uq,underload_penalty:up,overload_penalty:op,total:up+op+(+e.ench),updated_at:now};
+  });
+  var ids=rows.map(function(r){return r.id});
+  sv.disabled=true;setPill('','Saving…');
+  var up=rows.length?api(c,TABLE+'?on_conflict=id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:rows}):Promise.resolve();
+  up.then(function(){
+    return api(c,TABLE+'?sheet_date=eq.'+d+(ids.length?'&id=not.in.('+ids.join(',')+')':''),{method:'DELETE'});
+  }).then(function(){
+    saved[d]=sig(list);savedAt[d]=hhmm(new Date());
+    sv.disabled=false;refreshState();note('Saved '+rows.length+' rakes for '+d);
+  }).catch(function(err){
+    sv.disabled=false;setPill('err','Save failed');
+    note('Save failed: '+String(err.message||err).slice(0,120));
+  });
+}
+sv.onclick=save;
+pill.onclick=function(){if(askCfg()){refreshState();pull()}};
+document.addEventListener('keydown',function(e){if((e.ctrlKey||e.metaKey)&&(e.key==='s'||e.key==='S')){e.preventDefault();save()}});
+
+/* ---------- LOAD (Supabase is the source of truth for a saved day) ---------- */
+function pull(){
+  var c=cfg();if(!c)return Promise.resolve();
+  var d=curDate();
+  return api(c,TABLE+'?sheet_date=eq.'+d+'&order=sort_order.asc').then(function(rows){
+    if(!rows||!rows.length){refreshState();return}
+    var list=rows.map(function(r){return {id:r.id,party:r.party,area:r.area,siding:r.siding,rakes:+r.rakes,rr:+r.rr,ch:+r.ch,freight:+r.freight,o1:+r.o1,o2:+r.o2,o3:+r.o3,ench:+r.ench}});
+    var prior=saved[d],local=sig(localDay());
+    if(prior!==undefined&&local!==prior){refreshState();return}   /* user has unsaved edits this session: keep them */
+    saved[d]=sig(list);savedAt[d]=hhmm(new Date(rows[0].updated_at||Date.now()));
+    if(local===saved[d]){refreshState();return}
+    var s={};try{s=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){}
+    s.days=s.days||{};s.days[d]=list;
+    s.parties=s.parties&&s.parties.length?s.parties:['BALCO','JHABUA','GUJRAT POWER','NALCO','HZL'];
+    s.areas=s.areas&&s.areas.length?s.areas:['SECL','CCL','MCL','WCL','NCL','MCFL'];
+    list.forEach(function(e){if(s.parties.indexOf(e.party)<0)s.parties.push(e.party);if(s.areas.indexOf(e.area)<0)s.areas.push(e.area)});
+    localStorage.setItem(KEY,JSON.stringify(s));
+    sessionStorage.setItem('amm_goto',d);
+    location.reload();
+  }).catch(function(err){setPill('err','Load failed');note('Could not load from Supabase: '+String(err.message||err).slice(0,100))});
+}
+
+/* ---------- RAIL: wheels + roll-in animation ---------- */
+var train=$('#train'),rollT=null;
+function wheels(){var l=document.querySelector('#train .loco');if(l&&!l.firstChild)l.innerHTML='<i class="lw"></i><i class="lw r"></i>'}
+new MutationObserver(wheels).observe(train,{childList:true});wheels();
+function roll(){train.classList.remove('run');void train.offsetWidth;train.classList.add('run');clearTimeout(rollT);rollT=setTimeout(function(){train.classList.remove('run')},1300)}
+function afterNav(){roll();refreshState();pull()}
+$('#prevDay').addEventListener('click',afterNav);
+$('#nextDay').addEventListener('click',afterNav);
+$('#datePick').addEventListener('change',afterNav);
+
+/* ---------- FULL-PAGE PNG (header, rakes, KPIs, sheet, Penalty by party / area / top five) ---------- */
+var h2c=null;
+function loadH2C(){
+  return h2c||(h2c=new Promise(function(res,rej){
+    if(window.html2canvas)return res();
+    var s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+    s.onload=res;s.onerror=function(){h2c=null;rej(new Error('html2canvas failed to load'))};
+    document.head.appendChild(s);
+  }));
+}
+$('#pngBtn').onclick=function(){
+  var b=$('#pngBtn');b.disabled=true;note('Building full-page image…');
+  var fonts=(document.fonts&&document.fonts.ready)||Promise.resolve();
+  Promise.all([loadH2C(),fonts]).then(function(){
+    document.body.classList.add('capturing');
+    window.scrollTo(0,0);
+    var w=Math.max(1480,document.documentElement.scrollWidth);
+    return html2canvas(document.body,{
+      scale:2,useCORS:true,logging:false,windowWidth:w,scrollX:0,scrollY:0,
+      backgroundColor:getComputedStyle(document.body).backgroundColor,
+      ignoreElements:function(el){return el.id==='drawer'||el.id==='scrim'||el.id==='toasts'}
+    });
+  }).then(function(cv){
+    document.body.classList.remove('capturing');
+    return new Promise(function(r){cv.toBlob(r,'image/png')});
+  }).then(function(blob){
+    b.disabled=false;
+    if(!blob){note('Could not create the PNG');return}
+    var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='AMM_Penalty_Sheet_'+curDate()+'.png';
+    document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},800);
+    note('Full-page PNG saved');
+  }).catch(function(err){
+    document.body.classList.remove('capturing');b.disabled=false;
+    note('PNG failed: '+String(err.message||err).slice(0,100));
+  });
+};
+
+/* ---------- START ---------- */
+var g=sessionStorage.getItem('amm_goto');
+if(g){sessionStorage.removeItem('amm_goto');var p=$('#datePick');p.value=g;p.dispatchEvent(new Event('change'))}
+else{roll();refreshState();pull()}
+})();
+</script>
+<!-- ===================== END ADD-ON ===================== -->
