@@ -38,6 +38,9 @@ input:focus,select:focus{box-shadow:0 0 0 3px rgba(59,63,158,.35)}
 
 main{max-width:1800px;margin:0 auto;padding:1.1rem}
 .view{display:none}.view.active{display:block}
+.back-btn{display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .85rem;border-radius:999px;color:#fff;font-weight:600;font-size:.85rem;white-space:nowrap;background:rgba(255,255,255,.12);transition:.2s}
+.back-btn:hover{background:rgba(255,255,255,.22)}
+.back-row .back-btn{background:linear-gradient(120deg,var(--navy),var(--navy2));padding:.6rem 1.1rem;border-radius:12px;font-weight:700;box-shadow:0 10px 18px -10px rgba(31,27,77,.6)}
 .back-row{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:.8rem}
 .back-group{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
 .sub-group-btn{display:inline-flex;align-items:center;gap:.5rem;padding:.6rem 1.1rem;border-radius:12px;font:700 .85rem var(--body);color:var(--navy);background:linear-gradient(135deg,#fff3d6,#ffe2a8);border:1px solid #f1cf86;box-shadow:0 10px 18px -12px rgba(217,164,65,.8);transition:.2s;white-space:nowrap}
@@ -61,9 +64,6 @@ main{max-width:1800px;margin:0 auto;padding:1.1rem}
 .tbl{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%}
 .tbl th,.tbl td{padding:.3rem .4rem;border-bottom:1px solid var(--line);white-space:nowrap;text-align:left;font-size:.8rem}
 .tbl th{position:sticky;top:0;background:var(--navy);color:#fff;font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.3px;z-index:2}
-.tbl thead tr.grp th{top:0;height:28px;line-height:28px;padding:0 .5rem;background:var(--navy2);text-align:center;border-right:2px solid rgba(255,255,255,.35);z-index:3}
-.tbl thead tr.lbl th{top:28px}
-.tbl thead tr.grp th.act{background:var(--navy2)}
 .tbl td input{width:118px;padding:.3rem .4rem;border-radius:8px;font-size:.8rem}
 .tbl td input[data-key="sr_no"]{width:64px}
 .tbl td input[data-key="source"],.tbl td input[data-key="fnot_no"]{width:170px}
@@ -102,7 +102,7 @@ main{max-width:1800px;margin:0 auto;padding:1.1rem}
   </header>
 
   <main>
-    <div class="back-row"><div class="back-group"><a class="sub-group-btn" href="jhabua_sub_group.html"><i class="fas fa-layer-group"></i> Sub Group</a></div></div>
+    <div class="back-row"><div class="back-group"><a class="back-btn" href="home_page.html"><i class="fas fa-arrow-left"></i> Back</a><a class="sub-group-btn" href="jhabua_sub_group.html"><i class="fas fa-layer-group"></i> Sub Group</a></div></div>
     <!-- ================= RECORDS LOG ================= -->
     <section class="view active" id="view-log">
       <div class="panel">
@@ -414,24 +414,6 @@ document.querySelectorAll('.nav').forEach(btn => btn.onclick = () => {
   if (btn.dataset.view === 'upload') loadRegistry().catch(() => {});
 });
 
-/* column groups, same sub-headings as the earlier PJPB app */
-const GROUPS = {
-  'Basic Details': ['sr_no','loading_date','area','source','unit','allotment_time','seq_no','reprogram_month'],
-  'Loading': ['pt','ct','d_o'],
-  'Wagon Details': ['supply_wagons','load_wagons','sick_wagons','box_type'],
-  'Weights': ['net_wt','chargeable_wt','rr_weight'],
-  'Quality': ['plant_end_gcv','tm_pct'],
-  'Railway Receipt': ['rr_number','rr_date','fnot_no'],
-  'Underload / Overload': ['ul','ol'],
-  'Punitive Charges': ['chbl_pun_rate','pol1','pol2','pola','krba','ladc','pcla','dcla','pun_sum'],
-  'Other Railway Charges': ['sd','sdcc','st','tc','fauc','gst','enhc','dc_sum','ehbc'],
-  'Freight': ['rr_freight_base','railway_total_freight'],
-  'Billing': ['invoice_no','invoice_number','invoice_date','billed_qty','basic_rate','basic_price','total_amount'],
-  'Sample & Preparation': ['sample_collection_date','rake_no','prep_start_date','prep_50mm','prep_12_5mm','prep_3_35mm','prep_212_micron','prep_end_date','sample_id','powder_status'],
-};
-const GROUP_OF = {};
-Object.entries(GROUPS).forEach(([g, keys]) => keys.forEach(k => GROUP_OF[k] = g));
-
 /* ==================== RECORDS LOG ==================== */
 let logRows = [], rowsById = new Map(), extraCols = [];
 let pending = new Map();   // id -> { 'f:key' | 'x:key' : edited text }  (survives filter changes until saved)
@@ -514,17 +496,7 @@ function renderLog() {
   $('logCount').textContent = `${rows.length} of ${logRows.length} records` +
     (rows.length > LOG_MAX ? ` (showing latest ${LOG_MAX}, search to narrow)` : '') +
     (pending.size ? ` · ${pending.size} unsaved` : '');
-  // two header rows: group name (spanning its columns) above the column label
-  const groupRow = [];
-  cols.forEach(c => {
-    const g = c.kind === 'x' ? 'New columns (auto-added)' : (GROUP_OF[c.key] || 'Other');
-    const last = groupRow[groupRow.length - 1];
-    if (last && last.name === g) last.span++; else groupRow.push({ name: g, span: 1 });
-  });
-  const head = `<thead>
-    <tr class="grp"><th class="act"></th>${groupRow.map(g => `<th colspan="${g.span}">${esc(g.name)}</th>`).join('')}</tr>
-    <tr class="lbl"><th class="act">Actions</th>${cols.map(c => `<th>${esc(c.label)}${c.kind === 'x' ? ' <span class="tag">extra</span>' : ''}</th>`).join('')}</tr>
-  </thead>`;
+  const head = `<thead><tr><th class="act">Actions</th>${cols.map(c => `<th>${esc(c.label)}${c.kind === 'x' ? ' <span class="tag">extra</span>' : ''}</th>`).join('')}</tr></thead>`;
   const body = shown.map(r => {
     const edits = pending.get(r.id) || {};
     const cells = cols.map(c => {
