@@ -118,7 +118,8 @@ a:focus-visible,button:focus-visible{outline:2px solid #1d4ed8;outline-offset:3p
 }
 .tile[href="amm_home.html"]{grid-column:span 7}
 .tile[href="dispatch_dashboard.html"]{grid-column:span 5}
-.tile[href="odr_home.html"],.tile[href="notices.html"],.tile[href="daily_rake_loading.html"]{grid-column:span 4}
+.tile[href="odr_home.html"],.tile[href="notices.html"],
+.tile[href="daily_rake_loading.html"],.tile[href="amm_penalty_dashboard.html"]{grid-column:span 6}
 @media (max-width:900px){.grid>.tile{grid-column:span 6!important}}
 @media (max-width:620px){.grid{grid-template-columns:1fr}.grid>.tile{grid-column:auto!important}}
 
@@ -857,6 +858,7 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
     { t: 'JSW Mahanadi Power', s: 'AMM · party dashboard', h: 'ksk_dashboard.html', i: 'fa-plug', c: '#b45309', k: 'amm:JSW' },
     { t: 'Gujarat Power Corporation', s: 'AMM · party dashboard', h: 'gujarat_dashboard.html', i: 'fa-gauge-high', c: '#be185d', k: 'amm:GPCL' },
     { t: 'Daily Rake Loading', s: 'Daily entry and report', h: 'daily_rake_loading.html', i: 'fa-truck-loading', c: '#0e7490', k: 'amm' },
+    { t: 'AMM Penalty Sheet', s: 'Daily penalty check sheet', h: 'amm_penalty_dashboard.html', i: 'fa-gavel', c: '#be123c', k: 'amm' },
     { t: 'Coal India Data', s: 'Dispatch dashboard and entry', h: 'dispatch_dashboard.html', i: 'fa-train', c: '#0f8a6a', k: 'coal' },
     { t: 'ODR Data', s: 'Railway operations data', h: 'odr_home.html', i: 'fa-database', c: '#7c3aed', k: 'odr' },
     { t: 'Hindustan Zinc ODR', s: 'ODR data', h: 'hzl_odr.html', i: 'fa-database', c: '#0f8a6a', k: 'odr:HZL' },
@@ -1387,6 +1389,11 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
     <i class="ghost fas fa-truck-loading" aria-hidden="true"></i>
     <div class="ico"><i class="fas fa-truck-loading"></i></div>
     <div class="foot"><div><span class="name">Daily Rake Loading</span><span class="desc">Daily rake loading entry and report</span></div><span class="go"><i class="fas fa-arrow-right"></i></span></div>
+  </a>
+  <a class="tile" href="amm_penalty_dashboard.html" data-access="amm" style="--i:5;--c:#be123c">
+    <i class="ghost fas fa-gavel" aria-hidden="true"></i>
+    <div class="ico"><i class="fas fa-gavel"></i></div>
+    <div class="foot"><div><span class="name">AMM Penalty Sheet</span><span class="desc">Daily penalty check by party and siding</span></div><span class="go"><i class="fas fa-arrow-right"></i></span></div>
   </a>
 </nav>
 
