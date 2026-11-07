@@ -25,10 +25,6 @@ button,input,select{font:inherit;color:inherit}
 input,select{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:.45rem .6rem;outline:none}
 input:focus,select:focus{box-shadow:0 0 0 3px rgba(59,63,158,.35)}
 
-/* lock */
-.lock{position:fixed;inset:0;display:grid;place-items:center;background:var(--bg);z-index:50}
-.lock-box{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:1.6rem;width:min(340px,90vw);box-shadow:var(--sh);display:grid;gap:.7rem}
-.lock-box h2{font:700 1.3rem var(--head)}
 .err{color:var(--rose);font-size:.85rem;min-height:1em}
 
 /* top bar */
@@ -60,6 +56,9 @@ main{max-width:1800px;margin:0 auto;padding:1.1rem}
 .tbl{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%}
 .tbl th,.tbl td{padding:.3rem .4rem;border-bottom:1px solid var(--line);white-space:nowrap;text-align:left;font-size:.8rem}
 .tbl th{position:sticky;top:0;background:var(--navy);color:#fff;font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.3px;z-index:2}
+.tbl thead tr.grp th{top:0;height:28px;line-height:28px;padding:0 .5rem;background:var(--navy2);text-align:center;border-right:2px solid rgba(255,255,255,.35);z-index:3}
+.tbl thead tr.lbl th{top:28px}
+.tbl thead tr.grp th.act{background:var(--navy2)}
 .tbl td input{width:118px;padding:.3rem .4rem;border-radius:8px;font-size:.8rem}
 .tbl td input[data-key="sr_no"]{width:64px}
 .tbl td input[data-key="source"],.tbl td input[data-key="fnot_no"]{width:170px}
@@ -90,16 +89,7 @@ main{max-width:1800px;margin:0 auto;padding:1.1rem}
 </head>
 <body>
 
-<div class="lock" id="lock">
-  <div class="lock-box">
-    <h2><i class="fas fa-lock"></i> PJPB MIS</h2>
-    <input type="password" id="pwd" placeholder="Password" autocomplete="current-password">
-    <button class="btn go" id="unlockBtn">Unlock</button>
-    <div class="err" id="lockErr"></div>
-  </div>
-</div>
-
-<div id="app" hidden>
+<div id="app">
   <header class="topbar">
     <div class="brand"><span class="dot"></span> PJPB MIS</div>
     <button class="nav active" data-view="log"><i class="fas fa-table-list"></i> Records Log</button>
@@ -170,7 +160,6 @@ main{max-width:1800px;margin:0 auto;padding:1.1rem}
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 /* ==================== CONFIG ==================== */
-const APP_PASSWORD = '1234';
 const SUPABASE_URL = 'https://pycmkjrmdieaqsbgrher.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5Y21ranJtZGllYXFzYmdyaGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwMjMxNzAsImV4cCI6MjEwNjU5OTE3MH0.9IE2c2FZ4BPv6Rvhfa_VniQ7LJvQ_c4EGDXFihYR4Lc';
 const T = 'pjpb_mis_rows';        // one row per rake record
@@ -409,23 +398,33 @@ function toast(msg, err) {
 }
 const setStatus = (id, msg) => { $(id).textContent = msg; };
 
-/* ==================== LOCK + NAV ==================== */
-function unlock() {
-  if ($('pwd').value === APP_PASSWORD) {
-    $('lock').hidden = true; $('app').hidden = false;
-    initLog();
-  } else {
-    $('lockErr').textContent = 'Wrong password';
-  }
-}
-$('unlockBtn').onclick = unlock;
-$('pwd').addEventListener('keydown', e => { if (e.key === 'Enter') unlock(); });
+/* ==================== NAV ==================== */
+
+initLog();
 
 document.querySelectorAll('.nav').forEach(btn => btn.onclick = () => {
   document.querySelectorAll('.nav').forEach(b => b.classList.toggle('active', b === btn));
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + btn.dataset.view));
   if (btn.dataset.view === 'upload') loadRegistry().catch(() => {});
 });
+
+/* column groups, same sub-headings as the earlier PJPB app */
+const GROUPS = {
+  'Basic Details': ['sr_no','loading_date','area','source','unit','allotment_time','seq_no','reprogram_month'],
+  'Loading': ['pt','ct','d_o'],
+  'Wagon Details': ['supply_wagons','load_wagons','sick_wagons','box_type'],
+  'Weights': ['net_wt','chargeable_wt','rr_weight'],
+  'Quality': ['plant_end_gcv','tm_pct'],
+  'Railway Receipt': ['rr_number','rr_date','fnot_no'],
+  'Underload / Overload': ['ul','ol'],
+  'Punitive Charges': ['chbl_pun_rate','pol1','pol2','pola','krba','ladc','pcla','dcla','pun_sum'],
+  'Other Railway Charges': ['sd','sdcc','st','tc','fauc','gst','enhc','dc_sum','ehbc'],
+  'Freight': ['rr_freight_base','railway_total_freight'],
+  'Billing': ['invoice_no','invoice_number','invoice_date','billed_qty','basic_rate','basic_price','total_amount'],
+  'Sample & Preparation': ['sample_collection_date','rake_no','prep_start_date','prep_50mm','prep_12_5mm','prep_3_35mm','prep_212_micron','prep_end_date','sample_id','powder_status'],
+};
+const GROUP_OF = {};
+Object.entries(GROUPS).forEach(([g, keys]) => keys.forEach(k => GROUP_OF[k] = g));
 
 /* ==================== RECORDS LOG ==================== */
 let logRows = [], rowsById = new Map(), extraCols = [];
@@ -463,8 +462,8 @@ function canDiscard() {
 }
 async function loadLog() {
   setStatus('logStatus', 'Loading...');
+  const month = $('logMonth').value;
   try {
-    const month = $('logMonth').value;
     logRows = await fetchAllRows(q => month ? q.eq('period', month) : q);
     await loadRegistry();
   } catch (e) { toast('Could not load records: ' + e.message, true); setStatus('logStatus', ''); return; }
@@ -509,7 +508,17 @@ function renderLog() {
   $('logCount').textContent = `${rows.length} of ${logRows.length} records` +
     (rows.length > LOG_MAX ? ` (showing latest ${LOG_MAX}, search to narrow)` : '') +
     (pending.size ? ` · ${pending.size} unsaved` : '');
-  const head = `<thead><tr><th class="act">Actions</th>${cols.map(c => `<th>${esc(c.label)}${c.kind === 'x' ? ' <span class="tag">extra</span>' : ''}</th>`).join('')}</tr></thead>`;
+  // two header rows: group name (spanning its columns) above the column label
+  const groupRow = [];
+  cols.forEach(c => {
+    const g = c.kind === 'x' ? 'New columns (auto-added)' : (GROUP_OF[c.key] || 'Other');
+    const last = groupRow[groupRow.length - 1];
+    if (last && last.name === g) last.span++; else groupRow.push({ name: g, span: 1 });
+  });
+  const head = `<thead>
+    <tr class="grp"><th class="act"></th>${groupRow.map(g => `<th colspan="${g.span}">${esc(g.name)}</th>`).join('')}</tr>
+    <tr class="lbl"><th class="act">Actions</th>${cols.map(c => `<th>${esc(c.label)}${c.kind === 'x' ? ' <span class="tag">extra</span>' : ''}</th>`).join('')}</tr>
+  </thead>`;
   const body = shown.map(r => {
     const edits = pending.get(r.id) || {};
     const cells = cols.map(c => {
