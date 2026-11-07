@@ -148,7 +148,7 @@ a.btn{text-decoration:none}
 .textbtn{background:none;border:0;color:var(--muted);font-weight:600;font-size:13px;padding:6px 8px;border-radius:6px;text-decoration:underline;text-underline-offset:3px}
 .textbtn:hover{color:var(--ink)}
 .scroll{overflow-x:auto}
-table{border-collapse:separate;border-spacing:0;width:100%;min-width:1160px}
+table{border-collapse:separate;border-spacing:0;width:100%;min-width:1240px}
 thead th{position:sticky;top:0;z-index:2;background:var(--head-bg);color:var(--head-ink);font-weight:600;font-size:13px;text-align:right;padding:11px 7px;border-right:1px solid rgba(255,255,255,.16);white-space:nowrap}
 thead th.l{text-align:left}
 thead th.c{text-align:center}
@@ -183,6 +183,7 @@ td.tot{position:relative;font-weight:700;min-width:96px}
 td.tot .heat{position:absolute;inset:3px auto 3px 3px;background:var(--total-bg);border-radius:3px;z-index:0;transition:width .4s ease}
 [data-theme="light"] td.tot .heat{background:#ffe9a1}
 td.tot span{position:relative;z-index:1}
+td.pmt{font-weight:700;min-width:84px}
 tr.sub td{background:var(--sub-bg);font-weight:600;border-bottom:2px solid var(--line);color:var(--ink)}
 tr.sub td.lab{text-align:left;color:var(--muted);font-weight:600}
 tfoot td{background:var(--yellow);color:var(--yellow-ink);font-family:var(--font-c);font-size:20px;font-weight:700;padding:12px 7px;text-align:right;border-top:4px solid var(--blue)}
@@ -399,6 +400,7 @@ tfoot td.l{text-align:left;letter-spacing:.5px}
             <th class="pen">Overload Penalty</th>
             <th class="pen">ENCH</th>
             <th class="pen">TOTAL</th>
+            <th class="pen">Per M/T</th>
             <th class="c th-act"><span class="sr-only">Actions</span></th>
           </tr>
         </thead>
@@ -406,7 +408,7 @@ tfoot td.l{text-align:left;letter-spacing:.5px}
         <tfoot id="tfoot"></tfoot>
       </table>
     </div>
-    <div class="hint">Everything here comes from the database. Click RR QTY, CHARBALE QTY, Freight or ENCH in any row to change it in place. Every change is written to Supabase straight away, and only saved data is shown.</div>
+    <div class="hint">Everything here comes from the database. Click RR QTY, CHARBALE QTY, Freight or ENCH in any row to change it in place. Every change is written to Supabase straight away, and only saved data is shown. Per M/T = TOTAL ÷ RR QTY.</div>
   </section>
 
   <!-- ================= INSIGHTS ================= -->
@@ -481,6 +483,7 @@ tfoot td.l{text-align:left;letter-spacing:.5px}
         <div class="r"><span>Overload penalty<em id="cOpF"></em></span><b id="cOp" class="num"></b></div>
         <div class="r"><span>ENCH</span><b id="cEn" class="num"></b></div>
         <div class="r gt"><span>Total</span><b id="cTot" class="num"></b></div>
+        <div class="r"><span>Per M/T<em>Total ÷ RR QTY</em></span><b id="cPmt" class="num"></b></div>
       </div>
     </div>
     <div class="d-foot">
@@ -525,6 +528,7 @@ var DAY=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
    L  Underload penalty  = IF(J<0, 0, J * freight)
    M  Overload penalty   = part 1 + part 2 + part 3
    O  TOTAL              = L + M + N(ENCH)
+   P  Per M/T            = TOTAL / RR QTY
    G  Rake loaded        = rakes & "RAKE"                         */
 function calc(e){
   var uq=num(e.ch)-num(e.rr);
@@ -534,6 +538,8 @@ function calc(e){
   return {uq:uq,up:up,op:op,en:en,total:up+op+en,status:uq>0?'under':(uq<0?'over':'exact')};
 }
 function num(v){v=parseFloat(v);return isNaN(v)?0:v}
+function perMT(t,rr){rr=num(rr);return rr>0?fmt(t/rr):'—'}
+function perMTcsv(t,rr){rr=num(rr);return rr>0?Math.round(t/rr*100)/100:''}
 
 /* ============ DATA (lives in the database; this is only a view of it) ============ */
 var DEFAULT_PARTIES=['BALCO','JHABUA','GUJRAT POWER','NALCO','HZL'];
@@ -687,13 +693,14 @@ function renderTable(){
       html+='<td class="num">'+fmt(c.op)+'</td>';
       html+=edCell(e,'ench',e.ench);
       html+='<td class="num tot"><div class="heat" style="width:calc('+(c.total/maxTotal*100)+'% - 6px)"></div><span>'+fmt(c.total)+'</span></td>';
+      html+='<td class="num pmt">'+perMT(c.total,e.rr)+'</td>';
       html+='<td class="td-act"><div class="acts">'
         +'<button class="ib" data-act="edit" aria-label="Edit this rake" title="Edit">'+ICON_EDIT+'</button>'
         +'<button class="ib" data-act="dup" aria-label="Duplicate this rake" title="Duplicate">'+ICON_COPY+'</button>'
         +'<button class="ib del" data-act="del" aria-label="Delete this rake" title="Delete">'+ICON_DEL+'</button></div></td>';
       html+='</tr>';
     });
-    html+='<tr class="sub"><td class="sr"></td><td class="lab" colspan="3">Subtotal for '+esc(p)+'</td><td class="num">'+fmt(sums.rr)+'</td><td class="num">'+fmt(sums.ch)+'</td><td></td><td></td><td class="num">'+fmt(sums.up)+'</td><td class="num">'+fmt(sums.op)+'</td><td class="num">'+fmt(sums.en)+'</td><td class="num">'+fmt(sums.total)+'</td><td class="td-act"></td></tr>';
+    html+='<tr class="sub"><td class="sr"></td><td class="lab" colspan="3">Subtotal for '+esc(p)+'</td><td class="num">'+fmt(sums.rr)+'</td><td class="num">'+fmt(sums.ch)+'</td><td></td><td></td><td class="num">'+fmt(sums.up)+'</td><td class="num">'+fmt(sums.op)+'</td><td class="num">'+fmt(sums.en)+'</td><td class="num">'+fmt(sums.total)+'</td><td class="num">'+perMT(sums.total,sums.rr)+'</td><td class="td-act"></td></tr>';
   });
   if(!html){
     var t1,t2;
@@ -701,12 +708,12 @@ function renderTable(){
     else if(loading){t1='Loading saved data…';t2=''}
     else if(all.length){t1='No rakes match these filters';t2='Clear the party, search or underload filter to see them again.'}
     else{t1='No saved data for this date';t2='Use New entry to add the first rake. Only data saved in the database is shown here.'}
-    html='<tr><td colspan="14" class="empty"><b>'+esc(t1)+'</b>'+esc(t2)+'</td></tr>';
+    html='<tr><td colspan="15" class="empty"><b>'+esc(t1)+'</b>'+esc(t2)+'</td></tr>';
   }
   $('#tbody').innerHTML=html;
   var g=agg(visible);
   var label=filterParty==='ALL'&&!underOnly&&!q?'Grand total':'Total of rows shown';
-  $('#tfoot').innerHTML='<tr><td class="l" colspan="5">'+label+'</td><td class="num">'+fmt(g.rr)+'</td><td class="num">'+fmt(g.ch)+'</td><td></td><td></td><td class="num">'+fmt(g.up)+'</td><td class="num">'+fmt(g.op)+'</td><td class="num">'+fmt(g.en)+'</td><td class="num">'+fmt(g.total)+'</td><td class="td-act"></td></tr>';
+  $('#tfoot').innerHTML='<tr><td class="l" colspan="5">'+label+'</td><td class="num">'+fmt(g.rr)+'</td><td class="num">'+fmt(g.ch)+'</td><td></td><td></td><td class="num">'+fmt(g.up)+'</td><td class="num">'+fmt(g.op)+'</td><td class="num">'+fmt(g.en)+'</td><td class="num">'+fmt(g.total)+'</td><td class="num">'+perMT(g.total,g.rr)+'</td><td class="td-act"></td></tr>';
 }
 function edCell(e,f,v){
   return '<td class="num ed" tabindex="0" data-id="'+e.id+'" data-f="'+f+'" title="Click to edit">'+fmt(v)+'</td>';
@@ -945,16 +952,16 @@ $('#themeBtn').onclick=function(){
   try{localStorage.setItem(THEME_KEY,nx)}catch(e){}
 };
 $('#csvBtn').onclick=function(){
-  var rows=[['Date','Sr. No.','Party','Area','Siding','Rake Loaded','RR QTY','CHARBALE QTY','Underload qty','Freight','Underload Penalty','Overload Penalty','ENCH','TOTAL']];
+  var rows=[['Date','Sr. No.','Party','Area','Siding','Rake Loaded','RR QTY','CHARBALE QTY','Underload qty','Freight','Underload Penalty','Overload Penalty','ENCH','TOTAL','Per M/T']];
   var d=fromIso(date),ds=pad(d.getDate())+'-'+pad(d.getMonth()+1)+'-'+d.getFullYear();
   var all=entries(),t=agg(all);
   store.parties.forEach(function(p){
     all.filter(function(e){return e.party===p}).forEach(function(e,i){
       var c=calc(e);
-      rows.push([ds,i+1,e.party,e.area,e.siding,e.rakes+'RAKE',e.rr,e.ch,c.uq,e.freight,c.up,c.op,c.en,c.total]);
+      rows.push([ds,i+1,e.party,e.area,e.siding,e.rakes+'RAKE',e.rr,e.ch,c.uq,e.freight,c.up,c.op,c.en,c.total,perMTcsv(c.total,e.rr)]);
     });
   });
-  rows.push([ds,'','GRAND TOTAL','','','',t.rr,t.ch,'','',t.up,t.op,t.en,t.total]);
+  rows.push([ds,'','GRAND TOTAL','','','',t.rr,t.ch,'','',t.up,t.op,t.en,t.total,perMTcsv(t.total,t.rr)]);
   var csv='\uFEFF'+rows.map(function(r){return r.map(function(v){v=String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}).join(',')}).join('\r\n');
   var a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
@@ -995,6 +1002,7 @@ function updatePreview(){
   $('#cOpF').textContent=fmt(num(e.o1))+' + '+fmt(num(e.o2))+' + '+fmt(num(e.o3));
   $('#cEn').textContent=money(c.en);
   $('#cTot').textContent=money(c.total);
+  $('#cPmt').textContent=perMT(c.total,e.rr);
 }
 function setForm(e){
   fillSelect($('#fParty'),store.parties,e.party,'+ Add new party…');
