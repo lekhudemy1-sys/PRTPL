@@ -116,11 +116,17 @@ a:focus-visible,button:focus-visible{outline:2px solid #1d4ed8;outline-offset:3p
   width:100%;max-width:1120px;margin:0 auto;
   display:grid;gap:1rem;grid-template-columns:repeat(12,1fr);grid-auto-flow:dense;
 }
+/* Row 1: AMM (wide) + Coal India (narrow) */
 .tile[href="amm_home.html"]{grid-column:span 7}
 .tile[href="dispatch_dashboard.html"]{grid-column:span 5}
-.tile[href="odr_home.html"],.tile[href="notices.html"],
+/* Row 2: three equal cards */
+.tile[href="odr_home.html"],.tile[href="notices.html"],.tile[href="profit_and_loss.html"]{grid-column:span 4}
+/* Row 3: two equal cards */
 .tile[href="daily_rake_loading.html"],.tile[href="daily_penalty.html"]{grid-column:span 6}
-@media (max-width:900px){.grid>.tile{grid-column:span 6!important}}
+@media (max-width:900px){
+  .grid>.tile{grid-column:span 6!important}
+  .grid>.tile:last-child{grid-column:span 12!important}
+}
 @media (max-width:620px){.grid{grid-template-columns:1fr}.grid>.tile{grid-column:auto!important}}
 
 .tile{
@@ -859,6 +865,7 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
     { t: 'Gujarat Power Corporation', s: 'AMM · party dashboard', h: 'gujarat_dashboard.html', i: 'fa-gauge-high', c: '#be185d', k: 'amm:GPCL' },
     { t: 'Daily Rake Loading', s: 'Daily entry and report', h: 'daily_rake_loading.html', i: 'fa-truck-loading', c: '#0e7490', k: 'amm' },
     { t: 'AMM Penalty Sheet', s: 'Daily penalty check sheet', h: 'daily_penalty.html', i: 'fa-gavel', c: '#be123c', k: 'amm' },
+    { t: 'Profit and Loss', s: 'Profit and loss statement', h: 'profit_and_loss.html', i: 'fa-scale-balanced', c: '#15803d', k: 'amm' },
     { t: 'Coal India Data', s: 'Dispatch dashboard and entry', h: 'dispatch_dashboard.html', i: 'fa-train', c: '#0f8a6a', k: 'coal' },
     { t: 'ODR Data', s: 'Railway operations data', h: 'odr_home.html', i: 'fa-database', c: '#7c3aed', k: 'odr' },
     { t: 'Hindustan Zinc ODR', s: 'ODR data', h: 'hzl_odr.html', i: 'fa-database', c: '#0f8a6a', k: 'odr:HZL' },
@@ -1385,12 +1392,17 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
     <div class="ico"><i class="fas fa-bell"></i></div>
     <div class="foot"><div><span class="name">Notices</span><span class="desc">Latest updates and reminders</span></div><span class="go"><i class="fas fa-arrow-right"></i></span></div>
   </a>
-  <a class="tile" href="daily_rake_loading.html" data-access="amm" style="--i:4;--c:#0e7490">
+  <a class="tile" href="profit_and_loss.html" data-access="amm" style="--i:4;--c:#15803d">
+    <i class="ghost fas fa-scale-balanced" aria-hidden="true"></i>
+    <div class="ico"><i class="fas fa-scale-balanced"></i></div>
+    <div class="foot"><div><span class="name">Profit and Loss</span><span class="desc">Profit and loss statement</span></div><span class="go"><i class="fas fa-arrow-right"></i></span></div>
+  </a>
+  <a class="tile" href="daily_rake_loading.html" data-access="amm" style="--i:5;--c:#0e7490">
     <i class="ghost fas fa-truck-loading" aria-hidden="true"></i>
     <div class="ico"><i class="fas fa-truck-loading"></i></div>
     <div class="foot"><div><span class="name">Daily Rake Loading</span><span class="desc">Daily rake loading entry and report</span></div><span class="go"><i class="fas fa-arrow-right"></i></span></div>
   </a>
-  <a class="tile" href="daily_penalty.html" data-access="amm" style="--i:5;--c:#be123c">
+  <a class="tile" href="daily_penalty.html" data-access="amm" style="--i:6;--c:#be123c">
     <i class="ghost fas fa-gavel" aria-hidden="true"></i>
     <div class="ico"><i class="fas fa-gavel"></i></div>
     <div class="foot"><div><span class="name">AMM Penalty Sheet</span><span class="desc">Daily penalty check by party and siding</span></div><span class="go"><i class="fas fa-arrow-right"></i></span></div>
