@@ -276,7 +276,8 @@ function calcG(recs,tg,vals){
     const pn=pk('p-ul',sm(m,'ul_on_us'))+pk('p-ol',sm(m,'ol_ch'))+pk('p-pun',sm(m,'pol_group'))+pk('p-ehbc',sm(m,'ehbc_group'))+pk('p-enhc',sm(m,'enhc_charge'))+pk('p-dead',S.dead);
     const bp=ov('b-pen'),tp=pk('p-total',bp!==undefined?-bp:pn);
     const bt=ov('b-total');   // Gujarat TOTAL BILLING is after penalty, so gross billing = total + penalty
-    out[p]={rr:sm(m,'rr_wt'),pen:tp,bill:bt!==undefined?bt+tp:q+g+ss+sw};
+    // Billing shown in this page is NET of the railway penalty: penalty is not counted as billing
+    out[p]={rr:sm(m,'rr_wt'),pen:tp,bill:(bt!==undefined?bt+tp:q+g+ss+sw)-tp};
   });
   return out;
 }
@@ -365,10 +366,12 @@ function renderPeriod(){
 const inRange=r=>(!fromD||r.entry_date>=fromD)&&(!toD||r.entry_date<=toD);
 function sumOf(list){
   const nameOf=Object.fromEntries(heads.map(h=>[h.id,h.name]));
+  const rpIds=new Set(heads.filter(isRP).map(h=>h.id));   // Railway Penalty is not shown in expense totals
   const s={qty:0,bill:0,cost:0,byName:{}};
   list.forEach(r=>{
     s.qty+=r.rr_qty;s.bill+=r.billing;
     Object.entries(r.exp).forEach(([hid,amt])=>{
+      if(rpIds.has(hid))return;
       const n=nameOf[hid];if(n===undefined)return;
       s.byName[n]=(s.byName[n]||0)+amt;s.cost+=amt;
     });
