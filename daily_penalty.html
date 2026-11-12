@@ -51,12 +51,13 @@ button{cursor:pointer}
 :focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:4px}
 .num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-.wrap{max-width:1480px;margin:0 auto;padding:0 20px}
+.wrap{max-width:1800px;margin:0 auto;padding:0 16px}
 
 /* ============ STATION BOARD HEADER ============ */
 .board{background:var(--yellow);color:var(--yellow-ink);border-bottom:6px solid var(--blue);position:relative}
 .board::before{content:"";position:absolute;inset:8px 8px auto 8px;height:calc(100% - 16px);border:2px solid rgba(20,24,29,.85);border-radius:6px;pointer-events:none}
-.board-in{display:flex;align-items:center;gap:22px;padding:26px 28px 24px;flex-wrap:wrap;max-width:1480px;margin:0 auto}
+.board-right{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-left:auto;justify-content:flex-end}
+.board-in{display:flex;align-items:center;gap:18px;padding:26px 28px 24px;flex-wrap:wrap;max-width:1800px;margin:0 auto}
 .brand{display:flex;align-items:center;gap:16px;flex:1 1 420px;min-width:0}
 .roundel{flex:none;width:58px;height:58px;border-radius:50%;background:var(--yellow-ink);color:var(--yellow);display:grid;place-items:center;font-family:var(--font-c);font-weight:700;font-size:19px;letter-spacing:0;box-shadow:0 0 0 4px var(--yellow),0 0 0 6px var(--yellow-ink)}
 .brand h1{margin:0;font-family:var(--font-c);font-weight:700;font-size:clamp(28px,4.2vw,48px);line-height:1;letter-spacing:.5px;text-transform:uppercase}
@@ -84,7 +85,7 @@ a.btn{text-decoration:none}
 
 /* ============ TRACK / RAKE LINE-UP ============ */
 .track{background:var(--surface);border-bottom:1px solid var(--line)}
-.track-in{max-width:1480px;margin:0 auto;padding:14px 28px 0;display:flex;align-items:flex-end;gap:16px}
+.track-in{max-width:1800px;margin:0 auto;padding:14px 28px 0;display:flex;align-items:flex-end;gap:16px}
 .track-title{flex:none;width:150px;padding-bottom:20px}
 .track-title b{display:block;font-family:var(--font-c);font-size:22px;font-weight:700;line-height:1.05}
 .track-title span{font-size:13px;color:var(--muted)}
@@ -117,7 +118,7 @@ a.btn{text-decoration:none}
 .train.run>.loco,.train.run>.grp{animation:roll 1.1s cubic-bezier(.22,.8,.25,1) both}
 .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
 .legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
-.track-foot{max-width:1480px;margin:0 auto;padding:10px 28px 12px}
+.track-foot{max-width:1800px;margin:0 auto;padding:10px 28px 12px}
 
 /* ============ KPI PLATES ============ */
 .kpis{display:grid;grid-template-columns:1.35fr repeat(4,1fr);gap:14px;margin:22px 0}
@@ -148,42 +149,42 @@ a.btn{text-decoration:none}
 .textbtn{background:none;border:0;color:var(--muted);font-weight:600;font-size:13px;padding:6px 8px;border-radius:6px;text-decoration:underline;text-underline-offset:3px}
 .textbtn:hover{color:var(--ink)}
 .scroll{overflow-x:auto}
-table{border-collapse:separate;border-spacing:0;width:100%;min-width:1240px}
-thead th{position:sticky;top:0;z-index:2;background:var(--head-bg);color:var(--head-ink);font-weight:600;font-size:13px;text-align:right;padding:11px 7px;border-right:1px solid rgba(255,255,255,.16);white-space:nowrap}
+table{border-collapse:separate;border-spacing:0;width:100%;min-width:0;font-size:13px}
+thead th{position:sticky;top:0;z-index:2;background:var(--head-bg);color:var(--head-ink);font-weight:600;font-size:12px;line-height:1.2;text-align:right;padding:9px 5px;border-right:1px solid rgba(255,255,255,.16);white-space:normal;vertical-align:bottom}
 thead th.l{text-align:left}
 thead th.c{text-align:center}
 thead th:last-child{border-right:0}
 thead th.pen{background:color-mix(in srgb,var(--head-bg) 80%,#000)}
-tbody td{padding:9px 7px;border-bottom:1px solid var(--line2);border-right:1px solid var(--line2);text-align:right;white-space:nowrap}
+tbody td{padding:8px 5px;border-bottom:1px solid var(--line2);border-right:1px solid var(--line2);text-align:right;white-space:nowrap}
 tbody td:last-child{border-right:0}
 tbody td.l{text-align:left}
 tbody td.c{text-align:center}
 tbody tr.row:hover td:not(.party){background:var(--surface2)}
 td.sr{color:var(--muted);width:44px;text-align:center}
-td.party{width:128px;padding:0;background:var(--surface);border-right:1px solid var(--line);border-left:7px solid var(--pc);vertical-align:top;white-space:normal}
+td.party{width:112px;padding:0;background:var(--surface);border-right:1px solid var(--line);border-left:7px solid var(--pc);vertical-align:top;white-space:normal}
 .pcell{position:sticky;top:48px;padding:14px 10px 14px 12px}
 tbody td.party{text-align:left}
-.pcell b{display:block;font-family:var(--font-c);font-weight:700;font-size:22px;line-height:1.05;color:var(--pc)}
+.pcell b{display:block;font-family:var(--font-c);font-weight:700;font-size:20px;line-height:1.05;color:var(--pc)}
 .pcell small{display:block;color:var(--muted);font-size:12px;margin-top:6px}
 .pcell .pt{font-weight:700;font-size:14px;margin-top:8px;color:var(--ink)}
-.tag{display:inline-block;font-size:11px;font-weight:700;border-radius:4px;padding:1px 6px;margin-right:6px;vertical-align:1px;color:#fff}
+.tag{display:inline-block;font-size:10px;font-weight:700;border-radius:4px;padding:1px 5px;margin-right:4px;vertical-align:1px;color:#fff}
 .tag.under{background:var(--under)}
 .tag.over{background:var(--over)}
 .tag.exact{background:var(--ok)}
-.uq{display:flex;align-items:center;justify-content:flex-end;gap:8px}
-.dv{position:relative;width:46px;height:8px;background:var(--surface2);border-radius:4px;flex:none}
+.uq{display:flex;align-items:center;justify-content:flex-end;gap:5px}
+.dv{position:relative;width:26px;height:8px;background:var(--surface2);border-radius:4px;flex:none}
 .dv::before{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:1.5px;background:var(--muted);opacity:.5}
 .dv i{position:absolute;top:0;bottom:0;border-radius:4px}
 td.ed{cursor:text}
 td.ed:hover{box-shadow:inset 0 0 0 2px var(--focus);border-radius:2px}
-.cell-input{width:96px;text-align:right;border:2px solid var(--focus);border-radius:4px;padding:2px 6px;background:var(--surface);margin:-3px 0}
+.cell-input{width:74px;text-align:right;border:2px solid var(--focus);border-radius:4px;padding:2px 6px;background:var(--surface);margin:-3px 0}
 td.pen-u{font-weight:600;color:var(--under)}
 td.pen-u.zero{color:var(--muted);font-weight:400}
-td.tot{position:relative;font-weight:700;min-width:96px}
+td.tot{position:relative;font-weight:700;min-width:66px}
 td.tot .heat{position:absolute;inset:3px auto 3px 3px;background:var(--total-bg);border-radius:3px;z-index:0;transition:width .4s ease}
 [data-theme="light"] td.tot .heat{background:#ffe9a1}
 td.tot span{position:relative;z-index:1}
-td.pmt{font-weight:700;min-width:84px}
+td.pmt{font-weight:700;min-width:54px}
 tr.sub td{background:var(--sub-bg);font-weight:600;border-bottom:2px solid var(--line);color:var(--ink)}
 tr.sub td.lab{text-align:left;color:var(--muted);font-weight:600}
 tfoot td{background:var(--yellow);color:var(--yellow-ink);font-family:var(--font-c);font-size:20px;font-weight:700;padding:12px 7px;text-align:right;border-top:4px solid var(--blue)}
@@ -196,6 +197,18 @@ tfoot td.l{text-align:left;letter-spacing:.5px}
 .empty{padding:40px 20px;text-align:center;color:var(--muted)}
 .empty b{display:block;color:var(--ink);font-family:var(--font-c);font-size:22px;margin-bottom:4px}
 .hint{padding:10px 16px;font-size:13px;color:var(--muted);border-top:1px solid var(--line)}
+/* party separation: coloured banner, tinted rows, coloured subtotal and a gap between parties */
+tr.pband td{padding:0;border:0;background:color-mix(in srgb,var(--pc) 20%,var(--surface));border-top:5px solid var(--pc);text-align:left}
+.pband-in{display:flex;align-items:center;gap:12px;padding:9px 14px;font-family:var(--font-c);font-size:21px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--ink)}
+.pband-in i{width:14px;height:14px;border-radius:50%;background:var(--pc);flex:none}
+.pband-in small{font-family:var(--font);font-size:13px;font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0}
+.pband-in .pbt{margin-left:auto;font-size:19px;color:var(--pc)}
+tbody tr.row td:not(.party){background:color-mix(in srgb,var(--pc) 5%,var(--surface))}
+tbody tr.row:hover td:not(.party){background:color-mix(in srgb,var(--pc) 13%,var(--surface))}
+tr.sub td{background:color-mix(in srgb,var(--pc) 17%,var(--surface))!important;border-bottom:0}
+tr.gap td{height:20px;padding:0;border:0;background:var(--bg)}
+td.party{border-left-width:10px}
+@media (max-width:1650px){.dv{display:none}}
 
 /* ============ INSIGHTS ============ */
 .insights{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:22px 0 40px}
@@ -293,9 +306,6 @@ tfoot td.l{text-align:left;letter-spacing:.5px}
 <!-- ================= STATION BOARD ================= -->
 <header class="board">
   <div class="board-in">
-    <a class="btn back" href="home_page.html" aria-label="Back to AMM home">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5m6-6-6 6 6 6"/></svg>Back
-    </a>
     <div class="brand">
       <div class="roundel" aria-hidden="true">AMM</div>
       <div>
@@ -303,6 +313,7 @@ tfoot td.l{text-align:left;letter-spacing:.5px}
         <p>Rake underload, overload and ENCH penalties by party and siding</p>
       </div>
     </div>
+    <div class="board-right">
     <div class="plate" role="group" aria-label="Sheet date">
       <button id="prevDay" aria-label="Previous day">&#8249;</button>
       <div class="when">
@@ -325,6 +336,10 @@ tfoot td.l{text-align:left;letter-spacing:.5px}
       <button class="btn icon" id="themeBtn" aria-label="Switch light or dark theme" title="Theme">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
       </button>
+    </div>
+    <a class="btn back" href="home_page.html" aria-label="Back to AMM home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5m6-6-6 6 6 6"/></svg>Back
+    </a>
     </div>
   </div>
 </header>
@@ -395,6 +410,7 @@ tfoot td.l{text-align:left;letter-spacing:.5px}
             <th>RR QTY</th>
             <th>CHARBALE QTY</th>
             <th>Underload qty</th>
+            <th>Overload qty</th>
             <th>Freight</th>
             <th class="pen">Underload Penalty</th>
             <th class="pen">Overload Penalty</th>
@@ -408,7 +424,7 @@ tfoot td.l{text-align:left;letter-spacing:.5px}
         <tfoot id="tfoot"></tfoot>
       </table>
     </div>
-    <div class="hint">Everything here comes from the database. Click RR QTY, CHARBALE QTY, Freight or ENCH in any row to change it in place. Every change is written to Supabase straight away, and only saved data is shown. Per M/T = TOTAL ÷ RR QTY.</div>
+    <div class="hint">Rows marked LIVE are the GUJRAT POWER (Gujarat dashboard) and HZL (HZL dashboard) rakes read live, grouped by area and siding for the date. They are read only here and refresh every 30 seconds. For each live rake: Underload qty = CH weight − RR weight (when CH is more), Overload qty = RR weight − CH weight (when RR is more). All other rows come from the database: click RR QTY, CHARBALE QTY, Freight or ENCH to change them in place. Per M/T = TOTAL ÷ RR QTY.</div>
   </section>
 
   <!-- ================= INSIGHTS ================= -->
@@ -508,6 +524,8 @@ var CFG_KEY='amm_sb_cfg', TABLE='amm_penalty_entries';
 /* Supabase details. You can also click the status pill at the top and paste them once. */
 var SUPABASE_URL='https://pycmkjrmdieaqsbgrher.supabase.co';
 var SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5Y21ranJtZGllYXFzYmdyaGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwMjMxNzAsImV4cCI6MjEwNjU5OTE3MH0.9IE2c2FZ4BPv6Rvhfa_VniQ7LJvQ_c4EGDXFihYR4Lc';
+var GUJP='GUJRAT POWER';
+var LIVE_SRC=[{party:'GUJRAT POWER',table:'gujarat_rake_records'},{party:'HZL',table:'hzl_rake_records'}];   /* parties fed live from their dashboards */
 var NEW='__new__';
 var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -523,19 +541,26 @@ function hhmm(d){return pad(d.getHours())+':'+pad(d.getMinutes())}
 var MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 var DAY=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
-/* ============ THE EXCEL CALCULATIONS ============
-   J  Underload qty      = CHARBALE QTY - RR QTY
-   L  Underload penalty  = IF(J<0, 0, J * freight)
-   M  Overload penalty   = part 1 + part 2 + part 3
-   O  TOTAL              = L + M + N(ENCH)
-   P  Per M/T            = TOTAL / RR QTY
-   G  Rake loaded        = rakes & "RAKE"                         */
+/* ============ THE CALCULATIONS ============
+   Manual rows (as in the Excel):
+   Underload qty = CHARBALE QTY - RR QTY (when positive), overload qty = the opposite
+   Underload penalty = underload qty * freight, Overload penalty = part 1 + 2 + 3
+   TOTAL = underload penalty + overload penalty + ENCH, Per M/T = TOTAL / RR QTY
+   LIVE Gujarat rows (per area and siding, per date, read from gujarat_rake_records):
+   Underload qty = sum of (CH wt - RR wt) of rakes where CH wt is more
+   Overload qty  = sum of (RR wt - CH wt) of rakes where RR wt is more
+   Underload penalty = sum of underload charge, Overload penalty = POL group + EHBC charge
+   ENCH = ENHC charge. Dead freight is not shown here. */
 function calc(e){
+  if(e.live){
+    var net=e.gU-e.gO;
+    return {uq:net,uU:e.gU,uO:e.gO,up:e.gUp,op:e.gOp,en:e.gEn,total:e.gUp+e.gOp+e.gEn,status:e.gU>e.gO?'under':(e.gO>e.gU?'over':'exact')};
+  }
   var uq=num(e.ch)-num(e.rr);
   var up=uq<0?0:uq*num(e.freight);
   var op=num(e.o1)+num(e.o2)+num(e.o3);
   var en=num(e.ench);
-  return {uq:uq,up:up,op:op,en:en,total:up+op+en,status:uq>0?'under':(uq<0?'over':'exact')};
+  return {uq:uq,uU:uq>0?uq:0,uO:uq<0?-uq:0,up:up,op:op,en:en,total:up+op+en,status:uq>0?'under':(uq<0?'over':'exact')};
 }
 function num(v){v=parseFloat(v);return isNaN(v)?0:v}
 function perMT(t,rr){rr=num(rr);return rr>0?fmt(t/rr):'—'}
@@ -547,12 +572,18 @@ var DEFAULT_AREAS=['SECL','CCL','MCL','WCL','NCL','MCFL'];
 var SIDING_BY_AREA={SECL:'KMKA',CCL:'BOCM',WCL:'DKJC',MCL:'DFJH',NCL:'IJJS'};
 
 var store={days:{},loaded:{},parties:DEFAULT_PARTIES.slice(),areas:DEFAULT_AREAS.slice()};
+var live={};   /* live Gujarat rows per date, never written to the penalty table */
 var date=yesterdayIso();
 var filterParty='ALL', underOnly=false, query='';
 var editId=null;
 var loading=false, loadErr='';
 
 function entries(){return store.days[date]||(store.days[date]=[])}
+/* every row shown on the sheet: saved rows plus live Gujarat rows */
+function allRows(){
+  var o=store.parties;
+  return entries().concat(live[date]||[]).sort(function(a,b){return o.indexOf(a.party)-o.indexOf(b.party)});
+}
 function canEdit(){
   if(store.loaded[date]===true&&!loading)return true;
   toast(loadErr?'The database is not connected, so nothing can be changed yet.':'Still loading saved data. Try again in a moment.');
@@ -564,12 +595,14 @@ function sortEntries(){
 }
 function partyColor(p){var i=store.parties.indexOf(p);return 'var(--p'+((i<0?0:i)%6)+')'}
 function find(id){return entries().filter(function(e){return e.id===id})[0]}
+function isLive(id){return (live[date]||[]).some(function(e){return e.id===id})}
+function liveNote(){toast('Live rows come from the Gujarat / HZL dashboard. Change them there.')}
 
 /* ============ AGGREGATES ============ */
 function agg(list){
-  var t={rr:0,ch:0,up:0,op:0,en:0,total:0,under:0,over:0,exact:0,n:list.length};
+  var t={rr:0,ch:0,uU:0,uO:0,up:0,op:0,en:0,total:0,under:0,over:0,exact:0,n:list.length};
   list.forEach(function(e){
-    var c=calc(e);t.rr+=num(e.rr);t.ch+=num(e.ch);t.up+=c.up;t.op+=c.op;t.en+=c.en;t.total+=c.total;t[c.status]++;
+    var c=calc(e);t.rr+=num(e.rr);t.ch+=num(e.ch);t.uU+=c.uU;t.uO+=c.uO;t.up+=c.up;t.op+=c.op;t.en+=c.en;t.total+=c.total;t[c.status]++;
   });
   return t;
 }
@@ -604,15 +637,15 @@ function renderDate(){
 }
 
 function renderTrain(){
-  var list=entries(),html='<div class="loco" aria-hidden="true"><i class="lw"></i><i class="lw r"></i></div>';
+  var list=allRows(),html='<div class="loco" aria-hidden="true"><i class="lw"></i><i class="lw r"></i></div>';
   store.parties.forEach(function(p){
     var rows=list.filter(function(e){return e.party===p});
     if(!rows.length)return;
     html+='<div class="grp"><div class="grp-label">'+esc(p)+'</div><div class="cars">';
     rows.forEach(function(e,i){
       var c=calc(e);
-      var label=esc(p)+' · '+esc(e.area)+'/'+esc(e.siding)+' · '+(c.status==='under'?'underloaded by '+fmt(c.uq):c.status==='over'?'overloaded by '+fmt(-c.uq):'exact')+' · total '+money(c.total);
-      html+='<button class="wagon '+c.status+(editId===e.id?' sel':'')+'" data-id="'+e.id+'" title="'+label+'" aria-label="'+label+'. Edit">'+(i+1)+'</button>';
+      var label=esc(p)+' · '+esc(e.area)+'/'+esc(e.siding)+' · '+(c.status==='under'?'underloaded by '+fmt(c.uU):c.status==='over'?'overloaded by '+fmt(c.uO):'exact')+' · total '+money(c.total);
+      html+='<button class="wagon '+c.status+(editId===e.id?' sel':'')+'" data-id="'+esc(e.id)+'" title="'+label+'" aria-label="'+label+(e.live?'. Live from Gujarat':'. Edit')+'">'+(i+1)+'</button>';
     });
     html+='</div></div>';
   });
@@ -620,9 +653,9 @@ function renderTrain(){
 }
 
 function renderKpis(){
-  var t=agg(entries());
+  var all=allRows(),t=agg(all);
   setNum($('#kTotal'),t.total,round(money));
-  $('#kTotalSub').textContent=t.n+(t.n===1?' rake':' rakes')+' across '+new Set(entries().map(function(e){return e.party})).size+' parties';
+  $('#kTotalSub').textContent=t.n+(t.n===1?' rake':' rakes')+' across '+new Set(all.map(function(e){return e.party})).size+' parties';
   var tot=t.total||1;
   $('#kStack').innerHTML='<span style="width:'+(t.up/tot*100)+'%;background:var(--under)"></span><span style="width:'+(t.op/tot*100)+'%;background:var(--over)"></span><span style="width:'+(t.en/tot*100)+'%;background:var(--ench)"></span>';
   setNum($('#kUnder'),t.up,round(money));
@@ -636,7 +669,8 @@ function renderKpis(){
 }
 
 function renderChips(){
-  var present=store.parties.filter(function(p){return entries().some(function(e){return e.party===p})});
+  var all=allRows();
+  var present=store.parties.filter(function(p){return all.some(function(e){return e.party===p})});
   if(filterParty!=='ALL'&&present.indexOf(filterParty)<0)filterParty='ALL';
   var h='<button class="chip" data-p="ALL" aria-pressed="'+(filterParty==='ALL')+'">All parties</button>';
   present.forEach(function(p){
@@ -651,7 +685,7 @@ var ICON_COPY='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke
 var ICON_DEL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>';
 
 function renderTable(){
-  var all=entries();
+  var all=allRows();
   var maxTotal=1,maxUq=1;
   all.forEach(function(e){var c=calc(e);if(c.total>maxTotal)maxTotal=c.total;if(Math.abs(c.uq)>maxUq)maxUq=Math.abs(c.uq)});
   var q=query.trim().toLowerCase();
@@ -670,37 +704,40 @@ function renderTable(){
     if(!rows.length)return;
     var sums=agg(rows.map(function(r){return r.e}));
     visible=visible.concat(rows.map(function(r){return r.e}));
+    html+='<tr class="pband" style="--pc:'+partyColor(p)+'"><td colspan="16"><div class="pband-in"><i></i>'+esc(p)+'<small>'+rows.length+(rows.length===1?' row':' rows')+'</small><span class="pbt num">'+money(sums.total)+'</span></div></td></tr>';
     rows.forEach(function(r,idx){
-      var e=r.e,c=r.c;
+      var e=r.e,c=r.c,lv=!!e.live;
       var pct=Math.min(50,Math.abs(c.uq)/maxUq*50);
       var bar=c.uq>0
         ?'<i style="left:50%;width:'+pct+'%;background:var(--under)"></i>'
         :(c.uq<0?'<i style="right:50%;width:'+pct+'%;background:var(--over)"></i>':'');
       var tag=c.status==='under'?'<span class="tag under">UNDER</span>':c.status==='over'?'<span class="tag over">OVER</span>':'<span class="tag exact">EXACT</span>';
-      html+='<tr class="row" data-id="'+e.id+'">';
+      html+='<tr class="row" style="--pc:'+partyColor(p)+'" data-id="'+esc(e.id)+'">';
       html+='<td class="sr num">'+r.sr+'</td>';
       if(idx===0){
-        html+='<td class="party" rowspan="'+(rows.length+1)+'" style="--pc:'+partyColor(p)+'"><div class="pcell"><b>'+esc(p)+'</b><small>'+rows.length+(rows.length===1?' rake':' rakes')+'</small><div class="pt num">'+money(sums.total)+'</div></div></td>';
+        html+='<td class="party" rowspan="'+(rows.length+1)+'" style="--pc:'+partyColor(p)+'"><div class="pcell"><b>'+esc(p)+'</b><small>'+rows.length+(rows.length===1?' row':' rows')+'</small><div class="pt num">'+money(sums.total)+'</div></div></td>';
       }
       html+='<td class="l">'+esc(e.area)+'</td>';
       html+='<td class="l">'+esc(e.siding)+'</td>';
       html+='<td class="c">'+esc(e.rakes)+'RAKE</td>';
-      html+=edCell(e,'rr',e.rr);
-      html+=edCell(e,'ch',e.ch);
-      html+='<td class="num"><div class="uq">'+tag+'<span>'+fmt(c.uq)+'</span><span class="dv" aria-hidden="true">'+bar+'</span></div></td>';
-      html+=edCell(e,'freight',e.freight);
+      html+=lv?'<td class="num">'+fmt(e.rr)+'</td><td class="num">'+fmt(e.ch)+'</td>':edCell(e,'rr',e.rr)+edCell(e,'ch',e.ch);
+      html+='<td class="num"><div class="uq">'+tag+'<span>'+fmt(c.uU)+'</span><span class="dv" aria-hidden="true">'+bar+'</span></div></td>';
+      html+='<td class="num">'+fmt(c.uO)+'</td>';
+      html+=lv?'<td class="num">–</td>':edCell(e,'freight',e.freight);
       html+='<td class="num pen-u'+(c.up?'':' zero')+'">'+fmt(c.up)+'</td>';
       html+='<td class="num">'+fmt(c.op)+'</td>';
-      html+=edCell(e,'ench',e.ench);
+      html+=lv?'<td class="num">'+fmt(c.en)+'</td>':edCell(e,'ench',e.ench);
       html+='<td class="num tot"><div class="heat" style="width:calc('+(c.total/maxTotal*100)+'% - 6px)"></div><span>'+fmt(c.total)+'</span></td>';
       html+='<td class="num pmt">'+perMT(c.total,e.rr)+'</td>';
-      html+='<td class="td-act"><div class="acts">'
+      html+=lv?'<td class="td-act"><div class="acts"><span class="tag exact" title="Live from the Gujarat dashboard" style="margin:0">LIVE</span></div></td>'
+        :'<td class="td-act"><div class="acts">'
         +'<button class="ib" data-act="edit" aria-label="Edit this rake" title="Edit">'+ICON_EDIT+'</button>'
         +'<button class="ib" data-act="dup" aria-label="Duplicate this rake" title="Duplicate">'+ICON_COPY+'</button>'
         +'<button class="ib del" data-act="del" aria-label="Delete this rake" title="Delete">'+ICON_DEL+'</button></div></td>';
       html+='</tr>';
     });
-    html+='<tr class="sub"><td class="sr"></td><td class="lab" colspan="3">Subtotal for '+esc(p)+'</td><td class="num">'+fmt(sums.rr)+'</td><td class="num">'+fmt(sums.ch)+'</td><td></td><td></td><td class="num">'+fmt(sums.up)+'</td><td class="num">'+fmt(sums.op)+'</td><td class="num">'+fmt(sums.en)+'</td><td class="num">'+fmt(sums.total)+'</td><td class="num">'+perMT(sums.total,sums.rr)+'</td><td class="td-act"></td></tr>';
+    html+='<tr class="sub" style="--pc:'+partyColor(p)+'"><td class="sr"></td><td class="lab" colspan="3">Subtotal for '+esc(p)+'</td><td class="num">'+fmt(sums.rr)+'</td><td class="num">'+fmt(sums.ch)+'</td><td class="num">'+fmt(sums.uU)+'</td><td class="num">'+fmt(sums.uO)+'</td><td></td><td class="num">'+fmt(sums.up)+'</td><td class="num">'+fmt(sums.op)+'</td><td class="num">'+fmt(sums.en)+'</td><td class="num">'+fmt(sums.total)+'</td><td class="num">'+perMT(sums.total,sums.rr)+'</td><td class="td-act"></td></tr>';
+    html+='<tr class="gap"><td colspan="16"></td></tr>';
   });
   if(!html){
     var t1,t2;
@@ -708,12 +745,12 @@ function renderTable(){
     else if(loading){t1='Loading saved data…';t2=''}
     else if(all.length){t1='No rakes match these filters';t2='Clear the party, search or underload filter to see them again.'}
     else{t1='No saved data for this date';t2='Use New entry to add the first rake. Only data saved in the database is shown here.'}
-    html='<tr><td colspan="15" class="empty"><b>'+esc(t1)+'</b>'+esc(t2)+'</td></tr>';
+    html='<tr><td colspan="16" class="empty"><b>'+esc(t1)+'</b>'+esc(t2)+'</td></tr>';
   }
   $('#tbody').innerHTML=html;
   var g=agg(visible);
   var label=filterParty==='ALL'&&!underOnly&&!q?'Grand total':'Total of rows shown';
-  $('#tfoot').innerHTML='<tr><td class="l" colspan="5">'+label+'</td><td class="num">'+fmt(g.rr)+'</td><td class="num">'+fmt(g.ch)+'</td><td></td><td></td><td class="num">'+fmt(g.up)+'</td><td class="num">'+fmt(g.op)+'</td><td class="num">'+fmt(g.en)+'</td><td class="num">'+fmt(g.total)+'</td><td class="num">'+perMT(g.total,g.rr)+'</td><td class="td-act"></td></tr>';
+  $('#tfoot').innerHTML='<tr><td class="l" colspan="5">'+label+'</td><td class="num">'+fmt(g.rr)+'</td><td class="num">'+fmt(g.ch)+'</td><td class="num">'+fmt(g.uU)+'</td><td class="num">'+fmt(g.uO)+'</td><td></td><td class="num">'+fmt(g.up)+'</td><td class="num">'+fmt(g.op)+'</td><td class="num">'+fmt(g.en)+'</td><td class="num">'+fmt(g.total)+'</td><td class="num">'+perMT(g.total,g.rr)+'</td><td class="td-act"></td></tr>';
 }
 function edCell(e,f,v){
   return '<td class="num ed" tabindex="0" data-id="'+e.id+'" data-f="'+f+'" title="Click to edit">'+fmt(v)+'</td>';
@@ -737,7 +774,7 @@ function groupAgg(list,keyFn){
   var out={};Object.keys(m).forEach(function(k){out[k]=agg(m[k])});return out;
 }
 function renderInsights(){
-  var all=entries();
+  var all=allRows();
   var bp=groupAgg(all,function(e){return e.party});
   $('#byParty').innerHTML=stackedRows(bp,Object.keys(bp),null,true);
   var ba=groupAgg(all,function(e){return e.area});
@@ -745,7 +782,8 @@ function renderInsights(){
   var top=all.map(function(e){return {e:e,c:calc(e)}}).sort(function(a,b){return b.c.total-a.c.total}).slice(0,5);
   $('#topList').innerHTML=top.length?top.map(function(x){
     var c=x.c,e=x.e;
-    return '<li><div>'+esc(e.party)+' · '+esc(e.area)+' / '+esc(e.siding)+'<small>'+(c.status==='under'?'Short by '+fmt(c.uq)+' × '+fmt(num(e.freight)):'No underload')+' + overload + ENCH</small></div><b class="num">'+money(c.total)+'</b></li>';
+    var note=e.live?'Live from the dashboard':(c.status==='under'?'Short by '+fmt(c.uq)+' × '+fmt(num(e.freight))+' + overload + ENCH':'No underload + overload + ENCH');
+    return '<li><div>'+esc(e.party)+' · '+esc(e.area)+' / '+esc(e.siding)+'<small>'+note+'</small></div><b class="num">'+money(c.total)+'</b></li>';
   }).join(''):'<li class="empty">No data yet</li>';
 }
 
@@ -788,6 +826,46 @@ function api(c,path,opt){
   });
 }
 
+/* ============ LIVE GUJARAT ROWS ============ */
+function hasN(v){return v!==null&&v!==undefined&&v!==''&&!isNaN(parseFloat(v))}
+function fetchLive(c,d){
+  return Promise.all(LIVE_SRC.map(function(s){
+    return api(c,s.table+'?select=area,siding,rr_wt,ch_wt,ul_ch,ol_ch,pol_group,ehbc_group,enhc_charge&date=eq.'+d+'&limit=1000')
+      .then(function(rows){return (rows||[]).map(function(r){r._p=s.party;return r})},function(){return null});
+  })).then(function(res){
+    var rows=[],failed=0;
+    res.forEach(function(x){if(x===null)failed++;else rows=rows.concat(x)});
+    return {rows:rows,failed:failed};
+  });
+}
+/* group the rakes of the date by area and siding, same as the other rows of the sheet */
+function buildLive(g,d){
+  var m={};
+  ((g&&g.rows)||[]).forEach(function(r){
+    var area=String(r.area||'-').trim().toUpperCase(),sid=String(r.siding||'-').trim().toUpperCase(),k=r._p+'|'+area+'|'+sid;
+    var x=m[k]||(m[k]={id:'L|'+d+'|'+k,live:true,party:r._p,area:area,siding:sid,rakes:0,rr:0,ch:0,freight:0,o1:0,o2:0,o3:0,ench:0,gU:0,gO:0,gUp:0,gOp:0,gEn:0});
+    x.rakes++;x.rr+=num(r.rr_wt);x.ch+=num(r.ch_wt);
+    if(hasN(r.rr_wt)&&hasN(r.ch_wt)){   /* needs both weights entered */
+      var rr=num(r.rr_wt),ch=num(r.ch_wt);
+      if(ch>rr)x.gU+=ch-rr;else if(rr>ch)x.gO+=rr-ch;
+    }
+    x.gUp+=num(r.ul_ch);x.gOp+=num(r.pol_group)+num(r.ehbc_group);x.gEn+=num(r.enhc_charge);
+  });
+  return Object.keys(m).sort().map(function(k){
+    var x=m[k];['rr','ch','gU','gO','gUp','gOp','gEn'].forEach(function(f){x[f]=Math.round(x[f]*100)/100});
+    return x;
+  });
+}
+function refreshLive(){
+  var c=cfg(),d=date;
+  if(!c||loading||(drawer&&drawer.classList.contains('open')))return;
+  fetchLive(c,d).then(function(g){
+    if(!g||g.failed||d!==date)return;
+    var n=buildLive(g,d);
+    if(JSON.stringify(n)!==JSON.stringify(live[d]||[])){live[d]=n;renderAll()}
+  });
+}
+
 /* status pill */
 var pill=document.createElement('span');pill.className='sbpill';pill.innerHTML='<i></i><span></span>';
 pill.title='Click to change the Supabase URL / key';
@@ -795,7 +873,7 @@ $('.tools').insertBefore(pill,$('.tools').firstChild);
 function setPill(cls,txt){pill.className='sbpill '+cls;pill.lastChild.textContent=txt}
 pill.onclick=function(){if(askCfg())loadDay()};
 
-/* every change is written to the database straight away, in order */
+/* every change is written to the database straight away, in order (live Gujarat rows are never written) */
 var queue=Promise.resolve(), pending=0, loadTok=0;
 function persist(){queueSync(date)}
 function queueSync(d){
@@ -828,10 +906,10 @@ function doSync(d,list){
   });
 }
 
-/* load the selected day from the database (nothing else is ever shown) */
+/* load the selected day from the database (saved rows) and from the Gujarat dashboard (live rows) */
 function loadDay(keepPill){
   var d=date,my=++loadTok;
-  loading=true;loadErr='';store.loaded[d]=false;store.days[d]=[];
+  loading=true;loadErr='';store.loaded[d]=false;store.days[d]=[];live[d]=[];
   renderAll();
   var c=cfg();
   if(!c){
@@ -840,16 +918,21 @@ function loadDay(keepPill){
   }
   if(!keepPill)setPill('','Loading…');
   queue.then(function(){
-    return api(c,TABLE+'?sheet_date=eq.'+d+'&order=sort_order.asc');
-  }).then(function(rows){
+    return Promise.all([api(c,TABLE+'?sheet_date=eq.'+d+'&order=sort_order.asc'),fetchLive(c,d)]);
+  }).then(function(res){
     if(my!==loadTok)return;
+    var rows=res[0],g=res[1];
     var list=(rows||[]).map(function(r){
       return {id:r.id,party:r.party,area:r.area,siding:r.siding,rakes:+r.rakes,rr:+r.rr,ch:+r.ch,freight:+r.freight,o1:+r.o1,o2:+r.o2,o3:+r.o3,ench:+r.ench};
     });
+    live[d]=buildLive(g,d);
+    if(g.failed)toast('Some live data (Gujarat or HZL) could not be read.');
     list.forEach(function(e){
       if(store.parties.indexOf(e.party)<0)store.parties.push(e.party);
       if(store.areas.indexOf(e.area)<0)store.areas.push(e.area);
     });
+    live[d].forEach(function(e){if(store.parties.indexOf(e.party)<0)store.parties.push(e.party)});
+    live[d].forEach(function(e){if(store.areas.indexOf(e.area)<0)store.areas.push(e.area)});
     store.days[d]=list;store.loaded[d]=true;loading=false;
     renderAll();roll();
     if(!keepPill)setPill('ok','Loaded '+hhmm(new Date()));
@@ -915,7 +998,9 @@ function startEdit(td){
   });
 }
 $('#train').addEventListener('click',function(ev){
-  var w=ev.target.closest('.wagon');if(w)openDrawer(w.dataset.id);
+  var w=ev.target.closest('.wagon');if(!w)return;
+  if(isLive(w.dataset.id)){liveNote();return}
+  openDrawer(w.dataset.id);
 });
 $('#chips').addEventListener('click',function(ev){
   var c=ev.target.closest('.chip');if(!c)return;
@@ -932,8 +1017,8 @@ $('#search').addEventListener('input',function(e){query=e.target.value;renderTab
 
 $('#clearBtn').addEventListener('click',function(){
   if(!canEdit())return;
-  if(!entries().length){toast('There is nothing saved for this date');return}
-  if(!confirm('Delete every saved rake for this date from the database?'))return;
+  if(!entries().length){toast('There is nothing saved for this date (live Gujarat rows are not deleted)');return}
+  if(!confirm('Delete every saved rake for this date from the database? Live Gujarat rows stay.'))return;
   var snap=snapshot();store.days[date]=[];persist();renderAll();
   toast('Day cleared',function(){restore(snap)});
 });
@@ -952,16 +1037,16 @@ $('#themeBtn').onclick=function(){
   try{localStorage.setItem(THEME_KEY,nx)}catch(e){}
 };
 $('#csvBtn').onclick=function(){
-  var rows=[['Date','Sr. No.','Party','Area','Siding','Rake Loaded','RR QTY','CHARBALE QTY','Underload qty','Freight','Underload Penalty','Overload Penalty','ENCH','TOTAL','Per M/T']];
+  var rows=[['Date','Sr. No.','Party','Area','Siding','Rake Loaded','RR QTY','CHARBALE QTY','Underload qty','Overload qty','Freight','Underload Penalty','Overload Penalty','ENCH','TOTAL','Per M/T']];
   var d=fromIso(date),ds=pad(d.getDate())+'-'+pad(d.getMonth()+1)+'-'+d.getFullYear();
-  var all=entries(),t=agg(all);
+  var all=allRows(),t=agg(all);
   store.parties.forEach(function(p){
     all.filter(function(e){return e.party===p}).forEach(function(e,i){
       var c=calc(e);
-      rows.push([ds,i+1,e.party,e.area,e.siding,e.rakes+'RAKE',e.rr,e.ch,c.uq,e.freight,c.up,c.op,c.en,c.total,perMTcsv(c.total,e.rr)]);
+      rows.push([ds,i+1,e.party,e.area,e.siding,e.rakes+'RAKE',e.rr,e.ch,c.uU,c.uO,e.live?'':e.freight,c.up,c.op,c.en,c.total,perMTcsv(c.total,e.rr)]);
     });
   });
-  rows.push([ds,'','GRAND TOTAL','','','',t.rr,t.ch,'','',t.up,t.op,t.en,t.total,perMTcsv(t.total,t.rr)]);
+  rows.push([ds,'','GRAND TOTAL','','','',t.rr,t.ch,t.uU,t.uO,'',t.up,t.op,t.en,t.total,perMTcsv(t.total,t.rr)]);
   var csv='\uFEFF'+rows.map(function(r){return r.map(function(v){v=String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}).join(',')}).join('\r\n');
   var a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
@@ -1160,6 +1245,7 @@ $('#pngBtn').onclick=function(){
 
 /* ============ GO ============ */
 loadDay();
+setInterval(function(){if(!document.hidden)refreshLive()},30000);   /* keeps the Gujarat rows live */
 })();
 </script>
 </body>
