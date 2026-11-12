@@ -1365,7 +1365,8 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
   var SB_URL = 'https://jzkrywwrsewchtiqsczk.supabase.co';
   var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6a3J5d3dyc2V3Y2h0aXFzY3prIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1NDU0MzQsImV4cCI6MjEwNzEyMTQzNH0.IDwfVhqDI9uXfAALCVKBD0pNjsNVu38fW4eEueaKDSs';
   var TABLE = 'amm_daily_entries';
-  /* ---- structure (party names only; no numbers live in the page) ---- */
+
+  /* ---- structure (party names only) ---- */
   var SUBS = [
     { k:'SECL', n:'South Eastern Coalfields', c:'#2f6fb5', t:'#e8f0f9', p:['Balco (CPP)','Balco (IPP)','Balco (E/A)','NTPC Jhabua','Gujrat (GETS)','Gujrat (TPHS)','HZL'] },
     { k:'MCL',  n:'Mahanadi Coalfields',     c:'#1b8a7f', t:'#e5f3f1', p:['NTPC (IB)','NTPC (CKP)','HZL','NGPM (Talchar)','NLOD (Talchar)','NLOD (IB)','NLOD (CKP)'] },
@@ -1373,7 +1374,7 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
     { k:'CCL',  n:'Central Coalfields',      c:'#c4532a', t:'#f9ebe5', p:['HZL','NTPC Jhabua'] },
     { k:'NCL',  n:'Northern Coalfields',     c:'#5b6a78', t:'#eceff1', p:['NTPC Jhabua'] }
   ];
-  var ALL = [];                                   // every party row id
+  var ALL = [];
   SUBS.forEach(function (s) { s.p.forEach(function (_, i) { ALL.push(s.k + '-' + i); }); });
   function ids(sub, idx) { return idx.map(function (i) { return sub + '-' + i; }); }
   var GROUPS = [
@@ -1398,9 +1399,10 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
   function num(v) { var n = parseFloat(v); return isNaN(n) ? 0 : n; }
   function g(n) { return String(parseFloat(n.toPrecision(10))); }
   function ask(a, d) { return isFinite(a) ? a.toFixed(d) : '–'; }
+
   /* ---- build tables ---- */
-  var inp = {};                                    // id-t / id-d -> input
-  var base = {};                                   // id -> loaded up to the previous day
+  var inp = {};
+  var base = {};
   function inputCell(id, f, label) { return '<td class="num"><input class="in' + (f === 'd' ? ' today' : '') + '" type="number" step="any" min="0" inputmode="decimal" data-c="' + f + '" id="' + id + '-' + f + '" aria-label="' + label + '"></td>'; }
   function cells(p, extra) { return '<td class="num" id="' + p + '-b"></td><td class="num ask' + (extra || '') + '" id="' + p + '-a"></td>'; }
   function prog(p) { return '<td class="prog" id="' + p + '-p"><span class="bar"><i></i></span><b></b></td>'; }
@@ -1416,8 +1418,9 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
   });
   h += '<tfoot><tr class="grand"><th scope="row">Total</th><td class="num" id="ALL-t"></td><td class="num" id="ALL-d"></td><td class="num" id="ALL-l"></td>' + cells('ALL') + prog('ALL') + '</tr></tfoot>';
   $('mainGrid').innerHTML = h;
+
   var sh = '<thead><tr><th scope="col">Subsidiary</th><th scope="col">Party</th><th scope="col">Target</th><th scope="col">Loaded</th><th scope="col">Balance</th><th scope="col">Asking</th></tr></thead>';
-  var sumRows = [];                                // {p, ids}
+  var sumRows = [];
   GROUPS.forEach(function (gr, gi) {
     sh += '<tbody>';
     var many = gr.rows.length > 1;
@@ -1437,9 +1440,11 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
   });
   sh += '<tfoot><tr class="grand"><td></td><th scope="row">Total</th><td class="num" id="SALL-t"></td><td class="num" id="SALL-l"></td>' + cells('SALL') + '</tr></tfoot>';
   $('sumGrid').innerHTML = sh;
+
   $('train').innerHTML = SUBS.map(function (s) {
     return '<a class="wagon" href="#sub-' + s.k + '" id="W-' + s.k + '" style="--c:' + s.c + ';--tint:' + s.t + '"><div class="body"><i class="fill"></i></div><div class="wheels"><i></i><i></i></div><div class="lbl"><b>' + s.k + '</b><span class="of"></span><em></em></div></a>';
   }).join('');
+
   document.querySelectorAll('input.in').forEach(function (el) {
     inp[el.id] = el;
     el.addEventListener('input', function () { dirty = true; recalc(); status('Unsaved changes', 'warn'); });
@@ -1451,6 +1456,7 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
     var list = Array.prototype.slice.call(document.querySelectorAll('input.in[data-c="' + t.getAttribute('data-c') + '"]'));
     var n = list[list.indexOf(t) + d]; if (n) { e.preventDefault(); n.focus(); }
   });
+
   /* ---- calculation ---- */
   var reportDate = null, dirty = false, daysLeftN = 0;
   function agg(list) {
@@ -1463,10 +1469,12 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
   }
   function put(p, a, askDec) {
     var set = function (s, v) { var el = $(p + s); if (el) el.textContent = v; };
-    set('-t', g(a.t)); set('-d', g(a.d)); set('-l', g(a.l)); set('-b', g(a.b)); set('-a', ask(a.a, askDec)); var be = $(p + '-b'); if (be) be.classList.toggle('neg', a.b < 0);
+    set('-t', g(a.t)); set('-d', g(a.d)); set('-l', g(a.l)); set('-b', g(a.b)); set('-a', ask(a.a, askDec));
+    var be = $(p + '-b'); if (be) be.classList.toggle('neg', a.b < 0);
     var pc = $(p + '-p');
     if (pc) {
-      var q = a.t > 0 ? a.l / a.t : -1; pc.setAttribute('data-s', q < 0 ? 'none' : q >= 1 ? 'hi' : q >= 0.5 ? 'mid' : 'lo');
+      var q = a.t > 0 ? a.l / a.t : -1;
+      pc.setAttribute('data-s', q < 0 ? 'none' : q >= 1 ? 'hi' : q >= 0.5 ? 'mid' : 'lo');
       pc.querySelector('i').style.width = (a.t > 0 ? Math.max(0, Math.min(100, a.l / a.t * 100)) : 0) + '%';
       pc.querySelector('b').textContent = a.t > 0 ? Math.round(a.l / a.t * 100) + '%' : '–';
     }
@@ -1492,72 +1500,97 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
       ? todayTxt + '<b>' + g(tot.b) + '</b> rakes still to load' + pct + '. The asking rate is <b>' + tot.a.toFixed(2) + '</b> rakes a day for the <b>' + daysLeftN + '</b> days left in the month.'
       : todayTxt + '<b>' + g(tot.b) + '</b> rakes still to load' + pct + '. <span class="err">No days are left, so the asking rate cannot be worked out. Change the report date or the days in the month.</span>';
   }
+
   /* ---- status ---- */
   function status(msg, cls) { var s = $('status'); s.textContent = msg; s.className = cls || ''; }
-  function say(m) { var t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(say.t); say.t = setTimeout(function () { t.classList.remove('show'); }, 2200); }
+  function say(m) { var t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(say.t); say.t = setTimeout(function () { t.classList.remove('show'); }, 2600); }
+
   /* ---- Supabase (REST) ---- */
   function api(path, opts) {
-    opts = opts || {}; opts.headers = Object.assign({ apikey:SB_KEY, Authorization:'Bearer ' + SB_KEY, 'Content-Type':'application/json' }, opts.headers || {});
+    opts = opts || {};
+    opts.headers = Object.assign({ apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' }, opts.headers || {});
     return fetch(SB_URL + '/rest/v1/' + path, opts).then(function (r) {
       return r.text().then(function (t) {
-        var j = t ? JSON.parse(t) : null;
-        if (!r.ok) { var e = new Error((j && j.message) || r.statusText); e.code = j && j.code; throw e; }
+        var j = null;
+        try { j = t ? JSON.parse(t) : null; } catch (x) { j = { message: t }; }
+        if (!r.ok) {
+          var e = new Error((j && (j.message || j.hint || j.details)) || r.statusText || ('HTTP ' + r.status));
+          e.code = (j && j.code) || ('HTTP ' + r.status);
+          throw e;
+        }
         return j;
       });
     });
   }
   function dbError(e) {
-    if (e.code === 'PGRST205' || e.code === '42P01') return 'Table "' + TABLE + '" is missing. Run the setup SQL from the top of this file in Supabase.';
-    if (e.code === '42501') return 'Supabase blocked this action. Add the read, insert and update policies from the setup SQL.';
-    return 'Could not reach Supabase: ' + e.message;
+    var m = e.message || 'unknown error', c = e.code || '';
+    if (e.name === 'TypeError') return 'Could not reach Supabase. Check the internet connection and try again.';
+    if (c === 'PGRST205' || c === '42P01') return 'Table "' + TABLE + '" is missing. Run the setup SQL from the top of this file in Supabase.';
+    if (c === '42501' || /row-level security|policy/i.test(m)) return 'Supabase blocked the save (row-level security). Add the insert and update policies from the setup SQL.';
+    if (c === 'HTTP 401' || c === 'HTTP 403') return 'Supabase rejected the key or access (' + c + '). Check the project URL and key.';
+    if (c === '22P02' || /invalid input/i.test(m)) return 'Supabase rejected a value in the entry: ' + m;
+    return 'Save failed: ' + m + (c ? ' [' + c + ']' : '');
   }
   function has(v) { return v !== undefined && v !== null && v !== ''; }
-  /* mode 'saved': open a stored day (p = loaded up to yesterday, d = today's loading).
-     mode 'carry': start a new day from an earlier entry (its loaded total becomes the new base, today is empty). */
-  function fill(entries, mode, prevEntries) {
-  base = {};
-  ALL.forEach(function (id) {
-    var e = (entries && entries[id]) || {}, b, d = '';
-    if (mode === 'carry') {
-      b = num(e.l);
-    } else {
-      d = has(e.d) ? e.d : '';
-      if (prevEntries) b = num((prevEntries[id] || {}).l);   // always follow the previous day
-      else b = has(e.p) ? num(e.p) : num(e.l);               // first day of the month
-    }
-    base[id] = b;
-    inp[id + '-t'].value = has(e.t) ? e.t : '';
-    inp[id + '-d'].value = d;
-  });
-}
 
-function openDate(d) {
-  reportDate = d; $('dateIn').value = toISO(d); $('dateText').textContent = nice(d);
-  var iso = toISO(d), first = iso.slice(0, 8) + '01';
-  status('Loading ' + nice(d) + '…');
-  return Promise.all([
-    api(TABLE + '?report_date=eq.' + iso + '&select=*'),
-    api(TABLE + '?report_date=lt.' + iso + '&report_date=gte.' + first + '&order=report_date.desc&limit=1&select=*')
-  ]).then(function (res) {
-    var rows = res[0], prev = res[1];
-    var prevEntries = prev.length ? prev[0].entries : null;
-    if (rows.length) {
-      fill(rows[0].entries, 'saved', prevEntries);
-      $('daysIn').value = rows[0].days_in_month; recalc(); dirty = false;
-      status('Loaded saved entry for ' + nice(d), 'ok'); markSaved(iso); return;
-    }
-    fill(prevEntries, 'carry'); $('daysIn').value = dim(d); recalc(); dirty = false;
-    status(prev.length
-      ? 'New entry. Targets and loaded rakes carried from ' + nice(parseISO(prev[0].report_date)) + '. Type today\'s loading and save.'
-      : 'No entry for this date yet. Type the targets and today\'s loading, then save.', 'warn');
-    markSaved(null);
-  }).catch(function (e) { fill(null, 'carry'); $('daysIn').value = dim(d); recalc(); status(dbError(e), 'bad'); });
-}
+  /* mode 'saved': open a stored day. Its starting figure comes from the previous day's loaded total.
+     mode 'carry': start a new day from the latest earlier entry. Today's loading is empty. */
+  function fill(entries, mode, prevEntries) {
+    base = {};
+    ALL.forEach(function (id) {
+      var e = (entries && entries[id]) || {}, b, d = '';
+      if (mode === 'carry') {
+        b = num(e.l);
+      } else {
+        d = has(e.d) ? e.d : '';
+        if (prevEntries) b = num((prevEntries[id] || {}).l);
+        else b = has(e.p) ? num(e.p) : num(e.l);
+      }
+      base[id] = b;
+      inp[id + '-t'].value = has(e.t) ? e.t : '';
+      inp[id + '-d'].value = d;
+    });
+  }
+  function collect() {
+    var out = {};
+    ALL.forEach(function (id) {
+      var t = inp[id + '-t'].value, d = inp[id + '-d'].value, b = base[id] || 0;
+      if (t !== '' || d !== '' || b) out[id] = { t: t === '' ? null : num(t), p: b, d: d === '' ? null : num(d), l: b + num(d) };
+    });
+    return out;
+  }
+
+  function openDate(d) {
+    reportDate = d; $('dateIn').value = toISO(d); $('dateText').textContent = nice(d);
+    var iso = toISO(d), first = iso.slice(0, 8) + '01';
+    status('Loading ' + nice(d) + '…');
+    return Promise.all([
+      api(TABLE + '?report_date=eq.' + iso + '&select=*'),
+      api(TABLE + '?report_date=lt.' + iso + '&report_date=gte.' + first + '&order=report_date.desc&limit=1&select=*')
+    ]).then(function (res) {
+      var rows = res[0], prev = res[1];
+      var prevEntries = prev.length ? prev[0].entries : null;
+      if (rows.length) {
+        fill(rows[0].entries, 'saved', prevEntries);
+        $('daysIn').value = rows[0].days_in_month; recalc(); dirty = false;
+        status('Loaded saved entry for ' + nice(d), 'ok'); markSaved(iso); return;
+      }
+      fill(prevEntries, 'carry'); $('daysIn').value = dim(d); recalc(); dirty = false;
+      status(prev.length
+        ? 'New entry. Targets and loaded rakes carried from ' + nice(parseISO(prev[0].report_date)) + '. Type today\'s loading and save.'
+        : 'No entry for this date yet. Type the targets and today\'s loading, then save.', 'warn');
+      markSaved(null);
+    }).catch(function (e) {
+      console.error('[AMM open]', e);
+      fill(null, 'carry'); $('daysIn').value = dim(d); recalc(); status(dbError(e), 'bad');
+    });
+  }
+
   var savedDates = [];
   function loadSaved() {
     return api(TABLE + '?select=report_date&order=report_date.desc&limit=31').then(function (rows) {
       savedDates = rows.map(function (r) { return r.report_date; }); drawSaved();
-    }).catch(function () {});
+    }).catch(function (e) { console.error('[AMM list]', e); status(dbError(e), 'bad'); });
   }
   function drawSaved() {
     var cur = toISO(reportDate);
@@ -1567,6 +1600,7 @@ function openDate(d) {
   }
   function markSaved(iso) { if (iso && savedDates.indexOf(iso) < 0) savedDates.unshift(iso); drawSaved(); }
   $('saved').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) go(parseISO(b.getAttribute('data-d'))); });
+
   function go(d) {
     if (dirty) {
       PRTPL.confirm('You have unsaved changes. Open another date without saving?', { title: 'Unsaved changes', okLabel: 'Open anyway', cancelLabel: 'Stay here', danger: true })
@@ -1575,21 +1609,39 @@ function openDate(d) {
     }
     openDate(d);
   }
-  /* ---- actions ---- */
+
+  /* ---- save ---- */
+  function saveEntry() {
+    if (!reportDate) return Promise.resolve();
+    var b = $('btnSave'), iso = toISO(reportDate), entries = collect(), days = num($('daysIn').value);
+    if (!Object.keys(entries).length) { status('Nothing to save. Enter at least one target or loading value.', 'bad'); return Promise.resolve(); }
+    if (days < 1) { status('Enter the days in month before saving.', 'bad'); return Promise.resolve(); }
+    b.disabled = true; status('Saving ' + nice(reportDate) + '…');
+    return api(TABLE + '?on_conflict=report_date', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify({ report_date: iso, days_in_month: days, entries: entries, updated_at: new Date().toISOString() })
+    }).then(function () {
+      dirty = false;
+      status('Saved entry for ' + nice(reportDate), 'ok');
+      say('Saved ' + nice(reportDate));
+      markSaved(iso);
+    }).catch(function (e) {
+      console.error('[AMM save]', e);
+      status(dbError(e), 'bad');
+      say('Not saved. See the status message.');
+    }).then(function () { b.disabled = false; });
+  }
+  $('btnSave').addEventListener('click', saveEntry);
+
   $('dateIn').addEventListener('change', function () { if ($('dateIn').value) go(parseISO($('dateIn').value)); });
   $('daysIn').addEventListener('input', function () { dirty = true; recalc(); status('Unsaved changes', 'warn'); });
-  $('btnSave').addEventListener('click', function () {
-    var b = $('btnSave'), iso = toISO(reportDate), entries = collect();
-    if (!Object.keys(entries).length) { status('Nothing to save. Enter at least one target or loading value.', 'bad'); return; }
-    b.disabled = true; status('Saving…');
-    api(TABLE + '?on_conflict=report_date', {
-      method:'POST', headers:{ Prefer:'resolution=merge-duplicates,return=minimal' },
-      body: JSON.stringify({ report_date: iso, days_in_month: num($('daysIn').value), entries: entries, updated_at: new Date().toISOString() })
-    }).then(function () { dirty = false; status('Saved entry for ' + nice(reportDate), 'ok'); say('Saved ' + nice(reportDate)); markSaved(iso); })
-      .catch(function (e) { status(dbError(e), 'bad'); })
-      .then(function () { b.disabled = false; });
+  document.addEventListener('keydown', function (e) {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); saveEntry(); }
   });
-var COL = { SECL:['#2f6fb5','#e5edf7'], MCL:['#1b8a7f','#e3f1ef'], WCL:['#7656a8','#ece8f3'], CCL:['#c4532a','#f7e9e3'], NCL:['#5b6a78','#eaedf0'] };
+
+  /* ---- image export ---- */
+  var COL = { SECL:['#2f6fb5','#e5edf7'], MCL:['#1b8a7f','#e3f1ef'], WCL:['#7656a8','#ece8f3'], CCL:['#c4532a','#f7e9e3'], NCL:['#5b6a78','#eaedf0'] };
   var CD = '"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif', BT = '"Instrument Sans",ui-sans-serif,system-ui,sans-serif';
   function cellText(c) { var i = c.querySelector('input'); if (i) return i.value === '' ? '0' : i.value; var b = c.classList.contains('prog') && c.querySelector('b'); return (b ? b.textContent : c.textContent).trim(); }
   function readTable(tbl) {
@@ -1607,8 +1659,8 @@ var COL = { SECL:['#2f6fb5','#e5edf7'], MCL:['#1b8a7f','#e3f1ef'], WCL:['#7656a8
   function rowH(r) { return r.t === 'sec' ? 38 : r.t === 'grand' ? 46 : r.t === 'head' ? 34 : 36; }
   function tblH(rows) { var h = 0; rows.forEach(function (r) { h += rowH(r) + (r.gap ? 10 : 0); }); return h; }
   function drawImage() {
-    var W = 1700, P = 40, S = 2, mainRows = readTable($('mainGrid')), sumRows = readTable($('sumGrid'));
-    var TY = 626, H = TY + Math.max(tblH(mainRows), tblH(sumRows)) + 74;
+    var W = 1700, P = 40, S = 2, mainRows = readTable($('mainGrid')), sumRows2 = readTable($('sumGrid'));
+    var TY = 626, H = TY + Math.max(tblH(mainRows), tblH(sumRows2)) + 74;
     var cv = document.createElement('canvas'); cv.width = W * S; cv.height = H * S;
     var c = cv.getContext('2d'); c.scale(S, S);
     function path(x, y, w, h, r) { c.beginPath(); if (r && c.roundRect) c.roundRect(x, y, w, h, r); else c.rect(x, y, w, h); }
@@ -1621,31 +1673,31 @@ var COL = { SECL:['#2f6fb5','#e5edf7'], MCL:['#1b8a7f','#e3f1ef'], WCL:['#7656a8
       c.save(); path(x, y, w, tblH(rows), 8); c.clip();
       rows.forEach(function (r) {
         if (r.gap) { rect(x, yy, w, 10, '#fff'); yy += 10; }
-        var h = rowH(r), col = COL[r.key] || ['#17283a', '#e8ecf0'], base = yy + h / 2 + 6;
+        var h = rowH(r), col = COL[r.key] || ['#17283a', '#e8ecf0'], base2 = yy + h / 2 + 6;
         rect(x, yy, w, h, r.t === 'head' ? '#fafbfd' : r.t === 'tot' ? '#e2f3e8' : r.t === 'grand' ? '#17283a' : r.t === 'sec' ? col[1] : '#fff');
         if (r.t === 'sec') {
           rect(x, yy, 6, h, col[0]); var cw = chip(r.cells[0], x + 18, yy + 7, h - 14, col[0], 20);
-          txt(r.cells[1], x + 18 + cw + 10, base, '400 15px ' + BT, '#55636f');
+          txt(r.cells[1], x + 18 + cw + 10, base2, '400 15px ' + BT, '#55636f');
         } else {
           if (!sum && r.t === 'row') { c.globalAlpha = 0.45; rect(x, yy, 6, h, col[0]); c.globalAlpha = 1; }
           r.cells.forEach(function (s, j) {
-            if (r.t === 'head') { txt(s, j < nl ? xs[j] + (j ? 8 : 18) : xs[j + 1] - 14, base - 2, '500 14px ' + BT, '#55636f', j < nl ? 'left' : 'right'); return; }
+            if (r.t === 'head') { txt(s, j < nl ? xs[j] + (j ? 8 : 18) : xs[j + 1] - 14, base2 - 2, '500 14px ' + BT, '#55636f', j < nl ? 'left' : 'right'); return; }
             if (j < nl) {
               if (sum && j === 0) { if (COL[s]) chip(s, xs[0] + 18, yy + 8, h - 16, COL[s][0], 16); return; }
-              txt(s, xs[j] + (sum ? 8 : r.t === 'row' ? 24 : 18), base, r.t === 'grand' ? '700 24px ' + CD : (r.t === 'row' ? '400 17px ' : '600 17px ') + BT, r.t === 'grand' ? '#fff' : r.t === 'tot' ? '#0d5a30' : '#16212c');
+              txt(s, xs[j] + (sum ? 8 : r.t === 'row' ? 24 : 18), base2, r.t === 'grand' ? '700 24px ' + CD : (r.t === 'row' ? '400 17px ' : '600 17px ') + BT, r.t === 'grand' ? '#fff' : r.t === 'tot' ? '#0d5a30' : '#16212c');
               return;
             }
-            var ask = j === (sum ? last : last - 1), pc = !sum && j === last, hl = r.hl[j];
+            var ask2 = j === (sum ? last : last - 1), pc2 = !sum && j === last, hl = r.hl[j];
             if (hl) rect(xs[j], yy, xs[j + 1] - xs[j], h, '#ffeaa6');
-            var colr = hl ? '#5a3600' : r.t === 'grand' ? (ask ? '#ffb400' : '#fff') : r.t === 'tot' ? '#0d5a30' : (s.charAt(0) === '-' ? '#b3261e' : '#16212c');
-            var fnt = (r.t === 'grand' ? '700 26px ' : (r.t === 'tot' || ask || hl) ? '700 20px ' : '500 20px ') + CD;
-            if (pc) {
+            var colr = hl ? '#5a3600' : r.t === 'grand' ? (ask2 ? '#ffb400' : '#fff') : r.t === 'tot' ? '#0d5a30' : (s.charAt(0) === '-' ? '#b3261e' : '#16212c');
+            var fnt = (r.t === 'grand' ? '700 26px ' : (r.t === 'tot' || ask2 || hl) ? '700 20px ' : '500 20px ') + CD;
+            if (pc2) {
               var p = Math.max(0, Math.min(100, parseInt(s, 10) || 0));
-              rect(xs[j] + 14, base - 14, 54, 9, r.t === 'grand' ? 'rgba(255,255,255,.22)' : r.t === 'tot' ? 'rgba(13,90,48,.18)' : '#e4e7e2', 4);
-              if (p) rect(xs[j] + 14, base - 14, Math.max(8, 54 * p / 100), 9, r.t === 'grand' ? '#ffb400' : r.t === 'tot' ? '#1d8f4e' : col[0], 4);
+              rect(xs[j] + 14, base2 - 14, 54, 9, r.t === 'grand' ? 'rgba(255,255,255,.22)' : r.t === 'tot' ? 'rgba(13,90,48,.18)' : '#e4e7e2', 4);
+              if (p) rect(xs[j] + 14, base2 - 14, Math.max(8, 54 * p / 100), 9, r.t === 'grand' ? '#ffb400' : r.t === 'tot' ? '#1d8f4e' : col[0], 4);
               fnt = '500 18px ' + CD;
             }
-            txt(s, xs[j + 1] - 14, base + 1, fnt, colr, 'right');
+            txt(s, xs[j + 1] - 14, base2 + 1, fnt, colr, 'right');
           });
         }
         rect(x, yy + h - (r.t === 'head' ? 2 : 1), w, r.t === 'head' ? 2 : 1, r.t === 'head' ? '#17283a' : '#e0e6ec');
@@ -1658,10 +1710,10 @@ var COL = { SECL:['#2f6fb5','#e5edf7'], MCL:['#1b8a7f','#e3f1ef'], WCL:['#7656a8
     txt('Coal India subsidiaries: target, today\'s loading, loaded and asking rakes', P, 106, '400 18px ' + BT, '#55636f');
     txt('Report date', W - P, 52, '400 15px ' + BT, '#55636f', 'right');
     txt($('dateText').textContent, W - P, 100, '700 44px ' + CD, '#17283a', 'right');
-    var tg = num($('hTarget').textContent), ld = num($('hLoaded').textContent), pc = tg > 0 ? Math.min(100, ld / tg * 100) : 0;
+    var tg = num($('hTarget').textContent), ld = num($('hLoaded').textContent), pct = tg > 0 ? Math.min(100, ld / tg * 100) : 0;
     txt($('hLoaded').textContent + ' of ' + $('hTarget').textContent + ' rakes loaded', P, 190, '700 64px ' + CD, '#17283a');
     txt($('readoutText').textContent, P, 226, '400 20px ' + BT, '#55636f');
-    rect(P, 244, W - 2 * P, 10, '#dfe5ea', 5); if (pc > 0) rect(P, 244, Math.max(10, (W - 2 * P) * pc / 100), 10, '#1d8f4e', 5);
+    rect(P, 244, W - 2 * P, 10, '#dfe5ea', 5); if (pct > 0) rect(P, 244, Math.max(10, (W - 2 * P) * pct / 100), 10, '#1d8f4e', 5);
     var kp = [['Target rakes', 'mT'], ['Loaded today', 'mD'], ['Loaded rakes', 'mL'], ['Balance rakes', 'mB'], ['Asking rakes per day', 'mA']], kw = (W - 2 * P - 64) / 5;
     kp.forEach(function (k, i) {
       var x = P + i * (kw + 16), key = i === 4;
@@ -1669,12 +1721,11 @@ var COL = { SECL:['#2f6fb5','#e5edf7'], MCL:['#1b8a7f','#e3f1ef'], WCL:['#7656a8
       txt(k[0], x + 20, 308, '400 16px ' + BT, key ? '#a9b6c3' : '#55636f');
       txt($(k[1]).textContent, x + 20, 355, '700 50px ' + CD, key ? '#ffb400' : '#17283a');
     });
-    /* loading train: wagon width follows target, fill follows loaded */
     var wg = Array.prototype.slice.call(document.querySelectorAll('.wagon')), gp = 12, av = W - 2 * P - gp * (wg.length - 1), y0 = 404, bh = 92;
     var gr = wg.map(function (w) { return Math.max(parseFloat(w.style.flexGrow) || 1, 1); }), gs = gr.reduce(function (a, b) { return a + b; }, 0), wx = P;
     wg.forEach(function (w, i) {
-      var k = w.id.slice(2), cl = COL[k], bw = av * (0.35 / wg.length + 0.65 * gr[i] / gs), fh, p = Math.max(0, Math.min(100, parseInt(w.querySelector('em').textContent, 10) || 0));
-      fh = bh * p / 100;
+      var k = w.id.slice(2), cl = COL[k], bw = av * (0.35 / wg.length + 0.65 * gr[i] / gs), p = Math.max(0, Math.min(100, parseInt(w.querySelector('em').textContent, 10) || 0));
+      var fh = bh * p / 100;
       rect(wx, y0, bw, bh, cl[1], 8);
       c.save(); path(wx, y0, bw, bh, 8); c.clip();
       rect(wx, y0 + bh - fh, bw, fh, cl[0]);
@@ -1690,7 +1741,7 @@ var COL = { SECL:['#2f6fb5','#e5edf7'], MCL:['#1b8a7f','#e3f1ef'], WCL:['#7656a8
     });
     txt('Subsidiary-wise loading', P, 612, '700 26px ' + CD, '#17283a'); txt('Party-wise summary', P + 984, 612, '700 26px ' + CD, '#17283a');
     table(P, TY, 960, [24, 11, 11, 11, 12, 16, 15], mainRows, false);
-    table(P + 984, TY, 636, [15, 26, 13, 13, 15, 17], sumRows, true);
+    table(P + 984, TY, 636, [15, 26, 13, 13, 15, 17], sumRows2, true);
     txt('Loaded = loaded up to the previous day + today loading. Balance = Target - Loaded. Asking rakes per day = Balance / (days in month - day of the report date).', P, H - 30, '400 15px ' + BT, '#55636f');
     return new Promise(function (res) {
       cv.toBlob(function (bl) {
@@ -1705,15 +1756,14 @@ var COL = { SECL:['#2f6fb5','#e5edf7'], MCL:['#1b8a7f','#e3f1ef'], WCL:['#7656a8
     Promise.all(fl).catch(function () {}).then(drawImage).then(function () { say('Image downloaded'); })
       .catch(function () { say('Could not create the image'); }).then(function () { b.disabled = false; });
   });
+
   function stepDay(n) { var d = new Date(reportDate); d.setDate(d.getDate() + n); go(d); }
   $('prevDay').addEventListener('click', function () { stepDay(-1); });
   $('nextDay').addEventListener('click', function () { stepDay(1); });
-  document.addEventListener('keydown', function (e) {
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); $('btnSave').click(); }
-  });
   window.addEventListener('beforeunload', function (e) { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
   window.addEventListener('scroll', function () { document.body.classList.toggle('scrolled', window.scrollY > 180); }, { passive: true });
   $('dateIn').addEventListener('click', function () { try { $('dateIn').showPicker(); } catch (e) {} });
+
   /* ---- start ---- */
   reportDate = yesterday(); $('dateText').textContent = nice(reportDate); $('dateIn').value = toISO(reportDate); $('daysIn').value = dim(reportDate); fill(null, 'carry'); recalc();
   loadSaved().then(function () { openDate(reportDate); });
