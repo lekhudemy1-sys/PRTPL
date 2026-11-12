@@ -220,6 +220,28 @@ body:not(.unlocked) .pro-tab{display:none}
 .alert-miss span:last-child{font-weight:600}
 .alert-fill{margin-top:.8rem}
 
+/* Daily-sync dialogs: always appear above the page, launched only from Data Entry */
+.sync-modal-back{position:fixed;inset:0;z-index:1200;background:rgba(7,18,40,.62);backdrop-filter:blur(5px);
+  display:flex;justify-content:center;align-items:flex-start;padding:7vh 1rem 1rem;overflow-y:auto}
+.sync-modal{width:min(520px,96vw);background:#fff;border:1px solid rgba(255,255,255,.7);border-radius:22px;
+  box-shadow:0 28px 80px rgba(5,18,42,.38);overflow:hidden;animation:syncPop .22s ease-out}
+@keyframes syncPop{from{opacity:0;transform:translateY(-12px) scale(.985)}to{opacity:1;transform:none}}
+.sync-modal-head{padding:1rem 1.2rem;color:#fff;background:linear-gradient(120deg,#0f2142,#1b3a6b 65%,#167c83);
+  display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.sync-modal-head h2{font:700 1.08rem var(--head);display:flex;align-items:center;gap:.65rem}
+.sync-step{font-size:.72rem;font-weight:800;letter-spacing:.04em;padding:.3rem .65rem;border-radius:999px;
+  color:#d8fff2;background:rgba(52,211,166,.2);border:1px solid rgba(150,255,220,.28);white-space:nowrap}
+.sync-modal-body{padding:1.2rem}
+.sync-modal-message{font-size:.92rem;font-weight:600;line-height:1.55;color:#263653}
+.sync-modal-meta{display:flex;flex-wrap:wrap;gap:.45rem;margin:.85rem 0}
+.sync-modal-chip{font-size:.74rem;font-weight:800;color:#1b3a6b;background:#edf3fc;border:1px solid #dce7f6;
+  border-radius:999px;padding:.32rem .65rem}
+.sync-modal-label{display:block;font-size:.78rem;font-weight:800;color:#263653;margin:.9rem 0 .35rem}
+.sync-modal-select{width:100%;padding:.8rem .9rem;border:1px solid #cbd8ea;border-radius:13px;background:#f7f9fd;
+  color:#10213f;font:600 .95rem var(--body)}
+.sync-modal-actions{display:flex;justify-content:flex-end;gap:.6rem;flex-wrap:wrap;margin-top:1.1rem}
+.sync-modal-actions button{min-width:108px;justify-content:center}
+
 /* Lock page */
 .lock-row{display:flex;align-items:center;justify-content:center;gap:1.5rem;flex-wrap:wrap;min-height:70vh;padding:1rem}
 .lock-back{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;border:0;padding:.75rem 1.2rem;border-radius:14px;font:700 .9rem var(--body);cursor:pointer;display:inline-flex;align-items:center;gap:.5rem;box-shadow:0 12px 22px -12px rgba(15,33,66,.7);transition:.2s}
@@ -484,6 +506,10 @@ body:not(.unlocked) .pro-tab{display:none}
   <div class="topbar"><div><h1>Data Entry</h1><div class="period">Record coal rake loading, receipt, freight &amp; cost data</div></div></div>
   <div class="panel">
     <h2><i class="fas fa-plus-circle"></i> New Rake Record</h2>
+    <div class="toolbar" style="margin:.2rem 0 1rem">
+      <button type="button" class="btn-go" id="dailySyncBtn"><i class="fas fa-arrows-rotate"></i> Sync Daily Loading</button>
+      <span class="muted" id="dailySyncStatus">Compare the daily sheet with HZL rake records for the selected quarter.</span>
+    </div>
     <div class="toolbar">
       <input type="number" class="field" id="searchSr" min="1" placeholder="Sr No" style="max-width:160px">
       <button type="button" class="btn-soft" id="searchRecord"><i class="fas fa-magnifying-glass"></i> Search</button>
@@ -2244,6 +2270,201 @@ async function loadAlertRows() {
   if (error) throw error;
   return data || [];
 }
+
+
+/* ==================== DAILY LOADING LINK (HZL) ==================== */
+const DAILY_URL = 'https://jzkrywwrsewchtiqsczk.supabase.co';
+const DAILY_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6a3J5d3dyc2V3Y2h0aXFzY3prIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1NDU0MzQsImV4cCI6MjEwNzEyMTQzNH0.IDwfVhqDI9uXfAALCVKBD0pNjsNVu38fW4eEueaKDSs';
+const DAILY_TABLE = 'amm_daily_entries';
+const DAILY_MAP = { 'SECL-6': 'SECL', 'MCL-2': 'MCL', 'CCL-0': 'CCL' };
+const DAILY_SYNC_FROM = '2026-11-01';
+const HZL_SIDINGS = ['GOVIND', 'KMKA', 'NKCR', 'OKSR', 'GPCK', 'JRGR', 'DIPKA', 'SLOG'];
+let DAILY_BUSY = false;
+
+const isPendingRake = r => r.rr_no == null || String(r.rr_no).trim() === '';
+
+async function fetchDailyWindow(from, to) {
+  const start = from > DAILY_SYNC_FROM ? from : DAILY_SYNC_FROM;
+  if (start > to) return [];
+  const url = `${DAILY_URL}/rest/v1/${DAILY_TABLE}?report_date=gte.${start}&report_date=lte.${to}&select=report_date,entries&order=report_date.asc`;
+  const res = await fetch(url, { headers: { apikey: DAILY_KEY, Authorization: 'Bearer ' + DAILY_KEY } });
+  if (!res.ok) throw new Error('Daily sheet read failed (' + res.status + ')');
+  return res.json();
+}
+
+async function fetchHzlRecords(from, to) {
+  const out = [];
+  const PAGE = 1000;
+  for (let start = 0; ; start += PAGE) {
+    const { data, error } = await db.from('hzl_rake_records').select('*')
+      .gte('date', from).lte('date', to).order('id', { ascending: true }).range(start, start + PAGE - 1);
+    if (error) throw error;
+    out.push(...(data || []));
+    if (!data || data.length < PAGE) break;
+  }
+  return out;
+}
+
+function buildDailyDiff(dailyRows, recs) {
+  const diff = [];
+  dailyRows.forEach(dr => {
+    Object.entries(DAILY_MAP).forEach(([key, area]) => {
+      const entry = (dr.entries || {})[key];
+      if (!entry || !isNum(entry.d)) return;
+      const want = Math.max(0, Math.round(Number(entry.d)));
+      const mine = recs.filter(r =>
+        String(r.date || '').slice(0, 10) === dr.report_date &&
+        String(r.area || '').trim().toUpperCase() === area);
+      const pending = mine.filter(isPendingRake);
+      const add = Math.max(0, want - mine.length);
+      const drop = Math.max(0, mine.length - want);
+      if (add || drop) {
+        diff.push({ date: dr.report_date, area, want, count: mine.length, add, drop,
+          pending, confirmed: mine.length - pending.length });
+      }
+    });
+  });
+  return diff.sort((a, b) => a.date.localeCompare(b.date) || a.area.localeCompare(b.area));
+}
+
+async function nextSrNo() {
+  const { data, error } = await db.from('hzl_rake_records')
+    .select('sr_no').order('sr_no', { ascending: false }).limit(1);
+  if (error) throw error;
+  return data && data.length ? Number(data[0].sr_no || 0) + 1 : 1;
+}
+
+// A single top-of-screen dialog is shown at a time; the step counter makes multi-rake work clear.
+function askChoice(title, message, options, okLabel, stepText) {
+  return new Promise(resolve => {
+    const wrap = document.createElement('div');
+    wrap.className = 'sync-modal-back';
+    wrap.innerHTML = `<div class="sync-modal" role="dialog" aria-modal="true" aria-label="${esc(title)}">
+      <div class="sync-modal-head">
+        <h2><i class="fas fa-train"></i> ${esc(title)}</h2>
+        ${stepText ? `<span class="sync-step">${esc(stepText)}</span>` : ''}
+      </div>
+      <div class="sync-modal-body">
+        <p class="sync-modal-message">${esc(message)}</p>
+        <div class="sync-modal-meta"><span class="sync-modal-chip">HZL · Daily sync</span><span class="sync-modal-chip">${options.length} option${options.length === 1 ? '' : 's'}</span></div>
+        <label class="sync-modal-label" for="syncSel">Choose siding / rake</label>
+        <select class="sync-modal-select" id="syncSel">
+          ${options.map(o => `<option value="${esc(o.value)}">${esc(o.label)}</option>`).join('')}
+        </select>
+        <div class="sync-modal-actions">
+          <button type="button" class="btn-soft" id="syncCancel">Cancel</button>
+          <button type="button" class="btn-go" id="syncOk">${esc(okLabel)}</button>
+        </div>
+      </div>
+    </div>`;
+    document.body.appendChild(wrap);
+    const select = wrap.querySelector('#syncSel');
+    const done = value => { wrap.remove(); resolve(value); };
+    wrap.querySelector('#syncOk').onclick = () => done(select.value);
+    wrap.querySelector('#syncCancel').onclick = () => done(null);
+    wrap.addEventListener('click', e => { if (e.target === wrap) done(null); });
+    select.focus();
+  });
+}
+
+async function runDailySync() {
+  // This function is called only by the button inside the protected Data Entry panel.
+  if (!isUnlocked || DAILY_BUSY || !$('view-entry').classList.contains('active')) return;
+  DAILY_BUSY = true;
+  const btn = $('dailySyncBtn');
+  const status = $('dailySyncStatus');
+  let changed = false;
+  let cancelled = false;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
+  status.textContent = 'Reading daily sheet and HZL records...';
+  try {
+    const from = cycleFrom(PERIOD), to = cycleEnd(PERIOD);
+    const [recs, dailyRows] = await Promise.all([fetchHzlRecords(from, to), fetchDailyWindow(from, to)]);
+    const diff = buildDailyDiff(dailyRows, recs);
+    let actions = 0;
+
+    if (!diff.length) {
+      status.textContent = 'Already matched — no changes required.';
+      toast('HZL matches the daily sheet for the selected quarter.');
+      return;
+    }
+
+    for (const d of diff) {
+      // Daily sheet is higher: create pending HZL rows, asking for a siding each time.
+      for (let i = 0; i < d.add; i++) {
+        const siding = await askChoice(
+          `New ${d.area} rake · HZL`,
+          `${d.date}: the daily sheet expects ${d.want} ${d.area} rakes, while HZL has ${d.count}. Select the mine / siding for this new pending rake.`,
+          HZL_SIDINGS.map(m => ({ value: m, label: m })),
+          'Save pending rake',
+          `ADD ${i + 1} OF ${d.add}`
+        );
+        if (siding == null) { cancelled = true; break; }
+        const sr = await nextSrNo();
+        const { error } = await db.from('hzl_rake_records').insert({
+          sr_no: sr, date: d.date, area: d.area, siding, rr_no: null
+        });
+        if (error) { toast('Could not save rake: ' + error.message, true); cancelled = true; break; }
+        d.count++;
+        changed = true;
+        actions++;
+      }
+      if (cancelled) break;
+
+      // Daily sheet is lower: delete pending rows only; confirmed RR rows are protected.
+      if (d.drop > 0) {
+        if (d.drop > d.pending.length) {
+          toast(`${d.date} ${d.area}: ${d.confirmed} confirmed rakes exceed the daily count (${d.want}). Review Records Log; confirmed records were not changed.`, true);
+          continue;
+        }
+        const pending = d.pending.slice();
+        for (let i = 0; i < d.drop; i++) {
+          const id = await askChoice(
+            'Remove a pending rake · HZL',
+            `${d.date} ${d.area}: daily sheet expects ${d.want}, while HZL has ${d.count}. Select which pending record to remove. Confirming the next step permanently deletes it.`,
+            pending.map(row => ({
+              value: String(row.id),
+              label: `Sr No ${row.sr_no}${row.siding ? ' · ' + row.siding : ''}`
+            })),
+            'Continue to delete',
+            `REMOVE ${i + 1} OF ${d.drop}`
+          );
+          if (id == null) { cancelled = true; break; }
+          const row = pending.find(r => String(r.id) === id);
+          if (!row) { cancelled = true; break; }
+          if (!confirm(`Permanently delete pending HZL rake Sr No ${row.sr_no}?`)) { cancelled = true; break; }
+          const { error } = await db.from('hzl_rake_records').delete().eq('id', id);
+          if (error) { toast('Delete failed: ' + error.message, true); cancelled = true; break; }
+          const index = pending.findIndex(r => String(r.id) === id);
+          if (index >= 0) pending.splice(index, 1);
+          d.count--;
+          changed = true;
+          actions++;
+        }
+      }
+      if (cancelled) break;
+    }
+
+    if (cancelled) {
+      status.textContent = `Sync paused. ${actions} change(s) saved; run sync again to continue.`;
+    } else {
+      status.textContent = `Sync complete. ${actions} change(s) made.`;
+      toast(`Daily sync complete: ${actions} change(s).`);
+    }
+  } catch (err) {
+    console.error('[HZL daily sync]', err);
+    status.textContent = 'Sync failed. Check the error message.';
+    toast('Daily sync: ' + (err.message || 'failed'), true);
+  } finally {
+    DAILY_BUSY = false;
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-arrows-rotate"></i> Sync Daily Loading';
+    if (changed) await loadDashboard();
+  }
+}
+
+$('dailySyncBtn').addEventListener('click', runDailySync);
 
 (async () => {
   await loadGlobal();
