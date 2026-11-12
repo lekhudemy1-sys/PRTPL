@@ -1514,49 +1514,45 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
   function has(v) { return v !== undefined && v !== null && v !== ''; }
   /* mode 'saved': open a stored day (p = loaded up to yesterday, d = today's loading).
      mode 'carry': start a new day from an earlier entry (its loaded total becomes the new base, today is empty). */
-  function fill(entries, mode) {
-    base = {};
-    ALL.forEach(function (id) {
-      var e = (entries && entries[id]) || {}, b, d = '';
-      if (mode === 'carry') { b = num(e.l); }
-      else if (has(e.p)) { b = num(e.p); d = has(e.d) ? e.d : ''; }
-      else { b = num(e.l); }                       // older entries: l only
-      base[id] = b;
-      inp[id + '-t'].value = has(e.t) ? e.t : '';
-      inp[id + '-d'].value = d;
-    });
-  }
-  function collect() {
-    var out = {};
-    ALL.forEach(function (id) {
-      var t = inp[id + '-t'].value, d = inp[id + '-d'].value, b = base[id] || 0;
-      if (t !== '' || d !== '' || b) out[id] = { t: t === '' ? null : num(t), p: b, d: d === '' ? null : num(d), l: b + num(d) };
-    });
-    return out;
-  }
-  function openDate(d) {
-    reportDate = d; $('dateIn').value = toISO(d); $('dateText').textContent = nice(d);
-    var iso = toISO(d);
-    status('Loading ' + nice(d) + '…');
-    return api(TABLE + '?report_date=eq.' + iso + '&select=*').then(function (rows) {
-      if (rows.length) {
-        fill(rows[0].entries, 'saved'); $('daysIn').value = rows[0].days_in_month; recalc(); dirty = false;
-        status('Loaded saved entry for ' + nice(d), 'ok'); markSaved(iso); return;
-      }
-      /* No entry for this date → carry targets and the loaded total from the latest earlier entry in the same month */
-      var first = iso.slice(0, 8) + '01';
-      return api(TABLE + '?report_date=lt.' + iso + '&report_date=gte.' + first + '&order=report_date.desc&limit=1&select=*').then(function (prev) {
-        fill(prev.length ? prev[0].entries : null, 'carry'); $('daysIn').value = dim(d); recalc(); dirty = false;
-        status(
-          prev.length
-            ? 'New entry. Targets and loaded rakes carried from ' + nice(parseISO(prev[0].report_date)) + '. Type today\'s loading and save.'
-            : 'No entry for this date yet. Type the targets and today\'s loading, then save.',
-          'warn'
-        );
-        markSaved(null);
-      });
-    }).catch(function (e) { fill(null, 'carry'); $('daysIn').value = dim(d); recalc(); status(dbError(e), 'bad'); });
-  }
+  function fill(entries, mode, prevEntries) {
+  base = {};
+  ALL.forEach(function (id) {
+    var e = (entries && entries[id]) || {}, b, d = '';
+    if (mode === 'carry') {
+      b = num(e.l);
+    } else {
+      d = has(e.d) ? e.d : '';
+      if (prevEntries) b = num((prevEntries[id] || {}).l);   // always follow the previous day
+      else b = has(e.p) ? num(e.p) : num(e.l);               // first day of the month
+    }
+    base[id] = b;
+    inp[id + '-t'].value = has(e.t) ? e.t : '';
+    inp[id + '-d'].value = d;
+  });
+}
+
+function openDate(d) {
+  reportDate = d; $('dateIn').value = toISO(d); $('dateText').textContent = nice(d);
+  var iso = toISO(d), first = iso.slice(0, 8) + '01';
+  status('Loading ' + nice(d) + '…');
+  return Promise.all([
+    api(TABLE + '?report_date=eq.' + iso + '&select=*'),
+    api(TABLE + '?report_date=lt.' + iso + '&report_date=gte.' + first + '&order=report_date.desc&limit=1&select=*')
+  ]).then(function (res) {
+    var rows = res[0], prev = res[1];
+    var prevEntries = prev.length ? prev[0].entries : null;
+    if (rows.length) {
+      fill(rows[0].entries, 'saved', prevEntries);
+      $('daysIn').value = rows[0].days_in_month; recalc(); dirty = false;
+      status('Loaded saved entry for ' + nice(d), 'ok'); markSaved(iso); return;
+    }
+    fill(prevEntries, 'carry'); $('daysIn').value = dim(d); recalc(); dirty = false;
+    status(prev.length
+      ? 'New entry. Targets and loaded rakes carried from ' + nice(parseISO(prev[0].report_date)) + '. Type today\'s loading and save.'
+      : 'No entry for this date yet. Type the targets and today\'s loading, then save.', 'warn');
+    markSaved(null);
+  }).catch(function (e) { fill(null, 'carry'); $('daysIn').value = dim(d); recalc(); status(dbError(e), 'bad'); });
+}
   var savedDates = [];
   function loadSaved() {
     return api(TABLE + '?select=report_date&order=report_date.desc&limit=31').then(function (rows) {
