@@ -515,6 +515,11 @@ body:not(.unlocked) .pro-tab{display:none}
   <div class="topbar"><div><h1>Data Entry</h1><div class="period">Type rake records, monthly targets and rates. Everything else is calculated.</div></div></div>
   <div class="panel">
     <h2><i class="fas fa-plus-circle"></i> New Rake Record</h2>
+    <div class="toolbar" style="justify-content:space-between">
+      <span class="muted">Daily loading link checks the source sheet again on every sync. Unmatched pending entries are removed automatically; confirmed RR records are protected.</span>
+      <button type="button" class="btn-soft" id="dailySyncBtn"><i class="fas fa-rotate"></i> Sync Daily Loading</button>
+    </div>
+    <div class="status" id="dailySyncStatus" aria-live="polite"></div>
     <div class="toolbar">
       <select id="recSearchBy" class="field" style="max-width:130px" aria-label="Search by" title="Search by">
         <option value="sr_no">Sr No</option>
@@ -1981,6 +1986,7 @@ async function initEntry() {
       $(k).addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(() => saveSetting(k, $(k).value), 600); });
     });
     $('carryFwd').addEventListener('click', carryForward);
+    $('dailySyncBtn').addEventListener('click', () => runDailySync(true));
     $('clearForm').addEventListener('click', resetEntryForm);
     $('entryForm').addEventListener('submit', saveRecord);
     $('updateBtn').addEventListener('click', updateRecord);
@@ -2550,10 +2556,12 @@ async function loadAlertRows() {
 const DAILY_URL = 'https://jzkrywwrsewchtiqsczk.supabase.co';
 const DAILY_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6a3J5d3dyc2V3Y2h0aXFzY3prIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1NDU0MzQsImV4cCI6MjEwNzEyMTQzNH0.IDwfVhqDI9uXfAALCVKBD0pNjsNVu38fW4eEueaKDSs';
 const DAILY_TABLE = 'amm_daily_entries';
-// Daily-sheet cell -> Gujarat area and party. Indexes follow the SUBS list in the daily file.
-const DAILY_MAP = { 'SECL-4': ['SECL', 'GETS'], 'SECL-5': ['SECL', 'TPHS'], 'WCL-0': ['WCL', 'GETS'], 'WCL-1': ['WCL', 'TPHS'] };
-// Only daily dates from this day onward are linked. Set it to the first day the link should run,
-// so older daily entries don't open a siding pop-up for every rake.
+const DAILY_MAP = {
+  'SECL-4': ['SECL', 'GETS'],
+  'SECL-5': ['SECL', 'TPHS'],
+  'WCL-0': ['WCL', 'GETS'],
+  'WCL-1': ['WCL', 'TPHS']
+};
 const DAILY_SYNC_FROM = '2026-11-01';
 let DAILY_BUSY = false;
 
@@ -2562,118 +2570,124 @@ const isPendingRake = r => r.rr_no == null || String(r.rr_no).trim() === '';
 async function fetchDailyWindow(period) {
   const w = monthInfo(period);
   const from = w.start > DAILY_SYNC_FROM ? w.start : DAILY_SYNC_FROM;
-  const url = `${DAILY_URL}/rest/v1/${DAILY_TABLE}?report_date=gte.${from}&report_date=lte.${w.end}&select=report_date,entries`;
-  const res = await fetch(url, { headers: { apikey: DAILY_KEY, Authorization: 'Bearer ' + DAILY_KEY } });
-  if (!res.ok) throw new Error('daily sheet read failed (' + res.status + ')');
-  return res.json();
+  if (from > w.end) return [];
+  const url = `${DAILY_URL}/rest/v1/${DAILY_TABLE}?report_date=gte.${from}&report_date=lte.${w.end}&select=report_date,entries&order=report_date.asc`;
+  const res = await fetch(url, {
+    headers: { apikey: DAILY_KEY, Authorization: 'Bearer ' + DAILY_KEY }
+  });
+  if (!res.ok) throw new Error('Daily sheet read failed (' + res.status + '). No Gujarat records were changed.');
+  const rows = await res.json();
+  if (!Array.isArray(rows)) throw new Error('Daily sheet returned an invalid response. No Gujarat records were changed.');
+  return rows;
 }
 
-// For each date, area and party: how many rakes the daily sheet expects vs how many Gujarat has.
-function buildDailyDiff(dailyRows, recs) {
-  const diff = [];
-  dailyRows.forEach(dr => {
-    Object.entries(DAILY_MAP).forEach(([k, [area, dstn]]) => {
-      const e = (dr.entries || {})[k];
-      if (!e || !isNum(e.d)) return;           // no daily figure for this cell: nothing to link
-      const want = Math.max(0, Math.round(Number(e.d)));
-      const mine = recs.filter(r => r.date === dr.report_date && up(r.area) === area && up(r.dstn) === dstn);
+function buildDailyDiff(dailyRows, recs, period) {
+  const w = monthInfo(period);
+  const from = w.start > DAILY_SYNC_FROM ? w.start : DAILY_SYNC_FROM;
+  const dailyByDate = new Map(dailyRows.map(r => [r.report_date, r]));
+  const localRows = recs.filter(r => r.date >= from && r.date <= w.end);
+  const groups = new Map();
+  localRows.forEach(r => {
+    const key = `${r.date}|${up(r.area)}|${up(r.dstn)}`;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(r);
+  });
+
+  const dates = new Set([
+    ...dailyRows.map(r => r.report_date),
+    ...localRows.map(r => r.date)
+  ]);
+  const diffs = [];
+  for (const [cell, [area, dstn]] of Object.entries(DAILY_MAP)) {
+    for (const date of dates) {
+      if (date < from || date > w.end) continue;
+      const cellValue = dailyByDate.get(date)?.entries?.[cell];
+      // Missing date, cell, or d value means the source no longer contains this loading count.
+      const want = Math.max(0, Math.round(cellValue && isNum(cellValue.d) ? Number(cellValue.d) : 0));
+      const mine = groups.get(`${date}|${area}|${dstn}`) || [];
       const pending = mine.filter(isPendingRake);
+      const confirmed = mine.length - pending.length;
       const add = Math.max(0, want - mine.length);
       const drop = Math.max(0, mine.length - want);
-      if (!add && !drop) return;
-      diff.push({ date: dr.report_date, area, dstn, want, count: mine.length, add, drop,
-        pending, confirmed: mine.length - pending.length });
-    });
-  });
-  return diff.sort((a, b) => a.date.localeCompare(b.date));
+      if (add || drop) diffs.push({ date, area, dstn, want, count: mine.length, add, drop, pending, confirmed });
+    }
+  }
+  return diffs.sort((a, b) => a.date.localeCompare(b.date));
 }
 
 async function nextSrNo() {
   const { data, error } = await db.from(TBL).select('sr_no').order('sr_no', { ascending: false }).limit(1);
   if (error) throw error;
-  return data && data.length ? data[0].sr_no + 1 : 1;
+  return data && data.length ? Number(data[0].sr_no) + 1 : 1;
 }
 
-// One-question dialog with a dropdown. Resolves to the chosen value, or null when cancelled.
-function askChoice(title, message, options, okLabel) {
-  return new Promise(resolve => {
-    const wrap = document.createElement('div');
-    wrap.className = 'modal-back daily-sync-modal';
-    wrap.innerHTML = `<div class="modal" style="width:min(460px,94vw);max-height:none">
-      <div class="modal-head"><h2><i class="fas fa-link"></i> ${esc(title)}</h2></div>
-      <div class="alert-body">
-        <p class="muted">${esc(message)}</p>
-        <select class="field" id="syncSel" style="margin-top:.8rem">
-          ${options.map(o => `<option value="${esc(o.value)}">${esc(o.label)}</option>`).join('')}
-        </select>
-        <div class="form-actions">
-          <button class="btn-go" id="syncOk">${esc(okLabel)}</button>
-          <button class="btn-soft" id="syncCancel">Cancel</button>
-        </div>
-      </div></div>`;
-    document.body.appendChild(wrap);
-    const done = v => { wrap.remove(); resolve(v); };
-    wrap.querySelector('#syncOk').onclick = () => done(wrap.querySelector('#syncSel').value);
-    wrap.querySelector('#syncCancel').onclick = () => done(null);
-  });
+function setDailySyncStatus(message, type = '') {
+  const el = $('dailySyncStatus');
+  if (!el) return;
+  el.textContent = message;
+  el.className = 'status' + (type ? ' ' + type : '');
 }
 
-async function runDailySync() {
-  if (!isUnlocked || DAILY_BUSY) return;     // creating and deleting records needs the password
+async function runDailySync(manual = false) {
+  if (!isUnlocked || DAILY_BUSY || !$('view-entry')?.classList.contains('active')) return;
   DAILY_BUSY = true;
-  let changed = false;
+  const btn = $('dailySyncBtn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing…'; }
+  setDailySyncStatus('Fetching the latest daily-sheet data and checking existing Gujarat records…');
+  let added = 0, removed = 0, protectedCount = 0;
+
   try {
     const w = monthInfo(PERIOD);
+    const syncFrom = w.start > DAILY_SYNC_FROM ? w.start : DAILY_SYNC_FROM;
     const [recs, dailyRows] = await Promise.all([
-      fetchAll(TBL, q => q.gte('date', w.start).lte('date', w.end)),
+      fetchAll(TBL, q => q.gte('date', syncFrom).lte('date', w.end)),
       fetchDailyWindow(PERIOD)
     ]);
-    const diff = buildDailyDiff(dailyRows, recs);
 
+    // Reconcile the full fresh source snapshot every time; missing source dates/cells count as zero.
+    const diff = buildDailyDiff(dailyRows, recs, PERIOD);
     for (const d of diff) {
-      // Daily sheet is higher: ask the siding for each new rake and save it as pending (no RR no.)
       for (let i = 0; i < d.add; i++) {
-        const siding = await askChoice(
-          `New ${d.area} ${d.dstn} rake`,
-          `${d.date}: the daily sheet has ${d.want} rakes for ${d.area} ${d.dstn}, Gujarat has ${d.count}. Choose the mines (siding) for this rake.`,
-          MINES.map(m => ({ value: m, label: m })), 'Save rake');
-        if (siding == null) break;           // cancelled: the rest waits for the next sync
         const sr = await nextSrNo();
-        const { error } = await db.from(TBL).insert({ sr_no: sr, date: d.date, area: d.area, dstn: d.dstn, siding, rr_no: null });
-        if (error) { toast('Could not save rake: ' + error.message, true); break; }
-        d.count++;
-        changed = true;
+        const { error } = await db.from(TBL).insert({
+          sr_no: sr, date: d.date, area: d.area, dstn: d.dstn,
+          siding: 'PENDING', rr_no: null
+        });
+        if (error) throw new Error(`Could not add ${d.date} ${d.area} ${d.dstn}: ${error.message}`);
+        added++;
       }
 
-      // Daily sheet is lower: remove pending rakes only. Rakes with an RR no. are never touched.
       if (d.drop > 0) {
-        if (d.drop > d.pending.length) {
-          toast(`${d.date} ${d.area} ${d.dstn}: ${d.confirmed} confirmed rakes are more than the daily count (${d.want}). Review in Records Log.`, true);
-          continue;
-        }
-        let pending = d.pending.slice();
-        for (let i = 0; i < d.drop; i++) {
-          const id = await askChoice(
-            'Remove a pending rake',
-            `${d.date} ${d.area} ${d.dstn}: daily sheet ${d.want}, Gujarat ${d.count}. Pick the pending rake to remove.`,
-            pending.map(r => ({ value: String(r.id), label: 'Sr No ' + r.sr_no + (r.siding ? ' · ' + r.siding : '') })),
-            'Delete');
-          if (id == null) break;
-          if (!confirm('Delete this pending rake permanently?')) break;
-          const { error } = await db.from(TBL).delete().eq('id', id);
-          if (error) { toast('Delete failed: ' + error.message, true); break; }
-          pending = pending.filter(r => String(r.id) !== id);
-          d.count--;
-          changed = true;
+        const removable = d.pending.slice(0, d.drop);
+        protectedCount += Math.max(0, d.drop - removable.length);
+        for (const r of removable) {
+          // Recheck the row is still pending at deletion time; confirmed RR records cannot be deleted.
+          const { data, error: readError } = await db.from(TBL)
+            .select('id,rr_no').eq('id', r.id).maybeSingle();
+          if (readError) throw readError;
+          if (!data || !isPendingRake(data)) continue;
+          let del = db.from(TBL).delete().eq('id', r.id);
+          del = data.rr_no == null ? del.is('rr_no', null) : del.eq('rr_no', '');
+          const { error } = await del;
+          if (error) throw new Error(`Could not remove pending Sr No ${r.sr_no}: ${error.message}`);
+          removed++;
         }
       }
     }
+
+    const summary = `Sync complete · ${dailyRows.length} source dates checked · ${added} added · ${removed} pending removed` +
+      (protectedCount ? ` · ${protectedCount} confirmed record(s) protected` : '') + '.';
+    setDailySyncStatus(summary, 'ok');
+    if (added || removed) await loadDashboard();
+    if (manual && !added && !removed) {
+      setDailySyncStatus(`Already in sync · ${dailyRows.length} source dates checked. No changes needed.`, 'ok');
+    }
   } catch (err) {
     console.error('[daily sync]', err);
-    toast('Daily sync: ' + (err.message || 'failed'), true);
+    setDailySyncStatus('Sync stopped: ' + (err.message || 'Unknown error') + '. Review the status and run sync again to reconcile any remaining differences.', 'err');
   } finally {
     DAILY_BUSY = false;
-    if (changed) loadDashboard();
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-rotate"></i> Sync Daily Loading'; }
   }
 }
 
