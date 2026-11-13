@@ -102,9 +102,25 @@ svg text{fill:var(--mut);font:10px var(--m)}
 .eh{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap}.eh h3{margin:0 0 10px}
 .toast{position:fixed;bottom:20px;right:20px;background:var(--g);color:var(--oa);padding:10px 18px;font:700 13px var(--m);transform:translateY(90px);opacity:0;transition:.4s;z-index:9;max-width:90vw}
 .toast.show{transform:none;opacity:1}
+.gate{position:fixed;inset:0;z-index:999;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px}
+.gate-card{background:var(--p);border:1px solid var(--ln);padding:28px;width:min(360px,92vw);display:flex;flex-direction:column;gap:10px}
+.gate-card h2{font-size:16px;letter-spacing:.6px}
+.gate-card p{font-size:12px;color:var(--mut)}
+.gate-card .btn{min-height:44px;width:100%;margin-top:4px}
+.gerr{min-height:18px;font:12px var(--m);color:var(--r)}
 </style>
 </head>
 <body>
+<div class="gate" id="gate">
+  <form class="gate-card" id="gateForm" autocomplete="off">
+    <h2>PRTPL · Profit &amp; Loss</h2>
+    <p>Enter the sheet password to open.</p>
+    <input type="password" id="gpw" placeholder="Password" autocomplete="off">
+    <button class="btn p" type="submit">OPEN</button>
+    <div class="gerr" id="gerr"></div>
+  </form>
+</div>
+
 <header>
   <svg class="logo" viewBox="0 0 40 40" aria-hidden="true"><path d="M4 32 14 12l8 12 5-8 9 16z" fill="none" stroke="#ffb020" stroke-width="2.5" stroke-linejoin="round"/><circle cx="30" cy="9" r="4" fill="#ffb020"/></svg>
   <div><h1>PRITHVI REALCON &amp; TRANSPORTATION PRIVATE LIMITED</h1><div class="sub">Active Mines Management · Rake Profit &amp; Loss · live from Supabase</div></div>
@@ -147,7 +163,7 @@ svg text{fill:var(--mut);font:10px var(--m)}
           <div><label for="qty">RR Qty (MT)</label><input id="qty" type="number" min="0" step="any" inputmode="decimal"></div>
           <div><label for="bill">Billing (₹)</label><input id="bill" type="number" min="0" step="any" inputmode="decimal"></div>
         </div>
-        <div class="sub" id="gnote" hidden style="margin-top:6px;color:var(--a)">Gujarat: RR Qty and Billing come live from the Gujarat dashboard for this month. Enter only the expenses.</div>
+        <div class="sub" id="gnote" hidden style="margin-top:6px;color:var(--a)">Gujarat / HZL: RR Qty and Billing come live from the dashboard for this month. Enter only the expenses.</div>
         <label style="color:var(--a);margin-top:16px">EXPENSES for the selected party</label>
         <div id="exps"></div>
         <div class="r2" style="margin-top:10px">
@@ -201,12 +217,16 @@ svg text{fill:var(--mut);font:10px var(--m)}
 const CFG={url:'https://jzkrywwrsewchtiqsczk.supabase.co',
 key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6a3J5d3dyc2V3Y2h0aXFzY3prIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1NDU0MzQsImV4cCI6MjEwNzEyMTQzNH0.IDwfVhqDI9uXfAALCVKBD0pNjsNVu38fW4eEueaKDSs'};
 const HDR={apikey:CFG.key,Authorization:'Bearer '+CFG.key,'Content-Type':'application/json'};
-/* Gujarat dashboard database (read only from this page) */
+/* Gujarat and HZL dashboard database (read only from this page) */
 const GCFG={url:'https://pycmkjrmdieaqsbgrher.supabase.co',
 key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5Y21ranJtZGllYXFzYmdyaGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwMjMxNzAsImV4cCI6MjEwNjU5OTE3MH0.9IE2c2FZ4BPv6Rvhfa_VniQ7LJvQ_c4EGDXFihYR4Lc'};
-const GUJ='Gujarat';   // party name in this page that is fed from the Gujarat dashboard
-const RPN='Railway Penalty';   // expense head of Gujarat that is filled live from Gujarat's Total Railway Penalty
-const isRP=h=>h.party===GUJ&&String(h.name).trim().toLowerCase()===RPN.toLowerCase();
+const SHEET_PW='PRTPL@PNL';   // password to open this sheet
+const GUJ='Gujarat';   // party fed from the Gujarat dashboard
+const HZL='HZL';       // party fed from the HZL dashboard (calendar months, quarter rules)
+const AUTO_PARTIES=[GUJ,HZL];
+const isAuto=p=>AUTO_PARTIES.includes(p);
+const RPN='Railway Penalty';   // expense head filled live from the penalty of each auto party
+const isRP=h=>isAuto(h.party)&&String(h.name).trim().toLowerCase()===RPN.toLowerCase();
 
 const PAL=['#5cc8ff','#a78bfa','#ffb020','#2ee59d','#f472b6','#ff8a5c','#2dd4bf','#e879f9','#facc15','#34d399','#fb7185','#60a5fa'];
 const LAB={profit:['PROFIT','g','var(--g)'],thin:['THIN PROFIT','g','var(--g)'],loss:['LOSS','r','var(--r)'],none:['NO DATA','a','var(--mut)']};
@@ -222,11 +242,13 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const today=()=>new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Kolkata'});
 const empty=m=>`<div class="emp">${m}</div>`;
 
-/* ===== MONTH = BILLING CYCLE: 4th of the month to 3rd of the next month (same as the Gujarat dashboard) ===== */
+/* ===== MONTH = BILLING CYCLE: 4th of the month to 3rd of the next month (Gujarat) ===== */
 const pad=n=>String(n).padStart(2,'0');
 const shift=(p,k)=>{const[y,m]=p.split('-').map(Number),d=new Date(Date.UTC(y,m-1+k,1));return d.getUTCFullYear()+'-'+pad(d.getUTCMonth()+1)};
 const cycKey=d=>+d.slice(8,10)>=4?d.slice(0,7):shift(d.slice(0,7),-1);
 const cStart=p=>p+'-04', cEnd=p=>shift(p,1)+'-03';
+/* Month key of a row: HZL uses calendar months, every other party uses the 4th-to-3rd cycle */
+const keyOf=(party,d)=>party===HZL?String(d).slice(0,7):cycKey(String(d).slice(0,10));
 const pLabel=p=>{if(p==='all')return 'ALL DATA · start to today';const[y,m]=p.split('-').map(Number),n=shift(p,1).split('-');return `${MON[m-1]}-${y}  (04 ${MON[m-1]} – 03 ${MON[+n[1]-1]})`};
 
 /* ===== GUJARAT: same billing calculation as the Gujarat dashboard ===== */
@@ -281,16 +303,62 @@ function calcG(recs,tg,vals){
   });
   return out;
 }
-let GD={};   // { '2026-10': {rr, bill} }
-async function loadG(){
+
+/* ===== HZL: quarterly dashboard rules, split into calendar months =====
+   - Shortage % and the rate band are worked out per calendar QUARTER (as on the HZL dashboard).
+   - Each record's Quantity Reco uses its own quarter's rate, so Jul + Aug + Sep = the quarter.
+   - GCV Reco and the penalty are added per month (they are additive).
+   - Billing = Bonus − Deduction, Bonus = Quantity Reco + GCV Reco, Deduction = penalty % of penalty total. */
+const HZL_DEF_BANDS=[[0.05,5],[0.3,0],[0.5,-1],[1,-2],[1.5,-3]];
+const qKeyOf=d=>{const[y,m]=d.split('-').map(Number);return y+'-'+pad(m-((m-1)%3))};   // quarter start month, e.g. 2026-07
+function calcH(recs,vals){
+  const g={};vals.forEach(r=>{g[r.field_key]=r.field_value});
+  let bands=HZL_DEF_BANDS;
+  try{const b=JSON.parse(g.f_bands);if(Array.isArray(b)&&b.length)bands=b.map(x=>[Number(x[0]),Number(x[1])])}catch(e){}
+  const above=isN(g.f_above_rate)?Number(g.f_above_rate):-4;
+  const penPct=isN(g.f_pen_pct)?Number(g.f_pen_pct):5;
+  const rate=s=>{for(const[u,r]of bands)if(s<=u)return r;return above};
+
+  const ok=recs.filter(r=>r.date).map(r=>({r,d:String(r.date).slice(0,10)}));
+
+  // 1. quarter-wide shortage % and rate (same as the HZL dashboard)
+  const Q={};
+  ok.forEach(({r,d})=>{const k=qKeyOf(d);(Q[k]=Q[k]||{rr:0,recv:0});Q[k].rr+=nz(r.rr_wt);Q[k].recv+=nz(r.recv_wt)});
+  const qRate={};
+  Object.entries(Q).forEach(([k,v])=>{const s=v.rr?(v.recv-v.rr)/v.rr*100:0;qRate[k]=rate(s)});
+
+  // 2. group by calendar month
+  const by={};
+  ok.forEach(x=>{const k=x.d.slice(0,7);(by[k]=by[k]||[]).push(x)});
+
+  const out={};
+  Object.entries(by).forEach(([p,items])=>{
+    const m=items.map(x=>x.r);
+    const rr=sm(m,'rr_wt');
+    const qtyReco=items.reduce((s,x)=>s+(qRate[qKeyOf(x.d)]||0)*nz(x.r.recv_wt),0);
+    const gcvReco=sm(m,'bonus_penalty');
+    const bonus=qtyReco+gcvReco;
+    const totalPen=sm(m,'ol_ch')+sm(m,'pol_group')+sm(m,'ehbc_group')+sm(m,'enhc_charge');
+    const deduction=totalPen*penPct/100;
+    out[p]={rr:rr,pen:totalPen,bill:bonus-deduction};
+  });
+  return out;
+}
+
+let GD={},HD={};   // { '2026-10': {rr, pen, bill} } for Gujarat and HZL
+const AD=p=>p===HZL?HD:GD;
+async function loadAuto(){
   try{
-    const [r,t,v]=await Promise.all([
+    const [r,t,v,h,hv]=await Promise.all([
       gget('gujarat_rake_records','select=date,area,dstn,rr_wt,bonus_penalty_rs,ul_on_us,ol_ch,pol_group,ehbc_group,enhc_charge&order=id.asc'),
       gget('gujarat_rake_targets','select=*&order=period.asc,party.asc,area.asc'),
-      gget('gujarat_dashboard_values','select=period_key,field_key,field_value&order=period_key.asc,field_key.asc')]);
+      gget('gujarat_dashboard_values','select=period_key,field_key,field_value&order=period_key.asc,field_key.asc'),
+      gget('hzl_rake_records','select=date,area,siding,rr_wt,recv_wt,bonus_penalty,ol_ch,pol_group,ehbc_group,enhc_charge&order=id.asc'),
+      gget('hzl_dashboard_values','select=field_key,field_value&period_key=eq.global')]);
     GD=calcG(r,t,v);
-    $('gTxt').textContent='Gujarat: '+r.length+' rake records read';
-  }catch(e){GD={};$('gTxt').textContent='';flash('Gujarat data error: '+e.message)}
+    HD=calcH(h,hv);
+    $('gTxt').textContent='Gujarat: '+r.length+' rake records · HZL: '+h.length+' rake records';
+  }catch(e){GD={};HD={};$('gTxt').textContent='';flash('Auto data error: '+e.message)}
 }
 
 /* ===== STATE ===== */
@@ -314,14 +382,17 @@ async function api(path,opts={}){
 }
 const rpc=(fn,body)=>api('/rest/v1/rpc/'+fn,{method:'POST',body:JSON.stringify(body)});
 
-/* Gujarat rows: RR qty and billing are live; the saved expenses keep their per-MT rate (amount ÷ saved RR qty × live RR qty) */
+/* Gujarat and HZL rows: RR qty and billing are live; the saved expenses keep their per-MT rate (amount ÷ saved RR qty × live RR qty) */
 function mergeG(st){
-  const out=st.filter(r=>r.party!==GUJ);
-  Object.entries(GD).forEach(([p,d])=>{
-    const s=st.find(r=>r.party===GUJ&&cycKey(r.entry_date)===p),exp={};
-    if(s)Object.entries(s.exp).forEach(([h,a])=>{exp[h]=s.rr_qty>0?a/s.rr_qty*d.rr:a});
-    const rp=heads.find(isRP);if(rp)exp[rp.id]=d.pen;   // Railway Penalty is always the live Gujarat figure
-    out.push({id:s?s.id:'G'+p,party:GUJ,entry_date:cStart(p),rr_qty:d.rr,billing:d.bill,exp});
+  const out=st.filter(r=>!isAuto(r.party));
+  AUTO_PARTIES.forEach(party=>{
+    const D=AD(party);
+    Object.entries(D).forEach(([p,d])=>{
+      const s=st.find(r=>r.party===party&&keyOf(party,r.entry_date)===p),exp={};
+      if(s)Object.entries(s.exp).forEach(([h,a])=>{exp[h]=s.rr_qty>0?a/s.rr_qty*d.rr:a});
+      const rp=heads.find(h=>isRP(h)&&h.party===party);if(rp)exp[rp.id]=d.pen;   // Railway Penalty is always the live figure
+      out.push({id:s?s.id:'S:'+party+':'+p,party,entry_date:cStart(p),rr_qty:d.rr,billing:d.bill,exp});
+    });
   });
   return out;
 }
@@ -334,11 +405,13 @@ async function loadAll(keepForm=false){
       api('/rest/v1/rake_entries?select=*&order=entry_date.desc'),
       api('/rest/v1/entry_expenses?select=*'),
       api('/rest/v1/activity_log?select=*&order=at.desc&limit=300'),
-      loadG()]);
+      loadAuto()]);
     parties=p.map(z=>z.name);
-    if(!parties.includes(GUJ))parties.push(GUJ);
+    AUTO_PARTIES.forEach(pn=>{if(!parties.includes(pn))parties.push(pn)});
     heads=h;
-    if(!heads.some(isRP))heads.push({id:'RPV',party:GUJ,name:RPN,virtual:true});   // shown until the real head is created (done on unlock)
+    AUTO_PARTIES.forEach(pn=>{   // shown until the real head is created (done on unlock)
+      if(!heads.some(x=>isRP(x)&&x.party===pn))heads.push({id:'RPV:'+pn,party:pn,name:RPN,virtual:true});
+    });
     const byE={};
     x.forEach(z=>{(byE[z.entry_id]=byE[z.entry_id]||{})[z.head_id]=+z.amount});
     stored=e.map(r=>({id:r.id,party:r.party,entry_date:r.entry_date,rr_qty:+r.rr_qty||0,billing:+r.billing||0,exp:byE[r.id]||{}}));
@@ -497,8 +570,8 @@ function gDaily(list){
 function renderExps(){
   const p=$('fparty').value,hs=headsOf(p);
   $('exps').innerHTML=hs.length?hs.map(h=>{
-    if(isRP(h)){const d=GD[cycKey($('fdate').value||today())],pv=d?Math.round(d.pen*100)/100:0;
-      return `<div class="exp"><div class="ehd"><b>${esc(h.name)}</b></div><input readonly value="${pv}" aria-label="${esc(h.name)}"><div class="c">Live from Gujarat dashboard (Total Railway Penalty)${d&&d.rr?' · ₹'+(pv/d.rr).toFixed(2)+' per MT':''}</div></div>`}
+    if(isRP(h)){const d=AD(p)[keyOf(p,$('fdate').value||today())],pv=d?Math.round(d.pen*100)/100:0;
+      return `<div class="exp"><div class="ehd"><b>${esc(h.name)}</b></div><input readonly value="${pv}" aria-label="${esc(h.name)}"><div class="c">Live from ${esc(p)} dashboard (Total Railway Penalty)${d&&d.rr?' · ₹'+(pv/d.rr).toFixed(2)+' per MT':''}</div></div>`}
     const m=formMode[h.id]||'amt',v=formVals[h.id]??'';
     return `<div class="exp">
       <div class="ehd"><b>${esc(h.name)}</b><button class="mini" type="button" data-del="${h.id}" title="Remove this expense for ${esc(p)}">×</button></div>
@@ -522,17 +595,18 @@ function setMode(hid,m){
   formVals[hid]=m==='pmt'?(q?+(tot/q).toFixed(4):0):+tot.toFixed(2);
   renderExps();
 }
-/* Gujarat: RR qty and billing of the chosen month are filled in live and locked */
+/* Gujarat / HZL: RR qty and billing of the chosen month are filled in live and locked */
 function syncG(){
-  const g=$('fparty').value===GUJ,d=GD[cycKey($('fdate').value||today())];
+  const p=$('fparty').value,g=isAuto(p),d=AD(p)[keyOf(p,$('fdate').value||today())];
   $('qty').readOnly=g;$('bill').readOnly=g;$('gnote').hidden=!g;
   if(g){$('qty').value=d?+d.rr.toFixed(2):0;$('bill').value=d?Math.round(d.bill):0}
   updateCalc();
 }
-/* When Gujarat and a date are chosen, load that month's saved expenses */
+/* When an auto party and a date are chosen, load that month's saved expenses */
 function pickG(){
-  if($('fparty').value!==GUJ)return;
-  const p=cycKey($('fdate').value||today()),r=recs.find(x=>x.party===GUJ&&cycKey(x.entry_date)===p);
+  const p=$('fparty').value;
+  if(!isAuto(p))return;
+  const m=keyOf(p,$('fdate').value||today()),r=recs.find(x=>x.party===p&&keyOf(p,x.entry_date)===m);
   editId=r?r.id:null;formMode={};formVals={};
   if(r)Object.entries(r.exp).forEach(([h,a])=>{formVals[h]=a?+(+a).toFixed(2):''});
   renderSel();renderExps();syncG();
@@ -561,7 +635,7 @@ function build(){
   $('qty').oninput=updateCalc;
   $('fparty').onchange=()=>{
     const cur=recs.find(x=>x.id===editId);
-    if($('fparty').value!==GUJ&&cur&&cur.party===GUJ){editId=null;formMode={};formVals={};renderSel()}
+    if(cur&&isAuto(cur.party)&&cur.party!==$('fparty').value){editId=null;formMode={};formVals={};renderSel()}
     renderExps();syncG();pickG();
   };
   $('fdate').onchange=()=>{syncG();pickG()};
@@ -576,16 +650,16 @@ function handleErr(e,prefix){
 
 async function save(){
   if(!PW)return setLocked(true);
-  const p=$('fparty').value,isG=p===GUJ,q=+$('qty').value||0,exps={};
+  const p=$('fparty').value,isG=isAuto(p),q=+$('qty').value||0,exps={};
   headsOf(p).forEach(h=>{
-    if(isRP(h)){const d=GD[cycKey($('fdate').value||today())];if(!h.virtual&&d&&d.pen)exps[h.id]=+d.pen.toFixed(2);return}
+    if(isRP(h)){const d=AD(p)[keyOf(p,$('fdate').value||today())];if(!h.virtual&&d&&d.pen)exps[h.id]=+d.pen.toFixed(2);return}
     const v=+formVals[h.id]||0,amt=(formMode[h.id]||'amt')==='pmt'?v*q:v;
     if(amt)exps[h.id]=+amt.toFixed(2);
   });
-  let dte=$('fdate').value,sid=editId&&!String(editId).startsWith('G')?editId:null;
+  let dte=$('fdate').value,sid=editId&&!String(editId).startsWith('S:')?editId:null;
   if(isG&&dte){
-    const k=cycKey(dte);dte=cStart(k);
-    const s=stored.find(x=>x.party===GUJ&&cycKey(x.entry_date)===k);
+    const k=keyOf(p,dte);dte=cStart(k);
+    const s=stored.find(x=>x.party===p&&keyOf(p,x.entry_date)===k);
     sid=s?s.id:null;
   }
   const body={id:sid,party:p,entry_date:dte,rr_qty:q,billing:+$('bill').value||0,expenses:exps};
@@ -599,7 +673,7 @@ async function save(){
 async function del(){
   if(!PW)return setLocked(true);
   if(!editId)return flash('Select a saved entry first');
-  if(String(editId).startsWith('G'))return flash('Nothing saved for this Gujarat month yet');
+  if(String(editId).startsWith('S:'))return flash('Nothing saved for this month yet');
   if(!confirm('Delete this entry and its expenses from the database? This is logged.'))return;
   try{
     await rpc('delete_entry',{p_password:PW,p_id:editId});
@@ -652,13 +726,16 @@ async function unlock(){
   }catch(e){m.textContent='Could not reach database'}
 }
 async function ensureRP(){
-  const h=heads.find(isRP);
-  if(h&&!h.virtual)return;
   try{
-    await rpc('add_expense_head',{p_password:PW,p_party:GUJ,p_name:RPN});
+    for(const pn of AUTO_PARTIES){
+      await rpc('ensure_party',{p_password:PW,p_name:pn});   // creates the party in the database if missing
+      const h=heads.find(x=>isRP(x)&&x.party===pn);
+      if(h&&!h.virtual)continue;
+      await rpc('add_expense_head',{p_password:PW,p_party:pn,p_name:RPN});
+    }
     await loadAll(true);
-    flash('Railway Penalty expense created for '+GUJ);
-  }catch(e){handleErr(e,'Could not create Railway Penalty: ')}
+    flash('Auto parties and Railway Penalty ready');
+  }catch(e){handleErr(e,'Setup failed: ')}
 }
 $('unl').onclick=unlock;
 $('pw').onkeydown=e=>{if(e.key==='Enter')unlock()};
@@ -715,8 +792,21 @@ $('csv').onclick=()=>{
 
 function flash(t){const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(flash.t);flash.t=setTimeout(()=>e.classList.remove('show'),2600)}
 
+/* ===== SHEET PASSWORD GATE ===== */
+$('gateForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  if($('gpw').value===SHEET_PW){
+    $('gate').remove();
+    loadAll();
+  }else{
+    $('gerr').textContent='Wrong password';
+    $('gpw').select();
+  }
+});
+
 /* ===== INIT ===== */
-build();setLocked(true);loadAll();
+build();setLocked(true);
+setTimeout(()=>$('gpw').focus(),50);
 </script>
 </body>
 </html>
