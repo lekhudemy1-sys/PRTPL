@@ -229,11 +229,10 @@ function flash(t){const e=$('toast');if(!e)return;e.textContent=t;e.classList.ad
 
 /* ===== sheet password gate (asked once per browser session) ===== */
 function gate(title,cb){
-  try{if(sessionStorage.getItem('pl_ok')==='1'){cb();return}}catch(e){}
   document.body.insertAdjacentHTML('afterbegin',`<div class="gate" id="gate"><form class="gate-card" id="gateForm" autocomplete="off"><h2>${title}</h2><p>Enter the sheet password to open.</p><input type="password" id="gpw" placeholder="Password" autocomplete="off"><button class="btn p" type="submit">OPEN</button><div class="gerr" id="gerr"></div></form></div>`);
   $('gateForm').addEventListener('submit',e=>{
     e.preventDefault();
-    if($('gpw').value===SHEET_PW){try{sessionStorage.setItem('pl_ok','1')}catch(x){}$('gate').remove();cb()}
+    if($('gpw').value===SHEET_PW){$('gate').remove();cb()}
     else{$('gerr').textContent='Wrong password';$('gpw').select()}
   });
   setTimeout(()=>$('gpw').focus(),50);
