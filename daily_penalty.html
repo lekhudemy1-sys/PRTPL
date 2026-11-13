@@ -427,7 +427,7 @@ td.party{border-left-width:10px}
         <tfoot id="tfoot"></tfoot>
       </table>
     </div>
-    <div class="hint">Rows marked LIVE are the GUJRAT POWER (Gujarat dashboard) and HZL (HZL dashboard) rakes read live, grouped by area and siding for the date, and refreshed every 30 seconds. For each live rake: Underload qty = CH weight − RR weight (when CH is more), Overload qty = RR weight − CH weight (when RR is more). <b>Live rows can be edited here too</b> (pencil button, or click RR QTY, CHARBALE QTY, Underload Penalty, Overload Penalty or ENCH). A hand-edited row is marked EDITED, is saved for that date only, is never overwritten by the live refresh, and does <b>not</b> change the Gujarat or HZL dashboard. The arrow button on an EDITED row goes back to the live values. All other rows come from the database: click RR QTY, CHARBALE QTY, Freight or ENCH to change them in place. Per M/T = TOTAL ÷ RR QTY.</div>
+    <div class="hint">Rows marked LIVE are the GUJRAT POWER (Gujarat dashboard) and HZL (HZL dashboard) rakes read live, grouped by area, siding and party (for example SECL · BGCK TO GETS and SECL · BGCK TO TPHS are separate rows) for the date, and refreshed every 30 seconds. For each live rake: Underload qty = CH weight − RR weight (when CH is more), Overload qty = RR weight − CH weight (when RR is more). <b>Live rows can be edited here too</b> (pencil button, or click RR QTY, CHARBALE QTY, Freight, Overload Penalty or ENCH). Underload Penalty = Underload qty × Freight on every row. A hand-edited row is marked EDITED, is saved for that date only, is never overwritten by the live refresh, and does <b>not</b> change the Gujarat or HZL dashboard. The arrow button on an EDITED row goes back to the live values. All other rows come from the database: click RR QTY, CHARBALE QTY, Freight or ENCH to change them in place. Per M/T = TOTAL ÷ RR QTY.</div>
   </section>
 
   <!-- ================= INSIGHTS ================= -->
@@ -504,7 +504,7 @@ td.party{border-left-width:10px}
           <div class="fld"><label for="fLO">Overload qty</label><input id="fLO" type="number" min="0" step="any" inputmode="decimal"></div>
         </div>
         <div class="grid2">
-          <div class="fld"><label for="fLUp">Underload penalty</label><input id="fLUp" type="number" min="0" step="any" inputmode="decimal"></div>
+          <div class="fld"><label for="fLFr">Freight (per unit)</label><input id="fLFr" type="number" min="0" step="any" inputmode="decimal"></div>
           <div class="fld"><label for="fLOp">Overload penalty</label><input id="fLOp" type="number" min="0" step="any" inputmode="decimal"></div>
         </div>
         <div class="grid2">
@@ -578,7 +578,8 @@ var DAY=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
 function calc(e){
   if(e.live){
     var net=e.gU-e.gO;
-    return {uq:net,uU:e.gU,uO:e.gO,up:e.gUp,op:e.gOp,en:e.gEn,total:e.gUp+e.gOp+e.gEn,status:e.gU>e.gO?'under':(e.gO>e.gU?'over':'exact')};
+    var lup=hasN(e.freight)?e.gU*e.freight:e.gUp;
+    return {uq:net,uU:e.gU,uO:e.gO,up:lup,op:e.gOp,en:e.gEn,total:lup+e.gOp+e.gEn,status:e.gU>e.gO?'under':(e.gO>e.gU?'over':'exact')};
   }
   var uq=num(e.ch)-num(e.rr);
   var up=uq<0?0:uq*num(e.freight);
@@ -586,6 +587,7 @@ function calc(e){
   var en=num(e.ench);
   return {uq:uq,uU:uq>0?uq:0,uO:uq<0?-uq:0,up:up,op:op,en:en,total:up+op+en,status:uq>0?'under':(uq<0?'over':'exact')};
 }
+function liveFreight(e){return hasN(e.freight)?+e.freight:(e.gU>0?Math.round(e.gUp/e.gU*10000)/10000:0)}
 function num(v){v=parseFloat(v);return isNaN(v)?0:v}
 function perMT(t,rr){rr=num(rr);return rr>0?fmt(t/rr):'—'}
 function perMTcsv(t,rr){rr=num(rr);return rr>0?Math.round(t/rr*100)/100:''}
@@ -750,8 +752,8 @@ function renderTable(){
       html+=edCell(e,'rr',e.rr)+edCell(e,'ch',e.ch);
       html+='<td class="num"><div class="uq">'+tag+'<span>'+fmt(c.uU)+'</span><span class="dv" aria-hidden="true">'+bar+'</span></div></td>';
       html+='<td class="num">'+fmt(c.uO)+'</td>';
-      html+=lv?'<td class="num">–</td>':edCell(e,'freight',e.freight);
-      html+=lv?edCell(e,'gUp',c.up,'pen-u'+(c.up?'':' zero')):'<td class="num pen-u'+(c.up?'':' zero')+'">'+fmt(c.up)+'</td>';
+      html+=edCell(e,'freight',lv?liveFreight(e):e.freight);
+      html+='<td class="num pen-u'+(c.up?'':' zero')+'">'+fmt(c.up)+'</td>';
       html+=lv?edCell(e,'gOp',c.op):'<td class="num">'+fmt(c.op)+'</td>';
       html+=lv?edCell(e,'gEn',c.en):edCell(e,'ench',e.ench);
       html+='<td class="num tot"><div class="heat" style="width:calc('+(c.total/maxTotal*100)+'% - 6px)"></div><span>'+fmt(c.total)+'</span></td>';
@@ -859,9 +861,25 @@ function api(c,path,opt){
 
 /* ============ LIVE ROWS (Gujarat + HZL) ============ */
 function hasN(v){return v!==null&&v!==undefined&&v!==''&&!isNaN(parseFloat(v))}
+/* Gujarat rakes are also split by the receiving party (plant), e.g. SECL / BGCK TO GETS and SECL / BGCK TO TPHS are two rows.
+   The party is taken from the record's party/plant column, or from the siding text when it already reads "... TO GETS". */
+var PLANT_COLS=['party','plant','power_plant','plant_name','consignee','destination','dest','to_plant'];
+function plantOf(r){
+  if(r._p!==GUJP)return '';
+  var i,v;
+  for(i=0;i<PLANT_COLS.length;i++){
+    v=r[PLANT_COLS[i]];
+    if(v!==null&&v!==undefined&&String(v).trim()!==''&&!/GUJ/i.test(String(v)))return String(v).trim().toUpperCase();
+  }
+  var m=/\bTO\s+([A-Z0-9]+)\s*$/i.exec(String(r.siding||''));
+  if(m)return m[1].toUpperCase();
+  var ks=Object.keys(r);
+  for(i=0;i<ks.length;i++){v=r[ks[i]];if(typeof v==='string'&&/^\s*(GETS|TPHS)\s*$/i.test(v))return v.trim().toUpperCase()}
+  return '';
+}
 function fetchLive(c,d){
   return Promise.all(LIVE_SRC.map(function(s){
-    return api(c,s.table+'?select=area,siding,rr_wt,ch_wt,ul_ch,ol_ch,pol_group,ehbc_group,enhc_charge&date=eq.'+d+'&limit=1000')
+    return api(c,s.table+'?select=*&date=eq.'+d+'&limit=1000')
       .then(function(rows){return (rows||[]).map(function(r){r._p=s.party;return r})},function(){return null});
   })).then(function(res){
     var rows=[],failed=0;
@@ -879,16 +897,18 @@ function fetchOv(c,d){
 function applyOv(x,o){
   x.rakes=Math.max(1,+o.rakes||1);
   x.rr=num(o.rr);x.ch=num(o.ch);
-  x.gU=num(o.u_qty);x.gO=num(o.o_qty);x.gUp=num(o.u_pen);x.gOp=num(o.o_pen);x.gEn=num(o.ench);
+  x.freight=hasN(o.freight)?num(o.freight):null;x.gU=num(o.u_qty);x.gO=num(o.o_qty);x.gUp=num(o.u_pen);x.gOp=num(o.o_pen);x.gEn=num(o.ench);
   x.edited=true;
 }
 /* group the rakes of the date by area and siding, same as the other rows of the sheet,
    then lay the hand-edited values of this date over them (an edited row is frozen) */
 function buildLive(g,d){
-  var m={},ov=ovr[d]||{};
+  var m={},ov=ovr[d]||{},seen={};
   ((g&&g.rows)||[]).forEach(function(r){
-    var area=String(r.area||'-').trim().toUpperCase(),sid=String(r.siding||'-').trim().toUpperCase(),k=r._p+'|'+area+'|'+sid;
-    var x=m[k]||(m[k]={id:'L|'+d+'|'+k,live:true,party:r._p,area:area,siding:sid,rakes:0,rr:0,ch:0,freight:0,o1:0,o2:0,o3:0,ench:0,gU:0,gO:0,gUp:0,gOp:0,gEn:0});
+    var area=String(r.area||'-').trim().toUpperCase(),sid=String(r.siding||'-').trim().toUpperCase(),pl=plantOf(r);
+    if(pl&&!/\sTO\s/i.test(sid))sid=sid+' TO '+pl;   /* siding shown as in the Gujarat dashboard, e.g. BGCK TO GETS */
+    var k=r._p+'|'+area+'|'+sid;
+    var x=m[k]||(m[k]={id:'L|'+d+'|'+k,live:true,party:r._p,area:area,siding:sid,rakes:0,rr:0,ch:0,freight:null,o1:0,o2:0,o3:0,ench:0,gU:0,gO:0,gUp:0,gOp:0,gEn:0});
     x.rakes++;x.rr+=num(r.rr_wt);x.ch+=num(r.ch_wt);
     if(hasN(r.rr_wt)&&hasN(r.ch_wt)){   /* needs both weights entered */
       var rr=num(r.rr_wt),ch=num(r.ch_wt);
@@ -898,13 +918,18 @@ function buildLive(g,d){
   });
   Object.keys(m).forEach(function(k){
     var x=m[k];['rr','ch','gU','gO','gUp','gOp','gEn'].forEach(function(f){x[f]=r2(x[f])});
+    seen[x.id]=1;
     if(ov[x.id])applyOv(x,ov[x.id]);
   });
   /* edited rows whose live source is gone (rake removed or date changed in the dashboard) still stay */
   Object.keys(ov).forEach(function(id){
-    if(m[id])return;
+    if(seen[id])return;   /* already laid over its live row above */
     var o=ov[id];
-    var x={id:id,live:true,party:o.party,area:o.area,siding:o.siding,rakes:1,rr:0,ch:0,freight:0,o1:0,o2:0,o3:0,ench:0,gU:0,gO:0,gUp:0,gOp:0,gEn:0};
+    /* an edit saved before the rows were split by party (siding without "TO ...") would show up as a second copy of the
+       split rows, so it is not shown again */
+    var base=String(o.siding||'');
+    if(!/\sTO\s/i.test(base)&&Object.keys(m).some(function(k){var y=m[k];return y.party===o.party&&y.area===o.area&&y.siding.indexOf(base+' TO ')===0}))return;
+    var x={id:id,live:true,party:o.party,area:o.area,siding:o.siding,rakes:1,rr:0,ch:0,freight:null,o1:0,o2:0,o3:0,ench:0,gU:0,gO:0,gUp:0,gOp:0,gEn:0};
     applyOv(x,o);m[id]=x;
   });
   return Object.keys(m).sort().map(function(k){return m[k]});
@@ -963,13 +988,13 @@ function doSync(d,list){
 /* ---- hand-edited live rows: saved in OV_TABLE for that date only, the Gujarat / HZL dashboards are never touched ---- */
 function ovRow(e,d){
   return {id:e.id,sheet_date:d,party:e.party,area:e.area,siding:e.siding,rakes:+e.rakes||1,
-    rr:r2(num(e.rr)),ch:r2(num(e.ch)),u_qty:r2(num(e.gU)),o_qty:r2(num(e.gO)),u_pen:r2(num(e.gUp)),o_pen:r2(num(e.gOp)),ench:r2(num(e.gEn)),
+    rr:r2(num(e.rr)),ch:r2(num(e.ch)),u_qty:r2(num(e.gU)),o_qty:r2(num(e.gO)),u_pen:r2(calc(e).up),freight:hasN(e.freight)?Math.round(num(e.freight)*10000)/10000:null,o_pen:r2(num(e.gOp)),ench:r2(num(e.gEn)),
     updated_at:new Date().toISOString()};
 }
 function ovFail(err,d){
   pending--;
   var m=String((err&&err.message)||err);
-  toast('Edit not saved: '+(/relation|does not exist|PGRST205|404/i.test(m)?'create the table '+OV_TABLE+' in Supabase first (SQL is given with this file)':m.slice(0,120)));
+  toast('Edit not saved: '+(/freight|PGRST204/i.test(m)?'add the freight column in Supabase first (run the ALTER TABLE SQL)':/relation|does not exist|PGRST205|404/i.test(m)?'create the table '+OV_TABLE+' in Supabase first (SQL is given with this file)':m.slice(0,120)));
   setPill('err','Save failed');
   if(d===date)loadDay(true);
 }
@@ -1078,14 +1103,14 @@ function startEdit(td){
   if(!canEdit())return;
   var e=findAny(td.dataset.id),f=td.dataset.f;if(!e)return;
   var inp=document.createElement('input');
-  inp.type='number';inp.step='any';inp.min='0';inp.value=e[f];inp.className='cell-input';
+  inp.type='number';inp.step='any';inp.min='0';inp.value=(f==='freight'&&e.live)?liveFreight(e):e[f];inp.className='cell-input';
   inp.setAttribute('aria-label','Edit value');
   td.textContent='';td.appendChild(inp);inp.focus();inp.select();
   var done=false;
   function commit(ok){
     if(done)return;done=true;
     var changed=false;
-    if(ok){var v=parseFloat(inp.value);if(!isNaN(v)&&v>=0){if(v!==num(e[f])){e[f]=v;changed=true}}else{toast('Enter a number that is zero or more')}}
+    if(ok){var v=parseFloat(inp.value);if(!isNaN(v)&&v>=0){if(v!==(f==='freight'&&e.live?liveFreight(e):num(e[f]))){e[f]=v;changed=true}}else{toast('Enter a number that is zero or more')}}
     if(changed){
       if(e.live)saveOverride(e);   /* live row: saved as a hand edit for this date only */
       else persist();
@@ -1143,7 +1168,7 @@ $('#csvBtn').onclick=function(){
   store.parties.forEach(function(p){
     all.filter(function(e){return e.party===p}).forEach(function(e,i){
       var c=calc(e);
-      rows.push([ds,i+1,e.party,e.area,e.siding,e.rakes+'RAKE',e.rr,e.ch,c.uU,c.uO,e.live?'':e.freight,c.up,c.op,c.en,c.total,perMTcsv(c.total,e.rr)]);
+      rows.push([ds,i+1,e.party,e.area,e.siding,e.rakes+'RAKE',e.rr,e.ch,c.uU,c.uO,e.live?liveFreight(e):e.freight,c.up,c.op,c.en,c.total,perMTcsv(c.total,e.rr)]);
     });
   });
   rows.push([ds,'','GRAND TOTAL','','','',t.rr,t.ch,t.uU,t.uO,'',t.up,t.op,t.en,t.total,perMTcsv(t.total,t.rr)]);
@@ -1178,11 +1203,11 @@ function formEntry(){
 }
 function updatePreview(){
   if(liveMode){
-    var le={live:true,gU:num($('#fLU').value),gO:num($('#fLO').value),gUp:num($('#fLUp').value),gOp:num($('#fLOp').value),gEn:num($('#fLEn').value)};
+    var le={live:true,gU:num($('#fLU').value),gO:num($('#fLO').value),freight:num($('#fLFr').value),gUp:0,gOp:num($('#fLOp').value),gEn:num($('#fLEn').value)};
     var lc=calc(le);
     $('#cUq').textContent=fmt(lc.uq);
     $('#cUqF').textContent='Underload qty − Overload qty';
-    $('#cUp').textContent=money(lc.up);$('#cUpF').textContent='Typed in';
+    $('#cUp').textContent=money(lc.up);$('#cUpF').textContent=fmt(le.gU)+' × '+fmt(le.freight);
     $('#cOp').textContent=money(lc.op);$('#cOpF').textContent='Typed in';
     $('#cEn').textContent=money(lc.en);
     $('#cTot').textContent=money(lc.total);
@@ -1214,7 +1239,7 @@ function setForm(e){
   $('#fRakes').value=e.rakes;
   $('#fRR').value=e.rr;$('#fCH').value=e.ch;
   if(liveMode){
-    $('#fLU').value=e.gU;$('#fLO').value=e.gO;$('#fLUp').value=e.gUp;$('#fLOp').value=e.gOp;$('#fLEn').value=e.gEn;
+    $('#fLU').value=e.gU;$('#fLO').value=e.gO;$('#fLFr').value=liveFreight(e);$('#fLOp').value=e.gOp;$('#fLEn').value=e.gEn;
   }else{
     $('#fFreight').value=e.freight;
     $('#fO1').value=e.o1;$('#fO2').value=e.o2;$('#fO3').value=e.o3;$('#fEnch').value=e.ench;
@@ -1279,7 +1304,7 @@ function saveLive(){
   var e=findLive(editId);
   if(!e){closeDrawer();return}
   var bad=[];
-  ['fRR','fCH','fLU','fLO','fLUp','fLOp','fLEn'].forEach(function(id){
+  ['fRR','fCH','fLU','fLO','fLFr','fLOp','fLEn'].forEach(function(id){
     var el=$('#'+id),v=parseFloat(el.value);
     if(el.value===''||isNaN(v)||v<0){bad.push(el.previousElementSibling.textContent);el.classList.add('bad')}
   });
@@ -1290,7 +1315,7 @@ function saveLive(){
     return;
   }
   e.rakes=rk;e.rr=num($('#fRR').value);e.ch=num($('#fCH').value);
-  e.gU=num($('#fLU').value);e.gO=num($('#fLO').value);e.gUp=num($('#fLUp').value);e.gOp=num($('#fLOp').value);e.gEn=num($('#fLEn').value);
+  e.gU=num($('#fLU').value);e.gO=num($('#fLO').value);e.freight=num($('#fLFr').value);e.gUp=r2(e.gU*e.freight);e.gOp=num($('#fLOp').value);e.gEn=num($('#fLEn').value);
   saveOverride(e);
   toast('Saved for this date only. The '+e.party+' dashboard is not changed.');
   renderAll();closeDrawer();
