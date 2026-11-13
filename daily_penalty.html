@@ -171,6 +171,7 @@ tbody td.party{text-align:left}
 .tag.under{background:var(--under)}
 .tag.over{background:var(--over)}
 .tag.exact{background:var(--ok)}
+.tag.edited{background:var(--ench)}
 .uq{display:flex;align-items:center;justify-content:flex-end;gap:5px}
 .dv{position:relative;width:26px;height:8px;background:var(--surface2);border-radius:4px;flex:none}
 .dv::before{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:1.5px;background:var(--muted);opacity:.5}
@@ -189,7 +190,7 @@ tr.sub td{background:var(--sub-bg);font-weight:600;border-bottom:2px solid var(-
 tr.sub td.lab{text-align:left;color:var(--muted);font-weight:600}
 tfoot td{background:var(--yellow);color:var(--yellow-ink);font-family:var(--font-c);font-size:20px;font-weight:700;padding:12px 7px;text-align:right;border-top:4px solid var(--blue)}
 tfoot td.l{text-align:left;letter-spacing:.5px}
-.acts{display:flex;gap:2px;justify-content:center}
+.acts{display:flex;gap:2px;justify-content:center;align-items:center}
 .ib{background:none;border:0;border-radius:6px;padding:4px;color:var(--muted);display:grid;place-items:center}
 .ib:hover{background:var(--surface2);color:var(--ink)}
 .ib.del:hover{color:var(--danger)}
@@ -245,11 +246,13 @@ td.party{border-left-width:10px}
 .fld{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;min-width:0}
 .fld label{font-size:13px;font-weight:600;color:var(--muted)}
 .fld input,.fld select{border:1.5px solid var(--line);background:var(--surface2);border-radius:8px;padding:9px 10px;width:100%;min-width:0}
+.fld input:disabled,.fld select:disabled{opacity:.7;cursor:not-allowed}
 .fld input:focus,.fld select:focus{border-color:var(--focus);outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--focus) 30%,transparent)}
 .fld input.bad{border-color:var(--danger)}
 .fld .new{margin-top:6px}
 .fs{border:1.5px dashed var(--line);border-radius:10px;padding:12px 12px 0;margin:4px 0 14px}
 .fs legend{font-size:13px;font-weight:600;color:var(--muted);padding:0 6px}
+.note{font-size:13px;color:var(--muted);background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:9px 12px;margin:0 0 14px}
 .err{color:var(--danger);font-size:13px;min-height:18px;margin:0 0 8px;font-weight:600}
 .calc{background:var(--surface2);border:1px solid var(--line);border-radius:10px;overflow:hidden}
 .calc .r{display:flex;justify-content:space-between;gap:12px;padding:8px 14px;border-bottom:1px solid var(--line2);font-size:14px}
@@ -270,7 +273,7 @@ td.party{border-left-width:10px}
 
 /* ============ TOAST ============ */
 #toasts{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:90;display:flex;flex-direction:column;gap:8px;align-items:center}
-.toast{background:var(--ink);color:var(--surface);padding:11px 16px;border-radius:10px;display:flex;gap:14px;align-items:center;box-shadow:var(--shadow);font-weight:500;animation:pop .2s ease}
+.toast{background:var(--ink);color:var(--surface);padding:11px 16px;border-radius:10px;display:flex;gap:14px;align-items:center;box-shadow:var(--shadow);font-weight:500;animation:pop .2s ease;max-width:92vw}
 .toast button{background:none;border:0;color:var(--yellow);font-weight:700;text-decoration:underline;padding:0}
 [data-theme="light"] .toast button{color:#c58f00}
 @keyframes pop{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
@@ -424,7 +427,7 @@ td.party{border-left-width:10px}
         <tfoot id="tfoot"></tfoot>
       </table>
     </div>
-    <div class="hint">Rows marked LIVE are the GUJRAT POWER (Gujarat dashboard) and HZL (HZL dashboard) rakes read live, grouped by area and siding for the date. They are read only here and refresh every 30 seconds. For each live rake: Underload qty = CH weight − RR weight (when CH is more), Overload qty = RR weight − CH weight (when RR is more). All other rows come from the database: click RR QTY, CHARBALE QTY, Freight or ENCH to change them in place. Per M/T = TOTAL ÷ RR QTY.</div>
+    <div class="hint">Rows marked LIVE are the GUJRAT POWER (Gujarat dashboard) and HZL (HZL dashboard) rakes read live, grouped by area and siding for the date, and refreshed every 30 seconds. For each live rake: Underload qty = CH weight − RR weight (when CH is more), Overload qty = RR weight − CH weight (when RR is more). <b>Live rows can be edited here too</b> (pencil button, or click RR QTY, CHARBALE QTY, Underload Penalty, Overload Penalty or ENCH). A hand-edited row is marked EDITED, is saved for that date only, is never overwritten by the live refresh, and does <b>not</b> change the Gujarat or HZL dashboard. The arrow button on an EDITED row goes back to the live values. All other rows come from the database: click RR QTY, CHARBALE QTY, Freight or ENCH to change them in place. Per M/T = TOTAL ÷ RR QTY.</div>
   </section>
 
   <!-- ================= INSIGHTS ================= -->
@@ -460,6 +463,7 @@ td.party{border-left-width:10px}
   </div>
   <form id="form" novalidate class="d-body-wrap" style="display:flex;flex-direction:column;flex:1;min-height:0">
     <div class="d-body">
+      <p class="note" id="liveNote" hidden>This is a live row. Changes made here are saved for this date only and do not change the Gujarat or HZL dashboard. The live refresh will no longer overwrite this row.</p>
       <div class="grid2">
         <div class="fld">
           <label for="fParty">Party</label>
@@ -480,18 +484,33 @@ td.party{border-left-width:10px}
         <div class="fld"><label for="fRR">RR QTY</label><input id="fRR" type="number" min="0" step="any" inputmode="decimal"></div>
         <div class="fld"><label for="fCH">CHARBALE QTY</label><input id="fCH" type="number" min="0" step="any" inputmode="decimal"></div>
       </div>
-      <div class="grid2">
-        <div class="fld"><label for="fFreight">Freight (per unit)</label><input id="fFreight" type="number" min="0" step="any" inputmode="decimal"></div>
-        <div class="fld"><label for="fEnch">ENCH</label><input id="fEnch" type="number" min="0" step="any" inputmode="decimal"></div>
-      </div>
-      <fieldset class="fs">
-        <legend>Overload penalty = sum of three parts</legend>
-        <div class="grid2" style="grid-template-columns:repeat(3,1fr)">
-          <div class="fld"><label for="fO1">Part 1</label><input id="fO1" type="number" min="0" step="any" inputmode="decimal"></div>
-          <div class="fld"><label for="fO2">Part 2</label><input id="fO2" type="number" min="0" step="any" inputmode="decimal"></div>
-          <div class="fld"><label for="fO3">Part 3</label><input id="fO3" type="number" min="0" step="any" inputmode="decimal"></div>
+      <div id="manualBlk">
+        <div class="grid2">
+          <div class="fld"><label for="fFreight">Freight (per unit)</label><input id="fFreight" type="number" min="0" step="any" inputmode="decimal"></div>
+          <div class="fld"><label for="fEnch">ENCH</label><input id="fEnch" type="number" min="0" step="any" inputmode="decimal"></div>
         </div>
-      </fieldset>
+        <fieldset class="fs">
+          <legend>Overload penalty = sum of three parts</legend>
+          <div class="grid2" style="grid-template-columns:repeat(3,1fr)">
+            <div class="fld"><label for="fO1">Part 1</label><input id="fO1" type="number" min="0" step="any" inputmode="decimal"></div>
+            <div class="fld"><label for="fO2">Part 2</label><input id="fO2" type="number" min="0" step="any" inputmode="decimal"></div>
+            <div class="fld"><label for="fO3">Part 3</label><input id="fO3" type="number" min="0" step="any" inputmode="decimal"></div>
+          </div>
+        </fieldset>
+      </div>
+      <div id="liveBlk" hidden>
+        <div class="grid2">
+          <div class="fld"><label for="fLU">Underload qty</label><input id="fLU" type="number" min="0" step="any" inputmode="decimal"></div>
+          <div class="fld"><label for="fLO">Overload qty</label><input id="fLO" type="number" min="0" step="any" inputmode="decimal"></div>
+        </div>
+        <div class="grid2">
+          <div class="fld"><label for="fLUp">Underload penalty</label><input id="fLUp" type="number" min="0" step="any" inputmode="decimal"></div>
+          <div class="fld"><label for="fLOp">Overload penalty</label><input id="fLOp" type="number" min="0" step="any" inputmode="decimal"></div>
+        </div>
+        <div class="grid2">
+          <div class="fld"><label for="fLEn">ENCH</label><input id="fLEn" type="number" min="0" step="any" inputmode="decimal"></div>
+        </div>
+      </div>
       <p class="err" id="err" role="alert"></p>
       <div class="calc" aria-live="polite">
         <div class="r"><span>Underload qty<em id="cUqF"></em></span><b id="cUq" class="num"></b></div>
@@ -521,6 +540,9 @@ var $=function(s,r){return (r||document).querySelector(s)};
 var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
 var THEME_KEY='amm_penalty_theme';
 var CFG_KEY='amm_sb_cfg', TABLE='amm_penalty_entries';
+/* Hand-edited live rows are saved here (one row per date + party + area + siding).
+   Create this table once in Supabase, see the SQL given with this file. */
+var OV_TABLE='amm_penalty_live_overrides';
 /* Supabase details. You can also click the status pill at the top and paste them once. */
 var SUPABASE_URL='https://pycmkjrmdieaqsbgrher.supabase.co';
 var SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5Y21ranJtZGllYXFzYmdyaGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwMjMxNzAsImV4cCI6MjEwNjU5OTE3MH0.9IE2c2FZ4BPv6Rvhfa_VniQ7LJvQ_c4EGDXFihYR4Lc';
@@ -538,6 +560,7 @@ function isoOf(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDa
 function fromIso(s){var p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2])}
 function yesterdayIso(){var d=new Date();d.setDate(d.getDate()-1);return isoOf(d)}
 function hhmm(d){return pad(d.getHours())+':'+pad(d.getMinutes())}
+function r2(n){return Math.round(n*100)/100}
 var MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 var DAY=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
@@ -546,11 +569,12 @@ var DAY=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
    Underload qty = CHARBALE QTY - RR QTY (when positive), overload qty = the opposite
    Underload penalty = underload qty * freight, Overload penalty = part 1 + 2 + 3
    TOTAL = underload penalty + overload penalty + ENCH, Per M/T = TOTAL / RR QTY
-   LIVE Gujarat rows (per area and siding, per date, read from gujarat_rake_records):
+   LIVE rows (per area and siding, per date, read from gujarat_rake_records / hzl_rake_records):
    Underload qty = sum of (CH wt - RR wt) of rakes where CH wt is more
    Overload qty  = sum of (RR wt - CH wt) of rakes where RR wt is more
    Underload penalty = sum of underload charge, Overload penalty = POL group + EHBC charge
-   ENCH = ENHC charge. Dead freight is not shown here. */
+   ENCH = ENHC charge. Dead freight is not shown here.
+   A live row that was edited by hand (edited=true) keeps exactly the values typed in. */
 function calc(e){
   if(e.live){
     var net=e.gU-e.gO;
@@ -572,14 +596,15 @@ var DEFAULT_AREAS=['SECL','CCL','MCL','WCL','NCL','MCFL'];
 var SIDING_BY_AREA={SECL:'KMKA',CCL:'BOCM',WCL:'DKJC',MCL:'DFJH',NCL:'IJJS'};
 
 var store={days:{},loaded:{},parties:DEFAULT_PARTIES.slice(),areas:DEFAULT_AREAS.slice()};
-var live={};   /* live Gujarat rows per date, never written to the penalty table */
+var live={};   /* live rows per date (with hand edits applied), live values are never written to the penalty table */
+var ovr={};    /* hand-edited live rows per date: {date:{rowId:row}} from OV_TABLE */
 var date=yesterdayIso();
 var filterParty='ALL', underOnly=false, query='';
-var editId=null;
+var editId=null, liveMode=false;
 var loading=false, loadErr='';
 
 function entries(){return store.days[date]||(store.days[date]=[])}
-/* every row shown on the sheet: saved rows plus live Gujarat rows */
+/* every row shown on the sheet: saved rows plus live rows */
 function allRows(){
   var o=store.parties;
   return entries().concat(live[date]||[]).sort(function(a,b){return o.indexOf(a.party)-o.indexOf(b.party)});
@@ -595,8 +620,9 @@ function sortEntries(){
 }
 function partyColor(p){var i=store.parties.indexOf(p);return 'var(--p'+((i<0?0:i)%6)+')'}
 function find(id){return entries().filter(function(e){return e.id===id})[0]}
+function findLive(id){return (live[date]||[]).filter(function(e){return e.id===id})[0]}
+function findAny(id){return find(id)||findLive(id)}
 function isLive(id){return (live[date]||[]).some(function(e){return e.id===id})}
-function liveNote(){toast('Live rows come from the Gujarat / HZL dashboard. Change them there.')}
 
 /* ============ AGGREGATES ============ */
 function agg(list){
@@ -644,8 +670,8 @@ function renderTrain(){
     html+='<div class="grp"><div class="grp-label">'+esc(p)+'</div><div class="cars">';
     rows.forEach(function(e,i){
       var c=calc(e);
-      var label=esc(p)+' · '+esc(e.area)+'/'+esc(e.siding)+' · '+(c.status==='under'?'underloaded by '+fmt(c.uU):c.status==='over'?'overloaded by '+fmt(c.uO):'exact')+' · total '+money(c.total);
-      html+='<button class="wagon '+c.status+(editId===e.id?' sel':'')+'" data-id="'+esc(e.id)+'" title="'+label+'" aria-label="'+label+(e.live?'. Live from Gujarat':'. Edit')+'">'+(i+1)+'</button>';
+      var label=esc(p)+' · '+esc(e.area)+'/'+esc(e.siding)+' · '+(c.status==='under'?'underloaded by '+fmt(c.uU):c.status==='over'?'overloaded by '+fmt(c.uO):'exact')+' · total '+money(c.total)+(e.edited?' · edited by hand':'');
+      html+='<button class="wagon '+c.status+(editId===e.id?' sel':'')+'" data-id="'+esc(e.id)+'" title="'+label+'" aria-label="'+label+'. Edit">'+(i+1)+'</button>';
     });
     html+='</div></div>';
   });
@@ -683,6 +709,7 @@ function renderChips(){
 var ICON_EDIT='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4"/></svg>';
 var ICON_COPY='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></svg>';
 var ICON_DEL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>';
+var ICON_RESET='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/></svg>';
 
 function renderTable(){
   var all=allRows();
@@ -720,16 +747,20 @@ function renderTable(){
       html+='<td class="l">'+esc(e.area)+'</td>';
       html+='<td class="l">'+esc(e.siding)+'</td>';
       html+='<td class="c">'+esc(e.rakes)+'RAKE</td>';
-      html+=lv?'<td class="num">'+fmt(e.rr)+'</td><td class="num">'+fmt(e.ch)+'</td>':edCell(e,'rr',e.rr)+edCell(e,'ch',e.ch);
+      html+=edCell(e,'rr',e.rr)+edCell(e,'ch',e.ch);
       html+='<td class="num"><div class="uq">'+tag+'<span>'+fmt(c.uU)+'</span><span class="dv" aria-hidden="true">'+bar+'</span></div></td>';
       html+='<td class="num">'+fmt(c.uO)+'</td>';
       html+=lv?'<td class="num">–</td>':edCell(e,'freight',e.freight);
-      html+='<td class="num pen-u'+(c.up?'':' zero')+'">'+fmt(c.up)+'</td>';
-      html+='<td class="num">'+fmt(c.op)+'</td>';
-      html+=lv?'<td class="num">'+fmt(c.en)+'</td>':edCell(e,'ench',e.ench);
+      html+=lv?edCell(e,'gUp',c.up,'pen-u'+(c.up?'':' zero')):'<td class="num pen-u'+(c.up?'':' zero')+'">'+fmt(c.up)+'</td>';
+      html+=lv?edCell(e,'gOp',c.op):'<td class="num">'+fmt(c.op)+'</td>';
+      html+=lv?edCell(e,'gEn',c.en):edCell(e,'ench',e.ench);
       html+='<td class="num tot"><div class="heat" style="width:calc('+(c.total/maxTotal*100)+'% - 6px)"></div><span>'+fmt(c.total)+'</span></td>';
       html+='<td class="num pmt">'+perMT(c.total,e.rr)+'</td>';
-      html+=lv?'<td class="td-act"><div class="acts"><span class="tag exact" title="Live from the Gujarat dashboard" style="margin:0">LIVE</span></div></td>'
+      html+=lv?'<td class="td-act"><div class="acts">'
+        +(e.edited?'<span class="tag edited" title="Changed by hand for this date. The live refresh will not overwrite it." style="margin:0">EDITED</span>':'<span class="tag exact" title="Live from the dashboard" style="margin:0">LIVE</span>')
+        +'<button class="ib" data-act="edit" aria-label="Edit this live rake" title="Edit (this sheet only)">'+ICON_EDIT+'</button>'
+        +(e.edited?'<button class="ib" data-act="reset" aria-label="Go back to the live values" title="Go back to the live values">'+ICON_RESET+'</button>':'')
+        +'</div></td>'
         :'<td class="td-act"><div class="acts">'
         +'<button class="ib" data-act="edit" aria-label="Edit this rake" title="Edit">'+ICON_EDIT+'</button>'
         +'<button class="ib" data-act="dup" aria-label="Duplicate this rake" title="Duplicate">'+ICON_COPY+'</button>'
@@ -752,8 +783,8 @@ function renderTable(){
   var label=filterParty==='ALL'&&!underOnly&&!q?'Grand total':'Total of rows shown';
   $('#tfoot').innerHTML='<tr><td class="l" colspan="5">'+label+'</td><td class="num">'+fmt(g.rr)+'</td><td class="num">'+fmt(g.ch)+'</td><td class="num">'+fmt(g.uU)+'</td><td class="num">'+fmt(g.uO)+'</td><td></td><td class="num">'+fmt(g.up)+'</td><td class="num">'+fmt(g.op)+'</td><td class="num">'+fmt(g.en)+'</td><td class="num">'+fmt(g.total)+'</td><td class="num">'+perMT(g.total,g.rr)+'</td><td class="td-act"></td></tr>';
 }
-function edCell(e,f,v){
-  return '<td class="num ed" tabindex="0" data-id="'+e.id+'" data-f="'+f+'" title="Click to edit">'+fmt(v)+'</td>';
+function edCell(e,f,v,cls){
+  return '<td class="num ed'+(cls?' '+cls:'')+'" tabindex="0" data-id="'+esc(e.id)+'" data-f="'+f+'" title="Click to edit">'+fmt(v)+'</td>';
 }
 
 function stackedRows(map,order,colorFn,clickable){
@@ -782,7 +813,7 @@ function renderInsights(){
   var top=all.map(function(e){return {e:e,c:calc(e)}}).sort(function(a,b){return b.c.total-a.c.total}).slice(0,5);
   $('#topList').innerHTML=top.length?top.map(function(x){
     var c=x.c,e=x.e;
-    var note=e.live?'Live from the dashboard':(c.status==='under'?'Short by '+fmt(c.uq)+' × '+fmt(num(e.freight))+' + overload + ENCH':'No underload + overload + ENCH');
+    var note=e.live?(e.edited?'Edited by hand for this date':'Live from the dashboard'):(c.status==='under'?'Short by '+fmt(c.uq)+' × '+fmt(num(e.freight))+' + overload + ENCH':'No underload + overload + ENCH');
     return '<li><div>'+esc(e.party)+' · '+esc(e.area)+' / '+esc(e.siding)+'<small>'+note+'</small></div><b class="num">'+money(c.total)+'</b></li>';
   }).join(''):'<li class="empty">No data yet</li>';
 }
@@ -804,7 +835,7 @@ function restore(snap){store.days[date]=snap;persist();renderAll()}
 /* ============ SUPABASE (plain REST, no library) ============ */
 function cfg(){
   var c=null;try{c=JSON.parse(localStorage.getItem(CFG_KEY)||'null')}catch(e){}
-  var u=(c&&c.url)||SUPABASE_URL,k=(c&&c.key)||SUPABASE_KEY;
+  var u=SUPABASE_URL||(c&&c.url),k=SUPABASE_KEY||(c&&c.key);   /* the values written in this file win over an old pasted one */
   if(!u||!k||/^YOUR_/.test(u)||/^YOUR_/.test(k))return null;
   return {url:u.replace(/\/+$/,''),key:k};
 }
@@ -826,7 +857,7 @@ function api(c,path,opt){
   });
 }
 
-/* ============ LIVE GUJARAT ROWS ============ */
+/* ============ LIVE ROWS (Gujarat + HZL) ============ */
 function hasN(v){return v!==null&&v!==undefined&&v!==''&&!isNaN(parseFloat(v))}
 function fetchLive(c,d){
   return Promise.all(LIVE_SRC.map(function(s){
@@ -838,9 +869,23 @@ function fetchLive(c,d){
     return {rows:rows,failed:failed};
   });
 }
-/* group the rakes of the date by area and siding, same as the other rows of the sheet */
+/* hand-edited live rows of the date, as a map id -> row. failed=true when the table is missing or unreadable */
+function fetchOv(c,d){
+  return api(c,OV_TABLE+'?sheet_date=eq.'+d+'&limit=1000').then(function(rows){
+    var m={};(rows||[]).forEach(function(r){m[r.id]=r});
+    return {map:m,failed:false};
+  },function(){return {map:{},failed:true}});
+}
+function applyOv(x,o){
+  x.rakes=Math.max(1,+o.rakes||1);
+  x.rr=num(o.rr);x.ch=num(o.ch);
+  x.gU=num(o.u_qty);x.gO=num(o.o_qty);x.gUp=num(o.u_pen);x.gOp=num(o.o_pen);x.gEn=num(o.ench);
+  x.edited=true;
+}
+/* group the rakes of the date by area and siding, same as the other rows of the sheet,
+   then lay the hand-edited values of this date over them (an edited row is frozen) */
 function buildLive(g,d){
-  var m={};
+  var m={},ov=ovr[d]||{};
   ((g&&g.rows)||[]).forEach(function(r){
     var area=String(r.area||'-').trim().toUpperCase(),sid=String(r.siding||'-').trim().toUpperCase(),k=r._p+'|'+area+'|'+sid;
     var x=m[k]||(m[k]={id:'L|'+d+'|'+k,live:true,party:r._p,area:area,siding:sid,rakes:0,rr:0,ch:0,freight:0,o1:0,o2:0,o3:0,ench:0,gU:0,gO:0,gUp:0,gOp:0,gEn:0});
@@ -851,14 +896,23 @@ function buildLive(g,d){
     }
     x.gUp+=num(r.ul_ch);x.gOp+=num(r.pol_group)+num(r.ehbc_group);x.gEn+=num(r.enhc_charge);
   });
-  return Object.keys(m).sort().map(function(k){
-    var x=m[k];['rr','ch','gU','gO','gUp','gOp','gEn'].forEach(function(f){x[f]=Math.round(x[f]*100)/100});
-    return x;
+  Object.keys(m).forEach(function(k){
+    var x=m[k];['rr','ch','gU','gO','gUp','gOp','gEn'].forEach(function(f){x[f]=r2(x[f])});
+    if(ov[x.id])applyOv(x,ov[x.id]);
   });
+  /* edited rows whose live source is gone (rake removed or date changed in the dashboard) still stay */
+  Object.keys(ov).forEach(function(id){
+    if(m[id])return;
+    var o=ov[id];
+    var x={id:id,live:true,party:o.party,area:o.area,siding:o.siding,rakes:1,rr:0,ch:0,freight:0,o1:0,o2:0,o3:0,ench:0,gU:0,gO:0,gUp:0,gOp:0,gEn:0};
+    applyOv(x,o);m[id]=x;
+  });
+  return Object.keys(m).sort().map(function(k){return m[k]});
 }
 function refreshLive(){
   var c=cfg(),d=date;
   if(!c||loading||(drawer&&drawer.classList.contains('open')))return;
+  if(document.activeElement&&document.activeElement.classList&&document.activeElement.classList.contains('cell-input'))return;
   fetchLive(c,d).then(function(g){
     if(!g||g.failed||d!==date)return;
     var n=buildLive(g,d);
@@ -873,7 +927,7 @@ $('.tools').insertBefore(pill,$('.tools').firstChild);
 function setPill(cls,txt){pill.className='sbpill '+cls;pill.lastChild.textContent=txt}
 pill.onclick=function(){if(askCfg())loadDay()};
 
-/* every change is written to the database straight away, in order (live Gujarat rows are never written) */
+/* every change is written to the database straight away, in order */
 var queue=Promise.resolve(), pending=0, loadTok=0;
 function persist(){queueSync(date)}
 function queueSync(d){
@@ -906,7 +960,45 @@ function doSync(d,list){
   });
 }
 
-/* load the selected day from the database (saved rows) and from the Gujarat dashboard (live rows) */
+/* ---- hand-edited live rows: saved in OV_TABLE for that date only, the Gujarat / HZL dashboards are never touched ---- */
+function ovRow(e,d){
+  return {id:e.id,sheet_date:d,party:e.party,area:e.area,siding:e.siding,rakes:+e.rakes||1,
+    rr:r2(num(e.rr)),ch:r2(num(e.ch)),u_qty:r2(num(e.gU)),o_qty:r2(num(e.gO)),u_pen:r2(num(e.gUp)),o_pen:r2(num(e.gOp)),ench:r2(num(e.gEn)),
+    updated_at:new Date().toISOString()};
+}
+function ovFail(err,d){
+  pending--;
+  var m=String((err&&err.message)||err);
+  toast('Edit not saved: '+(/relation|does not exist|PGRST205|404/i.test(m)?'create the table '+OV_TABLE+' in Supabase first (SQL is given with this file)':m.slice(0,120)));
+  setPill('err','Save failed');
+  if(d===date)loadDay(true);
+}
+function saveOverride(e){
+  var d=date,row=ovRow(e,d);
+  e.edited=true;
+  (ovr[d]=ovr[d]||{})[e.id]=row;
+  pending++;setPill('','Saving…');
+  queue=queue.then(function(){
+    var c=cfg();if(!c)throw new Error('Supabase is not connected');
+    return api(c,OV_TABLE+'?on_conflict=id',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:[row]});
+  }).then(function(){
+    pending--;if(!pending)setPill('ok','Saved '+hhmm(new Date()));
+  },function(err){ovFail(err,d)});
+}
+function resetOverride(e){
+  var d=date,id=e.id;
+  if(ovr[d])delete ovr[d][id];
+  pending++;setPill('','Saving…');
+  queue=queue.then(function(){
+    var c=cfg();if(!c)throw new Error('Supabase is not connected');
+    return api(c,OV_TABLE+'?id=eq.'+encodeURIComponent(id),{method:'DELETE'});
+  }).then(function(){
+    pending--;if(!pending)setPill('ok','Saved '+hhmm(new Date()));
+  },function(err){ovFail(err,d)});
+  loadDay(true);   /* queued behind the delete, then shows the live values again */
+}
+
+/* load the selected day from the database (saved rows, hand edits) and from the Gujarat / HZL dashboards (live rows) */
 function loadDay(keepPill){
   var d=date,my=++loadTok;
   loading=true;loadErr='';store.loaded[d]=false;store.days[d]=[];live[d]=[];
@@ -918,15 +1010,17 @@ function loadDay(keepPill){
   }
   if(!keepPill)setPill('','Loading…');
   queue.then(function(){
-    return Promise.all([api(c,TABLE+'?sheet_date=eq.'+d+'&order=sort_order.asc'),fetchLive(c,d)]);
+    return Promise.all([api(c,TABLE+'?sheet_date=eq.'+d+'&order=sort_order.asc'),fetchLive(c,d),fetchOv(c,d)]);
   }).then(function(res){
     if(my!==loadTok)return;
-    var rows=res[0],g=res[1];
+    var rows=res[0],g=res[1],ov=res[2];
     var list=(rows||[]).map(function(r){
       return {id:r.id,party:r.party,area:r.area,siding:r.siding,rakes:+r.rakes,rr:+r.rr,ch:+r.ch,freight:+r.freight,o1:+r.o1,o2:+r.o2,o3:+r.o3,ench:+r.ench};
     });
+    ovr[d]=ov.map;
     live[d]=buildLive(g,d);
     if(g.failed)toast('Some live data (Gujarat or HZL) could not be read.');
+    if(ov.failed)toast('Edits on live rows could not be read. Create the table '+OV_TABLE+' in Supabase (SQL is given with this file).');
     list.forEach(function(e){
       if(store.parties.indexOf(e.party)<0)store.parties.push(e.party);
       if(store.areas.indexOf(e.area)<0)store.areas.push(e.area);
@@ -957,6 +1051,10 @@ $('#tbody').addEventListener('click',function(ev){
     if(!canEdit())return;
     var id=btn.closest('tr').dataset.id,act=btn.dataset.act;
     if(act==='edit')openDrawer(id);
+    if(act==='reset'){
+      var le=findLive(id);
+      if(le&&confirm('Go back to the live dashboard values for this row? Your hand-edited values for this date will be removed.'))resetOverride(le);
+    }
     if(act==='dup'){
       var src=find(id),snap=snapshot();
       var copy=JSON.parse(JSON.stringify(src));copy.id=uid();
@@ -978,7 +1076,7 @@ $('#tbody').addEventListener('keydown',function(ev){
 });
 function startEdit(td){
   if(!canEdit())return;
-  var e=find(td.dataset.id),f=td.dataset.f;if(!e)return;
+  var e=findAny(td.dataset.id),f=td.dataset.f;if(!e)return;
   var inp=document.createElement('input');
   inp.type='number';inp.step='any';inp.min='0';inp.value=e[f];inp.className='cell-input';
   inp.setAttribute('aria-label','Edit value');
@@ -988,7 +1086,10 @@ function startEdit(td){
     if(done)return;done=true;
     var changed=false;
     if(ok){var v=parseFloat(inp.value);if(!isNaN(v)&&v>=0){if(v!==num(e[f])){e[f]=v;changed=true}}else{toast('Enter a number that is zero or more')}}
-    if(changed)persist();
+    if(changed){
+      if(e.live)saveOverride(e);   /* live row: saved as a hand edit for this date only */
+      else persist();
+    }
     renderAll();
   }
   inp.addEventListener('blur',function(){commit(true)});
@@ -999,7 +1100,6 @@ function startEdit(td){
 }
 $('#train').addEventListener('click',function(ev){
   var w=ev.target.closest('.wagon');if(!w)return;
-  if(isLive(w.dataset.id)){liveNote();return}
   openDrawer(w.dataset.id);
 });
 $('#chips').addEventListener('click',function(ev){
@@ -1017,8 +1117,8 @@ $('#search').addEventListener('input',function(e){query=e.target.value;renderTab
 
 $('#clearBtn').addEventListener('click',function(){
   if(!canEdit())return;
-  if(!entries().length){toast('There is nothing saved for this date (live Gujarat rows are not deleted)');return}
-  if(!confirm('Delete every saved rake for this date from the database? Live Gujarat rows stay.'))return;
+  if(!entries().length){toast('There is nothing saved for this date (live rows are not deleted)');return}
+  if(!confirm('Delete every saved rake for this date from the database? Live rows stay.'))return;
   var snap=snapshot();store.days[date]=[];persist();renderAll();
   toast('Day cleared',function(){restore(snap)});
 });
@@ -1077,6 +1177,18 @@ function formEntry(){
   return {rr:$('#fRR').value,ch:$('#fCH').value,freight:$('#fFreight').value,o1:$('#fO1').value,o2:$('#fO2').value,o3:$('#fO3').value,ench:$('#fEnch').value};
 }
 function updatePreview(){
+  if(liveMode){
+    var le={live:true,gU:num($('#fLU').value),gO:num($('#fLO').value),gUp:num($('#fLUp').value),gOp:num($('#fLOp').value),gEn:num($('#fLEn').value)};
+    var lc=calc(le);
+    $('#cUq').textContent=fmt(lc.uq);
+    $('#cUqF').textContent='Underload qty − Overload qty';
+    $('#cUp').textContent=money(lc.up);$('#cUpF').textContent='Typed in';
+    $('#cOp').textContent=money(lc.op);$('#cOpF').textContent='Typed in';
+    $('#cEn').textContent=money(lc.en);
+    $('#cTot').textContent=money(lc.total);
+    $('#cPmt').textContent=perMT(lc.total,$('#fRR').value);
+    return;
+  }
   var e=formEntry(),c=calc(e);
   var rr=$('#fRR').value!==''&&$('#fCH').value!=='';
   $('#cUq').textContent=rr?fmt(c.uq):'—';
@@ -1090,26 +1202,35 @@ function updatePreview(){
   $('#cPmt').textContent=perMT(c.total,e.rr);
 }
 function setForm(e){
+  liveMode=!!e.live;
   fillSelect($('#fParty'),store.parties,e.party,'+ Add new party…');
   fillSelect($('#fArea'),store.areas,e.area,'+ Add new area…');
   $('#fPartyNew').hidden=true;$('#fPartyNew').value='';
   $('#fAreaNew').hidden=true;$('#fAreaNew').value='';
+  /* a live row keeps its party, area and siding, only the figures can be changed */
+  $('#fParty').disabled=liveMode;$('#fArea').disabled=liveMode;$('#fSiding').disabled=liveMode;
+  $('#manualBlk').hidden=liveMode;$('#liveBlk').hidden=!liveMode;$('#liveNote').hidden=!liveMode;
   $('#fSiding').value=e.siding||'';
   $('#fRakes').value=e.rakes;
-  $('#fRR').value=e.rr;$('#fCH').value=e.ch;$('#fFreight').value=e.freight;
-  $('#fO1').value=e.o1;$('#fO2').value=e.o2;$('#fO3').value=e.o3;$('#fEnch').value=e.ench;
+  $('#fRR').value=e.rr;$('#fCH').value=e.ch;
+  if(liveMode){
+    $('#fLU').value=e.gU;$('#fLO').value=e.gO;$('#fLUp').value=e.gUp;$('#fLOp').value=e.gOp;$('#fLEn').value=e.gEn;
+  }else{
+    $('#fFreight').value=e.freight;
+    $('#fO1').value=e.o1;$('#fO2').value=e.o2;$('#fO3').value=e.o3;$('#fEnch').value=e.ench;
+  }
   $('#err').textContent='';$$('input',form).forEach(function(i){i.classList.remove('bad')});
   var dl=Object.keys(SIDING_BY_AREA).map(function(k){return SIDING_BY_AREA[k]});
   entries().forEach(function(x){if(dl.indexOf(x.siding)<0)dl.push(x.siding)});
   $('#sidings').innerHTML=dl.map(function(s){return '<option value="'+esc(s)+'">'}).join('');
   updatePreview();updateSub();
 }
-function nextSr(party){return entries().filter(function(e){return e.party===party}).length+1}
+function nextSr(party){return allRows().filter(function(e){return e.party===party}).length+1}
 function updateSub(){
   var p=currentParty();
   if(editId){
-    var e=find(editId);var idx=e?entries().filter(function(x){return x.party===e.party}).indexOf(e)+1:0;
-    $('#dSub').textContent='Sr. No. '+idx+' for '+(e?e.party:'');
+    var e=findAny(editId);var idx=e?allRows().filter(function(x){return x.party===e.party}).indexOf(e)+1:0;
+    $('#dSub').textContent='Sr. No. '+idx+' for '+(e?e.party:'')+(e&&e.live?' · live row, edited on this sheet only':'');
   }else{
     $('#dSub').textContent=p?'Will be Sr. No. '+nextSr(p)+' for '+p:'Pick a party';
   }
@@ -1122,7 +1243,7 @@ function openDrawer(id,keepParty){
   if(!canEdit())return;
   lastFocus=document.activeElement;
   editId=id||null;
-  var e=id?find(id):blank(keepParty);
+  var e=id?findAny(id):blank(keepParty);
   if(!e)return;
   $('#dTitle').textContent=id?'Edit entry':'New entry';
   $('#saveAddBtn').hidden=!!id;
@@ -1153,7 +1274,30 @@ $('#fArea').addEventListener('change',function(){
 });
 $$('input',form).forEach(function(i){i.addEventListener('input',function(){i.classList.remove('bad');updatePreview()})});
 
+/* save a live row: kept for this date only, the Gujarat / HZL dashboards are not touched */
+function saveLive(){
+  var e=findLive(editId);
+  if(!e){closeDrawer();return}
+  var bad=[];
+  ['fRR','fCH','fLU','fLO','fLUp','fLOp','fLEn'].forEach(function(id){
+    var el=$('#'+id),v=parseFloat(el.value);
+    if(el.value===''||isNaN(v)||v<0){bad.push(el.previousElementSibling.textContent);el.classList.add('bad')}
+  });
+  var rk=parseInt($('#fRakes').value,10);
+  if(isNaN(rk)||rk<1){bad.push('Rakes loaded');$('#fRakes').classList.add('bad')}
+  if(bad.length){
+    $('#err').textContent='Fill in '+bad.join(', ')+' with a valid value (numbers must be zero or more).';
+    return;
+  }
+  e.rakes=rk;e.rr=num($('#fRR').value);e.ch=num($('#fCH').value);
+  e.gU=num($('#fLU').value);e.gO=num($('#fLO').value);e.gUp=num($('#fLUp').value);e.gOp=num($('#fLOp').value);e.gEn=num($('#fLEn').value);
+  saveOverride(e);
+  toast('Saved for this date only. The '+e.party+' dashboard is not changed.');
+  renderAll();closeDrawer();
+}
+
 function save(andAdd){
+  if(liveMode&&editId){saveLive();return}
   var party=currentParty(),area=currentArea(),siding=$('#fSiding').value.trim().toUpperCase();
   var bad=[];
   if(!party)bad.push('Party');
@@ -1207,6 +1351,31 @@ document.addEventListener('keydown',function(ev){
 
 /* ============ FULL-PAGE PNG (header, rakes, KPIs, sheet, insights) ============ */
 var h2c=null;
+/* html2canvas cannot read modern colours such as color-mix(), so before the picture is taken every such colour
+   in the copy of the page is turned into a plain rgb/rgba value (the real page is not touched) */
+var _cx=null;
+function toRgb(v){
+  if(!_cx){var cv=document.createElement('canvas');cv.width=cv.height=1;_cx=cv.getContext('2d',{willReadFrequently:true})}
+  _cx.clearRect(0,0,1,1);_cx.fillStyle='#000';_cx.fillStyle=v;_cx.fillRect(0,0,1,1);
+  var d=_cx.getImageData(0,0,1,1).data;
+  return d[3]===255?'rgb('+d[0]+','+d[1]+','+d[2]+')':'rgba('+d[0]+','+d[1]+','+d[2]+','+(Math.round(d[3]/255*1000)/1000)+')';
+}
+function fixColors(doc){
+  var bad=/color\(|color-mix|oklch|oklab|lab\(|lch\(|hwb\(/i;
+  var props=['color','background-color','border-top-color','border-right-color','border-bottom-color','border-left-color','outline-color','text-decoration-color','caret-color'];
+  var win=doc.defaultView||window;
+  Array.prototype.slice.call(doc.querySelectorAll('*')).forEach(function(el){
+    var cs=win.getComputedStyle(el);
+    props.forEach(function(p){
+      var v=cs.getPropertyValue(p);
+      if(v&&bad.test(v)){try{el.style.setProperty(p,toRgb(v),'important')}catch(e){}}
+    });
+    ['box-shadow','background-image'].forEach(function(p){
+      var v=cs.getPropertyValue(p);
+      if(v&&bad.test(v)){el.style.setProperty(p,'none','important')}
+    });
+  });
+}
 function loadH2C(){
   return h2c||(h2c=new Promise(function(res,rej){
     if(window.html2canvas)return res();
@@ -1226,7 +1395,8 @@ $('#pngBtn').onclick=function(){
     return html2canvas(document.body,{
       scale:2,useCORS:true,logging:false,windowWidth:w,scrollX:0,scrollY:0,
       backgroundColor:getComputedStyle(document.body).backgroundColor,
-      ignoreElements:function(el){return el.id==='drawer'||el.id==='scrim'||el.id==='toasts'}
+      ignoreElements:function(el){return el.id==='drawer'||el.id==='scrim'||el.id==='toasts'},
+      onclone:function(doc){fixColors(doc)}
     });
   }).then(function(cv){
     document.body.classList.remove('capturing');
@@ -1245,7 +1415,7 @@ $('#pngBtn').onclick=function(){
 
 /* ============ GO ============ */
 loadDay();
-setInterval(function(){if(!document.hidden)refreshLive()},30000);   /* keeps the Gujarat rows live */
+setInterval(function(){if(!document.hidden)refreshLive()},30000);   /* keeps the live rows up to date (hand-edited rows stay as typed) */
 })();
 </script>
 </body>
