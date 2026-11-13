@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PRITHVI REALCON &amp; TRANSPORTATION · AMM Profit &amp; Loss</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%230c0e12'/%3E%3Cpath d='M10 26V6h6a6 6 0 0 1 0 12h-6' fill='none' stroke='%23ffb020' stroke-width='3.5'/%3E%3C/svg%3E">
 <script>try{var t=localStorage.getItem('amm_theme');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -123,7 +124,6 @@ svg text{fill:var(--mut);font:10px var(--m)}
   <button class="hbtn" id="n-entry" type="button">DATA ENTRY</button>
   <button class="hbtn" id="n-main" type="button">DASHBOARD</button>
   <button class="hbtn" id="png" type="button">PNG</button>
-  <button class="hbtn" id="csv" type="button">CSV</button>
   <a class="hbtn" href="home_page.html" style="margin-left:auto">← BACK</a>
 </header>
 <main>
@@ -147,7 +147,6 @@ svg text{fill:var(--mut);font:10px var(--m)}
     <div class="sec">Graphs</div>
     <div class="g4">
       <div class="panel"><h3>Graph 1 · Profit / loss by party</h3><div id="gPL"></div></div>
-      <div class="panel"><h3>Graph 2 · Profit / loss by entry date</h3><div id="gDaily"></div></div>
     </div>
     <div class="sec">Tables</div>
     <div class="g4">
@@ -212,6 +211,7 @@ key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5Y2
 const SHEET_PW='PRTPL@PNL';
 const GUJ='Gujarat',HZL='HZL',AUTO_PARTIES=[GUJ,HZL];
 const isAuto=p=>AUTO_PARTIES.includes(p);
+/* Railway Penalty is no longer shown or stored as an expense; old rows are ignored */
 const RPN='Railway Penalty';
 const isRP=h=>isAuto(h.party)&&String(h.name).trim().toLowerCase()===RPN.toLowerCase();
 const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -368,7 +368,6 @@ function mergeG(st){
     Object.entries(D).forEach(([p,d])=>{
       const s=st.find(r=>r.party===party&&keyOf(party,r.entry_date)===p),exp={};
       if(s)Object.entries(s.exp).forEach(([h,a])=>{exp[h]=s.rr_qty>0?a/s.rr_qty*d.rr:a});
-      const rp=heads.find(h=>isRP(h)&&h.party===party);if(rp)exp[rp.id]=d.pen;
       out.push({id:s?s.id:'S:'+party+':'+p,party,entry_date:cStart(p),rr_qty:d.rr,billing:d.bill,exp});
     });
   });
@@ -383,8 +382,7 @@ async function loadBase(){
     loadAuto()]);
   parties=p.map(z=>z.name);
   AUTO_PARTIES.forEach(pn=>{if(!parties.includes(pn))parties.push(pn)});
-  heads=h;
-  AUTO_PARTIES.forEach(pn=>{if(!heads.some(z=>isRP(z)&&z.party===pn))heads.push({id:'RPV:'+pn,party:pn,name:RPN,virtual:true})});
+  heads=h.filter(z=>!isRP(z));
   const byE={};
   x.forEach(z=>{(byE[z.entry_id]=byE[z.entry_id]||{})[z.head_id]=+z.amount});
   stored=e.map(r=>({id:r.id,party:r.party,entry_date:r.entry_date,rr_qty:+r.rr_qty||0,billing:+r.billing||0,exp:byE[r.id]||{}}));
@@ -397,7 +395,7 @@ function show(v){
   cur=v;
   ['main','entry','log'].forEach(k=>{$('v-'+k).hidden=k!==v;$('n-'+k).classList.toggle('on',k===v)});
   $('daterange').hidden=v==='log';$('viewbox').hidden=v!=='main';$('hchip').hidden=v!=='main';
-  $('png').hidden=v!=='main';$('csv').hidden=v!=='main';
+  $('png').hidden=v!=='main';
   if(v==='log')loadLog();
   try{history.replaceState(null,'','#'+v)}catch(x){}
 }
@@ -415,12 +413,10 @@ const namesFor=(isAll,p)=>isAll?allNames():headsOf(p).map(h=>h.name);
 const inRange=r=>(!fromD||r.entry_date>=fromD)&&(!toD||r.entry_date<=toD);
 function sumOf(list){
   const nameOf=Object.fromEntries(heads.map(h=>[h.id,h.name]));
-  const rpIds=new Set(heads.filter(isRP).map(h=>h.id));
   const s={qty:0,bill:0,cost:0,byName:{}};
   list.forEach(r=>{
     s.qty+=r.rr_qty;s.bill+=r.billing;
     Object.entries(r.exp).forEach(([hid,amt])=>{
-      if(rpIds.has(hid))return;
       const n=nameOf[hid];if(n===undefined)return;
       s.byName[n]=(s.byName[n]||0)+amt;s.cost+=amt;
     });
@@ -467,7 +463,6 @@ function render(){
     return `<button class="mt ${!isAll&&view===x.name?'sel':''}" data-p="${esc(x.name)}" aria-label="${esc(x.name)}: ${l[0]}"><div class="nm">${esc(x.name)}</div>${gauge(x.mg)}<div class="pc" style="color:${sc(x.mg)}">${x.mg.toFixed(1)}%</div><div class="am"><span class="${sg(x.pl)}">${sgn(x.pl)}${inr(Math.abs(x.pl))}</span> · <span class="${sg(x.pl)}">${x.qty?(x.pl/x.qty).toFixed(1):0}/MT</span></div><span class="pill ${l[1]}">${l[0]}</span></button>`}).join('')||empty('No parties');
 
   $('gPL').innerHTML=byP.length?gPL(byP):empty('No parties');
-  $('gDaily').innerHTML=gDaily(isAll?f:f.filter(r=>r.party===view));
 
   $('tSum').innerHTML=`<tr><th>Party</th><th>MT</th><th>Billing</th><th>Cost</th><th>P/L</th><th>P/L per MT</th><th>Status</th></tr>`+
   byP.map(x=>{const l=LAB[stat(x)];return `<tr class="rw ${!isAll&&view===x.name?'sel':''}" data-p="${esc(x.name)}"><td>${esc(x.name)}</td><td>${Math.round(x.qty*100)/100}</td><td>${inr(x.bill)}</td><td>${inr(x.cost)}</td><td class="${sg(x.pl)}">${x.pl<0?'−':''}${inr(Math.abs(x.pl))}</td><td class="${sg(x.pl)}">${x.qty?sgn(x.pl)+Math.abs(x.pl/x.qty).toFixed(2):'0'}</td><td><span class="pill ${l[1]}">${l[0]}</span></td></tr>`}).join('')+
@@ -478,7 +473,7 @@ function render(){
     `<tr><td>${empty('No MT in this range')}</td></tr>`;
 }
 
-/* ===== charts (graphs 1 and 2 carry no text; hover a bar for its value) ===== */
+/* ===== charts (graph 1 carries no text; hover a bar for its value) ===== */
 function gauge(mg){
   const m=Math.max(-20,Math.min(20,mg)),deg=-90+(m+20)/40*180;
   const P=a=>[100+80*Math.cos(Math.PI-a*Math.PI/180),100-80*Math.sin(Math.PI-a*Math.PI/180)];
@@ -499,16 +494,6 @@ function gPL(byP){
   ${byP.map((x,i)=>{const h=Math.max(Math.abs(x.pl)/M*90,x.bill||x.cost?2:0),cx=(i+.5)*W/byP.length,up=x.pl>=0,col=up?'var(--g)':'var(--r)',y=up?Z-h:Z;
     return `<rect class="cb" data-p="${esc(x.name)}" x="${cx-bw/2}" y="${y}" width="${bw}" height="${h}" style="fill:${col}"><title>${esc(x.name)}: ${inr(x.pl)}</title></rect>`}).join('')}</svg></div>`;
 }
-function gDaily(list){
-  const map={};
-  list.forEach(r=>{const e=r.billing-Object.values(r.exp).reduce((s,x)=>s+x,0);map[r.entry_date]=(map[r.entry_date]||0)+e});
-  const ds=Object.keys(map).sort();
-  if(!ds.length)return empty('No entries in this range');
-  const M=Math.max(1,...ds.map(d=>Math.abs(map[d]))),W=Math.max(380,ds.length*34),Z=100,bw=Math.min(26,W/ds.length-8);
-  return `<div class="sc"><svg viewBox="0 0 ${W} 200" style="width:100%;min-width:${Math.min(W,380)}px"><line x1="0" x2="${W}" y1="${Z}" y2="${Z}" style="stroke:var(--ln)"/>
-  ${ds.map((d,i)=>{const p=map[d],h=Math.max(Math.abs(p)/M*85,2),cx=(i+.5)*W/ds.length,up=p>=0,y=up?Z-h:Z;
-    return `<rect x="${cx-bw/2}" y="${y}" width="${bw}" height="${h}" style="fill:${up?'var(--g)':'var(--r)'}"><title>${d}: ${inr(p)}</title></rect>`}).join('')}</svg></div>`;
-}
 
 /* ===== controls ===== */
 $('period').onchange=e=>{period=e.target.value;applyPeriod();renderSel();render()};
@@ -517,18 +502,6 @@ $('meters').onclick=e=>{const b=e.target.closest('.mt');if(b){view=b.dataset.p;r
 $('tSum').onclick=e=>{const t=e.target.closest('tr.rw');if(t){view=t.dataset.p;render()}};
 $('gPL').onclick=e=>{const b=e.target.closest('.cb');if(b){view=b.dataset.p;render()}};
 $('refresh').onclick=()=>{loadAll(true);if(cur==='log')loadLog(true)};
-$('csv').onclick=()=>{
-  const f=recs.filter(inRange),cols=allNames(),nameOf=Object.fromEntries(heads.map(h=>[h.id,h.name]));
-  const h=['Date','Party','RR Qty','Billing',...cols,'Total Cost','Profit/Loss'];
-  const rows=f.map(r=>{
-    const by=Object.fromEntries(cols.map(n=>[n,0]));
-    Object.entries(r.exp).forEach(([hid,a])=>{const n=nameOf[hid];if(n!==undefined)by[n]+=a});
-    const cost=Object.values(by).reduce((s,x)=>s+x,0);
-    return [r.entry_date,r.party,r.rr_qty,r.billing,...cols.map(n=>by[n]),cost,r.billing-cost];
-  });
-  const s=[h,...rows].map(x=>x.map(v=>`"${v}"`).join(',')).join('\n');
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([s],{type:'text/csv'}));a.download=`AMM_PL_${period}.csv`;a.click();
-};
 /* PNG: picture of the whole dashboard for the selected month and view */
 $('png').onclick=async()=>{
   if(!window.html2canvas)return flash('PNG needs internet (image library not loaded)');
@@ -551,8 +524,6 @@ let formMode={},formVals={};
 function renderExps(){
   const p=$('fparty').value,hs=headsOf(p);
   $('exps').innerHTML=hs.length?hs.map(h=>{
-    if(isRP(h)){const d=AD(p)[keyOf(p,$('fdate').value||today())],pv=d?Math.round(d.pen*100)/100:0;
-      return `<div class="exp"><div class="ehd"><b>${esc(h.name)}</b></div><input readonly value="${pv}" aria-label="${esc(h.name)}"><div class="c">Live from ${esc(p)} dashboard (Total Railway Penalty)${d&&d.rr?' · ₹'+(pv/d.rr).toFixed(2)+' per MT':''}</div></div>`}
     const m=formMode[h.id]||'amt',v=formVals[h.id]??'';
     return `<div class="exp">
       <div class="ehd"><b>${esc(h.name)}</b><button class="mini" type="button" data-del="${h.id}" title="Remove this expense for ${esc(p)}">×</button></div>
@@ -627,7 +598,6 @@ async function save(){
   if(!PW)return setLocked(true);
   const p=$('fparty').value,isG=isAuto(p),q=+$('qty').value||0,exps={};
   headsOf(p).forEach(h=>{
-    if(isRP(h)){const d=AD(p)[keyOf(p,$('fdate').value||today())];if(!h.virtual&&d&&d.pen)exps[h.id]=+d.pen.toFixed(2);return}
     const v=+formVals[h.id]||0,amt=(formMode[h.id]||'amt')==='pmt'?v*q:v;
     if(amt)exps[h.id]=+amt.toFixed(2);
   });
@@ -687,20 +657,15 @@ async function unlock(){
   m.textContent='Checking…';
   try{
     const ok=await rpc('check_operator_password',{p:v});
-    if(ok===true){PW=v;m.textContent='';setLocked(false);ensureRP()}
+    if(ok===true){PW=v;m.textContent='';setLocked(false);ensureAuto()}
     else{m.textContent='Wrong password.';$('pw').select()}
   }catch(e){m.textContent='Could not reach database'}
 }
-async function ensureRP(){
+async function ensureAuto(){
   try{
-    for(const pn of AUTO_PARTIES){
-      await rpc('ensure_party',{p_password:PW,p_name:pn});
-      const h=heads.find(x=>isRP(x)&&x.party===pn);
-      if(h&&!h.virtual)continue;
-      await rpc('add_expense_head',{p_password:PW,p_party:pn,p_name:RPN});
-    }
+    for(const pn of AUTO_PARTIES)await rpc('ensure_party',{p_password:PW,p_name:pn});
     await loadAll(true);
-    flash('Auto parties and Railway Penalty ready');
+    flash('Auto parties ready');
   }catch(e){handleErr(e,'Setup failed: ')}
 }
 $('unl').onclick=unlock;
