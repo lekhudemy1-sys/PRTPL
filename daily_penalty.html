@@ -544,8 +544,8 @@ var CFG_KEY='amm_sb_cfg', TABLE='amm_penalty_entries';
    Create this table once in Supabase, see the SQL given with this file. */
 var OV_TABLE='amm_penalty_live_overrides';
 /* Supabase details. You can also click the status pill at the top and paste them once. */
-var SUPABASE_URL='https://pycmkjrmdieaqsbgrher.supabase.co';
-var SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5Y21ranJtZGllYXFzYmdyaGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwMjMxNzAsImV4cCI6MjEwNjU5OTE3MH0.9IE2c2FZ4BPv6Rvhfa_VniQ7LJvQ_c4EGDXFihYR4Lc';
+var SUPABASE_URL='https://jzkrywwrsewchtiqsczk.supabase.co';
+var SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6a3J5d3dyc2V3Y2h0aXFzY3prIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1NDU0MzQsImV4cCI6MjEwNzEyMTQzNH0.IDwfVhqDI9uXfAALCVKBD0pNjsNVu38fW4eEueaKDSs';
 var GUJP='GUJRAT POWER';
 var LIVE_SRC=[{party:'GUJRAT POWER',table:'gujarat_rake_records'},{party:'HZL',table:'hzl_rake_records'}];   /* parties fed live from their dashboards */
 var NEW='__new__';
@@ -835,7 +835,7 @@ function restore(snap){store.days[date]=snap;persist();renderAll()}
 /* ============ SUPABASE (plain REST, no library) ============ */
 function cfg(){
   var c=null;try{c=JSON.parse(localStorage.getItem(CFG_KEY)||'null')}catch(e){}
-  var u=(c&&c.url)||SUPABASE_URL,k=(c&&c.key)||SUPABASE_KEY;
+  var u=SUPABASE_URL||(c&&c.url),k=SUPABASE_KEY||(c&&c.key);   /* the values written in this file win over an old pasted one */
   if(!u||!k||/^YOUR_/.test(u)||/^YOUR_/.test(k))return null;
   return {url:u.replace(/\/+$/,''),key:k};
 }
