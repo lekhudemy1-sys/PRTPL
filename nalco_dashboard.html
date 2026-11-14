@@ -54,7 +54,7 @@ body:not(.unlocked) .pro{display:none}
 .mt tbody tr:nth-child(even) td{background:var(--zebra)}
 /* Area Wise + Notice: small, centred, side by side when a notice is showing */
 .aw-row{display:flex;justify-content:center;align-items:flex-start;gap:1.2rem;flex-wrap:wrap;margin-bottom:1.2rem}
-.aw-card{flex:0 1 500px;min-width:280px}.aw-card .mt{min-width:0}.aw-card .mt th{padding:.4rem .4rem;font-size:.66rem}.aw-card .mt td{padding:.3rem .4rem;font-size:.78rem}
+.aw-card{flex:0 1 620px;min-width:280px}.aw-card .mt{min-width:0}.aw-card .mt th{padding:.4rem .4rem;font-size:.66rem}.aw-card .mt td{padding:.3rem .4rem;font-size:.78rem}
 .c-notice{flex:0 1 420px;min-width:260px}.c-notice::before{background:linear-gradient(90deg,#d9a21a,#f1d98f)}
 .nbox{white-space:pre-wrap;word-break:break-word;font-size:.9rem;font-weight:600;line-height:1.55;background:#fff8e4;border:1px solid #f1d98f;border-radius:14px;padding:.8rem 1rem}
 .panel{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:1.2rem 1.3rem;box-shadow:var(--sh);margin-bottom:1.2rem}
@@ -106,7 +106,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(31,111,209,.28
  <div class="card aw-card"><h3><i class="fas fa-industry"></i> Area Wise Performance</h3><div class="wrap"><table class="mt"><thead><tr><th>AREA</th><th>TALCHER</th><th>IB</th><th>CKP</th></tr></thead><tbody id="minesBody"></tbody></table></div></div>
  <div class="card c-notice hidden" id="noticeCard"><h3><i class="fas fa-bullhorn"></i> Notice</h3><div class="nbox" id="noticeText"></div></div>
 </div>
-<div class="card"><h3><i class="fas fa-calendar-alt"></i> Monthly Performance</h3><div class="wrap"><table class="mt"><thead><tr><th>Month</th><th>Total Rakes</th><th>Total Qty</th><th>Billing</th><th>Deduction</th><th>Amount</th></tr></thead><tbody id="trendBody"></tbody></table></div></div>
+<div class="card"><h3><i class="fas fa-calendar-alt"></i> Contract Performance</h3><div class="wrap"><table class="mt"><thead><tr><th>Contract</th><th>Total Rakes</th><th>Total Qty</th><th>Billing</th><th>Deduction</th><th>Amount</th></tr></thead><tbody id="trendBody"></tbody></table></div></div>
 </section>
 <section class="view" id="view-lock"><div class="lock"><div class="panel lc"><h2 style="justify-content:center"><i class="fas fa-lock"></i> <span id="lt">Enter password</span></h2><input type="password" id="pwd" placeholder="••••" autocomplete="off"><button class="btn" id="unlock" style="width:100%;justify-content:center"><i class="fas fa-unlock"></i> Unlock</button><div class="status err" id="pe"></div><button class="soft" id="lback" style="margin-top:.8rem">Back to Dashboard</button></div></div></section>
 <section class="view" id="view-upload"><div class="topbar"><div><h1>Upload Excel</h1><div class="period">Import rake rows from the "mis" sheet of MIS_NALCO.xlsx</div></div></div>
@@ -115,24 +115,24 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(31,111,209,.28
 <div class="panel hidden" id="prev"><h2><i class="fas fa-eye"></i> Preview (<span id="pc">0</span> rows)</h2><div class="tw"><table class="tbl" id="pt"></table></div>
 <div class="tb" style="margin-top:.8rem"><button class="btn" id="imp"><i class="fas fa-database"></i> Save to database</button><span class="muted">Existing rows with the same Date + Sr No are updated, not duplicated.</span></div></div></section>
 <section class="view" id="view-log"><div class="topbar"><div><h1>Records Log</h1><div class="period">Edit or delete saved rake records</div></div></div>
-<div class="panel"><div class="tb"><input class="field" id="ls" placeholder="Search RR no, siding, area..."><input type="month" class="field" id="lm"><button class="soft" id="lr"><i class="fas fa-rotate"></i> Reload</button><button class="btn" id="lsave"><i class="fas fa-floppy-disk"></i> Save All</button><span class="muted" id="lc2"></span></div>
+<div class="panel"><div class="tb"><input class="field" id="ls" placeholder="Search RR no, siding, area..."><select class="field" id="lm"></select><button class="soft" id="lr"><i class="fas fa-rotate"></i> Reload</button><button class="btn" id="lsave"><i class="fas fa-floppy-disk"></i> Save All</button><span class="muted" id="lc2"></span></div>
 <div class="tw"><table class="tbl" id="lt2"></table></div><div class="status" id="lstat"></div></div></section>
 
-<section class="view" id="view-entry"><div class="topbar"><div><h1>Data Entry</h1><div class="period">New rake, monthly targets and rates. Everything else is calculated.</div></div></div>
+<section class="view" id="view-entry"><div class="topbar"><div><h1>Data Entry</h1><div class="period">New rake, contract targets and rates. Everything else is calculated.</div></div></div>
 <div class="panel"><h2><i class="fas fa-plus-circle"></i> Rake Record</h2>
 <div class="tb"><select id="sb" class="field" style="max-width:130px" aria-label="Search by"><option value="sr_no">Sr No</option><option value="rr_no">RR No</option></select>
-<input class="field" id="sq" placeholder="Enter Sr No (of the month chosen below)" style="max-width:300px"><button type="button" class="soft" id="sbtn"><i class="fas fa-search"></i> Search</button><span class="muted" id="editBadge"></span></div>
+<input class="field" id="sq" placeholder="Enter Sr No (of the contract chosen below)" style="max-width:300px"><button type="button" class="soft" id="sbtn"><i class="fas fa-search"></i> Search</button><span class="muted" id="editBadge"></span></div>
 <form id="nf"><div id="nfg"></div><div id="customEntry"></div>
 <h4><i class="fas fa-wand-magic-sparkles"></i> Auto Calculated <span class="tag">auto</span></h4><p class="muted" style="margin-bottom:.6rem">Filled automatically from the values typed above. You cannot type here. The dashboard calculates these from the same raw values.</p><div class="fg" id="autoBox"></div>
 <div class="tb" style="margin-top:1rem"><button class="btn" type="submit" id="submitBtn"><i class="fas fa-paper-plane"></i> Submit</button><button class="btn" type="button" id="updateBtn" disabled><i class="fas fa-pen"></i> Update</button><button class="soft" type="button" id="clearBtn">Clear Form</button></div></form></div>
 
-<div class="panel"><h2><i class="fas fa-bullseye"></i> Monthly Targets &amp; Rates</h2>
-<div class="tb"><input type="month" class="field" id="em" style="max-width:200px"><input type="date" class="field" id="rd" style="max-width:200px" title="Report updated upto"><button class="soft" id="carryFwd"><i class="fas fa-forward"></i> Carry Forward</button></div>
+<div class="panel"><h2><i class="fas fa-bullseye"></i> Contract Targets &amp; Rates</h2>
+<div class="tb"><select class="field" id="em" style="max-width:260px"></select><input type="date" class="field" id="rd" style="max-width:200px" title="Report updated upto"><button class="soft" id="carryFwd"><i class="fas fa-forward"></i> Carry Forward</button></div>
 <div class="tw" style="max-height:none"><table class="tbl"><thead><tr><th>Area</th><th>Target (Rakes)</th><th>Loaded Till</th><th>Balance</th><th>Asking / Day</th></tr></thead><tbody id="tg"></tbody></table></div>
 <div class="fg" style="margin-top:1rem" id="rates"></div><div class="status" id="es"></div></div>
 
 <div class="panel"><h2><i class="fas fa-sliders"></i> Manual Override</h2>
-<p class="muted">Switch a dashboard value ON and type a fixed figure. It replaces the formula for the month selected above until you switch it OFF or press Reset. Totals and per-MT values that depend on it are recalculated from the typed figure.</p>
+<p class="muted">Switch a dashboard value ON and type a fixed figure. It replaces the formula for the contract selected above until you switch it OFF or press Reset. Totals and per-MT values that depend on it are recalculated from the typed figure.</p>
 <div class="tb" style="margin-top:.8rem"><label class="sw" title="Override on / off"><input type="checkbox" id="ovrSwitch"><span class="sl"></span></label>
 <select id="ovrField" class="field" style="max-width:360px" aria-label="Dashboard value"></select><input type="number" step="any" id="ovrValue" class="field" style="max-width:180px" placeholder="Manual value">
 <button class="btn" id="ovrSave"><i class="fas fa-floppy-disk"></i> Save value</button><button class="soft" id="ovrReset"><i class="fas fa-rotate-left"></i> Reset to formula</button></div>
@@ -166,15 +166,15 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(31,111,209,.28
 <div class="tw" style="max-height:none;margin-top:.8rem"><table class="tbl" id="slipTbl"></table></div>
 <div class="fg" style="margin-top:1rem"><div><label for="fSlipAbove">Rate for slippage above 3 grades (%)</label><input type="number" step="0.01" id="fSlipAbove"></div></div></div>
 <div class="panel"><h2><i class="fas fa-info-circle"></i> How every dashboard value is calculated</h2>
-<p class="muted">"Month" is the 4th-to-3rd billing cycle. RR = RR weight, Recv = received weight.</p>
+<p class="muted">Contract period is 10 Oct to 13 Nov 2026 (35 days). RR = RR weight, Recv = received weight.</p>
 <ul class="formula-list">
-<li>Target of Month, Rake Loaded Till, Balance Rake, Asking Per Day = per area (TALCHER, IB, CKP). Loaded counts rakes up to the report date. Asking per day = balance ÷ days from today to the 3rd of next month.</li>
+<li>Target of Contract, Rake Loaded Till, Balance Rake, Asking Per Day = per area (TALCHER, IB, CKP). Loaded counts rakes up to the report date. Asking per day = balance ÷ days from today to the 3rd of next month.</li>
 <li>Materialisation % = total loaded ÷ total target × 100. Quantity Reco = total RR weight × Quantity base rate × tier % (tiers above).</li>
 <li>Grade of a rake comes from its GCV: above 7000 = G-01, above 6700 = G-02, then every 300 lower (G-17 above 2200). Grade Slippage = Unloading Grade − Loading Grade. GCV Bonus/Penalty (₹/MT) = GCV base rate × slippage % ÷ 100. Bonus/Penalty (₹) = RR weight × that ₹/MT.</li>
 <li>Performance on GCV Reco = sum of Bonus/Penalty (₹) of the month's rakes. Rakes with a missing GCV or negative slippage are left out.</li>
 <li>Service Charge (each area) = RR weight of that area × service rate (Data Entry).</li>
-<li>Total Railway Penalty = Underload + Overload + Punitive (POL) + EHBC/FAUC/TC + ENHC + Dead Freight (typed per month).</li>
-<li>TOTAL BILLING = Quantity Reco + GCV Reco + Service Charges − Total Railway Penalty. Per MT = amount ÷ total RR weight (GCV Reco ÷ RR weight of rakes counted). Expected Billing = TOTAL BILLING ÷ days passed × days in month.</li>
+<li>Total Railway Penalty = Underload + Overload + Punitive (POL) + EHBC/FAUC/TC + ENHC + Dead Freight (typed per contract).</li>
+<li>TOTAL BILLING = Quantity Reco + GCV Reco + Service Charges − Total Railway Penalty. Per MT = amount ÷ total RR weight (GCV Reco ÷ RR weight of rakes counted). Expected Billing = TOTAL BILLING ÷ days passed × days in contract.</li>
 <li>Shortage % = (RR − Recv) × 100 ÷ RR over rakes with received weight. Shortage MT per rake = (RR − Recv) ÷ number of those rakes.</li>
 <li>Area Wise: GCV = RR-weighted GCV; Quality Diff. = Loading GCV − Unloading GCV; Per Ton Cost = (POL + EHBC + ENHC) ÷ RR of that area.</li>
 </ul></div></section>
@@ -206,12 +206,15 @@ const unwrap=r=>{if(r.error)throw r.error;return r.data||[]};
 const today=()=>new Date().toLocaleDateString('en-CA');
 const shiftMonth=(p,k)=>{const[Y,M]=p.split('-').map(Number),d=new Date(Date.UTC(Y,M-1+k,1));return d.getUTCFullYear()+'-'+pad(d.getUTCMonth()+1)};
 const daysBetween=(a,b)=>{const d=Math.round((new Date(b+'T00:00:00Z')-new Date(a+'T00:00:00Z'))/864e5);return d>0?d:0};
-const monthInfo=p=>{const start=p+'-04',end=shiftMonth(p,1)+'-03';return{start,end,dim:daysBetween(start,end)+1}};   // billing cycle 4th -> 3rd
-const cycleKey=d=>+d.slice(8,10)>=4?d.slice(0,7):shiftMonth(d.slice(0,7),-1);
-const plabel=p=>{const[Y,M]=p.split('-');return MON[M-1]+'-'+Y};
-const cyc=p=>{const i=monthInfo(p),f=s=>{const[Y,M,D]=s.split('-');return D+' '+MON[M-1]+' '+Y};return f(i.start)+' – '+f(i.end)};
+const CONTRACTS=[{key:'C-2026-10-10',start:'2026-10-10',end:'2026-11-13'}];   // add future contracts here
+const ctOf=d=>(CONTRACTS.find(c=>d>=c.start&&d<=c.end)||{}).key||null;
+const cycleKey=d=>ctOf(d)||CONTRACTS[CONTRACTS.length-1].key;
+const monthInfo=p=>{const c=CONTRACTS.find(x=>x.key===p)||CONTRACTS[CONTRACTS.length-1];return{start:c.start,end:c.end,dim:daysBetween(c.start,c.end)+1}};
+const fD=s=>{const[Y,M,D]=s.split('-');return D+' '+MON[M-1]+' '+Y};
+const cyc=p=>{const i=monthInfo(p);return fD(i.start)+' – '+fD(i.end)};
+const plabel=p=>{const i=monthInfo(p);return fD(i.start).slice(0,6)+' – '+fD(i.end)};
 const setSt=(id,m,c)=>{$(id).textContent=m;$(id).className='status '+(c||'')};
-let PERIOD=cycleKey(today());const up0=new URLSearchParams(location.search).get('period');if(/^\d{4}-\d{2}$/.test(up0||''))PERIOD=up0;
+let PERIOD=cycleKey(today());const up0=new URLSearchParams(location.search).get('period');if(CONTRACTS.some(c=>c.key===up0))PERIOD=up0;
 let EP=cycleKey(today());   // month shown in Data Entry
 
 /* ---------- state: rates, formulas, overrides, notice, custom columns, alerts ---------- */
@@ -272,7 +275,7 @@ async function loadVals(periods){
   else if(SET[k])SET[k][f]=v});
  renderCustomEntry();renderCustomAdmin();fillNotice()}
 async function fetchState(p){
- const periods=[-5,-4,-3,-2,-1,0].map(k=>shiftMonth(p,k));
+ const periods=[p];
  const[recs,tg]=await Promise.all([fetchAll(q=>q.gte('date',monthInfo(periods[0]).start).lte('date',monthInfo(p).end)),db.from(TGT).select('*').in('period',periods).then(unwrap)]);
  await loadVals(periods);return{periods,recs,tg}}
 
@@ -290,9 +293,9 @@ function render(o,trend){
  const bill=card('fa-rupee-sign','Particulars','<div class="dh"><span>Billings</span><span>Per MT</span></div>'+
   row('Performance on Quantity Reco',o.qty,o.pm.qty,'','b-qty')+row('Performance on GCV Reco',o.gcv,o.pm.gcv,'','b-gcv')+
   AREAS.map(a=>row('Performance on Service Charge '+a,A[a].svc,o.S['svc'+a],'','b-svc-'+a)).join('')+
-  row('Total Railway Penalty',-o.penT,o.pm.pen,'','b-pen')+row('TOTAL BILLING',o.tot,o.pm.tot,'tot','b-total')+row1('Expected Billing of the Month',o.exp,fInt,'','b-exp'));
+  row('Total Railway Penalty',-o.penT,o.pm.pen,'','b-pen')+row('TOTAL BILLING',o.tot,o.pm.tot,'tot','b-total')+row1('Expected Billing of the Contract',o.exp,fInt,'','b-exp'));
  const rake=card('fa-train','Rake Performance',gtab(['Achieve','Target'],[['Materialisation',[o.mat,100],fPct],['Rakes per day',[o.perDay,o.reqDay],f2],['Asking per day',[o.askDay,o.reqDay],f2]]));
- const plants=card('fa-map-marker-alt','Areas',gtab(AREAS,[['Target of Month',AREAS.map(a=>A[a].tg),fInt],['Rake Loaded Till',AREAS.map(a=>A[a].ld),fInt],['Balance Rake',AREAS.map(a=>A[a].bal),fInt],['Asking Per Day',AREAS.map(a=>A[a].ask),f2]]));
+ const plants=card('fa-map-marker-alt','Areas',gtab(AREAS,[['Target of Contract',AREAS.map(a=>A[a].tg),fInt],['Rake Loaded Till',AREAS.map(a=>A[a].ld),fInt],['Balance Rake',AREAS.map(a=>A[a].bal),fInt],['Asking Per Day',AREAS.map(a=>A[a].ask),f2]]));
  const wt=card('fa-weight-scale','Weights',row1('Avg. CH.Wt.',W.ch,f2,'','w-ch')+row1('Avg. RR.Wt.',W.rr,f2,'','w-rr')+row1('Avg. Plant Rec. Wt.',W.recv,f2,'','w-recv')+row1('TOTAL RR WEIGHT',W.totrr,f2,'tot','w-totrr')+row1('PLANT RECEIVE',W.totrecv,f2,'tot','w-totrecv'));
  const sh=card('fa-balance-scale','Shortage / Excess Coal',row1('Avg Shrt / Excess (%)',o.shPct,f2,'','s-pct')+row1('Shortage / Excess MT per rake',o.shMt,f2,'','s-mt')+gtab(AREAS,[['Loading GCV',AREAS.map(a=>A[a].lg),f2],['Unloading GCV',AREAS.map(a=>A[a].ug),f2],['GCV Difference',AREAS.map(a=>A[a].lg&&A[a].ug?A[a].lg-A[a].ug:0),f2]])+row1('Avg Unloading GCV',wAvgArr(o.L),f2,'tot'));
  const pn=card('fa-exclamation-triangle','Railway Freight Penalties','<div class="dh"><span>Amount</span><span>Per MT</span></div>'+[['Underload Charge','ul'],['Overload Charge','ol'],['Punitive Sum (POL)','pun'],['EHBC / FAUC / TC','ehbc'],['ENHC Charges','enhc'],['Dead Freight','dead']].map(([l,k])=>row(l,P[k],o.pmp[k],'','p-'+k)).join('')+row('TOTAL PENALTY',o.penT,o.pmp.total,'tot','p-total'));
@@ -305,7 +308,7 @@ function render(o,trend){
  $('plabel').textContent='AMM NALCO • '+cyc(o.p)+(nov?` • ${nov} manual value${nov>1?'s':''}`:'');renderNotice()}
 let seq=0;
 async function loadDash(){const s=++seq;try{const st=await fetchState(PERIOD);if(s!==seq)return;render(C(PERIOD,st.recs,st.tg),st.periods.map(p=>C(p,st.recs,st.tg)));loadAlerts()}catch(e){console.error(e);toast('Could not load dashboard: '+(e.message||'Supabase error'),true)}}
-function fillPick(){const l=[];for(let i=0;i<12;i++)l.push(shiftMonth('2026-04',i));if(!l.includes(PERIOD))l.push(PERIOD);$('pick').innerHTML=l.sort().map(k=>`<option value="${k}">${plabel(k)}</option>`).join('');$('pick').value=PERIOD;$('pick').onchange=()=>{PERIOD=$('pick').value;loadDash()}}
+function fillPick(){$('pick').innerHTML=CONTRACTS.map(c=>`<option value="${c.key}">${plabel(c.key)}</option>`).join('');$('pick').value=PERIOD;$('pick').onchange=()=>{PERIOD=$('pick').value;loadDash()}}
 $('reload').onclick=loadDash;
 $('png').onclick=async()=>{const b=$('png');b.disabled=true;document.body.classList.add('exp');try{toast('Preparing image...');await loadDash();if(document.fonts)await document.fonts.ready;window.scrollTo(0,0);
  const c=await html2canvas($('view-dash'),{scale:2,backgroundColor:'#eef4fb',useCORS:true,logging:false,windowWidth:1500});
@@ -368,7 +371,7 @@ const LC=COLS.map(c=>c[0]);
 let LOG=[];
 async function loadLog(){try{LOG=await fetchAll(q=>q);LOG.sort((a,b)=>(a.date||'').localeCompare(b.date||'')||num(a.sr_no)-num(b.sr_no));renderLog()}catch(e){toast('Could not load records: '+e.message,true)}}
 function renderLog(){const q=$('ls').value.toLowerCase(),m=$('lm').value;
- const f=LOG.filter(r=>(!q||JSON.stringify(r).toLowerCase().includes(q))&&(!m||(r.date&&cycleKey(r.date)===m))),sh=f.slice(-150);
+ const f=LOG.filter(r=>(!q||JSON.stringify(r).toLowerCase().includes(q))&&(!m||(r.date&&ctOf(r.date)===m))),sh=f.slice(-150);
  $('lc2').textContent=`${f.length} of ${LOG.length} records`+(f.length>150?' (showing latest 150; totals cover all)':'');
  const fT=n=>n.toLocaleString('en-IN',{maximumFractionDigits:2}),ex=r=>r.extra||{};
  $('lt2').innerHTML=`<thead><tr><th>Actions</th>${LC.map(c=>`<th>${LBL[c]}</th>`).join('')}${CUSTOM_COLS.map(c=>`<th>${esc(c.label)}</th>`).join('')}</tr></thead><tbody>`+sh.map(r=>`<tr data-id="${r.id}"><td><button class="soft del" data-del="${r.id}"><i class="fas fa-trash"></i></button></td>${LC.map(c=>`<td><input data-col="${c}" value="${esc(r[c]??'')}"></td>`).join('')}${CUSTOM_COLS.map(c=>`<td><input data-col="x:${c.key}" value="${esc(ex(r)[c.key]??'')}"></td>`).join('')}</tr>`).join('')+'</tbody>'+(f.length?`<tfoot><tr><td>Total (${f.length})</td>${LC.map(c=>`<td>${NUMC.has(c)&&c!=='sr_no'?fT(sum(f,c)):''}</td>`).join('')}${CUSTOM_COLS.map(c=>`<td>${c.type==='number'?fT(f.reduce((s,r)=>s+num(ex(r)[c.key]),0)):''}</td>`).join('')}</tr></tfoot>`:'')}
@@ -420,12 +423,12 @@ async function findRec(){const by=$('sb').value,q=$('sq').value.trim();if(!q)ret
  const{data,error}=await qy.limit(1);if(error)return toast('Search failed: '+error.message,true);
  if(!data||!data.length)return toast('No record found',true);loadIntoForm(data[0])}
 $('sbtn').onclick=findRec;$('sq').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();findRec()}};
-$('sb').onchange=()=>{$('sq').placeholder=$('sb').value==='rr_no'?'Enter RR No':'Enter Sr No (of the month chosen below)';$('sq').value=''};
+$('sb').onchange=()=>{$('sq').placeholder=$('sb').value==='rr_no'?'Enter RR No':'Enter Sr No (of the contract chosen below)';$('sq').value=''};
 
 /* ---------- data entry: targets, rates, carry forward ---------- */
 let ETG=[],EREC=[],ready=false,EDIT_VALS=null;
-const RATES=[['svcTALCHER','Service Charge TALCHER (₹ / MT)'],['svcIB','Service Charge IB (₹ / MT)'],['svcCKP','Service Charge CKP (₹ / MT)'],['qtyRate','Quantity Reco Base Rate (₹ / MT)'],['gcvBase','GCV Reco Base Rate (₹ / MT)'],['dead','Dead Freight for the month (₹)']];
-async function initEntry(){if(!ready){ready=true;$('em').value=EP;$('em').onchange=()=>{EP=$('em').value||cycleKey(today());loadEntry()};
+const RATES=[['svcTALCHER','Service Charge TALCHER (₹ / MT)'],['svcIB','Service Charge IB (₹ / MT)'],['svcCKP','Service Charge CKP (₹ / MT)'],['qtyRate','Quantity Reco Base Rate (₹ / MT)'],['gcvBase','GCV Reco Base Rate (₹ / MT)'],['dead','Dead Freight for the contract (₹)']];
+async function initEntry(){if(!ready){ready=true;$('em').innerHTML=CONTRACTS.map(c=>`<option value="${c.key}">${plabel(c.key)}</option>`).join('');$('em').value=EP;$('em').onchange=()=>{EP=$('em').value||cycleKey(today());loadEntry()};
  $('rates').innerHTML=RATES.map(([k,l])=>`<div><label>${l}</label><input type="number" step="0.01" id="r_${k}"></div>`).join('');
  RATES.forEach(([k])=>{let t;$('r_'+k).oninput=()=>{clearTimeout(t);t=setTimeout(()=>saveSet(k,$('r_'+k).value),600)}});
  $('rd').onchange=async()=>{await saveSet('reportDate',$('rd').value);renderTg()};
@@ -436,15 +439,15 @@ async function initEntry(){if(!ready){ready=true;$('em').value=EP;$('em').onchan
  await resetForm();await loadEntry();
  if(PENDING_FILL!=null){const id=PENDING_FILL;PENDING_FILL=null;const{data}=await db.from(RECS).select('*').eq('id',id).limit(1);if(data&&data.length)loadIntoForm(data[0])}}
 async function loadEntry(){try{const mi=monthInfo(EP);[EREC,ETG]=await Promise.all([fetchAll(q=>q.gte('date',mi.start).lte('date',mi.end)),db.from(TGT).select('*').eq('period',EP).then(unwrap)]);
- await loadVals([EP]);const s=settings(EP);RATES.forEach(([k])=>$('r_'+k).value=s[k]);$('rd').value=(SET[EP]||{}).reportDate||today();renderTg();recalc()}catch(e){toast('Could not load month: '+e.message,true)}}
+ await loadVals([EP]);const s=settings(EP);RATES.forEach(([k])=>$('r_'+k).value=s[k]);$('rd').value=(SET[EP]||{}).reportDate||today();renderTg();recalc()}catch(e){toast('Could not load contract: '+e.message,true)}}
 function renderTg(){const o=C(EP,EREC,ETG);$('tg').innerHTML=AREAS.map(a=>`<tr><td>${a}</td><td><input type="number" min="0" data-area="${a}" value="${o.A[a].tg}"></td><td>${o.A[a].ld}</td><td>${o.A[a].bal}</td><td>${f2(o.A[a].ask)}</td></tr>`).join('');renderOvr()}
 async function saveTargets(){const{error}=await db.from(TGT).upsert(AREAS.map(x=>({period:EP,area:x,target:num((ETG.find(y=>up(y.area)===x)||{}).target)})),{onConflict:'period,area'});setSt('es',error?'Target save failed: '+error.message:'Targets saved',error?'err':'ok')}
 async function saveSet(k,v){const{error}=await db.from(VAL).upsert([{period_key:EP,field_key:k,field_value:String(v??'')}],{onConflict:'period_key,field_key'});if(error)return toast('Save failed: '+error.message,true);(SET[EP]=SET[EP]||{})[k]=String(v??'');setSt('es','Saved','ok');renderTg();recalc()}
 // Carry forward: this month's target = previous month's target − rakes it loaded (never below 0)
-async function carryFwd(){if(!confirm("Replace this month's targets with the previous month's balance?"))return;
- const prev=shiftMonth(EP,-1),pi=monthInfo(prev);
+async function carryFwd(){if(!confirm("Replace this contract's targets with the previous contract's balance?"))return;
+ const ci=CONTRACTS.findIndex(c=>c.key===EP);if(ci<1)return toast('No previous contract to carry forward from',true);const prev=CONTRACTS[ci-1].key,pi=monthInfo(prev);
  try{const[recs,tg]=await Promise.all([fetchAll(q=>q.gte('date',pi.start).lte('date',pi.end)),db.from(TGT).select('*').eq('period',prev).then(unwrap)]);
-  if(!tg.length)return toast('No saved targets for previous month',true);
+  if(!tg.length)return toast('No saved targets for previous contract',true);
   const o=compute(prev,recs,tg,()=>undefined,pi.end);
   AREAS.forEach(a=>{let t=ETG.find(x=>up(x.area)===a);if(!t)ETG.push(t={period:EP,area:a});t.target=Math.max(0,o.A[a].tg-o.A[a].ld)});
   await saveTargets();renderTg()}catch(e){toast('Carry forward failed: '+e.message,true)}}
@@ -453,7 +456,7 @@ async function carryFwd(){if(!confirm("Replace this month's targets with the pre
 const OF=[...[['b-qty','Billing: Quantity Reco'],['b-gcv','Billing: GCV Reco']].flatMap(([i,l])=>[[i,l+' (₹)'],[i+'-mt',l+' (₹/MT)']]),
  ...AREAS.map(a=>['b-svc-'+a,'Billing: Service Charge '+a+' (₹)']),
  ...[['b-pen','Billing: Total Railway Penalty'],['b-total','Billing: TOTAL BILLING']].flatMap(([i,l])=>[[i,l+' (₹)'],[i+'-mt',l+' (₹/MT)']]),
- ['b-exp','Billing: Expected Billing of the Month (₹)'],['w-ch','Weights: Avg. CH.Wt.'],['w-rr','Weights: Avg. RR.Wt.'],['w-recv','Weights: Avg. Plant Rec. Wt.'],['w-totrr','Weights: TOTAL RR WEIGHT'],['w-totrecv','Weights: PLANT RECEIVE'],
+ ['b-exp','Billing: Expected Billing of the Contract (₹)'],['w-ch','Weights: Avg. CH.Wt.'],['w-rr','Weights: Avg. RR.Wt.'],['w-recv','Weights: Avg. Plant Rec. Wt.'],['w-totrr','Weights: TOTAL RR WEIGHT'],['w-totrecv','Weights: PLANT RECEIVE'],
  ['s-pct','Shortage: Avg Shrt / Excess (%)'],['s-mt','Shortage: MT per rake'],
  ...[['p-ul','Underload Charge'],['p-ol','Overload Charge'],['p-pun','Punitive Sum'],['p-ehbc','EHBC / FAUC / TC'],['p-enhc','ENHC Charges'],['p-dead','Dead Freight'],['p-total','TOTAL PENALTY']].flatMap(([i,l])=>[[i,'Penalty: '+l+' (₹)'],[i+'-mt','Penalty: '+l+' (₹/MT)']])];
 const OL=Object.fromEntries(OF),OK=()=>'ovr-m:'+EP;
@@ -535,6 +538,7 @@ $('alertModal').onclick=e=>{if(e.target.id==='alertModal')return $('alertModal')
  const t=e.target.closest('.atab');if(t){ALERT_SEL=t.dataset.id;renderAlerts()}};
 
 /* ---------- init ---------- */
+$('lm').innerHTML='<option value="">All contracts</option>'+CONTRACTS.map(c=>`<option value="${c.key}">${plabel(c.key)}</option>`).join('');
 fillPick();loadDash();
 setInterval(()=>{if(!document.hidden&&$('view-dash').classList.contains('active'))loadDash()},30000);
 </script></body></html>
