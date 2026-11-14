@@ -24,6 +24,8 @@
   No table change is needed for the "Today loading" column. Each party entry is stored as
   { t: target, p: loaded up to yesterday, d: today's loading, l: loaded (= p + d) }.
   Older entries that only have t and l still open correctly (p = l, d = empty).
+  No table change is needed for the HZL (RCR) and KSK (RCR) rows either: they are new keys
+  inside the same entries JSON (SECL-7 and SECL-8).
 -->
 <style>
   :root {
@@ -433,7 +435,7 @@ html[data-mode="dark"] .pr-badge{background:#3a2d0e;color:#f1cf86;border-color:#
 .pr-keys kbd{font:600 .74rem ui-monospace,SFMono-Regular,Menlo,monospace;padding:.18rem .5rem;border-radius:7px;background:color-mix(in srgb,var(--pr-a) 9%,transparent);color:var(--pr-a);border:1px solid color-mix(in srgb,var(--pr-a) 22%,transparent)}
 .pr-keys em{font-style:normal;color:var(--mute,#8794ab);font-size:.78rem}
 
-/* ---------- Quick menu (dashboard pages) ---------- */
+/* ---------- Quick menu (dashboard pages: account, search, shortcuts, sign out) ---------- */
 .pr-quick{position:fixed;left:max(14px,env(safe-area-inset-left));bottom:max(14px,env(safe-area-inset-bottom));z-index:2147481000;width:42px;height:42px;border-radius:50%;
   border:2px solid #fff;cursor:pointer;display:grid;place-items:center;color:#fff;font:700 .82rem "Instrument Sans",ui-sans-serif,system-ui,sans-serif;letter-spacing:.02em;
   background:linear-gradient(140deg,var(--pr-deep),var(--pr-a));box-shadow:0 12px 24px -10px color-mix(in srgb,var(--pr-a) 80%,transparent);
@@ -1368,7 +1370,7 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
 
   /* ---- structure (party names only) ---- */
   var SUBS = [
-    { k:'SECL', n:'South Eastern Coalfields', c:'#2f6fb5', t:'#e8f0f9', p:['Balco (CPP)','Balco (IPP)','Balco (E/A)','NTPC Jhabua','Gujrat (GETS)','Gujrat (TPHS)','HZL'] },
+    { k:'SECL', n:'South Eastern Coalfields', c:'#2f6fb5', t:'#e8f0f9', p:['Balco (CPP)','Balco (IPP)','Balco (E/A)','NTPC Jhabua','Gujrat (GETS)','Gujrat (TPHS)','HZL','HZL (RCR)','KSK (RCR)'] },
     { k:'MCL',  n:'Mahanadi Coalfields',     c:'#1b8a7f', t:'#e5f3f1', p:['NTPC (IB)','NTPC (CKP)','HZL','NGPM (Talchar)','NLOD (Talchar)','NLOD (IB)','NLOD (CKP)'] },
     { k:'WCL',  n:'Western Coalfields',      c:'#7656a8', t:'#efeaf6', p:['Gujrat (GETS)','Gujrat (TPHS)'] },
     { k:'CCL',  n:'Central Coalfields',      c:'#c4532a', t:'#f9ebe5', p:['HZL','NTPC Jhabua'] },
@@ -1385,7 +1387,9 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
     { name:'Gujrat GETS', rows:[['SECL',[4]],['WCL',[0]]] },
     { name:'Gujrat Total',rows:[['',[4,5],'x']] },
     { name:'NGPM',        rows:[['MCL',[3]]] },
-    { name:'NLOD',        rows:[['MCL',[4,5,6]]] }
+    { name:'NLOD',        rows:[['MCL',[4,5,6]]] },
+    { name:'HZL RCR',     rows:[['SECL',[7]]] },
+    { name:'KSK RCR',     rows:[['SECL',[8]]] }
   ];
   var subOf = {}; SUBS.forEach(function (s) { subOf[s.k] = s; });
   var $ = function (id) { return document.getElementById(id); };
