@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NALCO Performance | AMM NALCO</title>
+<meta name="description" content="NALCO Performance | AMM NALCO – Prithvi Realcon logistics and performance portal.">
+<meta name="theme-color" content="#0b3b7a">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Instrument+Sans:wght@400;500;600;700&display=swap");
+/* BLUE THEME - change these variables to recolour the whole page */
+:root{--bg:#eef4fb;--card:#fff;--line:#d3e0f0;--ink:#10284a;--navy:#0b3b7a;--navy2:#1f6fd1;--acc:#8cc8ff;--t:#e6f0fc;--zebra:#f2f7fd;--neg:#a3142b;--negbg:#fbe6ea;
+--head:"Bricolage Grotesque",system-ui,sans-serif;--body:"Instrument Sans","Segoe UI",system-ui,sans-serif;--sh:0 10px 24px -12px rgba(11,59,122,.3)}
+*{margin:0;padding:0;box-sizing:border-box}
+html{font-size:clamp(12px,.55vw + 8px,15px)}
+body{font-family:var(--body);color:var(--ink);min-height:100vh;line-height:1.4;background:radial-gradient(900px 480px at 95% -8%,#d3e6fb,transparent 70%),radial-gradient(800px 460px at -5% 105%,#dbe8f8,transparent 70%),var(--bg);background-attachment:fixed}
+a{text-decoration:none;color:inherit}input,select,textarea{font-family:inherit;outline:none}
+.sidebar{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:100;display:flex;align-items:center;gap:1rem;background:rgba(11,59,122,.96);color:#fff;border-radius:999px;padding:.35rem .5rem .35rem 1rem;box-shadow:0 12px 32px -10px rgba(11,59,122,.5);max-width:calc(100% - 1rem)}
+.pn{font:700 1.05rem var(--head);display:flex;align-items:center;gap:.45rem;white-space:nowrap}.pn i{width:8px;height:8px;border-radius:50%;background:var(--acc)}
+.nav{display:flex;gap:.2rem;flex-wrap:wrap}.ni{border:0;background:none;color:#c8dcf5;font:500 .85rem var(--body);padding:.45rem .85rem;border-radius:999px;cursor:pointer;white-space:nowrap}
+.ni:hover{background:rgba(255,255,255,.12);color:#fff}.ni.active{background:rgba(140,200,255,.25);color:#fff;box-shadow:inset 0 0 0 1px rgba(140,200,255,.5)}
+.uc{display:flex;align-items:center;gap:.5rem;font-size:.8rem;font-weight:600;color:#d8e6f8}.uc button{border:0;background:rgba(255,255,255,.15);color:#fff;border-radius:999px;padding:.3rem .75rem;cursor:pointer}
+.uc .bell{position:relative}.badge{position:absolute;top:-7px;right:-7px;min-width:18px;height:18px;padding:0 4px;border-radius:999px;background:#e0475b;color:#fff;font:700 .65rem var(--body);display:grid;place-items:center}
+body:not(.unlocked) .pro{display:none}
+.main{max-width:1600px;margin:0 auto;padding:4.8rem 1.4rem 1.4rem}.view{display:none}.view.active{display:block}
+.backrow{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:.8rem}
+.btn,.back{display:inline-flex;align-items:center;gap:.45rem;border:0;border-radius:12px;padding:.6rem 1.1rem;font:700 .85rem var(--body);cursor:pointer;background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;transition:.2s}
+.btn:hover,.back:hover{transform:translateY(-2px)}.btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
+.soft{background:#fff;color:var(--navy);border:1px solid var(--line);padding:.5rem .9rem;border-radius:12px;font:600 .82rem var(--body);cursor:pointer}.soft.del{background:var(--negbg);color:var(--neg)}.soft.sm{padding:.25rem .55rem;font-size:.75rem}
+.stamp{margin-left:auto;font-size:.85rem;font-weight:600;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:.5rem 1.2rem;box-shadow:var(--sh)}
+.topbar{display:flex;flex-wrap:wrap;align-items:center;gap:.8rem;margin-bottom:1.2rem;padding:1.1rem 1.5rem;border-radius:22px;color:#fff;background:radial-gradient(500px 200px at 90% 0,rgba(140,200,255,.35),transparent 70%),linear-gradient(120deg,var(--navy),var(--navy2) 70%,#4b93e6);box-shadow:0 18px 36px -18px rgba(11,59,122,.6)}
+.topbar h1{font:700 clamp(1.3rem,1.4vw + .8rem,2rem) var(--head)}.period{font-size:.85rem;color:#d3e4f8}
+.ta{display:flex;gap:.55rem;flex-wrap:wrap;margin-left:auto}.ta select{padding:.55rem .9rem;border-radius:12px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.14);color:#fff;font-weight:600}.ta option{color:var(--ink)}
+.ta .btn{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3)}.ta .btn.hi{background:var(--acc);color:#0b2a54;border:0}
+.dash{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;align-items:start;margin-bottom:1.2rem}.col{display:flex;flex-direction:column;gap:1.2rem;min-width:0}
+@media(max-width:1150px){.dash{grid-template-columns:1fr 1fr}}@media(max-width:800px){.dash{grid-template-columns:1fr}.sidebar{left:.5rem;right:.5rem;transform:none;flex-wrap:wrap;justify-content:center;border-radius:18px}.main{padding:7rem .8rem 1rem}}
+.card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:1.1rem 1.15rem 1rem;box-shadow:var(--sh);overflow:hidden;margin-bottom:0}
+.card::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:linear-gradient(90deg,var(--navy2),var(--acc))}
+.card h3{font:700 1rem var(--head);display:flex;align-items:center;gap:.6rem;margin-bottom:.7rem}
+.card h3 i{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-size:.9rem;color:#fff;background:linear-gradient(135deg,var(--navy2),var(--navy))}
+.mr{display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.4rem .25rem;border-bottom:1px dashed var(--line)}.mr:last-child{border:0}
+.mr>span{flex:1;font-size:.8rem;font-weight:700}.pr{display:flex;gap:.35rem}
+.v{min-width:6.5rem;background:var(--t);border-radius:11px;font:700 .92rem var(--body);font-variant-numeric:tabular-nums;text-align:right;padding:.4rem .7rem}.pr .v:last-child:not(:first-child){min-width:5rem}
+.v.neg{color:var(--neg);background:var(--negbg)}.v.c{text-align:center}
+.tot{margin-top:.3rem;padding:.5rem .7rem;border:0;border-radius:14px;background:linear-gradient(120deg,var(--navy),var(--navy2))}.tot>span{color:#fff}.tot .v{background:rgba(140,200,255,.22);color:#e4f1ff}.tot .v.neg{color:#ffb3bd}
+.v.overridden{background:#fff3cf!important;color:#7a4f00!important;box-shadow:inset 0 0 0 2px #d6a21a}
+.dh{display:flex;justify-content:flex-end;gap:.35rem;font-size:.65rem;font-weight:700;text-transform:uppercase;padding-right:.25rem}.dh span{min-width:6.5rem;text-align:center}.dh span+span{min-width:5rem}
+.gt{width:100%;border-collapse:separate;border-spacing:6px}.gt th{font:700 .72rem var(--body);text-transform:uppercase;color:#fff;background:var(--navy);border-radius:10px;padding:.5rem}.gt th:first-child{background:none}
+.gt td.l{font-size:.78rem;font-weight:700;padding:0 .3rem}.gt .v{text-align:center;min-width:0}
+.wrap{overflow-x:auto;border-radius:14px;border:1px solid var(--line)}.mt{width:100%;border-collapse:collapse;min-width:520px}
+.mt th{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;font-size:.72rem;text-transform:uppercase;padding:.6rem .5rem}
+.mt td{border-bottom:1px solid var(--line);text-align:center;font-weight:700;font-size:.85rem;padding:.5rem;font-variant-numeric:tabular-nums}.mt td.neg{color:var(--neg)}.mt td:first-child{text-align:left;padding-left:.8rem}
+.mt tbody tr:nth-child(even) td{background:var(--zebra)}
+/* Area Wise + Notice: small, centred, side by side when a notice is showing */
+.aw-row{display:flex;justify-content:center;align-items:flex-start;gap:1.2rem;flex-wrap:wrap;margin-bottom:1.2rem}
+.aw-card{flex:0 1 500px;min-width:280px}.aw-card .mt{min-width:0}.aw-card .mt th{padding:.4rem .4rem;font-size:.66rem}.aw-card .mt td{padding:.3rem .4rem;font-size:.78rem}
+.c-notice{flex:0 1 420px;min-width:260px}.c-notice::before{background:linear-gradient(90deg,#d9a21a,#f1d98f)}
+.nbox{white-space:pre-wrap;word-break:break-word;font-size:.9rem;font-weight:600;line-height:1.55;background:#fff8e4;border:1px solid #f1d98f;border-radius:14px;padding:.8rem 1rem}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:1.2rem 1.3rem;box-shadow:var(--sh);margin-bottom:1.2rem}
+.panel h2{font:700 1.15rem var(--head);margin-bottom:.8rem;display:flex;align-items:center;gap:.6rem}.panel h2 i{color:var(--navy2)}
+.panel h4{margin:1rem 0 .5rem;font-family:var(--head)}
+.muted{font-size:.85rem;font-weight:500;opacity:.8}.fg{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:1rem}
+.fg label{display:block;font-size:.8rem;font-weight:700;margin-bottom:.3rem}
+.fg input,.fg select,.field{width:100%;padding:.6rem .8rem;border:1px solid var(--line);border-radius:11px;background:#f5f9fe;color:var(--ink);font-size:.92rem}
+.fg input[readonly]{background:#e6eef8}textarea.field{min-height:105px;resize:vertical;font-weight:600}
+.tag{font-size:.6rem;font-weight:700;text-transform:uppercase;margin-left:.4rem;padding:.1rem .4rem;border-radius:999px;background:var(--t);color:var(--navy)}
+input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(31,111,209,.28)}
+.tb{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.8rem}.tb .field{max-width:220px}
+.tw{overflow:auto;max-height:520px;border:1px solid var(--line);border-radius:14px}.tbl{width:100%;border-collapse:collapse;font-size:.82rem}
+.tbl th{position:sticky;top:0;background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;padding:.5rem .6rem;font-size:.7rem;text-transform:uppercase;white-space:nowrap}
+.tbl td{padding:.35rem .45rem;border-bottom:1px solid var(--line);text-align:center;font-weight:600;white-space:nowrap}.tbl tr:nth-child(even) td{background:var(--zebra)}
+.tbl td input{width:100%;min-width:6rem;border:1px solid var(--line);border-radius:8px;padding:.3rem .4rem;font:600 .8rem var(--body);text-align:center;background:#fff}
+.tbl tr.dirty td{background:#fff6d6!important}.tbl tfoot td{background:var(--t);font-weight:800;position:sticky;bottom:0}
+.status{font-size:.85rem;font-weight:600;margin-top:.7rem;min-height:1.2em}.err{color:var(--neg)}.ok{color:#0c6b4a}
+.drop{border:2px dashed #9dc1ee;border-radius:16px;padding:1.6rem;text-align:center;background:#f4f9ff;cursor:pointer}.drop i{font-size:1.8rem;color:var(--navy2)}
+.lock{display:flex;align-items:center;justify-content:center;min-height:70vh}.lc{width:min(380px,92vw);text-align:center}.lc input{margin:.8rem 0;width:100%;border:1px solid var(--line);border-radius:11px;padding:.6rem;font-size:1rem;text-align:center;letter-spacing:.3em}
+.sw{position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0}.sw input{opacity:0;position:absolute;width:0;height:0}
+.sl{position:absolute;inset:0;background:#c3d3e6;border-radius:999px;cursor:pointer;transition:.2s}.sl::before{content:"";position:absolute;width:20px;height:20px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 2px 4px rgba(0,0,0,.2)}
+.sw input:checked+.sl{background:var(--navy2)}.sw input:checked+.sl::before{transform:translateX(20px)}
+.chip{display:inline-flex;align-items:center;gap:.3rem;font-size:.72rem;font-weight:700;padding:.25rem .6rem;border-radius:999px;background:var(--t);color:var(--navy)}.chip button{border:0;background:none;cursor:pointer;color:inherit;font-weight:800}
+.mb{position:fixed;inset:0;z-index:500;background:rgba(5,25,55,.45);display:grid;place-items:center;padding:1rem}
+.modal{width:min(900px,96vw);max-height:86vh;display:flex;flex-direction:column;background:var(--card);border-radius:20px;box-shadow:0 22px 38px -16px rgba(11,59,122,.5);overflow:hidden}
+.mh{display:flex;justify-content:space-between;align-items:center;padding:.9rem 1.2rem;background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff}.mh h2{font:700 1.05rem var(--head);display:flex;gap:.5rem;align-items:center}
+.atabs{display:flex;gap:.4rem;overflow-x:auto;padding:.7rem 1rem;border-bottom:1px solid var(--line)}.atab{border:1px solid var(--line);background:#f5f9fe;color:var(--ink);border-radius:999px;padding:.35rem .8rem;font:700 .8rem var(--body);cursor:pointer;white-space:nowrap}
+.atab small{margin-left:.4rem;background:#c2334a;color:#fff;border-radius:999px;padding:0 .4rem;font-size:.7rem}.atab.active{background:var(--navy2);color:#fff;border-color:var(--navy2)}
+.abody{padding:1rem 1.2rem;overflow:auto}.amiss{display:flex;justify-content:space-between;gap:1rem;padding:.55rem .8rem;border-radius:12px;background:var(--negbg);color:var(--neg);font-weight:700;margin:.4rem 0}
+.formula-list{margin:.5rem 0 0 1.1rem;font-size:.88rem;font-weight:600;line-height:1.7}
+.hidden{display:none!important}.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--navy);color:#fff;border-left:4px solid var(--acc);padding:.8rem 1.3rem;border-radius:12px;z-index:1000;transform:translateY(100px);opacity:0;transition:.25s}.toast.show{transform:none;opacity:1}.toast.error{border-left-color:#ff7a8c}
+.exp .ta,.exp .back{display:none}
+</style></head><body>
+<aside class="sidebar"><div class="pn"><i></i> NALCO</div>
+<nav class="nav"><button class="ni active" data-view="dash"><i class="fas fa-tachometer-alt"></i> Dashboard</button>
+<button class="ni pro" data-view="upload"><i class="fas fa-file-excel"></i> Upload Excel</button>
+<button class="ni pro" data-view="log"><i class="fas fa-list"></i> Records Log</button>
+<button class="ni pro" data-view="entry"><i class="fas fa-keyboard"></i> Data Entry</button>
+<button class="ni pro" data-view="formulas"><i class="fas fa-calculator"></i> Formulas</button></nav>
+<div class="uc"><button class="bell" id="bellBtn" title="Pending rake details (not received)"><i class="fas fa-bell"></i><span class="badge hidden" id="bb">0</span></button><span id="ul">Locked</span><button id="lockBtn"><i class="fas fa-lock"></i></button></div></aside>
+<main class="main">
+<section class="view active" id="view-dash">
+<div class="backrow"><a class="back" href="amm_home.html"><i class="fas fa-arrow-left"></i> Back</a><div class="stamp">Performance Report updated upto <strong id="upto">-</strong></div></div>
+<div class="topbar"><div><h1>NALCO AMM Performance Dashboard</h1><div class="period" id="plabel"></div></div>
+<div class="ta"><select id="pick"></select><button class="btn" id="reload"><i class="fas fa-rotate"></i> Reload</button><button class="btn hi" id="png"><i class="fas fa-image"></i> Export PNG</button></div></div>
+<div class="dash" id="dashBody"></div>
+<div class="aw-row">
+ <div class="card aw-card"><h3><i class="fas fa-industry"></i> Area Wise Performance</h3><div class="wrap"><table class="mt"><thead><tr><th>AREA</th><th>TALCHER</th><th>IB</th><th>CKP</th></tr></thead><tbody id="minesBody"></tbody></table></div></div>
+ <div class="card c-notice hidden" id="noticeCard"><h3><i class="fas fa-bullhorn"></i> Notice</h3><div class="nbox" id="noticeText"></div></div>
+</div>
+<div class="card"><h3><i class="fas fa-calendar-alt"></i> Monthly Performance</h3><div class="wrap"><table class="mt"><thead><tr><th>Month</th><th>Total Rakes</th><th>Total Qty</th><th>Billing</th><th>Deduction</th><th>Amount</th></tr></thead><tbody id="trendBody"></tbody></table></div></div>
+</section>
+<section class="view" id="view-lock"><div class="lock"><div class="panel lc"><h2 style="justify-content:center"><i class="fas fa-lock"></i> <span id="lt">Enter password</span></h2><input type="password" id="pwd" placeholder="••••" autocomplete="off"><button class="btn" id="unlock" style="width:100%;justify-content:center"><i class="fas fa-unlock"></i> Unlock</button><div class="status err" id="pe"></div><button class="soft" id="lback" style="margin-top:.8rem">Back to Dashboard</button></div></div></section>
+<section class="view" id="view-upload"><div class="topbar"><div><h1>Upload Excel</h1><div class="period">Import rake rows from the "mis" sheet of MIS_NALCO.xlsx</div></div></div>
+<div class="panel"><div class="drop" id="drop"><i class="fas fa-cloud-arrow-up"></i><p>Drop an .xlsx / .xls file here or click to browse</p><input type="file" id="file" accept=".xlsx,.xls" hidden></div>
+<div class="fg" style="margin-top:.8rem;max-width:320px"><div><label>Sheet</label><select id="sheet" class="field"></select></div></div><div class="status" id="us"></div></div>
+<div class="panel hidden" id="prev"><h2><i class="fas fa-eye"></i> Preview (<span id="pc">0</span> rows)</h2><div class="tw"><table class="tbl" id="pt"></table></div>
+<div class="tb" style="margin-top:.8rem"><button class="btn" id="imp"><i class="fas fa-database"></i> Save to database</button><span class="muted">Existing rows with the same Date + Sr No are updated, not duplicated.</span></div></div></section>
+<section class="view" id="view-log"><div class="topbar"><div><h1>Records Log</h1><div class="period">Edit or delete saved rake records</div></div></div>
+<div class="panel"><div class="tb"><input class="field" id="ls" placeholder="Search RR no, siding, area..."><input type="month" class="field" id="lm"><button class="soft" id="lr"><i class="fas fa-rotate"></i> Reload</button><button class="btn" id="lsave"><i class="fas fa-floppy-disk"></i> Save All</button><span class="muted" id="lc2"></span></div>
+<div class="tw"><table class="tbl" id="lt2"></table></div><div class="status" id="lstat"></div></div></section>
+
+<section class="view" id="view-entry"><div class="topbar"><div><h1>Data Entry</h1><div class="period">New rake, monthly targets and rates. Everything else is calculated.</div></div></div>
+<div class="panel"><h2><i class="fas fa-plus-circle"></i> Rake Record</h2>
+<div class="tb"><select id="sb" class="field" style="max-width:130px" aria-label="Search by"><option value="sr_no">Sr No</option><option value="rr_no">RR No</option></select>
+<input class="field" id="sq" placeholder="Enter Sr No (of the month chosen below)" style="max-width:300px"><button type="button" class="soft" id="sbtn"><i class="fas fa-search"></i> Search</button><span class="muted" id="editBadge"></span></div>
+<form id="nf"><div id="nfg"></div><div id="customEntry"></div>
+<h4><i class="fas fa-wand-magic-sparkles"></i> Auto Calculated <span class="tag">auto</span></h4><p class="muted" style="margin-bottom:.6rem">Filled automatically from the values typed above. You cannot type here. The dashboard calculates these from the same raw values.</p><div class="fg" id="autoBox"></div>
+<div class="tb" style="margin-top:1rem"><button class="btn" type="submit" id="submitBtn"><i class="fas fa-paper-plane"></i> Submit</button><button class="btn" type="button" id="updateBtn" disabled><i class="fas fa-pen"></i> Update</button><button class="soft" type="button" id="clearBtn">Clear Form</button></div></form></div>
+
+<div class="panel"><h2><i class="fas fa-bullseye"></i> Monthly Targets &amp; Rates</h2>
+<div class="tb"><input type="month" class="field" id="em" style="max-width:200px"><input type="date" class="field" id="rd" style="max-width:200px" title="Report updated upto"><button class="soft" id="carryFwd"><i class="fas fa-forward"></i> Carry Forward</button></div>
+<div class="tw" style="max-height:none"><table class="tbl"><thead><tr><th>Area</th><th>Target (Rakes)</th><th>Loaded Till</th><th>Balance</th><th>Asking / Day</th></tr></thead><tbody id="tg"></tbody></table></div>
+<div class="fg" style="margin-top:1rem" id="rates"></div><div class="status" id="es"></div></div>
+
+<div class="panel"><h2><i class="fas fa-sliders"></i> Manual Override</h2>
+<p class="muted">Switch a dashboard value ON and type a fixed figure. It replaces the formula for the month selected above until you switch it OFF or press Reset. Totals and per-MT values that depend on it are recalculated from the typed figure.</p>
+<div class="tb" style="margin-top:.8rem"><label class="sw" title="Override on / off"><input type="checkbox" id="ovrSwitch"><span class="sl"></span></label>
+<select id="ovrField" class="field" style="max-width:360px" aria-label="Dashboard value"></select><input type="number" step="any" id="ovrValue" class="field" style="max-width:180px" placeholder="Manual value">
+<button class="btn" id="ovrSave"><i class="fas fa-floppy-disk"></i> Save value</button><button class="soft" id="ovrReset"><i class="fas fa-rotate-left"></i> Reset to formula</button></div>
+<div class="muted" id="ovrNote"></div><div class="tw" style="max-height:none;margin-top:.8rem"><table class="tbl" id="ovrTbl"></table></div><div class="status" id="ovrStatus"></div></div>
+
+<div class="panel"><h2><i class="fas fa-bullhorn"></i> Dashboard Notice</h2>
+<p class="muted">Type a notice and switch it ON to show it on the dashboard next to Area Wise Performance. Switch it OFF (or leave the box empty) and nothing is shown.</p>
+<div class="tb" style="margin-top:.8rem"><label class="sw"><input type="checkbox" id="noticeOn"><span class="sl"></span></label><span class="muted">Show on dashboard</span></div>
+<textarea class="field" id="noticeInput" placeholder="Type the notice here..."></textarea>
+<div class="tb" style="margin-top:.8rem"><button class="btn" id="noticeSave"><i class="fas fa-floppy-disk"></i> Save Notice</button></div><div class="status" id="noticeStatus"></div></div>
+
+<div class="panel"><h2><i class="fas fa-table-columns"></i> Custom Columns</h2>
+<p class="muted">Add a column here. It appears in Data Entry (Custom Columns section) and at the end of Records Log. Values are saved with each record.</p>
+<div class="fg" style="margin-top:.8rem"><div><label for="ccLabel">Column name</label><input class="field" id="ccLabel" placeholder="e.g. Wagon Seal No"></div>
+<div><label for="ccType">Type</label><select class="field" id="ccType"><option value="text">Text</option><option value="number">Number</option><option value="date">Date</option><option value="select">Dropdown</option></select></div>
+<div class="hidden" id="ccOptsWrap"><label for="ccOpts">Dropdown options (comma separated)</label><input class="field" id="ccOpts" placeholder="e.g. Yes, No, Partial"></div></div>
+<div class="tb" style="margin-top:1rem"><button class="btn" id="ccAdd"><i class="fas fa-plus"></i> Add column</button></div><div id="ccList"></div></div>
+
+<div class="panel"><h2><i class="fas fa-bell"></i> Alerts</h2>
+<p class="muted">Pick the columns that must be filled. A rake with any selected column empty appears in the bell, with the empty columns listed.</p>
+<div class="tb" style="margin-top:.8rem"><select class="field" id="alertPick" style="max-width:320px"></select><button class="soft" id="alertAdd"><i class="fas fa-plus"></i> Add to alerts</button></div>
+<div id="alertChips" style="display:flex;flex-wrap:wrap;gap:.4rem"></div></div></section>
+
+<section class="view" id="view-formulas"><div class="topbar"><div><h1>Formulas</h1><div class="period">Change the calculation rules here. The dashboard uses the new values as soon as you save.</div></div><div class="ta"><button class="btn" id="saveF"><i class="fas fa-save"></i> Save Formulas</button></div></div>
+<div class="panel"><h2><i class="fas fa-bullseye"></i> Quantity Reco: Materialisation Tiers</h2>
+<p class="muted">If rake materialisation is at least this %, the Quantity Reco rate changes by this % of the base rate. Keep the limits in decreasing order. Below the last row the "below" rate applies.</p>
+<div class="tw" style="max-height:none;margin-top:.8rem"><table class="tbl" id="tierTbl"></table></div>
+<div class="fg" style="margin-top:1rem"><div><label for="fMatTop">Rate change when materialisation is above 100 (%)</label><input type="number" step="0.01" id="fMatTop"></div><div><label for="fMatBelow">Rate change below the last tier (%)</label><input type="number" step="0.01" id="fMatBelow"></div></div></div>
+<div class="panel"><h2><i class="fas fa-scale-balanced"></i> GCV Reco: Grade Slippage</h2>
+<p class="muted">Slippage = unloading grade minus loading grade. Each row is the % of the GCV base rate paid or deducted per MT of RR weight. Negative slippage pays nothing.</p>
+<div class="tw" style="max-height:none;margin-top:.8rem"><table class="tbl" id="slipTbl"></table></div>
+<div class="fg" style="margin-top:1rem"><div><label for="fSlipAbove">Rate for slippage above 3 grades (%)</label><input type="number" step="0.01" id="fSlipAbove"></div></div></div>
+<div class="panel"><h2><i class="fas fa-info-circle"></i> How every dashboard value is calculated</h2>
+<p class="muted">"Month" is the 4th-to-3rd billing cycle. RR = RR weight, Recv = received weight.</p>
+<ul class="formula-list">
+<li>Target of Month, Rake Loaded Till, Balance Rake, Asking Per Day = per area (TALCHER, IB, CKP). Loaded counts rakes up to the report date. Asking per day = balance ÷ days from today to the 3rd of next month.</li>
+<li>Materialisation % = total loaded ÷ total target × 100. Quantity Reco = total RR weight × Quantity base rate × tier % (tiers above).</li>
+<li>Grade of a rake comes from its GCV: above 7000 = G-01, above 6700 = G-02, then every 300 lower (G-17 above 2200). Grade Slippage = Unloading Grade − Loading Grade. GCV Bonus/Penalty (₹/MT) = GCV base rate × slippage % ÷ 100. Bonus/Penalty (₹) = RR weight × that ₹/MT.</li>
+<li>Performance on GCV Reco = sum of Bonus/Penalty (₹) of the month's rakes. Rakes with a missing GCV or negative slippage are left out.</li>
+<li>Service Charge (each area) = RR weight of that area × service rate (Data Entry).</li>
+<li>Total Railway Penalty = Underload + Overload + Punitive (POL) + EHBC/FAUC/TC + ENHC + Dead Freight (typed per month).</li>
+<li>TOTAL BILLING = Quantity Reco + GCV Reco + Service Charges − Total Railway Penalty. Per MT = amount ÷ total RR weight (GCV Reco ÷ RR weight of rakes counted). Expected Billing = TOTAL BILLING ÷ days passed × days in month.</li>
+<li>Shortage % = (RR − Recv) × 100 ÷ RR over rakes with received weight. Shortage MT per rake = (RR − Recv) ÷ number of those rakes.</li>
+<li>Area Wise: GCV = RR-weighted GCV; Quality Diff. = Loading GCV − Unloading GCV; Per Ton Cost = (POL + EHBC + ENHC) ÷ RR of that area.</li>
+</ul></div></section>
+</main>
+
+<div class="mb hidden" id="alertModal"><div class="modal"><div class="mh"><h2><i class="fas fa-bell"></i> Pending Rake Details (not received)</h2><button class="soft sm" id="alertClose"><i class="fas fa-xmark"></i></button></div>
+<div class="atabs" id="alertTabs"></div><div class="abody" id="alertBody"></div></div></div>
+<div class="toast" id="toast"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+const SB='https://gcedsyxvfmlyujhftiyf.supabase.co',KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdjZWRzeXh2Zm1seXVqaGZ0aXlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ2Mjg5ODMsImV4cCI6MjExMDIwNDk4M30.QsFXFMT1zS62UIfdbgtpXJHEicCVglvXHqgvik5Q5Rk';
+const PASS='1234',RECS='nalco_rake_records',TGT='nalco_rake_targets',VAL='nalco_dashboard_values';
+const db=supabase.createClient(SB,KEY);
+const $=id=>document.getElementById(id),AREAS=['TALCHER','IB','CKP'],MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DEF={svcTALCHER:92.8,svcIB:92.8,svcCKP:92.8,dead:0,qtyRate:30,gcvBase:30};
+const DF={matTop:2,matTiers:[[85,0],[80,-5],[75,-7.5],[70,-10],[65,-20]],matBelow:-40,gcvSlip:[2,-5,-40,-60],gcvSlipAbove:-100};
+const BANDS=[[7000,1],[6700,2],[6400,3],[6100,4],[5800,5],[5500,6],[5200,7],[4900,8],[4600,9],[4300,10],[4000,11],[3700,12],[3400,13],[3100,14],[2800,15],[2500,16],[2200,17]];
+const isNum=v=>v!==null&&v!==undefined&&v!==''&&!isNaN(Number(v)),num=v=>isNum(v)?Number(v):0,pad=n=>String(n).padStart(2,'0'),up=v=>String(v??'').trim().toUpperCase();
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const sum=(a,k)=>a.reduce((s,r)=>s+num(r[k]),0);
+const wAvg=(a,v,w)=>{const f=a.filter(r=>num(r[v])>0&&isNum(r[w])),d=sum(f,w);return d?f.reduce((s,r)=>s+r[v]*r[w],0)/d:0};
+const fInt=n=>{const r=Math.round(n);return !Number.isFinite(n)||r===0?'-':(r<0?'-':'')+Math.abs(r).toLocaleString('en-IN')};
+const f2=n=>!Number.isFinite(n)||Math.abs(n)<.005?'-':(n<0?'-':'')+Math.abs(n).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fPct=n=>!Number.isFinite(n)||Math.abs(n)<.005?'-':n.toFixed(2)+'%';
+const toast=(m,e)=>{const t=$('toast');t.textContent=m;t.className='toast show'+(e?' error':'');clearTimeout(toast.t);toast.t=setTimeout(()=>t.className='toast',3000)};
+const unwrap=r=>{if(r.error)throw r.error;return r.data||[]};
+const today=()=>new Date().toLocaleDateString('en-CA');
+const shiftMonth=(p,k)=>{const[Y,M]=p.split('-').map(Number),d=new Date(Date.UTC(Y,M-1+k,1));return d.getUTCFullYear()+'-'+pad(d.getUTCMonth()+1)};
+const daysBetween=(a,b)=>{const d=Math.round((new Date(b+'T00:00:00Z')-new Date(a+'T00:00:00Z'))/864e5);return d>0?d:0};
+const monthInfo=p=>{const start=p+'-04',end=shiftMonth(p,1)+'-03';return{start,end,dim:daysBetween(start,end)+1}};   // billing cycle 4th -> 3rd
+const cycleKey=d=>+d.slice(8,10)>=4?d.slice(0,7):shiftMonth(d.slice(0,7),-1);
+const plabel=p=>{const[Y,M]=p.split('-');return MON[M-1]+'-'+Y};
+const cyc=p=>{const i=monthInfo(p),f=s=>{const[Y,M,D]=s.split('-');return D+' '+MON[M-1]+' '+Y};return f(i.start)+' – '+f(i.end)};
+const setSt=(id,m,c)=>{$(id).textContent=m;$(id).className='status '+(c||'')};
+let PERIOD=cycleKey(today());const up0=new URLSearchParams(location.search).get('period');if(/^\d{4}-\d{2}$/.test(up0||''))PERIOD=up0;
+let EP=cycleKey(today());   // month shown in Data Entry
+
+/* ---------- state: rates, formulas, overrides, notice, custom columns, alerts ---------- */
+let SET={},OVR={},FORM=structuredClone(DF),NOTICE={on:false,text:''},CUSTOM_COLS=[],ALERT_KEYS=['rr_wt','recv_wt','unloading_gcv','rr_no'],LOADED_EXTRA={};
+const settings=p=>{const s=SET[p]||{},o={};for(const k in DEF)o[k]=isNum(s[k])?Number(s[k]):DEF[k];return o};
+const mergeF=o=>{const f=Object.assign(structuredClone(DF),o||{});f.matTiers=f.matTiers.map(t=>[+t[0],+t[1]]);f.gcvSlip=f.gcvSlip.map(Number);['matTop','matBelow','gcvSlipAbove'].forEach(k=>f[k]=Number(f[k]));FORM=f};
+const matPct=m=>{if(m>100)return FORM.matTop;for(const[mn,p]of FORM.matTiers)if(m>=mn)return p;return FORM.matBelow};
+const slipPct=s=>s==null||s<0?0:s>3?FORM.gcvSlipAbove:(FORM.gcvSlip[s]??0);
+const gradeNo=g=>{if(!(g>0))return null;for(const[t,n]of BANDS)if(g>t)return n;return null};
+const getOv=(p,id)=>(OVR['ovr-m:'+p]||{})[id];
+// GCV Reco of one rake: grades come from loading / unloading GCV
+function gcvOf(r,S){const l=gradeNo(num(r.loading_gcv)),u=gradeNo(num(r.unloading_gcv));
+ if(l==null||u==null)return{l,u,slip:null,ok:false,pm:0,amt:0};
+ const slip=u-l;if(slip<0)return{l,u,slip,ok:false,pm:0,amt:0};
+ const pm=S.gcvBase*slipPct(slip)/100;return{l,u,slip,ok:true,pm,amt:num(r.rr_wt)*pm}}
+
+/* ---------- calculation ---------- */
+function compute(p,recs,tg,ovr=()=>undefined,repForce){
+ const pk=(id,v)=>{const x=ovr(id);return x!==undefined?x:v};   // a manual value replaces the formula and everything below uses it
+ const mi=monthInfo(p),S=settings(p),m=recs.filter(r=>r.date>=mi.start&&r.date<=mi.end);
+ const last=m.reduce((x,r)=>r.date>x?r.date:x,''),rd=(SET[p]||{}).reportDate||'';
+ const rep=repForce||((rd&&rd>=mi.start&&rd<=mi.end)?rd:(last||mi.end)),dp=Math.min(mi.dim,daysBetween(mi.start,rep)+1);
+ const t0=today(),from=t0>mi.end?rep:(t0<mi.start?mi.start:t0),dr=daysBetween(from,mi.end);   // asking per day: today -> 3rd of next month
+ const upto=m.filter(r=>r.date<=rep),A={};
+ AREAS.forEach(a=>{const t=tg.find(x=>x.period===p&&up(x.area)===a),T=t?num(t.target):0,rs=m.filter(r=>up(r.area)===a),ld=upto.filter(r=>up(r.area)===a).length;
+  const wr=rs.filter(r=>num(r.recv_wt)>0),rr=sum(rs,'rr_wt');
+  A[a]={tg:T,ld,bal:T-ld,ask:dr?(T-ld)/dr:0,rr,n:rs.length,lg:wAvg(rs,'loading_gcv','rr_wt'),ug:wAvg(rs,'unloading_gcv','rr_wt'),
+   pun:sum(rs,'pol_group'),eh:sum(rs,'ehbc_group'),en:sum(rs,'enhc_charge'),sh:wr.length?(sum(wr,'rr_wt')-sum(wr,'recv_wt'))/wr.length:0,svc:pk('b-svc-'+a,rr*S['svc'+a])}});
+ const L=Object.values(A),rrAll=sum(m,'rr_wt'),wr=m.filter(r=>num(r.recv_wt)>0),rrR=sum(wr,'rr_wt'),recv=sum(wr,'recv_wt');
+ const tgAll=sum(L,'tg'),ldAll=sum(L,'ld'),mat=tgAll?ldAll*100/tgAll:0,tier=tgAll?matPct(mat):0;
+ const qty=pk('b-qty',rrAll*S.qtyRate*tier/100);
+ const gk=m.map(r=>gcvOf(r,S)).map((x,i)=>({...x,rr:num(m[i].rr_wt)})).filter(x=>x.ok),gcvRR=gk.reduce((s,x)=>s+x.rr,0),gcv=pk('b-gcv',gk.reduce((s,x)=>s+x.amt,0));
+ const pen={ul:pk('p-ul',sum(m,'ul_ch')),ol:pk('p-ol',sum(m,'ol_ch')),pun:pk('p-pun',sum(m,'pol_group')),ehbc:pk('p-ehbc',sum(m,'ehbc_group')),enhc:pk('p-enhc',sum(m,'enhc_charge')),dead:pk('p-dead',S.dead)};
+ const penSum=Object.values(pen).reduce((a,b)=>a+b,0),bp=ovr('b-pen'),penT=pk('p-total',bp!==undefined?-bp:penSum);
+ const gross=qty+gcv+sum(L,'svc'),tot=pk('b-total',gross-penT),exp=pk('b-exp',dp?tot/dp*mi.dim:0);
+ const mt=(id,a)=>pk(id+'-mt',rrAll?a/rrAll:0);
+ const pm={qty:mt('b-qty',qty),gcv:pk('b-gcv-mt',gcvRR?gcv/gcvRR:0),pen:pk('b-pen-mt',rrAll?-penT/rrAll:0),tot:mt('b-total',tot)};
+ const pmp={};Object.keys(pen).forEach(k=>pmp[k]=mt('p-'+k,pen[k]));pmp.total=mt('p-total',penT);
+ const avgCh=m.length?sum(m,'ch_wt')/m.length:0;
+ return{p,S,A,L,m,rep,dp,dr,dim:mi.dim,n:m.length,rrAll,rrR,recv,pen,penT,pm,pmp,qty,gcv,gross,tot,exp,tgAll,ldAll,tier,
+  mat,perDay:dp?ldAll/dp:0,askDay:sum(L,'ask'),reqDay:tgAll/mi.dim,
+  shPct:pk('s-pct',rrR?(rrR-recv)*100/rrR:0),shMt:pk('s-mt',wr.length?(rrR-recv)/wr.length:0),
+  w:{ch:pk('w-ch',avgCh),rr:pk('w-rr',m.length?rrAll/m.length:0),recv:pk('w-recv',wr.length?recv/wr.length:0),totrr:pk('w-totrr',rrAll),totrecv:pk('w-totrecv',recv)}}}
+const C=(p,recs,tg,rf)=>compute(p,recs,tg,id=>getOv(p,id),rf);
+
+/* ---------- data ---------- */
+async function fetchAll(q){const out=[];for(let f=0;;f+=1000){const{data,error}=await q(db.from(RECS).select('*').order('id')).range(f,f+999);if(error)throw error;out.push(...data);if(data.length<1000)break}return out}
+// rates / overrides per period + shared (global) settings: formulas, notice, custom columns, alert columns
+async function loadVals(periods){
+ const keys=[...periods,'global',...periods.map(p=>'ovr-m:'+p)];
+ const rows=unwrap(await db.from(VAL).select('period_key,field_key,field_value').in('period_key',keys));
+ periods.forEach(p=>{SET[p]={};OVR['ovr-m:'+p]={}});
+ rows.forEach(r=>{const k=r.period_key,f=r.field_key,v=r.field_value;
+  if(k==='global'){let j=null;try{j=JSON.parse(v)}catch(e){}
+   if(f==='formulas'&&j)mergeF(j);if(f==='notice'&&j)NOTICE={on:!!j.on,text:String(j.text||'')};
+   if(f==='custom_cols'&&Array.isArray(j))CUSTOM_COLS=j;if(f==='alert_cols'&&Array.isArray(j))ALERT_KEYS=j}
+  else if(k.startsWith('ovr-m:')){if(isNum(v)&&OVR[k])OVR[k][f]=Number(v)}
+  else if(SET[k])SET[k][f]=v});
+ renderCustomEntry();renderCustomAdmin();fillNotice()}
+async function fetchState(p){
+ const periods=[-5,-4,-3,-2,-1,0].map(k=>shiftMonth(p,k));
+ const[recs,tg]=await Promise.all([fetchAll(q=>q.gte('date',monthInfo(periods[0]).start).lte('date',monthInfo(p).end)),db.from(TGT).select('*').in('period',periods).then(unwrap)]);
+ await loadVals(periods);return{periods,recs,tg}}
+
+/* ---------- dashboard ---------- */
+let RP=PERIOD;
+const isO=id=>id&&getOv(RP,id)!==undefined;
+const vv=(x,f,c='',id='')=>`<div class="v ${c} ${x<0?'neg':''} ${isO(id)?'overridden':''}" ${isO(id)?'title="Manual value for this period"':''}>${f(x)}</div>`;
+const row=(l,a,b,cls='',id='')=>`<div class="mr ${cls}"><span>${l}</span><div class="pr">${vv(a,fInt,'',id)}${b===undefined?'':vv(b,f2,'',id&&id+'-mt')}</div></div>`;
+const row1=(l,a,f,cls='',id='')=>`<div class="mr ${cls}"><span>${l}</span>${vv(a,f,'',id)}</div>`;
+const gtab=(h,rows)=>`<table class="gt"><thead><tr><th></th>${h.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${rows.map(([l,vals,f])=>`<tr><td class="l">${l}</td>${vals.map(x=>`<td>${vv(x,f,'c')}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+const wAvgArr=L=>{const f=L.filter(x=>x.ug>0&&x.rr>0),d=sum(f,'rr');return d?f.reduce((s,x)=>s+x.ug*x.rr,0)/d:0};
+function render(o,trend){
+ RP=o.p;const A=o.A,P=o.pen,W=o.w;
+ const card=(ic,t,body)=>`<div class="card"><h3><i class="fas ${ic}"></i> ${t}</h3>${body}</div>`;
+ const bill=card('fa-rupee-sign','Particulars','<div class="dh"><span>Billings</span><span>Per MT</span></div>'+
+  row('Performance on Quantity Reco',o.qty,o.pm.qty,'','b-qty')+row('Performance on GCV Reco',o.gcv,o.pm.gcv,'','b-gcv')+
+  AREAS.map(a=>row('Performance on Service Charge '+a,A[a].svc,o.S['svc'+a],'','b-svc-'+a)).join('')+
+  row('Total Railway Penalty',-o.penT,o.pm.pen,'','b-pen')+row('TOTAL BILLING',o.tot,o.pm.tot,'tot','b-total')+row1('Expected Billing of the Month',o.exp,fInt,'','b-exp'));
+ const rake=card('fa-train','Rake Performance',gtab(['Achieve','Target'],[['Materialisation',[o.mat,100],fPct],['Rakes per day',[o.perDay,o.reqDay],f2],['Asking per day',[o.askDay,o.reqDay],f2]]));
+ const plants=card('fa-map-marker-alt','Areas',gtab(AREAS,[['Target of Month',AREAS.map(a=>A[a].tg),fInt],['Rake Loaded Till',AREAS.map(a=>A[a].ld),fInt],['Balance Rake',AREAS.map(a=>A[a].bal),fInt],['Asking Per Day',AREAS.map(a=>A[a].ask),f2]]));
+ const wt=card('fa-weight-scale','Weights',row1('Avg. CH.Wt.',W.ch,f2,'','w-ch')+row1('Avg. RR.Wt.',W.rr,f2,'','w-rr')+row1('Avg. Plant Rec. Wt.',W.recv,f2,'','w-recv')+row1('TOTAL RR WEIGHT',W.totrr,f2,'tot','w-totrr')+row1('PLANT RECEIVE',W.totrecv,f2,'tot','w-totrecv'));
+ const sh=card('fa-balance-scale','Shortage / Excess Coal',row1('Avg Shrt / Excess (%)',o.shPct,f2,'','s-pct')+row1('Shortage / Excess MT per rake',o.shMt,f2,'','s-mt')+gtab(AREAS,[['Loading GCV',AREAS.map(a=>A[a].lg),f2],['Unloading GCV',AREAS.map(a=>A[a].ug),f2],['GCV Difference',AREAS.map(a=>A[a].lg&&A[a].ug?A[a].lg-A[a].ug:0),f2]])+row1('Avg Unloading GCV',wAvgArr(o.L),f2,'tot'));
+ const pn=card('fa-exclamation-triangle','Railway Freight Penalties','<div class="dh"><span>Amount</span><span>Per MT</span></div>'+[['Underload Charge','ul'],['Overload Charge','ol'],['Punitive Sum (POL)','pun'],['EHBC / FAUC / TC','ehbc'],['ENHC Charges','enhc'],['Dead Freight','dead']].map(([l,k])=>row(l,P[k],o.pmp[k],'','p-'+k)).join('')+row('TOTAL PENALTY',o.penT,o.pmp.total,'tot','p-total'));
+ $('dashBody').innerHTML=`<div class="col">${bill}${rake}</div><div class="col">${plants}${wt}</div><div class="col">${sh}${pn}</div>`;
+ const mr=(l,f,fm)=>`<tr><td>${l}</td>${AREAS.map(a=>{const x=f(A[a]);return`<td class="${x<0?'neg':''}">${fm(x)}</td>`}).join('')}</tr>`;
+ $('minesBody').innerHTML=mr('Total Rakes',x=>x.n,fInt)+mr('Loading GCV',x=>x.lg,f2)+mr('GCV (ARB / Unloading)',x=>x.ug,f2)+mr('Quality Diff. (Loading − Unloading)',x=>x.lg&&x.ug?x.lg-x.ug:0,f2)+mr('RR Qty',x=>x.rr,fInt)+mr('Shortage (Avg)',x=>x.sh,f2)+mr('Punitive Sum (POL)',x=>x.pun,fInt)+mr('EHBC / FAUC / SD / TC',x=>x.eh,fInt)+mr('ENHC Charges',x=>x.en,fInt)+mr('Per Ton Cost',x=>x.rr?(x.pun+x.eh+x.en)/x.rr:0,f2);
+ $('trendBody').innerHTML=trend.map(t=>`<tr><td>${plabel(t.p)}</td><td>${fInt(t.n)}</td><td>${fInt(t.rrAll)}</td><td>${fInt(t.gross)}</td><td class="${t.penT?'neg':''}">${fInt(-t.penT)}</td><td>${fInt(t.tot)}</td></tr>`).join('');
+ const y=new Date();y.setDate(y.getDate()-1);$('upto').textContent=y.toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});
+ const nov=Object.keys(OVR['ovr-m:'+o.p]||{}).length;
+ $('plabel').textContent='AMM NALCO • '+cyc(o.p)+(nov?` • ${nov} manual value${nov>1?'s':''}`:'');renderNotice()}
+let seq=0;
+async function loadDash(){const s=++seq;try{const st=await fetchState(PERIOD);if(s!==seq)return;render(C(PERIOD,st.recs,st.tg),st.periods.map(p=>C(p,st.recs,st.tg)));loadAlerts()}catch(e){console.error(e);toast('Could not load dashboard: '+(e.message||'Supabase error'),true)}}
+function fillPick(){const l=[];for(let i=0;i<12;i++)l.push(shiftMonth('2026-04',i));if(!l.includes(PERIOD))l.push(PERIOD);$('pick').innerHTML=l.sort().map(k=>`<option value="${k}">${plabel(k)}</option>`).join('');$('pick').value=PERIOD;$('pick').onchange=()=>{PERIOD=$('pick').value;loadDash()}}
+$('reload').onclick=loadDash;
+$('png').onclick=async()=>{const b=$('png');b.disabled=true;document.body.classList.add('exp');try{toast('Preparing image...');await loadDash();if(document.fonts)await document.fonts.ready;window.scrollTo(0,0);
+ const c=await html2canvas($('view-dash'),{scale:2,backgroundColor:'#eef4fb',useCORS:true,logging:false,windowWidth:1500});
+ c.toBlob(bl=>{const a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download=`NALCO-Performance-${PERIOD}.png`;a.click();toast('PNG saved')})}catch(e){toast('PNG export failed: '+e.message,true)}document.body.classList.remove('exp');b.disabled=false};
+
+/* ---------- notice ---------- */
+function renderNotice(){const show=!!(NOTICE.on&&NOTICE.text);$('noticeCard').classList.toggle('hidden',!show);$('noticeText').textContent=NOTICE.text||''}
+function fillNotice(){$('noticeOn').checked=!!NOTICE.on;if(document.activeElement!==$('noticeInput'))$('noticeInput').value=NOTICE.text||'';renderNotice()}
+async function saveNotice(){const next={on:$('noticeOn').checked,text:$('noticeInput').value.trim()};
+ if(!(await saveGlobal('notice',next)))return setSt('noticeStatus','Save failed','err');NOTICE=next;
+ setSt('noticeStatus',next.on&&next.text?'Notice is showing on the dashboard':next.on?'Switch is ON but the box is empty, so nothing is shown':'Notice is hidden','ok');toast('Notice saved');renderNotice()}
+async function saveGlobal(field,value){const{error}=await db.from(VAL).upsert([{period_key:'global',field_key:field,field_value:JSON.stringify(value)}],{onConflict:'period_key,field_key'});if(error){toast('Save failed: '+error.message,true);return false}return true}
+$('noticeSave').onclick=saveNotice;$('noticeOn').onchange=saveNotice;
+
+/* ---------- views + password ---------- */
+const PROT=['upload','log','entry','formulas'],VN={upload:'Upload Excel',log:'Records Log',entry:'Data Entry',formulas:'Formulas'};let unlocked=false,pending='dash',PENDING_FILL=null;
+function showView(n){
+ if(PROT.includes(n)&&!unlocked){pending=n;$('lt').textContent='Enter password to open '+VN[n];$('pwd').value='';$('pe').textContent='';n='lock';setTimeout(()=>$('pwd').focus(),50)}
+ document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+n));
+ const nk=n==='lock'?pending:n;document.querySelectorAll('.ni').forEach(b=>b.classList.toggle('active',b.dataset.view===nk));
+ if(n==='dash')loadDash();if(n==='log')loadLog();if(n==='entry')initEntry();if(n==='formulas')renderFormulas()}
+const tryUnlock=()=>{if($('pwd').value===PASS){unlocked=true;document.body.classList.add('unlocked');$('ul').textContent='Unlocked';showView(pending)}else{$('pe').textContent='Wrong password';$('pwd').select()}};
+$('unlock').onclick=tryUnlock;$('pwd').onkeydown=e=>{if(e.key==='Enter')tryUnlock()};$('lback').onclick=()=>{PENDING_FILL=null;showView('dash')};
+$('lockBtn').onclick=()=>{if(unlocked){unlocked=false;document.body.classList.remove('unlocked');$('ul').textContent='Locked';showView('dash')}else{pending='dash';$('lt').textContent='Enter password';$('pwd').value='';$('pe').textContent='';showView('lock')}};
+document.querySelectorAll('.ni').forEach(b=>b.onclick=()=>showView(b.dataset.view));
+
+/* ---------- column mapping, conversion ---------- */
+const COLS=[['sr_no','Sr No','n','Sr No'],['date','Loading Date','d','Loading Date'],['area','Area','t','AREA'],['siding','Source','t','Source'],['loading_gcv','Loading End GCV','n','loading End GCV'],['box_type','Box Type','t','BOX TYPE'],['allotment_date','Allotment Date','d','Allotment date'],['sr_seq_no','Sr Seq No.','t','Sr Seq no.'],['reprogram_month','Reprogram Month of Loaded Rake','t','Reprogram Month of Loaded Rake'],['time_pt','P/T','h','P/T'],['time_ct','C/T','h','C/T'],['time_dot','D/O','h','D/O'],['supply_box','Supply Wagons','n','Supply Wagons'],['load_box','Load Wagons','n','Load Wagons'],['sick_box','Sick Wagons','n','Sick Wagons'],['box_type2','Box Type2','t','Box Type2'],['recv_wt','Received Wt.','n','REC. WT'],['unloading_gcv','Unloading End GCV','n','Unloading End GCV'],['ch_wt','Chargable Wt.','n','Chargable Wt.'],['rr_wt','RR Weight','n','RR Weight'],['rr_no','RR Number','t','RR Number'],['rr_date','RR Date','d','RR Date'],['fnot_no','FNOT No.','t','FNOT No.'],['invoice_no','Invoice No.','t','Invoice No.'],['ul_ch','U/L','n','U/L'],['ol_ch','O/L','n','O/L'],['chbl_pun_rate','CHBL at PUN Rate','n','CHBL AT PUN RATE.'],['pol1','POL1','n','POL1'],['pol2','POL2','n','POL2'],['pola','POLA','n','POLA'],['krba','KRBA','n','KRBA'],['ladc','LADC','n','LADC'],['pcla','PCLA','n','PCLA'],['dcla','DCLA','n','DCLA'],['pol_group','POL1/PO2/POLA/PCLA/DCLA','n','POL1/PO2/POLA/PCLA/DCLA'],['sd','SD','n','SD'],['sdcc','SDCC','n','SDCC'],['st','ST','n','ST'],['tc','TC','n','TC'],['fauc','FAUC','n','FAUC'],['ehbc_group','EHBC/FAUC/TC/ST','n','EHBC/FAUC/TC/ST'],['gst','GST','n','GST'],['enhc_charge','ENHC','n','ENHC'],['ehbc2','EHBC','n','EHBC '],['rr_freight_base','RR Freight Base Value','n','RR Freight Base Value'],['total_fright','Railway Total Freight','n','Railway Total Freight']];   // every column A..AT of the "mis" sheet
+const NUMC=new Set(COLS.filter(c=>c[2]==='n').map(c=>c[0])),TYPE=Object.fromEntries(COLS.map(c=>[c[0],c[2]])),LBL=Object.fromEntries(COLS.map(c=>[c[0],c[1]]));
+const norm=s=>String(s??'').toLowerCase().replace(/[^a-z0-9]/g,'');
+const HMAP=Object.fromEntries(COLS.map(c=>[norm(c[3]),c[0]]));
+function toDate(v){if(v==null||v==='')return null;if(v instanceof Date)return isNaN(v)?null:`${v.getFullYear()}-${pad(v.getMonth()+1)}-${pad(v.getDate())}`;
+ if(typeof v==='number')return new Date(Math.round((v-25569)*864e5)).toISOString().slice(0,10);
+ const s=String(v).trim(),m=s.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})$/);if(m)return`${m[3].length===2?'20'+m[3]:m[3]}-${pad(m[2])}-${pad(m[1])}`;
+ return/^\d{4}-\d{2}-\d{2}/.test(s)?s.slice(0,10):null}
+function toTime(v){if(v==null||v==='')return null;if(v instanceof Date)return isNaN(v)?null:`${pad(v.getHours())}:${pad(v.getMinutes())}:00`;if(typeof v==='number'){const t=Math.round(v*1440);return`${pad(Math.floor(t/60)%24)}:${pad(t%60)}:00`}const m=String(v).trim().match(/^(\d{1,2}):(\d{2})/);return m?`${pad(m[1])}:${m[2]}:00`:null}
+function toDb(c,v){if(v===''||v==null)return null;const t=TYPE[c];if(t==='d')return toDate(v);if(t==='h')return toTime(v);if(t==='n'){const n=Number(String(v).replace(/[,₹\s]/g,''));return isNaN(n)?null:n}return String(v).trim()}
+
+/* ---------- upload ---------- */
+let wb=null,rows=[];
+$('drop').onclick=()=>$('file').click();$('file').onchange=e=>{if(e.target.files[0])readFile(e.target.files[0])};
+$('drop').ondragover=e=>e.preventDefault();$('drop').ondrop=e=>{e.preventDefault();if(e.dataTransfer.files[0])readFile(e.dataTransfer.files[0])};
+function readFile(f){const r=new FileReader();r.onload=e=>{try{wb=XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:false});
+ $('sheet').innerHTML=wb.SheetNames.map(n=>`<option>${esc(n)}</option>`).join('');$('sheet').value=wb.SheetNames.find(n=>/^mis$/i.test(n))||wb.SheetNames[0];loadSheet();setSt('us','Loaded '+f.name,'ok')}catch(x){setSt('us','Could not read file: '+x.message,'err')}};r.readAsArrayBuffer(f)}
+$('sheet').onchange=loadSheet;
+function loadSheet(){
+ const aoa=XLSX.utils.sheet_to_json(wb.Sheets[$('sheet').value],{header:1,defval:'',raw:true});
+ const h=aoa.findIndex(r=>r.some(c=>norm(c)==='srno'));if(h<0){setSt('us','No "Sr No" header row found in this sheet','err');return}
+ const map=aoa[h].map(x=>HMAP[norm(x)]||null);rows=[];
+ for(let i=h+1;i<aoa.length;i++){const d={};map.forEach((c,j)=>{if(c)d[c]=toDb(c,aoa[i][j])});
+  d.area=up(d.area).replace('TALCHAR','TALCHER');if(d.date&&AREAS.includes(d.area)&&d.sr_no!=null){if(d.sick_box==null&&d.supply_box!=null&&d.load_box!=null)d.sick_box=d.supply_box-d.load_box;rows.push(d)}}   // blank / formula-filler rows are skipped
+ const cols=Object.values(HMAP);$('pt').innerHTML='<thead><tr>'+cols.map(c=>`<th>${c}</th>`).join('')+'</tr></thead><tbody>'+rows.slice(0,25).map(r=>'<tr>'+cols.map(c=>`<td>${esc(r[c]??'')}</td>`).join('')+'</tr>').join('')+'</tbody>';
+ $('pc').textContent=rows.length;$('prev').classList.toggle('hidden',!rows.length);if(!rows.length)setSt('us','No valid rake rows found (need Date, Area TALCHER/IB/CKP and Sr No)','err')}
+$('imp').onclick=async()=>{if(!rows.length||!confirm(`Save ${rows.length} rows to the database?`))return;const b=$('imp');b.disabled=true;
+ try{for(let i=0;i<rows.length;i+=100){const{error}=await db.from(RECS).upsert(rows.slice(i,i+100),{onConflict:'date,sr_no'});if(error)throw error}
+  setSt('us',`Saved ${rows.length} rows`,'ok');toast('Saved '+rows.length+' rows');rows=[];$('prev').classList.add('hidden')}catch(e){setSt('us','Import failed: '+e.message,'err')}b.disabled=false};
+
+/* ---------- records log ---------- */
+const LC=COLS.map(c=>c[0]);
+let LOG=[];
+async function loadLog(){try{LOG=await fetchAll(q=>q);LOG.sort((a,b)=>(a.date||'').localeCompare(b.date||'')||num(a.sr_no)-num(b.sr_no));renderLog()}catch(e){toast('Could not load records: '+e.message,true)}}
+function renderLog(){const q=$('ls').value.toLowerCase(),m=$('lm').value;
+ const f=LOG.filter(r=>(!q||JSON.stringify(r).toLowerCase().includes(q))&&(!m||(r.date&&cycleKey(r.date)===m))),sh=f.slice(-150);
+ $('lc2').textContent=`${f.length} of ${LOG.length} records`+(f.length>150?' (showing latest 150; totals cover all)':'');
+ const fT=n=>n.toLocaleString('en-IN',{maximumFractionDigits:2}),ex=r=>r.extra||{};
+ $('lt2').innerHTML=`<thead><tr><th>Actions</th>${LC.map(c=>`<th>${LBL[c]}</th>`).join('')}${CUSTOM_COLS.map(c=>`<th>${esc(c.label)}</th>`).join('')}</tr></thead><tbody>`+sh.map(r=>`<tr data-id="${r.id}"><td><button class="soft del" data-del="${r.id}"><i class="fas fa-trash"></i></button></td>${LC.map(c=>`<td><input data-col="${c}" value="${esc(r[c]??'')}"></td>`).join('')}${CUSTOM_COLS.map(c=>`<td><input data-col="x:${c.key}" value="${esc(ex(r)[c.key]??'')}"></td>`).join('')}</tr>`).join('')+'</tbody>'+(f.length?`<tfoot><tr><td>Total (${f.length})</td>${LC.map(c=>`<td>${NUMC.has(c)&&c!=='sr_no'?fT(sum(f,c)):''}</td>`).join('')}${CUSTOM_COLS.map(c=>`<td>${c.type==='number'?fT(f.reduce((s,r)=>s+num(ex(r)[c.key]),0)):''}</td>`).join('')}</tr></tfoot>`:'')}
+$('ls').oninput=renderLog;$('lm').onchange=renderLog;$('lr').onclick=loadLog;
+$('lt2').oninput=e=>{const tr=e.target.closest('tr[data-id]');if(tr)tr.classList.add('dirty')};
+function rowPatch(tr){const p={},extra={...((LOG.find(x=>String(x.id)===tr.dataset.id)||{}).extra||{})};
+ tr.querySelectorAll('input[data-col]').forEach(i=>{const c=i.dataset.col;if(c.startsWith('x:')){const d=CUSTOM_COLS.find(z=>z.key===c.slice(2));if(d)extra[d.key]=customValue(d,i.value)}else p[c]=toDb(c,i.value)});
+ if(CUSTOM_COLS.length)p.extra=extra;return p}
+$('lsave').onclick=async()=>{const trs=[...$('lt2').querySelectorAll('tr.dirty')];if(!trs.length)return toast('No edited rows to save');let ok=0,bad=[];
+ for(const tr of trs){const{error}=await db.from(RECS).update(rowPatch(tr)).eq('id',tr.dataset.id);if(error)bad.push(error.message);else{ok++;tr.classList.remove('dirty')}}
+ setSt('lstat',`Saved ${ok} of ${trs.length} rows.`+(bad.length?' Failed: '+bad.slice(0,3).join('; '):''),bad.length?'err':'ok');if(!bad.length)loadLog()};
+$('lt2').onclick=async e=>{const d=e.target.closest('[data-del]');if(!d||!confirm('Delete this record permanently?'))return;const{error}=await db.from(RECS).delete().eq('id',d.dataset.del);if(error)return setSt('lstat','Delete failed: '+error.message,'err');toast('Record deleted');loadLog()};
+
+/* ---------- data entry: rake record form ---------- */
+const SEC=[['Basic Details',['sr_no','date','area','siding','box_type','box_type2','allotment_date','sr_seq_no','reprogram_month','loading_gcv']],['Mines Loading',['time_pt','time_ct','time_dot']],['Wagons',['supply_box','load_box','sick_box']],['Weights & GCV',['ch_wt','rr_wt','recv_wt','unloading_gcv']],['Railway Receipt',['rr_no','rr_date','fnot_no','invoice_no']],['Underload & Overload',['ul_ch','ol_ch']],['Freight & Charges',['chbl_pun_rate','pol1','pol2','pola','krba','ladc','pcla','dcla','pol_group','sd','sdcc','st','tc','fauc','ehbc_group','gst','enhc_charge','ehbc2','rr_freight_base','total_fright']]];
+const REQ=['date','area','siding'],AUTOK=['sr_no','sick_box'],INP={d:'date',h:'time',n:'number',t:'text'};
+$('nfg').innerHTML=SEC.map(([t,ks])=>`<h4>${t}</h4><div class="fg">${ks.map(k=>{const r=REQ.includes(k),au=AUTOK.includes(k);return`<div><label for="n_${k}">${LBL[k]}${r?' *':''}${au?'<span class="tag">auto</span>':''}</label>${k==='area'?`<select id="n_area" required><option value="">Select</option>${AREAS.map(a=>`<option>${a}</option>`).join('')}</select>`:`<input id="n_${k}" type="${INP[TYPE[k]]}" ${TYPE[k]==='n'?'step="any"':''} ${au?'readonly placeholder="Auto"':''} ${r?'required':''}>`}</div>`}).join('')}</div>`).join('');
+const AUTO=[['duration','Mines Loading Duration (C/T − P/T)'],['uo','Chargeable − RR Weight (MT)'],['short','Shortage Qty (RR − Received, MT)'],['shortpct','Shortage %'],['gd','GCV Difference (Loading − Unloading)'],['lg','Loading Grade (from Loading GCV)'],['ug','Unloading Grade (from Unloading GCV)'],['slip','Grade Slippage (Unloading − Loading)'],['gpm','GCV Bonus/Penalty (₹ / MT)'],['gamt','Bonus/Penalty (₹ = RR Wt × ₹/MT)']];
+$('autoBox').innerHTML=AUTO.map(([k,l])=>`<div><label for="a_${k}">${l}<span class="tag">auto</span></label><input id="a_${k}" readonly placeholder="Auto"></div>`).join('');
+function recalc(){
+ const g=k=>{const v=$('n_'+k).value;return v===''?null:Number(v)},set=(k,v)=>$('a_'+k).value=v==null||!Number.isFinite(v)?'':+v.toFixed(2);
+ const hm=t=>{if(!t)return null;const[h,m]=t.split(':').map(Number);return h*60+m},p=hm($('n_time_pt').value),c=hm($('n_time_ct').value);
+ $('a_duration').value=p!=null&&c!=null?(d=>pad(Math.floor(d/60))+':'+pad(d%60)+' hrs')((c-p+1440)%1440):'';
+ const s=g('supply_box'),l=g('load_box');$('n_sick_box').value=s!=null&&l!=null?s-l:'';
+ const ch=g('ch_wt'),rr=g('rr_wt'),rc=g('recv_wt'),lg=g('loading_gcv'),ug=g('unloading_gcv');
+ set('uo',ch!=null&&rr!=null?ch-rr:null);set('short',rr!=null&&rc!=null?rr-rc:null);set('shortpct',rr&&rc!=null?(rr-rc)*100/rr:null);set('gd',lg!=null&&ug!=null?lg-ug:null);
+ const x=gcvOf({loading_gcv:lg,unloading_gcv:ug,rr_wt:rr},settings(EP));
+ $('a_lg').value=x.l?'G-'+pad(x.l):'';$('a_ug').value=x.u?'G-'+pad(x.u):'';$('a_slip').value=x.slip==null?'':x.slip;
+ $('a_gpm').value=x.ok?x.pm.toFixed(2):'';$('a_gamt').value=x.ok&&rr!=null?x.amt.toFixed(2):''}
+$('nf').addEventListener('input',recalc);$('nf').addEventListener('change',recalc);
+async function nextSr(d){const mi=monthInfo(cycleKey(d||today()));const{data}=await db.from(RECS).select('sr_no').gte('date',mi.start).lte('date',mi.end).order('sr_no',{ascending:false}).limit(1);return(data&&data.length?num(data[0].sr_no):0)+1}
+$('n_date').addEventListener('change',async()=>{if(!EDIT_ID&&$('n_date').value)$('n_sr_no').value=await nextSr($('n_date').value)});
+let EDIT_ID=null;
+function setEdit(id){EDIT_ID=id;$('submitBtn').disabled=!!id;$('updateBtn').disabled=!id;$('editBadge').textContent=id?'Editing saved record (Sr No '+$('n_sr_no').value+') - press Update to save changes':''}
+async function resetForm(){$('nf').reset();LOADED_EXTRA={};$('n_date').value=today();setEdit(null);$('n_sr_no').value=await nextSr(today());recalc()}
+function formRow(){const r={};COLS.forEach(([k])=>{if(k!=='sr_no')r[k]=toDb(k,$('n_'+k).value)});if(CUSTOM_COLS.length)r.extra={...LOADED_EXTRA,...customFormValues()};return r}
+$('nf').onsubmit=async e=>{e.preventDefault();if(EDIT_ID)return;const r=formRow();
+ try{r.sr_no=await nextSr(r.date);const{error}=await db.from(RECS).insert(r);if(error)throw error;toast('Record saved (Sr No '+r.sr_no+')');await resetForm();loadEntry()}catch(x){toast('Save failed: '+x.message,true)}};
+$('updateBtn').onclick=async()=>{if(!EDIT_ID)return;if(!$('nf').checkValidity()){$('nf').reportValidity();return toast('Please fill Date, Area and Siding',true)}
+ const{error}=await db.from(RECS).update(formRow()).eq('id',EDIT_ID);if(error)return toast('Update failed: '+error.message,true);toast('Record updated');await resetForm();loadEntry()};
+$('clearBtn').onclick=resetForm;
+function loadIntoForm(rec){$('nf').reset();
+ COLS.forEach(([k])=>{const el=$('n_'+k);if(!el)return;let v=rec[k];if(v==null){el.value='';return}if(TYPE[k]==='h')v=String(v).slice(0,5);el.value=v});
+ fillCustomEntry(rec);setEdit(rec.id);recalc();toast('Record loaded');window.scrollTo({top:0,behavior:'smooth'})}
+async function findRec(){const by=$('sb').value,q=$('sq').value.trim();if(!q)return toast('Enter '+(by==='rr_no'?'RR No':'Sr No'),true);
+ let qy=db.from(RECS).select('*');
+ if(by==='sr_no'){if(!isNum(q))return toast('Sr No must be a number',true);const mi=monthInfo(EP);qy=qy.eq('sr_no',Number(q)).gte('date',mi.start).lte('date',mi.end)}
+ else qy=qy.ilike('rr_no',q.replace(/[\\%_]/g,'\\$&'));   // case-insensitive exact match
+ const{data,error}=await qy.limit(1);if(error)return toast('Search failed: '+error.message,true);
+ if(!data||!data.length)return toast('No record found',true);loadIntoForm(data[0])}
+$('sbtn').onclick=findRec;$('sq').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();findRec()}};
+$('sb').onchange=()=>{$('sq').placeholder=$('sb').value==='rr_no'?'Enter RR No':'Enter Sr No (of the month chosen below)';$('sq').value=''};
+
+/* ---------- data entry: targets, rates, carry forward ---------- */
+let ETG=[],EREC=[],ready=false,EDIT_VALS=null;
+const RATES=[['svcTALCHER','Service Charge TALCHER (₹ / MT)'],['svcIB','Service Charge IB (₹ / MT)'],['svcCKP','Service Charge CKP (₹ / MT)'],['qtyRate','Quantity Reco Base Rate (₹ / MT)'],['gcvBase','GCV Reco Base Rate (₹ / MT)'],['dead','Dead Freight for the month (₹)']];
+async function initEntry(){if(!ready){ready=true;$('em').value=EP;$('em').onchange=()=>{EP=$('em').value||cycleKey(today());loadEntry()};
+ $('rates').innerHTML=RATES.map(([k,l])=>`<div><label>${l}</label><input type="number" step="0.01" id="r_${k}"></div>`).join('');
+ RATES.forEach(([k])=>{let t;$('r_'+k).oninput=()=>{clearTimeout(t);t=setTimeout(()=>saveSet(k,$('r_'+k).value),600)}});
+ $('rd').onchange=async()=>{await saveSet('reportDate',$('rd').value);renderTg()};
+ $('tg').onchange=async e=>{const i=e.target;if(!i.dataset.area)return;const a=i.dataset.area;let t=ETG.find(x=>up(x.area)===a);if(!t)ETG.push(t={period:EP,area:a});t.target=num(i.value);await saveTargets();renderTg()};
+ $('carryFwd').onclick=carryFwd;
+ $('ovrField').onchange=renderOvr;$('ovrSwitch').onchange=onOvrSwitch;$('ovrSave').onclick=saveOvr;$('ovrReset').onclick=()=>resetOvr($('ovrField').value);
+ $('ovrValue').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();saveOvr()}};$('ovrTbl').onclick=e=>{const b=e.target.closest('[data-ovr-reset]');if(b)resetOvr(b.dataset.ovrReset)};}
+ await resetForm();await loadEntry();
+ if(PENDING_FILL!=null){const id=PENDING_FILL;PENDING_FILL=null;const{data}=await db.from(RECS).select('*').eq('id',id).limit(1);if(data&&data.length)loadIntoForm(data[0])}}
+async function loadEntry(){try{const mi=monthInfo(EP);[EREC,ETG]=await Promise.all([fetchAll(q=>q.gte('date',mi.start).lte('date',mi.end)),db.from(TGT).select('*').eq('period',EP).then(unwrap)]);
+ await loadVals([EP]);const s=settings(EP);RATES.forEach(([k])=>$('r_'+k).value=s[k]);$('rd').value=(SET[EP]||{}).reportDate||today();renderTg();recalc()}catch(e){toast('Could not load month: '+e.message,true)}}
+function renderTg(){const o=C(EP,EREC,ETG);$('tg').innerHTML=AREAS.map(a=>`<tr><td>${a}</td><td><input type="number" min="0" data-area="${a}" value="${o.A[a].tg}"></td><td>${o.A[a].ld}</td><td>${o.A[a].bal}</td><td>${f2(o.A[a].ask)}</td></tr>`).join('');renderOvr()}
+async function saveTargets(){const{error}=await db.from(TGT).upsert(AREAS.map(x=>({period:EP,area:x,target:num((ETG.find(y=>up(y.area)===x)||{}).target)})),{onConflict:'period,area'});setSt('es',error?'Target save failed: '+error.message:'Targets saved',error?'err':'ok')}
+async function saveSet(k,v){const{error}=await db.from(VAL).upsert([{period_key:EP,field_key:k,field_value:String(v??'')}],{onConflict:'period_key,field_key'});if(error)return toast('Save failed: '+error.message,true);(SET[EP]=SET[EP]||{})[k]=String(v??'');setSt('es','Saved','ok');renderTg();recalc()}
+// Carry forward: this month's target = previous month's target − rakes it loaded (never below 0)
+async function carryFwd(){if(!confirm("Replace this month's targets with the previous month's balance?"))return;
+ const prev=shiftMonth(EP,-1),pi=monthInfo(prev);
+ try{const[recs,tg]=await Promise.all([fetchAll(q=>q.gte('date',pi.start).lte('date',pi.end)),db.from(TGT).select('*').eq('period',prev).then(unwrap)]);
+  if(!tg.length)return toast('No saved targets for previous month',true);
+  const o=compute(prev,recs,tg,()=>undefined,pi.end);
+  AREAS.forEach(a=>{let t=ETG.find(x=>up(x.area)===a);if(!t)ETG.push(t={period:EP,area:a});t.target=Math.max(0,o.A[a].tg-o.A[a].ld)});
+  await saveTargets();renderTg()}catch(e){toast('Carry forward failed: '+e.message,true)}}
+
+/* ---------- manual override ---------- */
+const OF=[...[['b-qty','Billing: Quantity Reco'],['b-gcv','Billing: GCV Reco']].flatMap(([i,l])=>[[i,l+' (₹)'],[i+'-mt',l+' (₹/MT)']]),
+ ...AREAS.map(a=>['b-svc-'+a,'Billing: Service Charge '+a+' (₹)']),
+ ...[['b-pen','Billing: Total Railway Penalty'],['b-total','Billing: TOTAL BILLING']].flatMap(([i,l])=>[[i,l+' (₹)'],[i+'-mt',l+' (₹/MT)']]),
+ ['b-exp','Billing: Expected Billing of the Month (₹)'],['w-ch','Weights: Avg. CH.Wt.'],['w-rr','Weights: Avg. RR.Wt.'],['w-recv','Weights: Avg. Plant Rec. Wt.'],['w-totrr','Weights: TOTAL RR WEIGHT'],['w-totrecv','Weights: PLANT RECEIVE'],
+ ['s-pct','Shortage: Avg Shrt / Excess (%)'],['s-mt','Shortage: MT per rake'],
+ ...[['p-ul','Underload Charge'],['p-ol','Overload Charge'],['p-pun','Punitive Sum'],['p-ehbc','EHBC / FAUC / TC'],['p-enhc','ENHC Charges'],['p-dead','Dead Freight'],['p-total','TOTAL PENALTY']].flatMap(([i,l])=>[[i,'Penalty: '+l+' (₹)'],[i+'-mt','Penalty: '+l+' (₹/MT)']])];
+const OL=Object.fromEntries(OF),OK=()=>'ovr-m:'+EP;
+function renderOvr(){const sel=$('ovrField');if(!sel.options.length)sel.innerHTML=OF.map(([i,l])=>`<option value="${i}">${esc(l)}</option>`).join('');
+ const list=OVR[OK()]||{},id=sel.value;$('ovrSwitch').checked=id in list;if(document.activeElement!==$('ovrValue'))$('ovrValue').value=id in list?list[id]:'';
+ $('ovrNote').textContent='Applies to '+plabel(EP)+' only.';const ids=Object.keys(list);
+ $('ovrTbl').innerHTML=ids.length?`<thead><tr><th>Dashboard value</th><th>Manual value</th><th>Applies to</th><th></th></tr></thead><tbody>`+ids.map(i=>`<tr><td style="text-align:left">${esc(OL[i]||i)}</td><td>${Number(list[i]).toLocaleString('en-IN',{maximumFractionDigits:2})}</td><td>${plabel(EP)}</td><td><button class="soft sm del" data-ovr-reset="${i}"><i class="fas fa-rotate-left"></i> Reset to formula</button></td></tr>`).join('')+'</tbody>':'<tbody><tr><td class="empty" style="padding:1rem">No manual values for this month. Formulas are in use.</td></tr></tbody>'}
+async function saveOvr(){const id=$('ovrField').value,raw=$('ovrValue').value.trim();if(!isNum(raw))return setSt('ovrStatus','Type a number for the manual value','err');
+ const{error}=await db.from(VAL).upsert([{period_key:OK(),field_key:id,field_value:String(Number(raw))}],{onConflict:'period_key,field_key'});
+ if(error)return setSt('ovrStatus','Save failed: '+error.message,'err');(OVR[OK()]=OVR[OK()]||{})[id]=Number(raw);setSt('ovrStatus','Manual value saved','ok');toast('Manual value saved');renderTg()}
+async function resetOvr(id){const{error}=await db.from(VAL).delete().eq('period_key',OK()).eq('field_key',id);if(error)return setSt('ovrStatus','Reset failed: '+error.message,'err');
+ if(OVR[OK()])delete OVR[OK()][id];setSt('ovrStatus',(OL[id]||id)+' is back on its formula','ok');toast('Formula restored');renderTg()}
+function onOvrSwitch(){const id=$('ovrField').value;if($('ovrSwitch').checked){$('ovrValue').focus();return}if(OVR[OK()]&&id in OVR[OK()])resetOvr(id);else renderOvr()}
+
+/* ---------- formulas sheet ---------- */
+function renderFormulas(){
+ $('tierTbl').innerHTML=`<thead><tr><th>If materialisation is at least (%)</th><th>Rate change (% of base)</th></tr></thead><tbody>`+FORM.matTiers.map((t,i)=>`<tr><td><input type="number" step="0.01" data-tier="${i}" data-k="min" value="${t[0]}"></td><td><input type="number" step="0.01" data-tier="${i}" data-k="pct" value="${t[1]}"></td></tr>`).join('')+'</tbody>';
+ $('slipTbl').innerHTML=`<thead><tr><th>Grade slippage</th><th>GCV reco change (% of base)</th></tr></thead><tbody>`+FORM.gcvSlip.map((p,i)=>`<tr><td>${i}</td><td><input type="number" step="0.01" data-slip="${i}" value="${p}"></td></tr>`).join('')+'</tbody>';
+ $('fMatTop').value=FORM.matTop;$('fMatBelow').value=FORM.matBelow;$('fSlipAbove').value=FORM.gcvSlipAbove}
+$('saveF').onclick=async()=>{const tiers=[],slip=[];
+ document.querySelectorAll('#tierTbl input[data-tier]').forEach(i=>{const n=+i.dataset.tier;tiers[n]=tiers[n]||[0,0];tiers[n][i.dataset.k==='min'?0:1]=Number(i.value)});
+ document.querySelectorAll('#slipTbl input[data-slip]').forEach(i=>{slip[+i.dataset.slip]=Number(i.value)});
+ const next={matTop:Number($('fMatTop').value),matTiers:tiers,matBelow:Number($('fMatBelow').value),gcvSlip:slip,gcvSlipAbove:Number($('fSlipAbove').value)};
+ if(!(await saveGlobal('formulas',next)))return;mergeF(next);toast('Formulas saved');loadDash()};
+
+/* ---------- custom columns + alert columns ---------- */
+const TYPE_NAME={text:'Text',number:'Number',date:'Date',select:'Dropdown'},isCustomKey=k=>String(k).startsWith('cf_'),customDef=k=>CUSTOM_COLS.find(c=>c.key===k);
+const allColumnDefs=()=>[...COLS.filter(c=>c[0]!=='sr_no').map(c=>({key:c[0],label:c[1]})),...CUSTOM_COLS.map(c=>({key:c.key,label:c.label}))];
+const colLabel=k=>{const d=allColumnDefs().find(x=>x.key===k);return d?d.label:k};
+const valOf=(r,k)=>isCustomKey(k)?(r.extra||{})[k]:r[k];
+const alertFields=()=>ALERT_KEYS.filter(k=>!isCustomKey(k)||customDef(k)).map(k=>[k,colLabel(k)]);
+let CUSTOM_SIG=null;
+function renderCustomEntry(){const sig=JSON.stringify(CUSTOM_COLS);if(sig===CUSTOM_SIG)return;CUSTOM_SIG=sig;const box=$('customEntry');if(!box)return;
+ box.innerHTML=CUSTOM_COLS.length?`<h4>Custom Columns</h4><div class="fg">${CUSTOM_COLS.map(c=>{const id='f_'+c.key;
+  const inp=c.type==='select'?`<select class="field" id="${id}"><option value="">Select</option>${(c.options||[]).map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join('')}</select>`:`<input class="field" id="${id}" type="${c.type==='number'?'number':c.type==='date'?'date':'text'}"${c.type==='number'?' step="any"':''}>`;
+  return`<div><label for="${id}">${esc(c.label)}</label>${inp}</div>`}).join('')}</div>`:''}
+function customValue(c,raw){const v=String(raw??'').trim();if(v==='')return null;if(c.type==='number'){const n=Number(v.replace(/,/g,''));return isNaN(n)?null:n}return v}
+function customFormValues(){const o={};CUSTOM_COLS.forEach(c=>{const el=$('f_'+c.key);if(el)o[c.key]=customValue(c,el.value)});return o}
+function fillCustomEntry(rec){LOADED_EXTRA={...(rec.extra||{})};CUSTOM_COLS.forEach(c=>{const el=$('f_'+c.key);if(el){const v=LOADED_EXTRA[c.key];el.value=v==null?'':v}})}
+function renderCustomAdmin(){const l=$('ccList');
+ l.innerHTML=CUSTOM_COLS.length?CUSTOM_COLS.map(c=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:.5rem .8rem;border:1px solid var(--line);border-radius:12px;margin-top:.4rem;background:var(--zebra)"><span><b>${esc(c.label)}</b> &middot; ${TYPE_NAME[c.type]||esc(c.type)}${c.type==='select'?' &middot; '+esc((c.options||[]).join(', ')):''}</span><button class="soft sm del" data-cc-del="${esc(c.key)}"><i class="fas fa-trash"></i> Remove</button></div>`).join(''):'<p class="muted" style="margin-top:.8rem">No custom columns yet.</p>';
+ const defs=allColumnDefs(),chosen=ALERT_KEYS.filter(k=>defs.some(d=>d.key===k));
+ $('alertPick').innerHTML='<option value="">Select a column...</option>'+defs.filter(d=>!chosen.includes(d.key)).map(d=>`<option value="${esc(d.key)}">${esc(d.label)}</option>`).join('');
+ $('alertChips').innerHTML=chosen.length?chosen.map(k=>`<span class="chip">${esc(colLabel(k))} <button type="button" data-alert-rm="${esc(k)}">&times;</button></span>`).join(''):'<span class="muted">No alert columns selected. The bell shows nothing.</span>'}
+async function addCustomColumn(){const label=$('ccLabel').value.trim(),type=$('ccType').value;if(!label)return toast('Type a column name',true);
+ if(CUSTOM_COLS.some(c=>c.label.toLowerCase()===label.toLowerCase()))return toast('A column with this name already exists',true);
+ const options=type==='select'?$('ccOpts').value.split(',').map(s=>s.trim()).filter(Boolean):[];if(type==='select'&&!options.length)return toast('Type the dropdown options separated by commas',true);
+ const next=[...CUSTOM_COLS,{key:'cf_'+Date.now().toString(36),label,type,options}];if(!(await saveGlobal('custom_cols',next)))return;
+ CUSTOM_COLS=next;$('ccLabel').value='';$('ccOpts').value='';toast('Column added');renderCustomEntry();renderCustomAdmin();loadAlerts()}
+async function removeCustomColumn(key){if(!confirm('Remove this column from the forms? Values already saved stay in the database.'))return;
+ const next=CUSTOM_COLS.filter(c=>c.key!==key),na=ALERT_KEYS.filter(k=>k!==key);if(!(await saveGlobal('custom_cols',next)))return;await saveGlobal('alert_cols',na);
+ CUSTOM_COLS=next;ALERT_KEYS=na;renderCustomEntry();renderCustomAdmin();loadAlerts();toast('Column removed')}
+async function setAlertKeys(next){if(!(await saveGlobal('alert_cols',next)))return;ALERT_KEYS=next;renderCustomAdmin();loadAlerts()}
+document.addEventListener('click',e=>{if(e.target.closest('#ccAdd'))return addCustomColumn();const d=e.target.closest('[data-cc-del]');if(d)return removeCustomColumn(d.dataset.ccDel);
+ if(e.target.closest('#alertAdd')){const k=$('alertPick').value;if(k){setAlertKeys([...ALERT_KEYS.filter(x=>x!==k),k]);toast('Alert column added')}return}
+ const r=e.target.closest('[data-alert-rm]');if(r){setAlertKeys(ALERT_KEYS.filter(x=>x!==r.dataset.alertRm));toast('Alert column removed')}});
+document.addEventListener('change',e=>{if(e.target&&e.target.id==='ccType')$('ccOptsWrap').classList.toggle('hidden',e.target.value!=='select')});
+
+/* ---------- alert bell: rakes with a selected column still empty ---------- */
+const isBlank=v=>v===null||v===undefined||String(v).trim()==='';
+let ALERTS=[],ALERT_SEL=null;
+async function loadAlertRows(){const F=alertFields();if(!F.length)return[];
+ if(F.some(([k])=>isCustomKey(k)))return fetchAll(q=>q);   // custom values live in the extra JSON, so check in the browser
+ const{data,error}=await db.from(RECS).select('*').or(F.map(([k])=>k+'.is.null').join(',')).order('date',{ascending:false}).limit(300);if(error)throw error;return data||[]}
+async function loadAlerts(){try{const F=alertFields(),data=await loadAlertRows();
+ ALERTS=data.map(r=>({r,miss:F.filter(([k])=>isBlank(valOf(r,k)))})).filter(x=>x.miss.length);
+ $('bb').textContent=ALERTS.length>99?'99+':ALERTS.length;$('bb').classList.toggle('hidden',!ALERTS.length);if(!$('alertModal').classList.contains('hidden'))renderAlerts()}catch(e){console.warn('Alerts not loaded',e)}}
+function renderAlerts(){const tabs=$('alertTabs'),body=$('alertBody');
+ if(!ALERTS.length){tabs.innerHTML='';body.innerHTML='<p class="muted">All rakes have their details received. Nothing pending.</p>';return}
+ if(!ALERTS.some(x=>String(x.r.id)===String(ALERT_SEL)))ALERT_SEL=ALERTS[0].r.id;
+ tabs.innerHTML=ALERTS.map(x=>`<button class="atab ${String(x.r.id)===String(ALERT_SEL)?'active':''}" data-id="${esc(x.r.id)}">${esc(x.r.rr_no||('Sr '+(x.r.sr_no??'-')))}<small>${x.miss.length}</small></button>`).join('');
+ const cur=ALERTS.find(x=>String(x.r.id)===String(ALERT_SEL)),r=cur.r;
+ body.innerHTML=`<div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.8rem">${[['RR No',r.rr_no||'-'],['Sr No',r.sr_no??'-'],['Date',r.date||'-'],['Area',r.area||'-'],['Siding',r.siding||'-']].map(([k,v])=>`<span class="chip">${k}: ${esc(v)}</span>`).join('')}</div>`+
+  cur.miss.map(([k,l])=>`<div class="amiss"><span>${esc(l)}</span><span>Not received</span></div>`).join('')+
+  `<button class="btn" style="margin-top:.8rem" data-fill="${esc(r.id)}"><i class="fas fa-pen-to-square"></i> Fill up (Sr No ${esc(r.sr_no??'-')})</button>`}
+$('bellBtn').onclick=()=>{$('alertModal').classList.remove('hidden');renderAlerts()};$('alertClose').onclick=()=>$('alertModal').classList.add('hidden');
+$('alertModal').onclick=e=>{if(e.target.id==='alertModal')return $('alertModal').classList.add('hidden');
+ const f=e.target.closest('[data-fill]');if(f){PENDING_FILL=f.dataset.fill;$('alertModal').classList.add('hidden');showView('entry');return}   // asks for the password first if locked
+ const t=e.target.closest('.atab');if(t){ALERT_SEL=t.dataset.id;renderAlerts()}};
+
+/* ---------- init ---------- */
+fillPick();loadDash();
+setInterval(()=>{if(!document.hidden&&$('view-dash').classList.contains('active'))loadDash()},30000);
+</script></body></html>
