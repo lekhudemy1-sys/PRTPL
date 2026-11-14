@@ -243,7 +243,7 @@ function compute(p,recs,tg,ovr=()=>undefined,repForce){
   const wr=rs.filter(r=>num(r.recv_wt)>0),rr=sum(rs,'rr_wt');
   A[a]={tg:T,ld,bal:T-ld,ask:dr?(T-ld)/dr:0,rr,n:rs.length,lg:wAvg(rs,'loading_gcv','rr_wt'),ug:wAvg(rs,'unloading_gcv','rr_wt'),
    pun:sum(rs,'pol_group'),eh:sum(rs,'ehbc_group'),en:sum(rs,'enhc_charge'),sh:wr.length?(sum(wr,'rr_wt')-sum(wr,'recv_wt'))/wr.length:0,svc:pk('b-svc-'+a,rr*S['svc'+a])}});
- const L=Object.values(A),rrAll=sum(m,'rr_wt'),rrQty=m.reduce((v,r)=>v+num(r.rr_qty!==undefined&&r.rr_qty!==null?r.rr_qty:r.rr_wt),0),wr=m.filter(r=>num(r.recv_wt)>0),rrR=sum(wr,'rr_wt'),recv=sum(wr,'recv_wt');
+ const L=Object.values(A),tgAll=sum(L,'tg'),ldAll=sum(L,'ld'),rrAll=sum(m,'rr_wt'),rrQty=m.reduce((v,r)=>v+num(r.rr_qty!==undefined&&r.rr_qty!==null?r.rr_qty:r.rr_wt),0),wr=m.filter(r=>num(r.recv_wt)>0),rrR=sum(wr,'rr_wt'),recv=sum(wr,'recv_wt');
  const LQTY_TARGET=97000,mat=LQTY_TARGET?rrQty*100/LQTY_TARGET:0,tier=matPct(mat);
  const qty=pk('b-qty',rrAll*S.qtyRate*tier/100);
  const gk=m.map(r=>gcvOf(r,S)).map((x,i)=>({...x,rr:num(m[i].rr_wt)})).filter(x=>x.ok),gcvRR=gk.reduce((s,x)=>s+x.rr,0),gcv=pk('b-gcv',gk.reduce((s,x)=>s+x.amt,0));
