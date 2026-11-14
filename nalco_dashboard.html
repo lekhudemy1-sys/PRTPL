@@ -169,12 +169,12 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(31,111,209,.28
 <p class="muted">Contract period is 10 Oct to 13 Nov 2026 (35 days). RR = RR weight, Recv = received weight.</p>
 <ul class="formula-list">
 <li>Target of Contract, Rake Loaded Till, Balance Rake, Asking Per Day = per area (TALCHER, IB, CKP). Loaded counts rakes up to the report date. Asking per day = balance ÷ days from today to the 3rd of next month.</li>
-<li>Materialisation % = total loaded ÷ total target × 100. Quantity Reco = total RR weight × Quantity base rate × tier % (tiers above).</li>
+<li>Materialisation % = total RR Qty ÷ 97,000 × 100. Rake Performance shows achieved RR Qty against the 97,000 quantity target. Quantity Reco = total RR weight × Quantity base rate × tier % (tiers above).</li>
 <li>Grade of a rake comes from its GCV: above 7000 = G-01, above 6700 = G-02, then every 300 lower (G-17 above 2200). Grade Slippage = Unloading Grade − Loading Grade. GCV Bonus/Penalty (₹/MT) = GCV base rate × slippage % ÷ 100. Bonus/Penalty (₹) = RR weight × that ₹/MT.</li>
 <li>Performance on GCV Reco = sum of Bonus/Penalty (₹) of the month's rakes. Rakes with a missing GCV or negative slippage are left out.</li>
 <li>Service Charge (each area) = RR weight of that area × service rate (Data Entry).</li>
 <li>Total Railway Penalty = Underload + Overload + Punitive (POL) + EHBC/FAUC/TC + ENHC + Dead Freight (typed per contract).</li>
-<li>TOTAL BILLING = Quantity Reco + GCV Reco + Service Charges − Total Railway Penalty. Per MT = amount ÷ total RR weight (GCV Reco ÷ RR weight of rakes counted). Expected Billing = TOTAL BILLING ÷ days passed × days in contract.</li>
+<li>TOTAL BILLING = Quantity Reco + GCV Reco + Service Charges − Total Railway Penalty. Per MT = amount ÷ total RR weight (GCV Reco ÷ RR weight of rakes counted). Expected Billing = TOTAL BILLING (contract is closed, so expected billing equals achieved billing).</li>
 <li>Shortage % = (RR − Recv) × 100 ÷ RR over rakes with received weight. Shortage MT per rake = (RR − Recv) ÷ number of those rakes.</li>
 <li>Area Wise: GCV = RR-weighted GCV; Quality Diff. = Loading GCV − Unloading GCV; Per Ton Cost = (POL + EHBC + ENHC) ÷ RR of that area.</li>
 </ul></div></section>
@@ -243,18 +243,18 @@ function compute(p,recs,tg,ovr=()=>undefined,repForce){
   const wr=rs.filter(r=>num(r.recv_wt)>0),rr=sum(rs,'rr_wt');
   A[a]={tg:T,ld,bal:T-ld,ask:dr?(T-ld)/dr:0,rr,n:rs.length,lg:wAvg(rs,'loading_gcv','rr_wt'),ug:wAvg(rs,'unloading_gcv','rr_wt'),
    pun:sum(rs,'pol_group'),eh:sum(rs,'ehbc_group'),en:sum(rs,'enhc_charge'),sh:wr.length?(sum(wr,'rr_wt')-sum(wr,'recv_wt'))/wr.length:0,svc:pk('b-svc-'+a,rr*S['svc'+a])}});
- const L=Object.values(A),rrAll=sum(m,'rr_wt'),wr=m.filter(r=>num(r.recv_wt)>0),rrR=sum(wr,'rr_wt'),recv=sum(wr,'recv_wt');
- const tgAll=sum(L,'tg'),ldAll=sum(L,'ld'),mat=tgAll?ldAll*100/tgAll:0,tier=tgAll?matPct(mat):0;
+ const L=Object.values(A),rrAll=sum(m,'rr_wt'),rrQty=m.reduce((v,r)=>v+num(r.rr_qty!==undefined&&r.rr_qty!==null?r.rr_qty:r.rr_wt),0),wr=m.filter(r=>num(r.recv_wt)>0),rrR=sum(wr,'rr_wt'),recv=sum(wr,'recv_wt');
+ const LQTY_TARGET=97000,mat=LQTY_TARGET?rrQty*100/LQTY_TARGET:0,tier=matPct(mat);
  const qty=pk('b-qty',rrAll*S.qtyRate*tier/100);
  const gk=m.map(r=>gcvOf(r,S)).map((x,i)=>({...x,rr:num(m[i].rr_wt)})).filter(x=>x.ok),gcvRR=gk.reduce((s,x)=>s+x.rr,0),gcv=pk('b-gcv',gk.reduce((s,x)=>s+x.amt,0));
  const pen={ul:pk('p-ul',sum(m,'ul_ch')),ol:pk('p-ol',sum(m,'ol_ch')),pun:pk('p-pun',sum(m,'pol_group')),ehbc:pk('p-ehbc',sum(m,'ehbc_group')),enhc:pk('p-enhc',sum(m,'enhc_charge')),dead:pk('p-dead',S.dead)};
  const penSum=Object.values(pen).reduce((a,b)=>a+b,0),bp=ovr('b-pen'),penT=pk('p-total',bp!==undefined?-bp:penSum);
- const gross=qty+gcv+sum(L,'svc'),tot=pk('b-total',gross-penT),exp=pk('b-exp',dp?tot/dp*mi.dim:0);
+ const gross=qty+gcv+sum(L,'svc'),tot=pk('b-total',gross-penT),exp=tot;
  const mt=(id,a)=>pk(id+'-mt',rrAll?a/rrAll:0);
  const pm={qty:mt('b-qty',qty),gcv:pk('b-gcv-mt',gcvRR?gcv/gcvRR:0),pen:pk('b-pen-mt',rrAll?-penT/rrAll:0),tot:mt('b-total',tot)};
  const pmp={};Object.keys(pen).forEach(k=>pmp[k]=mt('p-'+k,pen[k]));pmp.total=mt('p-total',penT);
  const avgCh=m.length?sum(m,'ch_wt')/m.length:0;
- return{p,S,A,L,m,rep,dp,dr,dim:mi.dim,n:m.length,rrAll,rrR,recv,pen,penT,pm,pmp,qty,gcv,gross,tot,exp,tgAll,ldAll,tier,
+ return{p,S,A,L,m,rep,dp,dr,dim:mi.dim,n:m.length,rrAll,rrQty,rrR,recv,pen,penT,pm,pmp,qty,gcv,gross,tot,exp,tgAll,ldAll,tier,
   mat,perDay:dp?ldAll/dp:0,askDay:sum(L,'ask'),reqDay:tgAll/mi.dim,
   shPct:pk('s-pct',rrR?(rrR-recv)*100/rrR:0),shMt:pk('s-mt',wr.length?(rrR-recv)/wr.length:0),
   w:{ch:pk('w-ch',avgCh),rr:pk('w-rr',m.length?rrAll/m.length:0),recv:pk('w-recv',wr.length?recv/wr.length:0),totrr:pk('w-totrr',rrAll),totrecv:pk('w-totrecv',recv)}}}
@@ -294,7 +294,7 @@ function render(o,trend){
   row('Performance on Quantity Reco',o.qty,o.pm.qty,'','b-qty')+row('Performance on GCV Reco',o.gcv,o.pm.gcv,'','b-gcv')+
   AREAS.map(a=>row('Performance on Service Charge '+a,A[a].svc,o.S['svc'+a],'','b-svc-'+a)).join('')+
   row('Total Railway Penalty',-o.penT,o.pm.pen,'','b-pen')+row('TOTAL BILLING',o.tot,o.pm.tot,'tot','b-total')+row1('Expected Billing of the Contract',o.exp,fInt,'','b-exp'));
- const rake=card('fa-train','Rake Performance',gtab(['Achieve','Target'],[['Materialisation',[o.mat,100],fPct],['Rakes per day',[o.perDay,o.reqDay],f2],['Asking per day',[o.askDay,o.reqDay],f2]]));
+ const rake=card('fa-train','Rake Performance',gtab(['Achieve','Target'],[['Quantity (RR Qty)',[o.rrQty,97000],fInt],['Materialisation',[o.mat,100],fPct],['Rakes per day',[o.perDay,o.reqDay],f2],['Asking per day',[o.askDay,o.reqDay],f2]]));
  const plants=card('fa-map-marker-alt','Areas',gtab(AREAS,[['Target of Contract',AREAS.map(a=>A[a].tg),fInt],['Rake Loaded Till',AREAS.map(a=>A[a].ld),fInt],['Balance Rake',AREAS.map(a=>A[a].bal),fInt],['Asking Per Day',AREAS.map(a=>A[a].ask),f2]]));
  const wt=card('fa-weight-scale','Weights',row1('Avg. CH.Wt.',W.ch,f2,'','w-ch')+row1('Avg. RR.Wt.',W.rr,f2,'','w-rr')+row1('Avg. Plant Rec. Wt.',W.recv,f2,'','w-recv')+row1('TOTAL RR WEIGHT',W.totrr,f2,'tot','w-totrr')+row1('PLANT RECEIVE',W.totrecv,f2,'tot','w-totrecv'));
  const sh=card('fa-balance-scale','Shortage / Excess Coal',row1('Avg Shrt / Excess (%)',o.shPct,f2,'','s-pct')+row1('Shortage / Excess MT per rake',o.shMt,f2,'','s-mt')+gtab(AREAS,[['Loading GCV',AREAS.map(a=>A[a].lg),f2],['Unloading GCV',AREAS.map(a=>A[a].ug),f2],['GCV Difference',AREAS.map(a=>A[a].lg&&A[a].ug?A[a].lg-A[a].ug:0),f2]])+row1('Avg Unloading GCV',wAvgArr(o.L),f2,'tot'));
