@@ -1641,7 +1641,9 @@ function renderSummary() {
   for (const area of areas()) {
     const sidings = uniqueOrdered(allData.filter(r => r.area === area).map(r => r.sttn_from)).filter(s => isOn(area, "sttn_from", s));
     for (const s of sidings) {
-      const n = cnt.get(area + "|" + s) || 0; total += n;
+      const n = cnt.get(area + "|" + s) || 0;
+      if (!n) continue;                                 // show only sidings that have HZL rakes
+      total += n;
       rows.push({ area, s, n, dvs: dvsRow(area, s)?.value || "" });
     }
   }
