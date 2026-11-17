@@ -1831,8 +1831,10 @@ textarea::placeholder{color:var(--mute)}
     { t: 'Pending rakes and KSK', q: ['pending rakes hzl odr', 'ksk inward and dispatch month wise'] }
   ];
   const RECENT_KEY = 'prai-recent';
-  const readRecent = () => { try { return JSON.parse(localStorage.getItem(RECENT_KEY)) || []; } catch (e) { return []; } };
-  const pushRecent = q => { try { const a = readRecent().filter(x => x !== q); a.unshift(q); localStorage.setItem(RECENT_KEY, JSON.stringify(a.slice(0, 6))); } catch (e) { } };
+  /* "show activity" is never kept in recent questions, including ones saved before this rule existed */
+  const NO_RECENT_RE = /^\s*show\s+activity\s*$/i;
+  const readRecent = () => { try { return (JSON.parse(localStorage.getItem(RECENT_KEY)) || []).filter(x => !NO_RECENT_RE.test(String(x))); } catch (e) { return []; } };
+  const pushRecent = q => { try { if (NO_RECENT_RE.test(String(q))) return; const a = readRecent().filter(x => x !== q); a.unshift(q); localStorage.setItem(RECENT_KEY, JSON.stringify(a.slice(0, 6))); } catch (e) { } };
   const plainText = res => [res.headline].concat(res.rows && res.rows.length ? [res.cols.map(c => c.label).join('\t')].concat(res.rows.concat(res.total ? [res.total] : []).map(r => res.cols.map(c => cell(res, c, r)).join('\t'))) : []).concat(res.notes || []).join('\n');
 
   function mountV2() {
