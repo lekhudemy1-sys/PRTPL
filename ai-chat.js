@@ -1437,6 +1437,7 @@
 
   /* ===== full backup: every table in all three projects, one zip (send "need backup") ===== */
   const BACKUP_RE = /\bback[\s-]?up\b/i;
+  const ACTIVITY_RE = /^\s*show\s+activity\s*$/i;
   const BK_DB = { jz: 'jz (dispatch, daily loading, ODR)', pc: 'pc (HZL, Gujarat, PJPB)', lf: 'lf (KSK, Jhabua)', nl: 'nl (NALCO MIS)' };
   // Folder for each known table. Any table the database exposes that is not listed goes to "other".
   const BK_FOLDER = {
@@ -2069,6 +2070,13 @@ textarea::placeholder{color:var(--mute)}
       addUser(secret ? '••••••••' : q); ta.value = ''; ta.style.height = '';
       setBusy(true);
       if (!secret && BACKUP_RE.test(q)) { await askBackup(); setBusy(false); defaultQuick(); ta.focus(); return; }
+      /* "show activity" opens the console. Exact phrase only: never suggested as a chip, never kept in recent questions. */
+      if (!secret && ACTIVITY_RE.test(q)) {
+        addBot({ kind: 'text', headline: 'Opening the console.', notes: [] });
+        setBusy(false); ta.focus();
+        setTimeout(function () { location.href = 'sys-health-7c1e.html'; }, 600);
+        return;
+      }
       const th = addThinking(), t0 = Date.now();
       let res = null, err = null;
       try { res = secret ? await secret(q) : await answer(q); } catch (e) { err = e; }

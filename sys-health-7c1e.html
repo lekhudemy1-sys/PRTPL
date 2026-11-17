@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="robots" content="noindex, nofollow, noarchive" />
+<meta name="referrer" content="no-referrer" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sys Health</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg:#02070a; --panel:#06130f; --line:#0d3b2a; --txt:#8dffc0; --mute:#3f8a68;
+  --acc:#00e5ff; --ok:#39ff88; --warn:#ffb000; --bad:#ff3d5a; --glow:0 0 12px rgba(57,255,136,.35);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--txt);font-family:'JetBrains Mono',ui-monospace,Consolas,monospace;font-size:13px;min-height:100%}
+body{overflow-x:hidden}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:99;
+  background:repeating-linear-gradient(to bottom,rgba(0,0,0,0) 0,rgba(0,0,0,0) 2px,rgba(0,0,0,.18) 3px);opacity:.5}
+::selection{background:var(--ok);color:#000}
+a{color:var(--acc)}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;background:transparent;border:1px solid var(--ok);color:var(--ok);padding:7px 12px;letter-spacing:.06em;text-transform:uppercase;transition:background .15s,color .15s}
+button:hover:not(:disabled){background:var(--ok);color:#000;box-shadow:var(--glow)}
+button:disabled{opacity:.4;cursor:not-allowed}
+input,select{background:#020b08;border:1px solid var(--line);padding:7px 9px;color:var(--txt);min-width:0}
+input:focus,select:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 1px var(--acc)}
+.wrap{padding:16px;max-width:1280px;margin:0 auto}
+.bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;border:1px solid var(--line);background:var(--panel);padding:10px 14px}
+.brand{font-weight:700;letter-spacing:.12em;color:var(--ok);text-shadow:var(--glow)}
+.brand span{color:var(--acc)}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--mute);display:inline-block;flex:none}
+.dot.on{background:var(--ok);box-shadow:0 0 8px var(--ok);animation:pulse 1.6s infinite}
+.dot.idle{background:var(--warn)}
+.dot.off{background:var(--mute)}
+@keyframes pulse{50%{opacity:.35}}
+.grow{flex:1}
+.clock{color:var(--mute)}
+.grid{display:grid;gap:12px;margin-top:12px}
+.stats{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.tile{border:1px solid var(--line);background:var(--panel);padding:12px;position:relative;overflow:hidden}
+.tile::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--ok)}
+.tile.bad::before{background:var(--bad)} .tile.warn::before{background:var(--warn)} .tile.acc::before{background:var(--acc)}
+.tile .k{color:var(--mute);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+.tile .v{font-size:24px;font-weight:700;margin-top:4px;color:var(--txt)}
+.tile.bad .v{color:var(--bad)} .tile.warn .v{color:var(--warn)}
+.panel{border:1px solid var(--line);background:var(--panel);margin-top:12px}
+.ph{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 12px;border-bottom:1px solid var(--line);color:var(--acc);letter-spacing:.08em;text-transform:uppercase}
+.ph .grow{flex:1}
+.pb{padding:12px}
+.devs{grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
+.dev{border:1px solid var(--line);padding:10px;background:#03100c}
+.dev .n{font-weight:700;color:var(--txt);word-break:break-all}
+.dev .r{display:flex;justify-content:space-between;gap:8px;color:var(--mute);margin-top:4px;font-size:12px}
+.dev .r b{color:var(--txt);font-weight:500;text-align:right;word-break:break-all}
+.tag{display:inline-block;border:1px solid currentColor;padding:0 6px;font-size:11px;letter-spacing:.06em}
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.filters input[type=search]{flex:1;min-width:140px}
+.tbl{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;min-width:720px}
+th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--acc);font-weight:500;letter-spacing:.08em;text-transform:uppercase;font-size:11px;position:sticky;top:0;background:var(--panel)}
+td.d{word-break:break-word;max-width:520px}
+tr.alert td{background:rgba(255,61,90,.09)}
+tr.alert td:first-child{box-shadow:inset 3px 0 var(--bad)}
+tr.warn td{background:rgba(255,176,0,.07)}
+tr.warn td:first-child{box-shadow:inset 3px 0 var(--warn)}
+.k-login{color:var(--acc)} .k-write{color:var(--ok)} .k-download,.k-image_download{color:var(--warn)} .k-page_view{color:var(--mute)} .k-page_close{color:var(--mute)} .k-print{color:#c8a2ff} .k-rpc{color:#7fd1ff}
+.mute{color:var(--mute)}
+.empty{padding:26px;text-align:center;color:var(--mute)}
+.msg{min-height:18px;color:var(--bad);margin-top:10px}
+/* lock screen */
+.lock{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+.box{width:min(440px,100%);border:1px solid var(--ok);background:var(--panel);box-shadow:var(--glow);padding:18px}
+.boot{min-height:96px;color:var(--mute);white-space:pre-wrap;margin:0 0 14px;line-height:1.5}
+.boot .ok{color:var(--ok)}
+.glitch{font-size:20px;font-weight:700;letter-spacing:.14em;color:var(--ok);text-shadow:2px 0 var(--bad),-2px 0 var(--acc);margin:0 0 6px}
+.row{display:flex;gap:8px;margin-top:12px}
+.row input{flex:1}
+.hide{display:none!important}
+.kbd{border:1px solid var(--line);padding:0 5px;color:var(--mute)}
+@media (max-width:640px){
+  .wrap{padding:10px}
+  .tile .v{font-size:20px}
+  .hide-sm{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- ===== lock screen ===== -->
+<section id="lock" class="lock">
+  <div class="box">
+    <div class="boot" id="boot"></div>
+    <div class="glitch">SYS//HEALTH</div>
+    <div class="mute" style="margin-bottom:10px">restricted console. authorised operators only.</div>
+    <form id="authForm" autocomplete="off">
+      <div class="row">
+        <input id="pass" type="password" placeholder="passcode" autocomplete="new-password" required />
+        <button id="go" type="submit">Authenticate</button>
+      </div>
+    </form>
+    <div class="msg" id="lockMsg"></div>
+  </div>
+</section>
+
+<!-- ===== console ===== -->
+<main id="app" class="wrap hide">
+  <div class="bar">
+    <span class="dot" id="live"></span>
+    <span class="brand">SYS<span>//</span>HEALTH</span>
+    <span class="clock" id="clock"></span>
+    <span class="grow"></span>
+    <span class="mute" id="stamp"></span>
+    <button id="reload" type="button">Refresh</button>
+    <button id="selftest" type="button" title="send one test event and report the result">Test</button>
+    <button id="lockBtn" type="button">Lock</button>
+  </div>
+
+  <div class="grid stats" id="stats">
+    <div class="tile"><div class="k">events / 24h</div><div class="v" id="s_events">-</div></div>
+    <div class="tile bad"><div class="k">failed logins / 24h</div><div class="v" id="s_fl">-</div></div>
+    <div class="tile warn"><div class="k">failed writes / 24h</div><div class="v" id="s_fw">-</div></div>
+    <div class="tile acc"><div class="k">writes / 24h</div><div class="v" id="s_w">-</div></div>
+    <div class="tile"><div class="k">downloads / 24h</div><div class="v" id="s_d">-</div></div>
+    <div class="tile"><div class="k">online now</div><div class="v" id="s_on">-</div></div>
+  </div>
+
+  <section class="panel">
+    <div class="ph"><span>devices</span><span class="grow"></span><span class="mute" id="devCount"></span></div>
+    <div class="pb grid devs" id="devs"></div>
+  </section>
+
+  <section class="panel">
+    <div class="ph"><span>activity log</span><span class="grow"></span><span class="mute" id="evCount"></span></div>
+    <div class="pb">
+      <div class="filters">
+        <select id="win" title="time window">
+          <option value="1">last 1 h</option>
+          <option value="6">last 6 h</option>
+          <option value="24" selected>last 24 h</option>
+          <option value="168">last 7 days</option>
+          <option value="720">last 30 days</option>
+        </select>
+        <select id="kind" title="event type">
+          <option value="">all events</option>
+          <option value="write">sheet changes</option>
+          <option value="login">logins</option>
+          <option value="download">downloads</option>
+          <option value="image_download">image downloads</option>
+          <option value="print">printing</option>
+          <option value="page_view">page opens</option>
+          <option value="page_close">page closes (time spent)</option>
+          <option value="rpc">db calls</option>
+        </select>
+        <input id="who" type="text" placeholder="user name" style="width:150px" />
+        <input id="q" type="search" placeholder="search text in this list" />
+        <label class="mute" style="display:flex;gap:6px;align-items:center"><input id="auto" type="checkbox" checked style="min-width:0" /> auto 20s</label>
+        <button id="csv" type="button">Export CSV</button>
+      </div>
+      <div class="mute" style="margin:8px 0 0">red = failed login or failed write &middot; amber = delete or bulk write (50+ rows)</div>
+    </div>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>time</th><th>type</th><th>user</th><th class="hide-sm">page</th><th>detail</th><th class="hide-sm">device / ip</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script>
+(function () {
+  'use strict';
+  var URL_ = 'https://gcedsyxvfmlyujhftiyf.supabase.co';
+  var KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdjZWRzeXh2Zm1seXVqaGZ0aXlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ2Mjg5ODMsImV4cCI6MjExMDIwNDk4M30.QsFXFMT1zS62UIfdbgtpXJHEicCVglvXHqgvik5Q5Rk';
+  var IDLE_MS = 10 * 60 * 1000;
+
+  var PASS = '';                 // kept in memory only: never in storage, never in the URL
+  var DATA = null, EVENTS = [], lastAct = Date.now(), refreshT = null, idleT = null, clockT = null, qT = null;
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function when(ts) { try { return new Date(ts).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }); } catch (e) { return ts; } }
+  function ago(ts) {
+    var s = Math.max(0, (Date.now() - new Date(ts).getTime()) / 1000);
+    if (s < 60) return Math.floor(s) + 's ago';
+    if (s < 3600) return Math.floor(s / 60) + 'm ago';
+    if (s < 86400) return Math.floor(s / 3600) + 'h ago';
+    return Math.floor(s / 86400) + 'd ago';
+  }
+  function status(dv) {
+    var age = (Date.now() - new Date(dv.last_seen).getTime()) / 60000;
+    if (dv.signed_in && age <= 6) return { cls: 'on', txt: 'ONLINE', col: 'var(--ok)' };
+    if (age <= 60) return { cls: 'idle', txt: dv.signed_in ? 'IDLE' : 'OPEN (not signed in)', col: 'var(--warn)' };
+    return { cls: 'off', txt: 'OFFLINE', col: 'var(--mute)' };
+  }
+
+  async function call(body) {
+    var r = await fetch(URL_ + '/rest/v1/rpc/activity_dashboard', {
+      method: 'POST', cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer',
+      headers: { apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    var j = null; try { j = await r.json(); } catch (e) {}
+    if (!r.ok) throw new Error('link');
+    return j || {};
+  }
+
+  var ERR = { denied: 'ACCESS DENIED. attempt logged.', locked: 'LOCKED. too many failed attempts. wait 15 minutes.', not_configured: 'CONSOLE NOT CONFIGURED. set the passcode in the database first.' };
+
+  function filters(pass) {
+    return { p_passcode: pass, p_hours: +$('win').value, p_kind: $('kind').value, p_actor: $('who').value.trim(), p_limit: 500 };
+  }
+
+  async function load(initial) {
+    if (!PASS) return;
+    try {
+      var j = await call(filters(PASS));
+      if (j.error) {
+        if (initial) { $('lockMsg').textContent = ERR[j.error] || 'ACCESS DENIED.'; lock(); return; }
+        return;
+      }
+      DATA = j; EVENTS = j.events || [];
+      render();
+      $('live').className = 'dot on';
+    } catch (e) {
+      $('live').className = 'dot idle';
+      if (initial) { $('lockMsg').textContent = 'link error. check connection.'; lock(); }
+    }
+  }
+
+  function pageName(p) { var n = String(p || '').split('/').pop().replace(/\.html?$/i, ''); return n || 'home'; }
+  function dur(sec) {
+    sec = Math.max(0, +sec || 0);
+    if (sec < 60) return sec + 's';
+    if (sec < 3600) return Math.floor(sec / 60) + 'm ' + (sec % 60) + 's';
+    return Math.floor(sec / 3600) + 'h ' + Math.floor((sec % 3600) / 60) + 'm';
+  }
+
+  function detail(e) {
+    var d = e.detail || {}, s;
+    switch (e.kind) {
+      case 'login': return 'user=' + (d.user || '?') + '  result=' + (d.ok ? 'OK' : 'FAILED');
+      case 'write':
+        s = d.summary || {};
+        var f = s.fields ? Object.keys(s.fields).map(function (k) { return k + '=' + s.fields[k]; }).join('  ') : (s.note || '');
+        return (d.op || '') + ' ' + (d.target || '') + (d.filter ? ' [' + d.filter + ']' : '') + (s.rows != null ? '  rows=' + s.rows : '') + '  ' + f + (d.ok ? '' : '  >> FAILED (HTTP ' + d.status + ')');
+      case 'download': case 'image_download': return 'file=' + (d.file || '') + (d.blob ? ' (generated)' : '');
+      case 'page_view': return (d.back ? 'came back to ' : 'opened ') + pageName(e.page) + (d.title ? '  \u00b7  ' + d.title : '');
+      case 'page_close': return 'left ' + pageName(e.page) + ' after ' + dur(d.secs);
+      case 'print': return 'print dialog opened';
+      case 'rpc': return (d.target || '') + (d.ok ? '' : '  >> FAILED');
+      default: return JSON.stringify(d).slice(0, 160);
+    }
+  }
+  function rowClass(e) {
+    var d = e.detail || {};
+    if ((e.kind === 'login' && d.ok === false) || (e.kind === 'write' && d.ok === false)) return 'alert';
+    if (e.kind === 'write' && (d.op === 'DELETE' || (d.summary && d.summary.rows >= 50))) return 'warn';
+    return '';
+  }
+
+  function render() {
+    var st = DATA.stats || {};
+    $('s_events').textContent = st.events_24h || 0;
+    $('s_fl').textContent = st.failed_logins || 0;
+    $('s_fw').textContent = st.failed_writes || 0;
+    $('s_w').textContent = st.writes || 0;
+    $('s_d').textContent = st.downloads || 0;
+    $('s_on').textContent = st.online_now || 0;
+    $('stamp').textContent = 'synced ' + when(DATA.server_time || new Date());
+
+    var devs = DATA.devices || [];
+    $('devCount').textContent = devs.length + ' seen in 30 days';
+    $('devs').innerHTML = devs.length ? devs.map(function (dv) {
+      var s = status(dv);
+      return '<div class="dev">' +
+        '<div style="display:flex;align-items:center;gap:8px"><span class="dot ' + s.cls + '"></span><span class="tag" style="color:' + s.col + '">' + s.txt + '</span></div>' +
+        '<div class="n" style="margin-top:6px">' + esc(dv.actor_name || dv.actor || 'guest') + '</div>' +
+        '<div class="r"><span>platform</span><b>' + esc(dv.platform || '-') + '</b></div>' +
+        '<div class="r"><span>ip</span><b>' + esc(dv.ip || '-') + '</b></div>' +
+        '<div class="r"><span>screen</span><b>' + esc(dv.screen || '-') + '</b></div>' +
+        '<div class="r"><span>page</span><b>' + esc(dv.page || '-') + '</b></div>' +
+        '<div class="r"><span>last seen</span><b>' + esc(ago(dv.last_seen)) + '</b></div>' +
+        '<div class="r"><span>first seen</span><b>' + esc(when(dv.first_seen)) + '</b></div>' +
+        '</div>';
+    }).join('') : '<div class="empty">no device has reported yet. data starts from the moment the tracker went live.</div>';
+
+    applySearch();
+    $('lock').classList.add('hide');
+    $('app').classList.remove('hide');
+  }
+
+  function applySearch() {
+    var q = $('q').value.trim().toLowerCase();
+    var list = EVENTS.filter(function (e) {
+      if (!q) return true;
+      return (e.kind + ' ' + (e.actor || '') + ' ' + (e.page || '') + ' ' + detail(e) + ' ' + (e.ip || '')).toLowerCase().indexOf(q) > -1;
+    });
+    $('evCount').textContent = list.length + ' of ' + EVENTS.length + ' events';
+    $('rows').innerHTML = list.length ? list.map(function (e) {
+      var dv = (DATA.devices || []).find(function (x) { return x.device_id === e.device_id; });
+      return '<tr class="' + rowClass(e) + '">' +
+        '<td class="mute" style="white-space:nowrap">' + esc(when(e.occurred_at)) + '</td>' +
+        '<td><span class="k-' + esc(e.kind) + '">' + esc(e.kind.toUpperCase()) + '</span></td>' +
+        '<td>' + esc(e.actor || 'guest') + '</td>' +
+        '<td class="hide-sm mute">' + esc(e.page || '') + '</td>' +
+        '<td class="d">' + esc(detail(e)) + '</td>' +
+        '<td class="hide-sm mute">' + esc((dv ? dv.platform : '') + (e.ip ? ' · ' + e.ip : '')) + '</td>' +
+        '</tr>';
+    }).join('') : '<tr><td colspan="6" class="empty">no events in this window.</td></tr>';
+  }
+
+  function csvCell(v) { var s = String(v == null ? '' : v).replace(/"/g, '""'); return /[",\n]/.test(s) ? '"' + s + '"' : s; }
+  function exportCsv() {
+    var rows = [['time', 'type', 'user', 'page', 'detail', 'ip', 'device_id']];
+    EVENTS.forEach(function (e) { rows.push([e.occurred_at, e.kind, e.actor, e.page, detail(e), e.ip, e.device_id]); });
+    var blob = new Blob([rows.map(function (r) { return r.map(csvCell).join(','); }).join('\n')], { type: 'text/csv;charset=utf-8' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'activity_' + new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-') + '.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+  }
+
+  function lock() {
+    PASS = ''; DATA = null; EVENTS = [];
+    $('rows').innerHTML = ''; $('devs').innerHTML = ''; $('pass').value = '';
+    clearInterval(refreshT); refreshT = null;
+    $('app').classList.add('hide'); $('lock').classList.remove('hide');
+    $('pass').focus();
+  }
+
+  function boot(lines, el, done) {
+    if (reduce) { el.innerHTML = lines.map(function (l) { return esc(l); }).join('\n'); done(); return; }
+    var i = 0, out = [];
+    (function step() {
+      if (i >= lines.length) { done(); return; }
+      out.push(lines[i++]);
+      el.innerHTML = out.map(function (l, k) { return k === out.length - 1 ? esc(l) : '<span class="ok">' + esc(l) + '</span>'; }).join('\n');
+      setTimeout(step, 180);
+    })();
+  }
+
+  $('authForm').addEventListener('submit', async function (ev) {
+    ev.preventDefault();
+    var p = $('pass').value;
+    if (!p) return;
+    $('lockMsg').textContent = ''; $('go').disabled = true; $('go').textContent = 'checking';
+    PASS = p; $('pass').value = '';
+    try {
+      var j = await call(filters(PASS));
+      if (j.error) { PASS = ''; $('lockMsg').textContent = ERR[j.error] || 'ACCESS DENIED.'; return; }
+      DATA = j; EVENTS = j.events || []; render();
+      $('live').className = 'dot on';
+      clearInterval(refreshT);
+      refreshT = setInterval(function () { if (!document.hidden && $('auto').checked) load(false); }, 20000);
+      lastAct = Date.now();
+    } catch (e) {
+      PASS = ''; $('lockMsg').textContent = 'link error. check connection.';
+    } finally {
+      $('go').disabled = false; $('go').textContent = 'Authenticate';
+    }
+  });
+
+  $('reload').addEventListener('click', function () { load(false); });
+  $('selftest').addEventListener('click', async function () {
+    var b = $('selftest'), msg;
+    b.disabled = true;
+    try {
+      var r = await fetch(URL_ + '/rest/v1/rpc/activity_ingest', {
+        method: 'POST', cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer',
+        headers: { apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p_batch: {
+          device: { id: 'console-selftest', actor: 'console-test', actor_name: 'Console self-test', signed_in: false, platform: 'console', page: '/sys-health-7c1e.html' },
+          events: [{ kind: 'page_view', actor: 'console-test', page: '/sys-health-7c1e.html', t: new Date().toISOString(), d: { title: 'console self-test' } }]
+        } })
+      });
+      if (r.ok) { await load(false); msg = 'TEST OK: the database accepted the event (HTTP ' + r.status + '). You should see it at the top of the log now.'; }
+      else { var tx = ''; try { var ej = await r.json(); tx = [ej.message, ej.hint, ej.details].filter(Boolean).join(' | '); } catch (x) {} msg = 'TEST FAILED (HTTP ' + r.status + '): ' + tx.slice(0, 400); }
+    } catch (x) { msg = 'TEST FAILED: could not reach the database (network).'; }
+    $('stamp').textContent = msg.slice(0, 60);
+    b.disabled = false;
+    alert(msg);
+  });
+  $('lockBtn').addEventListener('click', lock);
+  $('win').addEventListener('change', function () { load(false); });
+  $('kind').addEventListener('change', function () { load(false); });
+  $('who').addEventListener('input', function () { clearTimeout(qT); qT = setTimeout(function () { load(false); }, 450); });
+  $('q').addEventListener('input', applySearch);
+  $('csv').addEventListener('click', exportCsv);
+
+  ['pointerdown', 'keydown', 'touchstart'].forEach(function (t) { document.addEventListener(t, function () { lastAct = Date.now(); }, { passive: true }); });
+  idleT = setInterval(function () { if (PASS && Date.now() - lastAct > IDLE_MS) lock(); }, 15000);
+  clockT = setInterval(function () { $('clock').textContent = new Date().toLocaleTimeString('en-IN', { hour12: false }); }, 1000);
+  $('clock').textContent = new Date().toLocaleTimeString('en-IN', { hour12: false });
+
+  boot([
+    '> link: secure channel',
+    '> tls: ok',
+    '> console: awaiting operator',
+    '> passcode required'
+  ], $('boot'), function () { $('pass').focus(); });
+})();
+</script>
+</body>
+</html>

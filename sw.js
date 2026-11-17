@@ -2,7 +2,7 @@
    - Pages: network first (always the latest deploy), cached copy when offline.
    - Own assets and CDN libraries: served from cache instantly, refreshed in the background.
    - Supabase / any non-GET request: never touched, so data is always live. */
-const VERSION = 'prtpl-v2.4';
+const VERSION = 'prtpl-v2.6';
 const SHELL = [
   'index.html', 'home_page.html', 'amm_home.html', 'odr_home.html', 'notices.html', 'offline.html',
   'favicon.svg', 'icon-192.png', 'icon-512.png', 'inspiration.jpg', 'manifest.webmanifest'
@@ -57,7 +57,7 @@ self.addEventListener('fetch', e => {
   if (/(^|\.)supabase\.(co|in)$/.test(url.hostname)) return;     // live data: never cache
   if (url.protocol !== 'https:' && url.protocol !== 'http:') return;
   if (url.origin === location.origin) {
-    if (req.mode === 'navigate' || /\.html?$/.test(url.pathname) || url.pathname.endsWith('/')) e.respondWith(networkFirst(req));
+    if (req.mode === 'navigate' || /\.html?$/.test(url.pathname) || url.pathname.endsWith('/') || /\/activity-tracker\.js$/.test(url.pathname)) e.respondWith(networkFirst(req));
     else e.respondWith(staleWhileRevalidate(req));
   } else if (LIB_HOSTS.includes(url.hostname) || req.destination === 'image') {
     e.respondWith(staleWhileRevalidate(req));
