@@ -130,7 +130,7 @@ tr.warn td:first-child{box-shadow:inset 3px 0 var(--warn)}
   </div>
 
   <section class="panel">
-    <div class="ph"><span>devices</span><span class="grow"></span><span class="mute" id="devCount"></span></div>
+    <div class="ph"><span>devices</span><span class="grow"></span><span class="mute" id="devCount"></span><button id="signOutAll" type="button" title="Sign out every signed-in device">Sign out all</button></div>
     <div class="pb grid devs" id="devs"></div>
   </section>
 
@@ -160,6 +160,8 @@ tr.warn td:first-child{box-shadow:inset 3px 0 var(--warn)}
         <input id="q" type="search" placeholder="search text in this list" />
         <label class="mute" style="display:flex;gap:6px;align-items:center"><input id="auto" type="checkbox" checked style="min-width:0" /> auto 20s</label>
         <button id="csv" type="button">Export CSV</button>
+        <button id="clearKeep" type="button" title="Delete every event except sheet changes">Clear all except sheet changes</button>
+        <button id="clearAll" type="button" title="Delete every event">Clear all events</button>
       </div>
       <div class="mute" style="margin:8px 0 0">red = failed login or failed write &middot; amber = delete or bulk write (50+ rows)</div>
     </div>
@@ -288,6 +290,7 @@ tr.warn td:first-child{box-shadow:inset 3px 0 var(--warn)}
         '<div class="r"><span>page</span><b>' + esc(dv.page || '-') + '</b></div>' +
         '<div class="r"><span>last seen</span><b>' + esc(ago(dv.last_seen)) + '</b></div>' +
         '<div class="r"><span>first seen</span><b>' + esc(when(dv.first_seen)) + '</b></div>' +
+        (dv.signed_in ? '<div style="margin-top:8px"><button type="button" data-signout="' + esc(dv.device_id) + '">Sign out</button></div>' : '') +
         '</div>';
     }).join('') : '<div class="empty">no device has reported yet. data starts from the moment the tracker went live.</div>';
 
@@ -387,6 +390,65 @@ tr.warn td:first-child{box-shadow:inset 3px 0 var(--warn)}
     b.disabled = false;
     alert(msg);
   });
+  // Clear events in the database. keepWrite = true keeps only "sheet changes" events.
+  async function clearEvents(keepWrite) {
+    var msg = keepWrite
+      ? 'Delete ALL activity events except sheet changes? Logins, downloads, page views and db calls will be removed. This cannot be undone.'
+      : 'Delete ALL activity events? This cannot be undone.';
+    if (!PASS || !window.confirm(msg)) return;
+    var btns = [$('clearKeep'), $('clearAll')];
+    btns.forEach(function (b) { b.disabled = true; });
+    try {
+      var r = await fetch(URL_ + '/rest/v1/rpc/activity_clear', {
+        method: 'POST', cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer',
+        headers: { apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p_passcode: PASS, p_keep_kind: keepWrite ? 'write' : null })
+      });
+      var j = null; try { j = await r.json(); } catch (e) {}
+      if (!r.ok || (j && j.error)) {
+        var reason = (j && j.error) ? (ERR[j.error] || j.error) : 'HTTP ' + r.status;
+        $('stamp').textContent = 'clear failed';
+        window.alert('Clear failed: ' + reason);
+        return;
+      }
+      await load(false);
+      $('stamp').textContent = 'cleared ' + (j && j.deleted != null ? j.deleted + ' events' : '');
+    } catch (e) {
+      window.alert('Clear failed: could not reach the database (network).');
+    } finally {
+      btns.forEach(function (b) { b.disabled = false; });
+    }
+  }
+  // Sign a device out (deviceId) or every device (deviceId null). Takes effect on the device's next tracker update (within about 3 minutes).
+  async function signOutDevices(deviceId) {
+    var what = deviceId ? 'this device' : 'every signed-in device';
+    if (!PASS || !window.confirm('Sign out ' + what + '? The person will need to sign in again.')) return;
+    try {
+      var r = await fetch(URL_ + '/rest/v1/rpc/activity_signout', {
+        method: 'POST', cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer',
+        headers: { apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p_passcode: PASS, p_device_id: deviceId || null })
+      });
+      var j = null; try { j = await r.json(); } catch (e) {}
+      if (!r.ok || (j && j.error)) {
+        window.alert('Sign out failed: ' + ((j && j.error) ? (ERR[j.error] || j.error) : 'HTTP ' + r.status));
+        return;
+      }
+      $('stamp').textContent = 'signed out ' + (j && j.signed_out != null ? j.signed_out + ' device(s)' : '');
+      await load(false);
+    } catch (e) {
+      window.alert('Sign out failed: could not reach the database (network).');
+    }
+  }
+  $('devs').addEventListener('click', function (ev) {
+    var b = ev.target.closest && ev.target.closest('[data-signout]');
+    if (b) signOutDevices(b.getAttribute('data-signout'));
+  });
+  $('signOutAll').addEventListener('click', function () { signOutDevices(null); });
+
+  $('clearKeep').addEventListener('click', function () { clearEvents(true); });
+  $('clearAll').addEventListener('click', function () { clearEvents(false); });
+
   $('lockBtn').addEventListener('click', lock);
   $('win').addEventListener('change', function () { load(false); });
   $('kind').addEventListener('change', function () { load(false); });

@@ -33,7 +33,8 @@
   function who() {
     try {
       var a = JSON.parse(localStorage.getItem('amm-auth') || 'null');
-      if (a && a.user && (!a.at || Date.now() - a.at < 12 * 3600 * 1000)) {
+      // the apps decide when a sign-in ends (maxSessionHours), so the tracker only checks that one exists
+      if (a && a.user) {
         return { actor: String(a.user).slice(0, 80), name: String(a.name || a.user).slice(0, 120), signed: true };
       }
     } catch (e) {}
@@ -61,6 +62,19 @@
     timer = setTimeout(function () { flush(false); }, ms);
   }
 
+  // The console can sign this device out. The server returns signout_ms (epoch ms); any sign-in made before it is ended here.
+  function obeyServer(j) {
+    if (!j || !j.signout_ms) return;
+    try {
+      var a = JSON.parse(localStorage.getItem('amm-auth') || 'null');
+      if (a && a.user && (!a.at || j.signout_ms > a.at)) {
+        localStorage.removeItem('amm-auth');
+        sessionStorage.setItem('pr-reason', 'expired');
+        location.reload();
+      }
+    } catch (e) {}
+  }
+
   function flush(keep) {
     if (timer) { clearTimeout(timer); timer = null; }
     if (!nativeFetch) return;
@@ -78,7 +92,9 @@
         method: 'POST', keepalive: !!keep,
         headers: { apikey: KEY, Authorization: 'Bearer ' + KEY, 'Content-Type': 'application/json' },
         body: JSON.stringify({ p_batch: batch })   // the SQL function is activity_ingest(p_batch jsonb): PostgREST matches body keys to parameter names
-      }).catch(function () {});
+      }).then(function (r) { return r.ok ? r.json() : null; })
+        .then(obeyServer)
+        .catch(function () {});
     } catch (e) {}
     if (queue.length && !timer) arm(FLUSH_MS);
   }
