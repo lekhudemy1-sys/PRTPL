@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#f6c200">
+<title>AMM Party-wise Summary Report</title>
+<link rel="icon" type="image/svg+xml" href="party_summary_favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root{--bg:#0c131d;--card:#141e2c;--card2:#1a2536;--line:#27364c;--ink:#e8eef6;--muted:#93a1b4;--head:#1d3a78;--yellow:#f6c200;--under:#ff8a4c;--over:#37c7c9;--ench:#a28cff;--blue:#7ea4f2;--ok:#4cc98a;--warn:#ff6a60}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(900px 420px at 100% -10%,rgba(29,58,120,.35),transparent 60%),radial-gradient(700px 380px at -10% 110%,rgba(246,194,0,.07),transparent 60%),var(--bg);color:var(--ink);font-family:'Barlow','Segoe UI',system-ui,Arial,sans-serif;font-size:14px;min-height:100vh}
+.wrap{max-width:1400px;margin:0 auto;padding:18px}
+
+/* ---------- header banner ---------- */
+.board{position:relative;overflow:hidden;isolation:isolate;border-radius:18px;padding:20px 24px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;color:#14181d;
+  background:radial-gradient(600px 260px at 100% 0%,rgba(255,255,255,.55),transparent 60%),linear-gradient(115deg,#ffd84d 0%,#f6c200 45%,#ffb300 100%);
+  box-shadow:0 18px 40px -18px rgba(246,194,0,.65),inset 0 0 0 1px rgba(20,24,29,.12)}
+.board::before{content:"";position:absolute;inset:0;z-index:-1;opacity:.12;background:repeating-linear-gradient(-45deg,#14181d 0 2px,transparent 2px 16px)}
+.board::after{content:"";position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;z-index:-1;background:radial-gradient(circle,rgba(20,24,29,.18),transparent 70%);animation:glow 6s ease-in-out infinite}
+@keyframes glow{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-30px,20px) scale(1.15)}}
+.logo{position:relative;width:76px;height:76px;border-radius:50%;background:#14181d;color:var(--yellow);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:19px;letter-spacing:1px;flex-shrink:0;box-shadow:0 0 0 4px #ffe680,0 0 0 7px rgba(20,24,29,.9)}
+.logo::before{content:"";position:absolute;inset:-12px;border-radius:50%;border:2px dashed rgba(20,24,29,.55);animation:spin 14s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.title{min-width:0;flex:1 1 360px}
+.kicker{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:800;letter-spacing:2.4px;text-transform:uppercase;background:#14181d;color:var(--yellow);padding:5px 12px;border-radius:999px;margin-bottom:8px}
+.kicker i{width:8px;height:8px;border-radius:50%;background:#3ddc84;animation:pulse 1.8s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(61,220,132,.7)}70%{box-shadow:0 0 0 9px rgba(61,220,132,0)}100%{box-shadow:0 0 0 0 rgba(61,220,132,0)}}
+.board h1{margin:0;font-size:clamp(26px,3.2vw,44px);font-weight:900;letter-spacing:.5px;line-height:1.02;text-transform:uppercase;background:linear-gradient(180deg,#14181d 0%,#2b2110 100%);-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 2px 0 rgba(255,255,255,.35);filter:drop-shadow(0 4px 10px rgba(20,24,29,.25))}
+.board h1 .accent{background:linear-gradient(90deg,#14181d,#1d3a78);-webkit-background-clip:text;background-clip:text;color:transparent}
+.board .sub{font-size:14px;font-weight:600;opacity:.85;margin-top:8px;display:flex;flex-wrap:wrap;gap:6px 14px}
+.board .sub span{display:inline-flex;align-items:center;gap:6px}
+.board .sub span+span::before{content:"";width:5px;height:5px;border-radius:50%;background:#14181d;opacity:.6;margin-right:8px}
+.range{background:#14181d;color:var(--yellow);border-radius:12px;padding:12px 18px;text-align:center;font-weight:800;font-size:18px;min-width:230px;box-shadow:0 10px 24px -12px rgba(20,24,29,.6)}
+.range small{display:block;color:var(--muted);font-weight:600;font-size:12px;margin-top:3px;letter-spacing:.3px}
+.back-top{display:inline-flex;align-items:center;gap:8px;background:#14181d;color:var(--yellow);border:1px solid rgba(20,24,29,.25);border-radius:10px;padding:10px 16px;font-weight:800;text-decoration:none;white-space:nowrap;transition:transform .2s,filter .2s}
+.back-top:hover{transform:translateY(-2px);filter:brightness(1.2)}
+@media(max-width:760px){.board{padding:14px;gap:12px}.board h1{font-size:22px}.logo{width:52px;height:52px;font-size:14px;flex:0 0 52px}.logo::before{inset:-8px}.range{min-width:0;width:100%;order:3}.back-top{order:4}.board .sub{font-size:12px}}
+
+/* ---------- controls ---------- */
+.controls{position:sticky;top:8px;z-index:30;display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:14px 0;padding:10px 12px;border-radius:14px;background:rgba(20,30,44,.82);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--line);box-shadow:0 10px 24px -16px rgba(0,0,0,.6)}
+.controls label{color:var(--muted);font-size:12px;font-weight:700;letter-spacing:.4px;text-transform:uppercase}
+.controls input{background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 9px;font:inherit;color-scheme:dark}
+.controls input:focus,.btn:focus-visible,.chip:focus-visible,.legend button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.presets{display:flex;gap:6px;flex-wrap:wrap}
+.preset{background:transparent;border:1px solid var(--line);color:var(--ink);border-radius:999px;padding:6px 12px;font:inherit;font-weight:700;font-size:13px;cursor:pointer;transition:all .2s}
+.preset:hover{border-color:var(--yellow);color:var(--yellow)}
+.btn{background:linear-gradient(120deg,var(--head),#2a56a8);color:#fff;border:0;border-radius:9px;padding:8px 14px;font:inherit;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:7px;transition:transform .2s,filter .2s}
+.btn:hover{transform:translateY(-1px);filter:brightness(1.12)}
+.btn.ghost{background:var(--card2);border:1px solid var(--line)}
+#status{color:var(--muted);font-size:13px;margin-left:auto;display:inline-flex;align-items:center;gap:7px}
+#status::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--muted)}
+#status.ok::before{background:var(--ok);box-shadow:0 0 0 3px rgba(76,201,138,.2)}
+#status.err{color:var(--warn)}
+#status.err::before{background:var(--warn)}
+#status.load::before{background:var(--yellow);animation:blink .9s infinite}
+@keyframes blink{50%{opacity:.25}}
+
+/* ---------- breadcrumbs ---------- */
+.crumbs{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:4px 0 14px;min-height:34px}
+.chip{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-weight:700;font-size:13px;cursor:pointer;color:var(--ink);transition:all .2s}
+.chip:hover{border-color:var(--blue);transform:translateY(-1px)}
+.chip.cur{cursor:default;background:linear-gradient(120deg,var(--head),#2a56a8);border-color:transparent;color:#fff}
+.chip.cur:hover{transform:none}
+.sep{color:var(--muted);font-size:16px}
+
+/* ---------- KPI cards ---------- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-bottom:14px}
+.kpi{position:relative;overflow:hidden;background:linear-gradient(160deg,var(--card),var(--card2));border-radius:12px;padding:14px 16px;border:1px solid var(--line);border-left:5px solid var(--c);transition:transform .2s,box-shadow .2s;animation:rise .45s ease both}
+.kpi:hover{transform:translateY(-3px);box-shadow:0 14px 26px -16px var(--c)}
+.kpi .t{color:var(--muted);font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;display:flex;align-items:center;gap:7px}
+.kpi .t i{color:var(--c);font-size:13px}
+.kpi .v{font-size:26px;font-weight:800;color:var(--c);margin-top:4px;font-variant-numeric:tabular-nums}
+.kpi .s{color:var(--muted);font-size:12px;margin-top:2px}
+.kpi:nth-child(2){animation-delay:.05s}.kpi:nth-child(3){animation-delay:.1s}.kpi:nth-child(4){animation-delay:.15s}.kpi:nth-child(5){animation-delay:.2s}.kpi:nth-child(6){animation-delay:.25s}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ---------- panels and tables ---------- */
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px;overflow-x:auto;animation:rise .4s ease both}
+.panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.panel h3{margin:2px 0 4px;font-size:17px;font-weight:800;display:flex;align-items:center;gap:8px}
+.panel h3 i{color:var(--yellow);font-size:15px}
+.panel .hint{color:var(--muted);font-size:12px;margin:0 0 10px}
+.csv{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:6px 11px;font:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s}
+.csv:hover{color:var(--yellow);border-color:var(--yellow)}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;min-width:720px}
+th{background:linear-gradient(120deg,var(--head),#2a56a8);color:#fff;text-transform:uppercase;font-size:11.5px;letter-spacing:.4px;padding:9px 8px;text-align:right;white-space:nowrap;position:sticky;top:0;z-index:1}
+th:first-child,td:first-child{text-align:left}
+th:first-child{border-top-left-radius:8px}th:last-child{border-top-right-radius:8px}
+td{padding:9px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+tbody tr{transition:background .15s}
+tbody tr:nth-child(odd){background:var(--card2)}
+tbody tr.click{cursor:pointer}
+tbody tr.click:hover,tbody tr.click:focus-visible{background:#243552;outline:none}
+tbody tr.click:focus-visible td:first-child{box-shadow:inset 3px 0 0 var(--yellow)}
+td.pn{font-weight:800;text-align:left}
+td.tot{color:var(--yellow);font-weight:700}
+td.muted{color:var(--muted)}
+td.pend{font-weight:700;color:var(--ok)}
+td.pend.bad{color:var(--warn)}
+tr.grand td{background:var(--yellow);color:#14181d;font-weight:800;border-bottom:0}
+.note{background:var(--card2);border-left:4px solid var(--blue);padding:10px 14px;border-radius:8px;color:var(--muted);font-size:13px;margin-bottom:12px}
+.empty{text-align:center;padding:46px 18px;color:var(--muted)}
+.empty i{font-size:38px;color:var(--blue);margin-bottom:12px;display:block}
+.empty b{color:var(--ink);font-size:16px;display:block;margin-bottom:4px}
+
+/* ---------- loading skeleton ---------- */
+.sk{background:linear-gradient(90deg,var(--card2) 25%,#243552 50%,var(--card2) 75%);background-size:200% 100%;animation:shim 1.2s infinite;border-radius:12px}
+.sk.kp{height:96px;margin-bottom:12px}.sk.tb{height:260px}
+@keyframes shim{to{background-position:-200% 0}}
+
+/* ---------- charts ---------- */
+.charts{display:grid;grid-template-columns:1.25fr 1fr;gap:14px}
+@media(max-width:900px){.charts{grid-template-columns:1fr}}
+.brow{display:flex;align-items:center;gap:12px;margin:12px 0;cursor:pointer;padding:6px 8px;border-radius:9px;transition:background .2s}
+.brow:hover,.brow:focus-visible{background:#1f2c42;outline:none}
+.brow .n{width:150px;font-weight:800;font-size:14px}
+.brow .lbl{font-weight:800;font-size:13px;white-space:nowrap;min-width:110px;text-align:right;font-variant-numeric:tabular-nums}
+.bar{display:flex;height:20px;border-radius:6px;overflow:hidden;background:#0c131d;flex:1;min-width:120px;box-shadow:inset 0 0 0 1px var(--line)}
+.bar span{display:block;height:100%;transition:width .45s cubic-bezier(.2,.8,.2,1),filter .2s}
+.bar span:hover{filter:brightness(1.3)}
+.legend{display:flex;gap:10px;font-size:13px;color:var(--muted);margin-top:10px;flex-wrap:wrap}
+.legend button{background:none;border:1px solid var(--line);color:var(--ink);border-radius:999px;padding:5px 12px;font:inherit;font-weight:700;cursor:pointer;transition:all .2s}
+.legend button:hover{border-color:var(--blue)}
+.legend button.off{opacity:.35;text-decoration:line-through}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.donut{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.donut svg{flex:0 0 auto;filter:drop-shadow(0 8px 18px rgba(0,0,0,.35))}
+.donut circle{cursor:pointer;transition:stroke-width .2s,opacity .2s}
+.donut circle:hover{stroke-width:34}
+.donut svg:hover circle:not(:hover){opacity:.5}
+.dleg{flex:1;min-width:200px}
+.dleg div{margin:6px 0;padding:8px 10px;border-radius:9px;cursor:pointer;transition:background .2s}
+.dleg div:hover,.dleg div:focus-visible{background:#1f2c42;outline:none}
+.dleg .sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:8px;vertical-align:-1px}
+.dleg small{color:var(--muted);margin-left:20px;display:block}
+#tip{position:fixed;pointer-events:none;background:#0a1019;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--ink);box-shadow:0 10px 26px rgba(0,0,0,.5);opacity:0;transform:translateY(4px);transition:opacity .12s,transform .12s;z-index:60;min-width:180px}
+#tip.on{opacity:1;transform:none}
+#tip b{display:block;margin-bottom:4px}
+footer{color:var(--muted);font-size:12px;text-align:center;margin:18px 0 6px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="board">
+    <div class="logo">AMM</div>
+    <div class="title">
+      <div class="kicker"><i></i> Live report · Active Mines Management</div>
+      <h1>Party-wise <span class="accent">Summary</span> Report</h1>
+      <div class="sub"><span>Coal rake loading</span><span>Underload</span><span>Overload</span><span>ENCH penalty</span></div>
+    </div>
+    <div class="range"><span id="rangeLbl">—</span><small id="rangeSub"></small></div>
+    <a class="back-top" href="home_page.html" aria-label="Back to home"><i class="fas fa-arrow-left"></i> Back</a>
+  </header>
+
+  <div class="controls">
+    <div class="presets" role="group" aria-label="Quick ranges">
+      <button class="preset" type="button" data-preset="mtd">Month to date</button>
+      <button class="preset" type="button" data-preset="7d">Last 7 days</button>
+      <button class="preset" type="button" data-preset="yday">Yesterday</button>
+    </div>
+    <label>From <input type="date" id="from"></label>
+    <label>To <input type="date" id="to"></label>
+    <button class="btn" id="reload" type="button"><i class="fas fa-rotate"></i> Refresh</button>
+    <button class="btn ghost" id="png" type="button"><i class="fas fa-image"></i> Export PNG</button>
+    <span id="status">Loading…</span>
+  </div>
+  <nav class="crumbs" id="crumbs" aria-label="Breadcrumb"></nav>
+  <main id="main"></main>
+  <footer id="foot"></footer>
+</div>
+<div id="tip" role="tooltip"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+(function(){
+'use strict';
+
+/* ============ CONNECTIONS (same projects and anon keys as the AMM pages) ============ */
+var SB='https://pycmkjrmdieaqsbgrher.supabase.co';
+var KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5Y21ranJtZGllYXFzYmdyaGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwMjMxNzAsImV4cCI6MjEwNjU5OTE3MH0.9IE2c2FZ4BPv6Rvhfa_VniQ7LJvQ_c4EGDXFihYR4Lc';
+var NSB='https://gcedsyxvfmlyujhftiyf.supabase.co';
+var NKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdjZWRzeXh2Zm1seXVqaGZ0aXlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ2Mjg5ODMsImV4cCI6MjExMDIwNDk4M30.QsFXFMT1zS62UIfdbgtpXJHEicCVglvXHqgvik5Q5Rk';
+
+var ORDER=['NALCO','GUJRAT POWER','JHABUA','BALCO','HZL'];
+var COL={'NALCO':'#f07bb0','GUJRAT POWER':'#f7934a','JHABUA':'#2fc7c7','BALCO':'#7ea4f2','HZL':'#9acd32'};
+var SERIES=[{k:'up',n:'Underload',c:'var(--under)'},{k:'op',n:'Overload',c:'var(--over)'},{k:'en',n:'ENCH',c:'var(--ench)'}];
+var KPI_ICON={'Total penalty':'fa-indian-rupee-sign','Underload penalty':'fa-arrow-trend-down','Overload penalty':'fa-arrow-trend-up','ENCH penalty':'fa-bolt','Rakes loaded':'fa-train','Pending receive':'fa-hourglass-half','Pending recv':'fa-hourglass-half','Recv qty':'fa-box-open','Penalty / MT':'fa-scale-balanced','Rakes':'fa-train','Underload':'fa-arrow-trend-down','Overload':'fa-arrow-trend-up'};
+var MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var PLANT_COLS=['party','plant','power_plant','plant_name','consignee','destination','dest','to_plant'];
+
+var $=function(s){return document.querySelector(s)};
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function num(v){var n=parseFloat(v);return isNaN(n)?0:n}
+function hasN(v){return v!==null&&v!==undefined&&v!==''&&!isNaN(parseFloat(v))}
+function r2(n){return Math.round(n*100)/100}
+function uc(v){return String(v==null?'':v).trim().toUpperCase()}
+function fN(n,d){return (Number(n)||0).toLocaleString('en-IN',{minimumFractionDigits:d,maximumFractionDigits:d})}
+function fRi(n){return '₹'+fN(Math.round(n),0)}
+function pad(n){return n<10?'0'+n:''+n}
+function isoOf(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function dfmt(s){var p=s.split('-');return p[2]+' '+MON[+p[1]-1]+' '+p[0]}
+function daysIn(a,b){return Math.max(0,Math.round((Date.parse(b)-Date.parse(a))/864e5)+1)}
+function pcol(p){return COL[p]||'#c3a6ff'}
+
+/* ============ DATA ============ */
+function sel(base,key,table,query){
+  var out=[],off=0;
+  function page(){
+    return fetch(base+'/rest/v1/'+table+'?'+query+'&limit=1000&offset='+off,{headers:{apikey:key,Authorization:'Bearer '+key}})
+      .then(function(res){
+        if(!res.ok)return res.text().then(function(t){throw new Error(table+': '+(t||res.status).slice(0,160))});
+        return res.json();
+      })
+      .then(function(rows){
+        out=out.concat(rows);
+        if(rows.length<1000)return out;
+        off+=1000;return page();
+      });
+  }
+  return page();
+}
+
+/* rake-level party of a Gujarat record (same rule as the daily penalty page) */
+function plantOf(r){
+  if(r._p!=='GUJRAT POWER')return '';
+  var i,v;
+  for(i=0;i<PLANT_COLS.length;i++){
+    v=r[PLANT_COLS[i]];
+    if(v!==null&&v!==undefined&&String(v).trim()!==''&&!/GUJ/i.test(String(v)))return String(v).trim().toUpperCase();
+  }
+  var m=/\bTO\s+([A-Z0-9]+)\s*$/i.exec(String(r.siding||''));
+  if(m)return m[1].toUpperCase();
+  var ks=Object.keys(r);
+  for(i=0;i<ks.length;i++){v=r[ks[i]];if(typeof v==='string'&&/^\s*(GETS|TPHS)\s*$/i.test(v))return v.trim().toUpperCase()}
+  return '';
+}
+
+/* one rake record in the common shape used by the views */
+function rakeOf(r,party){
+  var rrw=num(r.rr_wt),chw=num(r.ch_wt),recvDone=num(r.recv_wt)>0;   /* same rule as the NALCO dashboard: received only when recv weight > 0 */
+  return {rec:r,party:party,area:r.area?uc(r.area):'',siding:r.siding?uc(r.siding):'',
+    rrw:rrw,chw:chw,recvDone:recvDone,recvQty:recvDone?num(r.recv_wt):0,
+    pending:!recvDone,rrNo:String(r.rr_no==null?'':r.rr_no).trim()};
+}
+
+/* groups = one party, date, area and siding (the same rows as the daily penalty sheet),
+   plus receive-only groups for NALCO (its penalty rows stay on the sheet, its receive data comes from its own dashboard) */
+function buildGroups(sheet,gj,hz,nalcoRows,ovMap){
+  var groups=[];
+  sheet.forEach(function(r){
+    var rr=num(r.rr),ch=num(r.ch),fr=num(r.freight),uq=ch-rr;
+    groups.push({src:'sheet',date:r.sheet_date,party:r.party,area:r.area,siding:r.siding,
+      rakes:num(r.rakes),rr:rr,ch:ch,uQty:uq>0?uq:0,oQty:uq<0?-uq:0,
+      up:uq<0?0:uq*fr,op:num(r.o1)+num(r.o2)+num(r.o3),en:num(r.ench),recs:[]});
+  });
+
+  var lm={};
+  gj.concat(hz).forEach(function(r){
+    var area=uc(r.area||'-'),sid=uc(r.siding||'-'),pl=plantOf(r);
+    if(pl&&!/\sTO\s/i.test(sid))sid=sid+' TO '+pl;
+    var id='L|'+r.date+'|'+r._p+'|'+area+'|'+sid;
+    var g=lm[id]||(lm[id]={id:id,src:'live',date:r.date,party:r._p,area:area,siding:sid,
+      rakes:0,rr:0,ch:0,uQty:0,oQty:0,up:0,op:0,en:0,recs:[]});
+    var x=rakeOf(r,r._p);x.area=area;x.siding=sid;
+    g.rakes++;g.rr+=x.rrw;g.ch+=x.chw;
+    if(hasN(r.rr_wt)&&hasN(r.ch_wt)){if(x.chw>x.rrw)g.uQty+=x.chw-x.rrw;else if(x.rrw>x.chw)g.oQty+=x.rrw-x.chw}
+    g.up+=num(r.ul_ch);g.op+=num(r.pol_group)+num(r.ehbc_group);g.en+=num(r.enhc_charge);
+    g.recs.push(x);
+  });
+  Object.keys(lm).forEach(function(k){
+    var g=lm[k];
+    ['rr','ch','uQty','oQty','up','op','en'].forEach(function(f){g[f]=r2(g[f])});
+    var o=ovMap[g.id];
+    if(o){   /* a hand-edited live row keeps the values typed in the daily penalty sheet */
+      g.rakes=Math.max(1,+o.rakes||1);g.rr=num(o.rr);g.ch=num(o.ch);
+      g.uQty=num(o.u_qty);g.oQty=num(o.o_qty);
+      g.up=hasN(o.freight)?r2(g.uQty*num(o.freight)):num(o.u_pen);
+      g.op=num(o.o_pen);g.en=num(o.ench);g.edited=true;
+    }
+    groups.push(g);
+  });
+
+  /* NALCO receive data: one group per date, no penalty amounts */
+  var nm={};
+  (nalcoRows||[]).forEach(function(r){
+    var g=nm[r.date]||(nm[r.date]={id:'N|'+r.date,src:'recv',date:r.date,party:'NALCO',area:'',siding:'',
+      rakes:0,rr:0,ch:0,uQty:0,oQty:0,up:0,op:0,en:0,recs:[]});
+    g.recs.push(rakeOf(r,'NALCO'));
+    nm[r.date]=g;
+  });
+  Object.keys(nm).forEach(function(d){
+    var g=nm[d];g.rr=r2(g.recs.reduce(function(s,x){return s+x.rrw},0));
+    groups.push(g);
+  });
+  return groups;
+}
+
+/* penalty totals plus receive totals over a list of groups */
+function agg(list){
+  var a={rakes:0,rr:0,ch:0,uQty:0,oQty:0,up:0,op:0,en:0,n:0,recvN:0,recvQty:0,pendN:0,pendQty:0,live:false,recvHas:false};
+  list.forEach(function(g){
+    a.rakes+=g.rakes;a.rr+=g.rr;a.ch+=g.ch;a.uQty+=g.uQty;a.oQty+=g.oQty;
+    a.up+=g.up;a.op+=g.op;a.en+=g.en;
+    if(g.src==='live'||g.src==='recv'){
+      a.live=true;
+      g.recs.forEach(function(x){
+        a.n++;a.recvHas=true;
+        if(x.recvDone){a.recvN++;a.recvQty+=x.recvQty}
+        else{a.pendN++;a.pendQty+=x.rrw}
+      });
+    }
+  });
+  a.total=a.up+a.op+a.en;
+  a.pm=a.rr>0?a.total/a.rr:null;
+  a.recvQty=r2(a.recvQty);a.pendQty=r2(a.pendQty);
+  return a;
+}
+
+function partyList(groups){
+  var set={};groups.forEach(function(g){set[g.party]=1});
+  return Object.keys(set).sort(function(a,b){
+    var ia=ORDER.indexOf(a),ib=ORDER.indexOf(b);
+    if(ia<0)ia=99;if(ib<0)ib=99;
+    return ia!==ib?ia-ib:(a<b?-1:1);
+  });
+}
+
+/* ============ STATE ============ */
+var S={from:'',to:'',groups:[],warn:[],view:{l:'home'},hide:{up:false,op:false,en:false},loadId:0};
+
+function load(){
+  var from=$('#from').value,to=$('#to').value;
+  if(!from||!to||from>to){setStatus('Pick a valid date range','err');return}
+  S.from=from;S.to=to;
+  var myId=++S.loadId;
+  setStatus('Loading…','load');
+  $('#main').innerHTML='<div class="sk kp"></div><div class="sk kp"></div><div class="sk kp"></div><div class="sk kp"></div><div class="sk tb"></div>';
+  var warn=[];
+  var q=function(col){return 'select=*&'+col+'=gte.'+from+'&'+col+'=lte.'+to};
+  var fail=function(label){return function(e){warn.push(label+': '+e.message);return []}};
+  Promise.all([
+    sel(SB,KEY,'amm_penalty_entries',q('sheet_date')+'&order=sheet_date.asc,sort_order.asc').catch(fail('Penalty sheet')),
+    sel(SB,KEY,'gujarat_rake_records',q('date')+'&order=date.asc').then(function(r){return r.map(function(x){x._p='GUJRAT POWER';return x})}).catch(fail('Gujarat dashboard')),
+    sel(SB,KEY,'hzl_rake_records',q('date')+'&order=date.asc').then(function(r){return r.map(function(x){x._p='HZL';return x})}).catch(fail('HZL dashboard')),
+    sel(NSB,NKEY,'nalco_rake_records',q('date')+'&order=date.asc').catch(fail('NALCO dashboard')),
+    sel(SB,KEY,'amm_penalty_live_overrides',q('sheet_date')).catch(function(){return []})
+  ]).then(function(res){
+    if(myId!==S.loadId)return;   /* a newer request has replaced this one */
+    var ovMap={};res[4].forEach(function(o){ovMap[o.id]=o});
+    S.groups=buildGroups(res[0],res[1],res[2],res[3],ovMap);
+    S.warn=warn;
+    setStatus(warn.length?'Loaded with warnings':'Updated '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}),warn.length?'err':'ok');
+    render();
+  });
+}
+function setStatus(msg,cls){var el=$('#status');el.textContent=msg;el.className=cls||''}
+
+/* ============ RENDER ============ */
+function kpi(t,v,s,c){
+  var ic=KPI_ICON[t]||'fa-circle';
+  return '<div class="kpi" style="--c:'+c+'"><div class="t"><i class="fas '+ic+'"></i>'+t+'</div><div class="v">'+v+'</div><div class="s">'+s+'</div></div>';
+}
+function pendCell(a){
+  if(!a.n)return '<td class="muted">No data</td>';
+  return '<td class="pend'+(a.pendN?' bad':'')+'">'+a.pendN+'/'+a.n+'</td>';
+}
+function recvCell(a){return a.recvHas?'<td>'+fN(a.recvQty,1)+'</td>':'<td class="muted">No data</td>'}
+function empty(icon,title,text){
+  return '<div class="panel empty"><i class="fas '+icon+'"></i><b>'+title+'</b>'+text+'</div>';
+}
+
+function render(){
+  var G=agg(S.groups),days=daysIn(S.from,S.to),parties=partyList(S.groups);
+  $('#rangeLbl').textContent=S.from?dfmt(S.from)+' – '+dfmt(S.to):'—';
+  $('#rangeSub').textContent=days+' days · '+G.rakes+' rakes';
+  $('#foot').textContent='Source: AMM Daily Penalty Check Sheets ('+(S.from?dfmt(S.from)+' – '+dfmt(S.to):'—')+') · Prepared for Prithvi Realcon';
+  renderCrumbs();
+  var v=S.view;
+  if(v.l==='party')renderParty(v.p);
+  else if(v.l==='date')renderDate(v.p,v.d);
+  else renderHome(G,parties,days);
+  makeFocusable();
+}
+
+function makeFocusable(){
+  document.querySelectorAll('[data-go],[data-toggle]').forEach(function(el){el.setAttribute('tabindex','0')});
+}
+
+function renderCrumbs(){
+  var v=S.view,h='<span class="chip" data-go="home">All parties</span>';
+  if(v.p){
+    h+='<span class="sep">›</span>';
+    h+=v.l==='party'?'<span class="chip cur">'+esc(v.p)+'</span>':'<span class="chip" data-go="party" data-p="'+esc(v.p)+'" style="border-color:'+pcol(v.p)+';color:'+pcol(v.p)+'">'+esc(v.p)+'</span>';
+  }
+  if(v.l==='date')h+='<span class="sep">›</span><span class="chip cur">'+dfmt(v.d)+'</span>';
+  $('#crumbs').innerHTML=h;
+}
+
+function renderHome(G,parties,days){
+  if(!S.groups.length){
+    var msg=S.warn.length?esc(S.warn.join(' | ')):'Try a different date range, or check that the daily penalty sheet has entries for these days.';
+    $('#main').innerHTML=empty('fa-folder-open','No rakes or penalty entries found',msg);
+    return;
+  }
+  var rows=parties.map(function(p){return {p:p,a:agg(S.groups.filter(function(g){return g.party===p}))}});
+  var pendTot=G.pendN,nTot=G.n;
+  var h='<div class="kpis">'+
+    kpi('Total penalty',fRi(G.total),parties.length+' parties, '+days+' days','#f6c200')+
+    kpi('Underload penalty',fRi(G.up),'Shortfall charges','#ff8a4c')+
+    kpi('Overload penalty',fRi(G.op),'Excess-load charges','#37c7c9')+
+    kpi('ENCH penalty',fRi(G.en),'ENCH charges','#a28cff')+
+    kpi('Rakes loaded',fN(G.rakes,0),fN(G.rr,0)+' MT RR qty','#7ea4f2')+
+    kpi('Pending receive',pendTot+'/'+nTot,fN(G.recvQty,1)+' MT received so far','#ff6a60')+
+    '</div>';
+
+  h+='<div class="panel" id="tblSummary"><div class="panel-head"><div><h3><i class="fas fa-table-list"></i>Party summary</h3><div class="hint">Pending recv / total rakes counts rakes with no received weight yet. Click a party to see its day-wise rakes.</div></div></div><table><thead><tr>'+
+    '<th>Party</th><th>Rakes</th><th>Pending recv / total</th><th>RR qty (MT)</th><th>Recv qty (MT)</th><th>Chargeable (MT)</th>'+
+    '<th>Underload ₹</th><th>Overload ₹</th><th>ENCH ₹</th><th>Total penalty ₹</th><th>Share</th><th>Penalty / MT ₹</th></tr></thead><tbody>';
+  rows.forEach(function(r){
+    var a=r.a,share=G.total>0?a.total/G.total*100:0;
+    h+='<tr class="click" data-go="party" data-p="'+esc(r.p)+'">'+
+      '<td class="pn" style="color:'+pcol(r.p)+'">'+esc(r.p)+'</td>'+
+      '<td>'+fN(a.rakes,0)+'</td>'+pendCell(a)+
+      '<td>'+fN(a.rr,1)+'</td>'+recvCell(a)+'<td>'+fN(a.ch,1)+'</td>'+
+      '<td>'+fN(a.up,2)+'</td><td>'+fN(a.op,2)+'</td><td>'+fN(a.en,2)+'</td>'+
+      '<td class="tot">'+fN(a.total,2)+'</td><td class="muted">'+share.toFixed(1)+'%</td>'+
+      '<td class="tot">'+(a.pm==null?'—':fN(a.pm,2))+'</td></tr>';
+  });
+  h+='<tr class="grand"><td>GRAND TOTAL</td><td>'+fN(G.rakes,0)+'</td><td>'+pendTot+'/'+nTot+'</td><td>'+fN(G.rr,1)+'</td><td>'+fN(G.recvQty,1)+'</td><td>'+fN(G.ch,1)+'</td>'+
+    '<td>'+fN(G.up,2)+'</td><td>'+fN(G.op,2)+'</td><td>'+fN(G.en,2)+'</td><td>'+fN(G.total,2)+'</td><td>100%</td><td>'+(G.pm==null?'—':fN(G.pm,2))+'</td></tr>';
+  h+='</tbody></table></div>';
+
+  h+='<div class="panel"><div class="panel-head"><div><h3><i class="fas fa-ruler-combined"></i>Penalty per MT of RR qty (₹ / MT)</h3></div></div><table><thead><tr>'+
+    '<th>Party</th><th>RR qty (MT)</th><th>Underload / MT</th><th>Overload / MT</th><th>ENCH / MT</th><th>Total / MT</th></tr></thead><tbody>';
+  rows.forEach(function(r){
+    var a=r.a,q=a.rr;
+    function pm(x){return q>0?fN(x/q,2):'—'}
+    h+='<tr class="click" data-go="party" data-p="'+esc(r.p)+'"><td class="pn" style="color:'+pcol(r.p)+'">'+esc(r.p)+'</td><td>'+fN(q,1)+'</td>'+
+      '<td style="color:var(--under)">'+pm(a.up)+'</td><td style="color:var(--over)">'+pm(a.op)+'</td>'+
+      '<td style="color:var(--ench)">'+pm(a.en)+'</td><td class="tot">'+pm(a.total)+'</td></tr>';
+  });
+  var gq=G.rr;
+  function gpm(x){return gq>0?fN(x/gq,2):'—'}
+  h+='<tr class="grand"><td>GRAND TOTAL</td><td>'+fN(gq,1)+'</td><td>'+gpm(G.up)+'</td><td>'+gpm(G.op)+'</td><td>'+gpm(G.en)+'</td><td>'+gpm(G.total)+'</td></tr>';
+  h+='</tbody></table></div>';
+
+  h+='<div class="charts">'+barsPanel(rows)+donutPanel(rows,G)+'</div>';
+  if(S.warn.length)h='<div class="note"><i class="fas fa-triangle-exclamation"></i> Some data could not be read: '+esc(S.warn.join(' | '))+'</div>'+h;
+  $('#main').innerHTML=h;
+  bindCharts(rows,G);
+}
+
+/* stacked bars: hover for the breakdown, click a row for the party, click a legend button to hide a series */
+function barsPanel(rows){
+  var vis=function(a){return (S.hide.up?0:a.up)+(S.hide.op?0:a.op)+(S.hide.en?0:a.en)};
+  var max=Math.max.apply(null,[0].concat(rows.map(function(r){return vis(r.a)})));
+  var h='<div class="panel"><div class="panel-head"><div><h3><i class="fas fa-chart-bar"></i>Penalty composition by party</h3><div class="hint">Hover a bar for the breakdown. Click a party to open it. Use the buttons to hide a charge type.</div></div></div>';
+  rows.forEach(function(r){
+    var a=r.a,t=a.total;
+    h+='<div class="brow" data-go="party" data-p="'+esc(r.p)+'"><div class="n" style="color:'+pcol(r.p)+'">'+esc(r.p)+'</div><div class="bar">';
+    SERIES.forEach(function(s){
+      var val=a[s.k];
+      if(S.hide[s.k]||val<=0)return;
+      var w=max>0?(val/max*100):0;
+      h+='<span data-tip="'+esc(r.p)+'|'+s.k+'" style="width:'+w.toFixed(2)+'%;background:'+s.c+'"></span>';
+    });
+    h+='</div><div class="lbl">'+fRi(t)+'</div></div>';
+  });
+  h+='<div class="legend">';
+  SERIES.forEach(function(s){
+    h+='<button type="button" class="'+(S.hide[s.k]?'off':'')+'" data-toggle="'+s.k+'" aria-pressed="'+(!S.hide[s.k])+'"><i style="background:'+s.c+'"></i>'+s.n+'</button>';
+  });
+  h+='</div></div>';
+  return h;
+}
+
+/* donut: hover a slice to see its share in the centre, click a slice or legend item to open the party */
+function donutPanel(rows,G){
+  var items=rows.filter(function(r){return r.a.total>0}).map(function(r){return {p:r.p,v:r.a.total,c:pcol(r.p),sh:G.total>0?r.a.total/G.total*100:0}});
+  var h='<div class="panel"><div class="panel-head"><div><h3><i class="fas fa-chart-pie"></i>Share of total penalty</h3><div class="hint">Hover a slice to see it. Click a slice or a party to open it.</div></div></div><div class="donut">';
+  var C=2*Math.PI*60,off=0;
+  h+='<svg width="200" height="200" viewBox="0 0 180 180" role="img" aria-label="Share of total penalty">';
+  items.forEach(function(i){
+    var len=G.total>0?i.v/G.total*C:0;
+    h+='<circle data-seg="'+esc(i.p)+'" r="60" cx="90" cy="90" fill="none" stroke="'+i.c+'" stroke-width="28" stroke-dasharray="'+len.toFixed(2)+' '+C.toFixed(2)+'" stroke-dashoffset="'+(-off).toFixed(2)+'" transform="rotate(-90 90 90)"/>';
+    off+=len;
+  });
+  h+='<text id="dName" x="90" y="84" text-anchor="middle" fill="#f6c200" font-size="16" font-weight="800">'+fRi(G.total)+'</text>'+
+    '<text id="dSub" x="90" y="102" text-anchor="middle" fill="#93a1b4" font-size="11">TOTAL</text></svg>';
+  h+='<div class="dleg">';
+  items.forEach(function(i){
+    h+='<div data-go="party" data-p="'+esc(i.p)+'"><span class="sw" style="background:'+i.c+'"></span><b>'+esc(i.p)+'</b> &nbsp;'+fRi(i.v)+' ('+i.sh.toFixed(1)+'%)</div>';
+  });
+  h+='</div></div></div>';
+  return h;
+}
+
+function bindCharts(rows,G){
+  var base=G.total;
+  document.querySelectorAll('[data-seg]').forEach(function(c){
+    c.addEventListener('mouseenter',function(){
+      var p=c.getAttribute('data-seg'),r=rows.filter(function(x){return x.p===p})[0];
+      if(!r)return;
+      $('#dName').textContent=fRi(r.a.total);
+      $('#dName').setAttribute('fill',pcol(p));
+      $('#dSub').textContent=(base>0?(r.a.total/base*100).toFixed(1):'0.0')+'% · '+p;
+    });
+    c.addEventListener('mouseleave',function(){
+      $('#dName').textContent=fRi(G.total);$('#dName').setAttribute('fill','#f6c200');$('#dSub').textContent='TOTAL';
+    });
+  });
+}
+
+function renderParty(p){
+  var gs=S.groups.filter(function(g){return g.party===p});
+  var a=agg(gs);
+  var byDate={};gs.forEach(function(g){(byDate[g.date]=byDate[g.date]||[]).push(g)});
+  var dates=Object.keys(byDate).sort();
+  var h='<div class="kpis">'+
+    kpi('Rakes loaded',fN(a.rakes,0),a.live?'Penalty rakes and live records':'Entered by hand in the penalty sheet',pcol(p))+
+    kpi('Total penalty',fRi(a.total),'Underload + overload + ENCH','#f6c200')+
+    kpi('Penalty / MT',a.pm==null?'—':'₹'+fN(a.pm,2),fN(a.rr,1)+' MT RR qty','#7ea4f2')+
+    kpi('Pending recv',a.n?a.pendN+'/'+a.n:'—',a.n?fN(a.pendQty,1)+' MT still to be received':'Not tracked for this party','#ff6a60')+
+    kpi('Recv qty',a.recvHas?fN(a.recvQty,1)+' MT':'—',a.recvHas?'Received weight so far':'Not tracked for this party','#4cc98a')+
+    '</div>';
+  h+='<div class="panel"><div class="panel-head"><div><h3 style="color:'+pcol(p)+'"><i class="fas fa-calendar-days" style="color:'+pcol(p)+'"></i>'+esc(p)+' — day-wise</h3><div class="hint">Click a date to see the rakes of that day.</div></div></div><table><thead><tr>'+
+    '<th>Date</th><th>Rakes</th><th>Pending recv / total</th><th>RR qty (MT)</th><th>Recv qty (MT)</th><th>Chargeable (MT)</th><th>Underload ₹</th><th>Overload ₹</th><th>ENCH ₹</th><th>Total ₹</th><th>Penalty / MT ₹</th></tr></thead><tbody>';
+  if(!dates.length)h+='<tr><td colspan="11" class="muted" style="text-align:left">No entries for this party in the range.</td></tr>';
+  dates.forEach(function(d){
+    var x=agg(byDate[d]);
+    h+='<tr class="click" data-go="date" data-p="'+esc(p)+'" data-d="'+d+'"><td class="pn">'+dfmt(d)+'</td>'+
+      '<td>'+fN(x.rakes,0)+'</td>'+pendCell(x)+'<td>'+fN(x.rr,1)+'</td>'+recvCell(x)+'<td>'+fN(x.ch,1)+'</td>'+
+      '<td>'+fN(x.up,2)+'</td><td>'+fN(x.op,2)+'</td><td>'+fN(x.en,2)+'</td>'+
+      '<td class="tot">'+fN(x.total,2)+'</td><td class="tot">'+(x.pm==null?'—':fN(x.pm,2))+'</td></tr>';
+  });
+  h+='<tr class="grand"><td>TOTAL</td><td>'+fN(a.rakes,0)+'</td><td>'+(a.n?a.pendN+'/'+a.n:'—')+'</td><td>'+fN(a.rr,1)+'</td><td>'+(a.recvHas?fN(a.recvQty,1):'—')+'</td><td>'+fN(a.ch,1)+'</td>'+
+    '<td>'+fN(a.up,2)+'</td><td>'+fN(a.op,2)+'</td><td>'+fN(a.en,2)+'</td><td>'+fN(a.total,2)+'</td><td>'+(a.pm==null?'—':fN(a.pm,2))+'</td></tr>';
+  h+='</tbody></table></div>';
+  $('#main').innerHTML=h;
+}
+
+function renderDate(p,d){
+  var all=S.groups.filter(function(g){return g.party===p&&g.date===d});
+  var gs=all.filter(function(g){return g.src!=='recv'}).sort(function(x,y){return x.area<y.area?-1:x.area>y.area?1:x.siding<y.siding?-1:1});
+  var a=agg(all);
+  var h='<div class="kpis">'+
+    kpi('Rakes',fN(a.rakes,0),dfmt(d),pcol(p))+
+    kpi('Total penalty',fRi(a.total),'Underload + overload + ENCH','#f6c200')+
+    kpi('Underload',fRi(a.up),fN(a.uQty,1)+' MT short','#ff8a4c')+
+    kpi('Overload',fRi(a.op),fN(a.oQty,1)+' MT excess','#37c7c9')+
+    kpi('Pending recv',a.n?a.pendN+'/'+a.n:'—',a.recvHas?fN(a.recvQty,1)+' MT received':'Not tracked for this party','#ff6a60')+
+    '</div>';
+  if(gs.length){
+    h+='<div class="panel"><div class="panel-head"><div><h3 style="color:'+pcol(p)+'"><i class="fas fa-location-dot" style="color:'+pcol(p)+'"></i>'+esc(p)+' — '+dfmt(d)+' by area and siding</h3></div></div><table><thead><tr>'+
+      '<th>Area</th><th>Siding</th><th>Rakes</th><th>RR qty (MT)</th><th>Chargeable (MT)</th><th>Under qty</th><th>Over qty</th><th>Underload ₹</th><th>Overload ₹</th><th>ENCH ₹</th><th>Total ₹</th><th>Pending recv / total</th></tr></thead><tbody>';
+    gs.forEach(function(g){
+      var ga=agg([g]);
+      h+='<tr><td class="pn">'+esc(g.area)+'</td><td>'+esc(g.siding)+'</td><td>'+fN(g.rakes,0)+'</td><td>'+fN(g.rr,1)+'</td><td>'+fN(g.ch,1)+'</td>'+
+        '<td>'+fN(g.uQty,1)+'</td><td>'+fN(g.oQty,1)+'</td><td>'+fN(g.up,2)+'</td><td>'+fN(g.op,2)+'</td><td>'+fN(g.en,2)+'</td>'+
+        '<td class="tot">'+fN(g.up+g.op+g.en,2)+'</td>'+pendCell(ga)+'</tr>';
+    });
+    h+='<tr class="grand"><td>TOTAL</td><td></td><td>'+fN(a.rakes,0)+'</td><td>'+fN(a.rr,1)+'</td><td>'+fN(a.ch,1)+'</td><td>'+fN(a.uQty,1)+'</td><td>'+fN(a.oQty,1)+'</td>'+
+      '<td>'+fN(a.up,2)+'</td><td>'+fN(a.op,2)+'</td><td>'+fN(a.en,2)+'</td><td>'+fN(a.total,2)+'</td><td>'+(a.n?a.pendN+'/'+a.n:'—')+'</td></tr>';
+    h+='</tbody></table></div>';
+  }
+
+  var rakes=[];
+  all.forEach(function(g){if(g.src==='live'||g.src==='recv')g.recs.forEach(function(x){rakes.push(x)})});
+  if(rakes.length){
+    h+='<div class="panel"><div class="panel-head"><div><h3><i class="fas fa-train"></i>All rakes — '+dfmt(d)+'</h3><div class="hint">Pending recv means no received weight has been entered for that rake yet.</div></div></div><table><thead><tr>'+
+      '<th>#</th><th>RR no.</th><th>Area</th><th>Siding</th><th>RR qty (MT)</th><th>Recv qty (MT)</th><th>Chargeable (MT)</th><th>Under qty</th><th>Over qty</th><th>Underload ₹</th><th>Overload ₹</th><th>ENCH ₹</th><th>Status</th></tr></thead><tbody>';
+    rakes.forEach(function(x,i){
+      var r=x.rec,uq=x.chw>x.rrw?x.chw-x.rrw:0,oq=x.rrw>x.chw?x.rrw-x.chw:0;
+      h+='<tr><td>'+(i+1)+'</td><td>'+esc(x.rrNo)+'</td><td>'+esc(x.area||'—')+'</td><td>'+esc(x.siding||'—')+'</td>'+
+        '<td>'+fN(x.rrw,1)+'</td><td>'+(x.recvDone?fN(x.recvQty,1):'<span class="muted">—</span>')+'</td>'+
+        '<td>'+fN(x.chw,1)+'</td><td>'+fN(uq,1)+'</td><td>'+fN(oq,1)+'</td>'+
+        '<td>'+fN(num(r.ul_ch),2)+'</td><td>'+fN(num(r.pol_group)+num(r.ehbc_group),2)+'</td><td>'+fN(num(r.enhc_charge),2)+'</td>'+
+        '<td class="pend'+(x.pending?' bad':'')+'">'+(x.pending?'Pending recv':'Received')+'</td></tr>';
+    });
+    h+='</tbody></table></div>';
+  }else if(!gs.length){
+    h+=empty('fa-calendar-xmark','No entries for this party on this day','Pick another date from the day-wise table.');
+  }else{
+    h+='<div class="note"><i class="fas fa-circle-info"></i> This party is entered by hand in the daily penalty sheet, so only area and siding totals are available for this day.</div>';
+  }
+  $('#main').innerHTML=h;
+}
+
+/* ============ EXPORT ============ */
+/* saves the whole report (header, filters, tables and charts) as a PNG image */
+function exportPng(){
+  var target=document.querySelector('.wrap');
+  if(!target||typeof html2canvas!=='function'){setStatus('PNG export is not available right now','err');return}
+  var btn=$('#png');
+  btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Exporting…';
+  var sticky=document.querySelector('.controls');
+  var prev=sticky?sticky.style.position:'';
+  if(sticky)sticky.style.position='static';   /* a sticky bar would otherwise be drawn in the middle of the image */
+  html2canvas(target,{
+    backgroundColor:'#0c131d',scale:2,useCORS:true,windowWidth:target.scrollWidth,
+    onclone:function(doc){
+      /* html2canvas cannot render gradient text (background-clip:text), so use solid colours in the exported copy */
+      var h1=doc.querySelector('.board h1');
+      if(h1){
+        h1.style.background='none';
+        h1.style.webkitBackgroundClip='border-box';
+        h1.style.backgroundClip='border-box';
+        h1.style.webkitTextFillColor='#14181d';
+        h1.style.color='#14181d';
+        h1.style.textShadow='none';
+        h1.style.filter='none';
+      }
+      var ac=doc.querySelector('.board h1 .accent');
+      if(ac){
+        ac.style.background='none';
+        ac.style.webkitBackgroundClip='border-box';
+        ac.style.backgroundClip='border-box';
+        ac.style.webkitTextFillColor='#1d3a78';
+        ac.style.color='#1d3a78';
+      }
+      /* stop animations (logo ring, glow, live dot) so the header is captured in a clean state.
+         Pseudo-elements such as .board::after cannot be selected in JS, so a style rule is used instead. */
+      var st=doc.createElement('style');
+      st.textContent='*,*::before,*::after{animation:none!important;transition:none!important}';
+      doc.head.appendChild(st);
+    }
+  }).then(function(canvas){
+    var name='party_summary_'+S.from+'_to_'+S.to+'.png';
+    canvas.toBlob(function(blob){
+      var a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();
+      setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500);
+      setStatus('PNG saved','ok');
+    },'image/png');
+  }).catch(function(){
+    setStatus('Could not create the PNG','err');
+  }).then(function(){
+    if(sticky)sticky.style.position=prev;
+    btn.disabled=false;btn.innerHTML='<i class="fas fa-image"></i> Export PNG';
+  });
+}
+
+/* ============ EVENTS ============ */
+function go(t,el){
+  if(t==='home')S.view={l:'home'};
+  else if(t==='party')S.view={l:'party',p:el.getAttribute('data-p')};
+  else if(t==='date')S.view={l:'date',p:el.getAttribute('data-p'),d:el.getAttribute('data-d')};
+  window.scrollTo({top:0,behavior:'smooth'});
+  render();
+}
+document.addEventListener('click',function(e){
+  var tog=e.target.closest('[data-toggle]');
+  if(tog){
+    var k=tog.getAttribute('data-toggle');
+    S.hide[k]=!S.hide[k];
+    render();
+    return;
+  }
+  var el=e.target.closest('[data-go]');
+  if(!el)return;
+  go(el.getAttribute('data-go'),el);
+});
+/* keyboard: Enter or Space opens a row, Escape goes back to all parties */
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'&&S.view.l!=='home'){S.view={l:'home'};render();return}
+  if(e.key!=='Enter'&&e.key!==' ')return;
+  var el=e.target.closest&&e.target.closest('[data-go],[data-toggle]');
+  if(!el)return;
+  e.preventDefault();
+  el.click();
+});
+
+/* tooltip for the bar segments */
+document.addEventListener('mouseover',function(e){
+  var el=e.target.closest('[data-tip]');
+  var tip=$('#tip');
+  if(!el){tip.classList.remove('on');return}
+  var parts=el.getAttribute('data-tip').split('|'),p=parts[0],k=parts[1];
+  var a=agg(S.groups.filter(function(g){return g.party===p}));
+  var s=SERIES.filter(function(x){return x.k===k})[0];
+  var val=a[k],t=a.total;
+  tip.innerHTML='<b style="color:'+pcol(p)+'">'+esc(p)+'</b>'+
+    '<div>'+s.n+': <b>'+fRi(val)+'</b></div>'+
+    '<div>Share of party: '+(t>0?(val/t*100).toFixed(1):'0.0')+'%</div>'+
+    '<div>Party total: '+fRi(t)+'</div>';
+  tip.classList.add('on');
+});
+document.addEventListener('mousemove',function(e){
+  var tip=$('#tip');
+  if(!tip.classList.contains('on'))return;
+  var x=e.clientX+16,y=e.clientY+16;
+  if(x+tip.offsetWidth>window.innerWidth-8)x=e.clientX-tip.offsetWidth-16;
+  if(y+tip.offsetHeight>window.innerHeight-8)y=e.clientY-tip.offsetHeight-16;
+  tip.style.left=x+'px';tip.style.top=y+'px';
+});
+
+function setRange(from,to){
+  $('#from').value=from;$('#to').value=to;
+  S.view={l:'home'};load();
+}
+function init(){
+  var now=new Date();
+  var yday=new Date(now.getFullYear(),now.getMonth(),now.getDate()-1);
+  var weekAgo=new Date(now.getFullYear(),now.getMonth(),now.getDate()-6);
+  $('#from').value=isoOf(new Date(now.getFullYear(),now.getMonth(),1));
+  $('#to').value=isoOf(now);
+  document.querySelectorAll('[data-preset]').forEach(function(b){
+    b.addEventListener('click',function(){
+      var k=b.getAttribute('data-preset');
+      if(k==='mtd')setRange(isoOf(new Date(now.getFullYear(),now.getMonth(),1)),isoOf(now));
+      if(k==='7d')setRange(isoOf(weekAgo),isoOf(now));
+      if(k==='yday')setRange(isoOf(yday),isoOf(yday));
+    });
+  });
+  $('#reload').addEventListener('click',function(){S.view={l:'home'};load()});
+  $('#png').addEventListener('click',exportPng);
+  $('#from').addEventListener('change',function(){S.view={l:'home'};load()});
+  $('#to').addEventListener('change',function(){S.view={l:'home'};load()});
+  load();
+}
+init();
+})();
+</script>
+</body>
+</html>
