@@ -111,21 +111,17 @@ a:focus-visible,button:focus-visible{outline:2px solid #1d4ed8;outline-offset:3p
 .inspire-title{font-family:var(--head);font-weight:600;font-size:clamp(1.3rem,3vw,1.9rem);letter-spacing:-.02em;color:#5a4012}
 .inspire-title em{font-style:normal;color:var(--gold);font-weight:800}
 
-/* Bento */
+/* Bento: 2 tiles, then 3, then 3 */
 .grid{
   width:100%;max-width:1120px;margin:0 auto;
-  display:grid;gap:1rem;grid-template-columns:repeat(12,1fr);grid-auto-flow:dense;
+  display:grid;gap:1rem;grid-template-columns:repeat(6,1fr);
 }
-/* Row 1: AMM (wide) + Coal India (narrow) */
-.tile[href="amm_home.html"]{grid-column:span 7}
-.tile[href="dispatch_dashboard.html"]{grid-column:span 5}
-/* Row 2: three equal cards */
-.tile[href="odr_home.html"],.tile[href="notices.html"],.tile[href="profit_and_loss.html"]{grid-column:span 4}
-/* Row 3: two equal cards */
-.tile[href="daily_rake_loading.html"],.tile[href="daily_penalty.html"]{grid-column:span 6}
+.grid>.tile:nth-child(-n+2){grid-column:span 3}
+.grid>.tile:nth-child(n+3){grid-column:span 2}
 @media (max-width:900px){
-  .grid>.tile{grid-column:span 6!important}
-  .grid>.tile:last-child{grid-column:span 12!important}
+  .grid{grid-template-columns:repeat(2,1fr)}
+  .grid>.tile,.grid>.tile:nth-child(n){grid-column:span 1}
+  .grid>.tile:last-child:nth-child(odd){grid-column:span 2}
 }
 @media (max-width:620px){.grid{grid-template-columns:1fr}.grid>.tile{grid-column:auto!important}}
 
@@ -1377,32 +1373,37 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
     <div class="ico"><i class="fas fa-chart-line"></i></div>
     <div class="foot"><div><span class="name">AMM Performance</span><span class="desc">Party dashboards and reports</span></div><span class="go"><i class="fas fa-arrow-right"></i></span></div>
   </a>
-  <a class="tile" href="dispatch_dashboard.html" data-access="coal" style="--i:1;--c:#0f8a6a">
-    <i class="ghost fas fa-train" aria-hidden="true"></i>
-    <div class="ico"><i class="fas fa-train"></i></div>
-    <div class="foot"><div><span class="name">Coal India Data</span><span class="desc">Dispatch dashboard and entry</span></div><span class="go"><i class="fas fa-arrow-right"></i></span></div>
+  <a class="tile" href="summary.html" data-access="amm" style="--i:1;--c:#1d4ed8">
+    <i class="ghost fas fa-clipboard-list" aria-hidden="true"></i>
+    <div class="ico"><i class="fas fa-clipboard-list"></i></div>
+    <div class="foot"><div><span class="name">Summary</span><span class="desc">Overview of AMM performance</span></div><span class="go"><i class="fas fa-arrow-right"></i></span></div>
   </a>
   <a class="tile" href="odr_home.html" data-access="odr" style="--i:2;--c:#7c3aed">
     <i class="ghost fas fa-database" aria-hidden="true"></i>
     <div class="ico"><i class="fas fa-database"></i></div>
     <div class="foot"><div><span class="name">ODR Data</span><span class="desc">Railway operations data</span></div><span class="go"><i class="fas fa-arrow-right"></i></span></div>
   </a>
-  <a class="tile" href="notices.html" data-access="notices" style="--i:3;--c:#b7791f">
+  <a class="tile" href="dispatch_dashboard.html" data-access="coal" style="--i:3;--c:#0f8a6a">
+    <i class="ghost fas fa-train" aria-hidden="true"></i>
+    <div class="ico"><i class="fas fa-train"></i></div>
+    <div class="foot"><div><span class="name">Coal India Data</span><span class="desc">Dispatch dashboard and entry</span></div><span class="go"><i class="fas fa-arrow-right"></i></span></div>
+  </a>
+  <a class="tile" href="notices.html" data-access="notices" style="--i:4;--c:#b7791f">
     <i class="ghost fas fa-bell" aria-hidden="true"></i>
     <div class="ico"><i class="fas fa-bell"></i></div>
     <div class="foot"><div><span class="name">Notices</span><span class="desc">Latest updates and reminders</span></div><span class="go"><i class="fas fa-arrow-right"></i></span></div>
   </a>
-  <a class="tile" href="profit_and_loss.html" data-access="amm" style="--i:4;--c:#15803d">
+  <a class="tile" href="profit_and_loss.html" data-access="amm" style="--i:5;--c:#15803d">
     <i class="ghost fas fa-scale-balanced" aria-hidden="true"></i>
     <div class="ico"><i class="fas fa-scale-balanced"></i></div>
     <div class="foot"><div><span class="name">Profit and Loss</span><span class="desc">Profit and loss statement</span></div><span class="go"><i class="fas fa-arrow-right"></i></span></div>
   </a>
-  <a class="tile" href="daily_rake_loading.html" data-access="amm" style="--i:5;--c:#0e7490">
+  <a class="tile" href="daily_rake_loading.html" data-access="amm" style="--i:6;--c:#0e7490">
     <i class="ghost fas fa-truck-loading" aria-hidden="true"></i>
     <div class="ico"><i class="fas fa-truck-loading"></i></div>
     <div class="foot"><div><span class="name">Daily Rake Loading</span><span class="desc">Daily rake loading entry and report</span></div><span class="go"><i class="fas fa-arrow-right"></i></span></div>
   </a>
-  <a class="tile" href="daily_penalty.html" data-access="amm" style="--i:6;--c:#be123c">
+  <a class="tile" href="daily_penalty.html" data-access="amm" style="--i:7;--c:#be123c">
     <i class="ghost fas fa-gavel" aria-hidden="true"></i>
     <div class="ico"><i class="fas fa-gavel"></i></div>
     <div class="foot"><div><span class="name">AMM Penalty Sheet</span><span class="desc">Daily penalty check by party and siding</span></div><span class="go"><i class="fas fa-arrow-right"></i></span></div>
