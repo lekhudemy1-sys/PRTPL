@@ -252,8 +252,9 @@ function rakeOf(r,party){
 }
 
 /* groups = one party, date, area and siding (the same rows as the daily penalty sheet),
-   plus receive-only groups for NALCO (its penalty rows stay on the sheet, its receive data comes from its own dashboard) */
-function buildGroups(sheet,gj,hz,nalcoRows,ovMap){
+   plus receive-only groups for NALCO (its penalty rows stay on the sheet, its receive data comes from its own dashboard)
+   and for JHABUA (its receive data comes from the PJPB MIS; rakes, RR qty and penalties stay from the penalty sheet) */
+function buildGroups(sheet,gj,hz,nalcoRows,ovMap,jhRows){
   var groups=[];
   sheet.forEach(function(r){
     var rr=num(r.rr),ch=num(r.ch),fr=num(r.freight),uq=ch-rr;
@@ -300,6 +301,18 @@ function buildGroups(sheet,gj,hz,nalcoRows,ovMap){
     var g=nm[d];g.rr=r2(g.recs.reduce(function(s,x){return s+x.rrw},0));
     groups.push(g);
   });
+
+  /* JHABUA receive data only, from the PJPB MIS: one group per loading date, no penalty amounts.
+     Rakes, RR qty, chargeable and penalties all stay from the daily penalty sheet, so every
+     number except received / pending is 0 here and the penalty totals do not change. */
+  var jm={};
+  (jhRows||[]).forEach(function(r){
+    var g=jm[r.date]||(jm[r.date]={id:'J|'+r.date,src:'recv',recvOnly:true,date:r.date,party:'JHABUA',area:'',siding:'',
+      rakes:0,rr:0,ch:0,uQty:0,oQty:0,up:0,op:0,en:0,recs:[]});
+    g.recs.push(rakeOf(r,'JHABUA'));
+  });
+  Object.keys(jm).forEach(function(d){groups.push(jm[d])});
+
   return groups;
 }
 
@@ -310,7 +323,7 @@ function agg(list){
     a.rakes+=g.rakes;a.rr+=g.rr;a.ch+=g.ch;a.uQty+=g.uQty;a.oQty+=g.oQty;
     a.up+=g.up;a.op+=g.op;a.en+=g.en;
     if(g.src==='live'||g.src==='recv'){
-      a.live=true;
+      if(!g.recvOnly)a.live=true;
       g.recs.forEach(function(x){
         a.n++;a.recvHas=true;
         if(x.recvDone){a.recvN++;a.recvQty+=x.recvQty}
@@ -351,11 +364,16 @@ function load(){
     sel(SB,KEY,'gujarat_rake_records',q('date')+'&order=date.asc').then(function(r){return r.map(function(x){x._p='GUJRAT POWER';return x})}).catch(fail('Gujarat dashboard')),
     sel(SB,KEY,'hzl_rake_records',q('date')+'&order=date.asc').then(function(r){return r.map(function(x){x._p='HZL';return x})}).catch(fail('HZL dashboard')),
     sel(NSB,NKEY,'nalco_rake_records',q('date')+'&order=date.asc').catch(fail('NALCO dashboard')),
-    sel(SB,KEY,'amm_penalty_live_overrides',q('sheet_date')).catch(function(){return []})
+    sel(SB,KEY,'amm_penalty_live_overrides',q('sheet_date')).catch(function(){return []}),
+    /* JHABUA receive data only (PJPB MIS). Only loaded rakes, i.e. rows with an RR weight or RR number */
+    sel(SB,KEY,'pjpb_mis_rows',q('loading_date')+'&order=loading_date.asc').then(function(r){
+      return r.filter(function(x){return num(x.rr_weight)>0||String(x.rr_number==null?'':x.rr_number).trim()!==''})
+        .map(function(x){return {date:x.loading_date,rr_wt:x.rr_weight,recv_wt:x.recv_qty,rr_no:x.rr_number}});
+    }).catch(fail('PJPB MIS'))
   ]).then(function(res){
     if(myId!==S.loadId)return;   /* a newer request has replaced this one */
     var ovMap={};res[4].forEach(function(o){ovMap[o.id]=o});
-    S.groups=buildGroups(res[0],res[1],res[2],res[3],ovMap);
+    S.groups=buildGroups(res[0],res[1],res[2],res[3],ovMap,res[5]);
     S.warn=warn;
     setStatus(warn.length?'Loaded with warnings':'Updated '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}),warn.length?'err':'ok');
     render();
@@ -573,7 +591,7 @@ function renderDate(p,d){
   }
 
   var rakes=[];
-  all.forEach(function(g){if(g.src==='live'||g.src==='recv')g.recs.forEach(function(x){rakes.push(x)})});
+  all.forEach(function(g){if((g.src==='live'||g.src==='recv')&&!g.recvOnly)g.recs.forEach(function(x){rakes.push(x)})});
   if(rakes.length){
     h+='<div class="panel"><div class="panel-head"><div><h3><i class="fas fa-train"></i>All rakes — '+dfmt(d)+'</h3><div class="hint">Pending recv means no received weight has been entered for that rake yet.</div></div></div><table><thead><tr>'+
       '<th>#</th><th>RR no.</th><th>Area</th><th>Siding</th><th>RR qty (MT)</th><th>Recv qty (MT)</th><th>Chargeable (MT)</th><th>Under qty</th><th>Over qty</th><th>Underload ₹</th><th>Overload ₹</th><th>ENCH ₹</th><th>Status</th></tr></thead><tbody>';
