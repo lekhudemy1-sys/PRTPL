@@ -89,6 +89,15 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(31,111,209,.28
 .formula-list{margin:.5rem 0 0 1.1rem;font-size:.88rem;font-weight:600;line-height:1.7}
 .hidden{display:none!important}.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--navy);color:#fff;border-left:4px solid var(--acc);padding:.8rem 1.3rem;border-radius:12px;z-index:1000;transform:translateY(100px);opacity:0;transition:.25s}.toast.show{transform:none;opacity:1}.toast.error{border-left-color:#ff7a8c}
 .exp .ta,.exp .back{display:none}
+.sync-modal-back{position:fixed;inset:0;z-index:1200;background:rgba(5,25,55,.6);display:flex;justify-content:center;align-items:flex-start;padding:7vh 1rem 1rem}
+.sync-modal{width:min(520px,96vw);background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 28px 80px rgba(5,18,42,.38)}
+.sync-modal-head{padding:1rem 1.2rem;color:#fff;background:linear-gradient(120deg,var(--navy),var(--navy2));display:flex;justify-content:space-between;align-items:center;gap:1rem}
+.sync-modal-head h2{font:700 1.05rem var(--head)}
+.sync-step{font-size:.72rem;font-weight:800;padding:.3rem .65rem;border-radius:999px;background:rgba(140,200,255,.2)}
+.sync-modal-body{padding:1.2rem}
+.sync-modal-message{font-size:.92rem;font-weight:600;line-height:1.55}
+.sync-modal-select{width:100%;padding:.8rem .9rem;border:1px solid var(--line);border-radius:13px;margin-top:.8rem;font:600 .95rem var(--body)}
+.sync-modal-actions{display:flex;justify-content:flex-end;gap:.6rem;margin-top:1.1rem}
 </style></head><body>
 <aside class="sidebar"><div class="pn"><i></i> NALCO</div>
 <nav class="nav"><button class="ni active" data-view="dash"><i class="fas fa-tachometer-alt"></i> Dashboard</button>
@@ -120,7 +129,12 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(31,111,209,.28
 <div class="tw"><table class="tbl" id="lt2"></table></div><div class="status" id="lstat"></div></div></section>
 
 <section class="view" id="view-entry"><div class="topbar"><div><h1>Data Entry</h1><div class="period">New rake, contract targets and rates. Everything else is calculated.</div></div></div>
-<div class="panel"><h2><i class="fas fa-plus-circle"></i> Rake Record</h2>
+<div class="panel">
+<div class="tb" style="margin-bottom:1rem">
+  <button type="button" class="btn" id="dailySyncBtn"><i class="fas fa-arrows-rotate"></i> Sync Daily Loading</button>
+  <span class="muted" id="dailySyncStatus">Compare the daily sheet with NALCO rake records for the contract shown.</span>
+</div>
+<h2><i class="fas fa-plus-circle"></i> Rake Record</h2>
 <div class="tb"><select id="sb" class="field" style="max-width:130px" aria-label="Search by"><option value="sr_no">Sr No</option><option value="rr_no">RR No</option></select>
 <input class="field" id="sq" placeholder="Enter Sr No (of the contract chosen below)" style="max-width:300px"><button type="button" class="soft" id="sbtn"><i class="fas fa-search"></i> Search</button><span class="muted" id="editBadge"></span></div>
 <form id="nf"><div id="nfg"></div><div id="customEntry"></div>
@@ -167,9 +181,9 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(31,111,209,.28
 <div class="tw" style="max-height:none;margin-top:.8rem"><table class="tbl" id="slipTbl"></table></div>
 <div class="fg" style="margin-top:1rem"><div><label for="fSlipAbove">Rate for slippage above 3 grades (%)</label><input type="number" step="0.01" id="fSlipAbove"></div></div></div>
 <div class="panel"><h2><i class="fas fa-info-circle"></i> How every dashboard value is calculated</h2>
-<p class="muted">Contract period is 10 Oct to 13 Nov 2026 (35 days). RR = RR weight, Recv = received weight.</p>
+<p class="muted">Contract period is 10 Oct to 16 Nov 2026 (38 days). RR = RR weight, Recv = received weight.</p>
 <ul class="formula-list">
-<li>Target of Contract, Rake Loaded Till, Balance Rake, Asking Per Day = per area (TALCHER, IB, CKP). Loaded counts rakes up to the report date. Asking per day = balance ÷ days from today to the 3rd of next month.</li>
+<li>Target of Contract, Rake Loaded Till, Balance Rake, Asking Per Day = per area (TALCHER, IB, CKP). Loaded counts rakes up to the report date. Asking per day = balance ÷ days from today to the end of the contract.</li>
 <li>Materialisation % = total RR Qty ÷ 97,000 × 100. Rake Performance shows achieved RR Qty against the 97,000 quantity target. Quantity Reco = total RR weight × Quantity base rate × tier % (tiers above).</li>
 <li>Grade of a rake comes from its GCV: above 7000 = G-01, above 6700 = G-02, then every 300 lower (G-17 above 2200). Grade Slippage = Unloading Grade − Loading Grade. GCV Bonus/Penalty (₹/MT) = GCV base rate × slippage % ÷ 100. Bonus/Penalty (₹) = RR weight × that ₹/MT.</li>
 <li>Performance on GCV Reco = sum of Bonus/Penalty (₹) of the month's rakes. Rakes with a missing GCV or negative slippage are left out.</li>
@@ -207,7 +221,9 @@ const unwrap=r=>{if(r.error)throw r.error;return r.data||[]};
 const today=()=>new Date().toLocaleDateString('en-CA');
 const shiftMonth=(p,k)=>{const[Y,M]=p.split('-').map(Number),d=new Date(Date.UTC(Y,M-1+k,1));return d.getUTCFullYear()+'-'+pad(d.getUTCMonth()+1)};
 const daysBetween=(a,b)=>{const d=Math.round((new Date(b+'T00:00:00Z')-new Date(a+'T00:00:00Z'))/864e5);return d>0?d:0};
-const CONTRACTS=[{key:'C-2026-10-10',start:'2026-10-10',end:'2026-11-13'}];   // add future contracts here
+// Contract end date. Change this when the NALCO extension is approved.
+const CONTRACT_END='2026-11-16';
+const CONTRACTS=[{key:'C-2026-10-10',start:'2026-10-10',end:CONTRACT_END}];   // add future contracts here
 const ctOf=d=>(CONTRACTS.find(c=>d>=c.start&&d<=c.end)||{}).key||null;
 const cycleKey=d=>ctOf(d)||CONTRACTS[CONTRACTS.length-1].key;
 const monthInfo=p=>{const c=CONTRACTS.find(x=>x.key===p)||CONTRACTS[CONTRACTS.length-1];return{start:c.start,end:c.end,dim:daysBetween(c.start,c.end)+1}};
@@ -238,7 +254,7 @@ function compute(p,recs,tg,ovr=()=>undefined,repForce){
  const mi=monthInfo(p),S=settings(p),m=recs.filter(r=>r.date>=mi.start&&r.date<=mi.end);
  const last=m.reduce((x,r)=>r.date>x?r.date:x,''),rd=(SET[p]||{}).reportDate||'';
  const rep=repForce||((rd&&rd>=mi.start&&rd<=mi.end)?rd:(last||mi.end)),dp=Math.min(mi.dim,daysBetween(mi.start,rep)+1);
- const t0=today(),from=t0>mi.end?rep:(t0<mi.start?mi.start:t0),dr=daysBetween(from,mi.end);   // asking per day: today -> 3rd of next month
+ const t0=today(),from=t0>mi.end?rep:(t0<mi.start?mi.start:t0),dr=daysBetween(from,mi.end);   // asking per day: today -> end of contract
  const upto=m.filter(r=>r.date<=rep),A={};
  AREAS.forEach(a=>{const t=tg.find(x=>x.period===p&&up(x.area)===a),T=t?num(t.target):0,rs=m.filter(r=>up(r.area)===a),ld=upto.filter(r=>up(r.area)===a).length;
   const wr=rs.filter(r=>num(r.recv_wt)>0),rr=sum(rs,'rr_wt');
@@ -327,11 +343,12 @@ $('noticeSave').onclick=saveNotice;$('noticeOn').onchange=saveNotice;
 /* ---------- views + password ---------- */
 const PROT=['upload','log','entry','formulas'],VN={upload:'Upload Excel',log:'Records Log',entry:'Data Entry',formulas:'Formulas'};let unlocked=false,pending='dash',PENDING_FILL=null;
 function showView(n){
- if(PROT.includes(n)&&!unlocked){pending=n;$('lt').textContent='Enter password to open '+VN[n];$('pwd').value='';$('pe').textContent='';n='lock';setTimeout(()=>$('pwd').focus(),50)}
+ if(PROT.includes(n)&&!unlocked){pending=n;$('lt').textContent='Enter password to open '+VN[n];$('pwd').value='';$('pe').textContent='';n='lock'}
  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+n));
  const nk=n==='lock'?pending:n;document.querySelectorAll('.ni').forEach(b=>b.classList.toggle('active',b.dataset.view===nk));
+ if(n==='lock'){setTimeout(()=>{$('pwd').focus();$('pwd').select()},30)}
  if(n==='dash')loadDash();if(n==='log')loadLog();if(n==='entry')initEntry();if(n==='formulas')renderFormulas()}
-const tryUnlock=()=>{if($('pwd').value===PASS){unlocked=true;document.body.classList.add('unlocked');$('ul').textContent='Unlocked';showView(pending)}else{$('pe').textContent='Wrong password';$('pwd').select()}};
+const tryUnlock=()=>{if($('pwd').value===PASS){unlocked=true;document.body.classList.add('unlocked');$('ul').textContent='Unlocked';showView(pending)}else{$('pe').textContent='Wrong password';$('pwd').focus();$('pwd').select()}};
 $('unlock').onclick=tryUnlock;$('pwd').onkeydown=e=>{if(e.key==='Enter')tryUnlock()};$('lback').onclick=()=>{PENDING_FILL=null;showView('dash')};
 $('lockBtn').onclick=()=>{if(unlocked){unlocked=false;document.body.classList.remove('unlocked');$('ul').textContent='Locked';showView('dash')}else{pending='dash';$('lt').textContent='Enter password';$('pwd').value='';$('pe').textContent='';showView('lock')}};
 document.querySelectorAll('.ni').forEach(b=>b.onclick=()=>showView(b.dataset.view));
@@ -538,8 +555,137 @@ $('alertModal').onclick=e=>{if(e.target.id==='alertModal')return $('alertModal')
  const f=e.target.closest('[data-fill]');if(f){PENDING_FILL=f.dataset.fill;$('alertModal').classList.add('hidden');showView('entry');return}   // asks for the password first if locked
  const t=e.target.closest('.atab');if(t){ALERT_SEL=t.dataset.id;renderAlerts()}};
 
+/* ---------- DAILY LOADING SYNC (NALCO) ---------- */
+const DAILY_URL='https://jzkrywwrsewchtiqsczk.supabase.co';
+const DAILY_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6a3J5d3dyc2V3Y2h0aXFzY3prIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1NDU0MzQsImV4cCI6MjEwNzEyMTQzNH0.IDwfVhqDI9uXfAALCVKBD0pNjsNVu38fW4eEueaKDSs';
+const DAILY_TABLE='amm_daily_entries';
+const DAILY_MAP={
+  'MCL-4':{area:'TALCHER',siding:'NLOD (Talchar)'},
+  'MCL-5':{area:'IB',siding:'NLOD (IB)'},
+  'MCL-6':{area:'CKP',siding:'NLOD (CKP)'}
+};
+const DAILY_SYNC_FROM='2026-10-10';
+let DAILY_BUSY=false;
+const isPending=r=>r.rr_no==null||String(r.rr_no).trim()==='';
+
+async function fetchDaily(from,to){
+  const url=`${DAILY_URL}/rest/v1/${DAILY_TABLE}?report_date=gte.${from}&report_date=lte.${to}&select=report_date,entries&order=report_date.asc`;
+  const res=await fetch(url,{headers:{apikey:DAILY_KEY,Authorization:'Bearer '+DAILY_KEY}});
+  if(!res.ok) throw new Error('Daily sheet read failed ('+res.status+')');
+  return res.json();
+}
+
+function buildDiff(daily,recs){
+  const diff=[];
+  daily.forEach(dr=>{
+    Object.entries(DAILY_MAP).forEach(([key,{area,siding}])=>{
+      const e=(dr.entries||{})[key];
+      if(!e||!isNum(e.d)) return;               // missing cell: skip, do not treat as zero
+      const want=Math.max(0,Math.round(Number(e.d)));
+      const mine=recs.filter(r=>String(r.date||'').slice(0,10)===dr.report_date&&up(r.area)===area);
+      const pending=mine.filter(isPending);
+      const add=Math.max(0,want-mine.length), drop=Math.max(0,mine.length-want);
+      if(add||drop) diff.push({date:dr.report_date,area,siding,want,count:mine.length,add,drop,pending,confirmed:mine.length-pending.length});
+    });
+  });
+  return diff.sort((a,b)=>a.date.localeCompare(b.date)||a.area.localeCompare(b.area));
+}
+
+function askChoice(title,message,options,okLabel,stepText){
+  return new Promise(resolve=>{
+    const wrap=document.createElement('div');
+    wrap.className='sync-modal-back';
+    wrap.innerHTML=`<div class="sync-modal" role="dialog" aria-modal="true">
+      <div class="sync-modal-head"><h2><i class="fas fa-truck-loading"></i> ${esc(title)}</h2><span class="sync-step">${esc(stepText||'')}</span></div>
+      <div class="sync-modal-body">
+        <p class="sync-modal-message">${esc(message)}</p>
+        <select class="sync-modal-select" id="syncSel">${options.map(o=>`<option value="${esc(o.value)}">${esc(o.label)}</option>`).join('')}</select>
+        <div class="sync-modal-actions"><button type="button" class="soft" id="syncCancel">Cancel</button><button type="button" class="btn" id="syncOk">${esc(okLabel)}</button></div>
+      </div></div>`;
+    document.body.appendChild(wrap);
+    const sel=wrap.querySelector('#syncSel');
+    const done=v=>{wrap.remove();resolve(v)};
+    wrap.querySelector('#syncOk').onclick=()=>done(sel.value);
+    wrap.querySelector('#syncCancel').onclick=()=>done(null);
+    wrap.onclick=e=>{if(e.target===wrap)done(null)};
+    sel.focus();
+  });
+}
+
+async function runDailySync(){
+  if(!unlocked||DAILY_BUSY) return;
+  DAILY_BUSY=true;
+  const btn=$('dailySyncBtn'), st=$('dailySyncStatus');
+  btn.disabled=true; st.textContent='Reading daily sheet and NALCO records...';
+  let changed=false, stopped=false, actions=0;
+  try{
+    const mi=monthInfo(EP);
+    const from=mi.start>DAILY_SYNC_FROM?mi.start:DAILY_SYNC_FROM;
+    const [recs,daily]=await Promise.all([
+      fetchAll(q=>q.gte('date',from).lte('date',mi.end)),
+      fetchDaily(from,mi.end)
+    ]);
+    const diff=buildDiff(daily,recs);
+    if(!diff.length){ st.textContent='Already matched. No changes required.'; toast('NALCO matches the daily sheet.'); return; }
+
+    for(const d of diff){
+      // Daily sheet is higher: add pending rakes with area+siding from the map (no picker)
+      for(let i=0;i<d.add;i++){
+        const sr=await nextSr(d.date);
+        const {error}=await db.from(RECS).insert({sr_no:sr,date:d.date,area:d.area,siding:d.siding,rr_no:null});
+        if(error){toast('Could not save rake: '+error.message,true);stopped=true;break}
+        d.count++; changed=true; actions++;
+      }
+      if(stopped) break;
+
+      // Daily sheet is lower: remove pending rakes only
+      if(d.drop>0){
+        if(d.drop>d.pending.length){
+          toast(d.date+' '+d.area+': '+d.confirmed+' confirmed rakes exceed the daily count ('+d.want+'). Review Records Log. Confirmed records were not changed.',true);
+          continue;
+        }
+        const pending=d.pending.slice();
+        for(let i=0;i<d.drop;i++){
+          const id=await askChoice(
+            'Remove a pending rake · NALCO',
+            d.date+' '+d.area+': daily sheet expects '+d.want+', NALCO has '+d.count+'. Select a pending record to remove.',
+            pending.map(r=>({value:String(r.id),label:'Sr No '+r.sr_no+(r.siding?' · '+r.siding:'')})),
+            'Continue to delete',
+            'REMOVE '+(i+1)+' OF '+d.drop
+          );
+          if(id==null){stopped=true;break}
+          const row=pending.find(r=>String(r.id)===id);
+          if(!row){stopped=true;break}
+          if(!confirm('Permanently delete pending NALCO rake Sr No '+row.sr_no+'?')){stopped=true;break}
+          // re-check it is still pending before deleting
+          const {data:now}=await db.from(RECS).select('id,rr_no').eq('id',id).maybeSingle();
+          if(!now||!isPending(now)){toast('That record now has an RR number and was not deleted.',true);stopped=true;break}
+          const {error}=await db.from(RECS).delete().eq('id',id);
+          if(error){toast('Delete failed: '+error.message,true);stopped=true;break}
+          pending.splice(pending.findIndex(r=>String(r.id)===id),1);
+          d.count--; changed=true; actions++;
+        }
+      }
+      if(stopped) break;
+    }
+    st.textContent=stopped
+      ? 'Sync paused. '+actions+' change(s) saved; run again to continue.'
+      : 'Sync complete. '+actions+' change(s) made.';
+    if(!stopped) toast('Daily sync complete: '+actions+' change(s).');
+  }catch(e){
+    console.error('[NALCO daily sync]',e);
+    st.textContent='Sync failed: '+(e.message||e);
+    toast('Daily sync: '+(e.message||'failed'),true);
+  }finally{
+    DAILY_BUSY=false; btn.disabled=false;
+    btn.innerHTML='<i class="fas fa-arrows-rotate"></i> Sync Daily Loading';
+    if(changed){ loadDash(); loadEntry(); loadAlerts(); }
+  }
+}
+
 /* ---------- init ---------- */
 $('lm').innerHTML='<option value="">All contracts</option>'+CONTRACTS.map(c=>`<option value="${c.key}">${plabel(c.key)}</option>`).join('');
 fillPick();loadDash();
+$('dailySyncBtn').onclick=runDailySync;
 setInterval(()=>{if(!document.hidden&&$('view-dash').classList.contains('active'))loadDash()},30000);
 </script></body></html>
