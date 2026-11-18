@@ -78,6 +78,7 @@ a.btn{text-decoration:none}
 .btn:active{transform:translateY(1px)}
 .btn.primary{background:var(--yellow-ink);color:var(--yellow)}
 .btn.primary:hover{background:#000}
+.btn[aria-expanded="true"]{background:var(--yellow-ink);color:var(--yellow)}
 .btn svg{width:18px;height:18px;flex:none}
 .btn.icon{padding:9px 10px}
 .btn.back{flex:none}
@@ -174,6 +175,7 @@ tbody td.party{text-align:left}
 .tag.over{background:var(--over)}
 .tag.exact{background:var(--ok)}
 .tag.edited{background:var(--ench)}
+.tag.none{background:var(--muted)}
 .boxt{display:inline-block;margin-left:6px;font-size:11px;font-weight:700;border-radius:4px;padding:1px 6px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);white-space:nowrap}
 .uq{display:flex;align-items:center;justify-content:flex-end;gap:5px}
 .dv{position:relative;width:26px;height:8px;background:var(--surface2);border-radius:4px;flex:none}
@@ -213,6 +215,31 @@ tr.sub td{background:color-mix(in srgb,var(--pc) 17%,var(--surface))!important;b
 tr.gap td{height:20px;padding:0;border:0;background:var(--bg)}
 td.party{border-left-width:10px}
 @media (max-width:1650px){.dv{display:none}}
+
+
+/* ============ RAKE LOG (full page view of this same file, opened in a new tab) ============ */
+.logsheet{margin:0 0 22px}
+.logsheet[hidden]{display:none}
+.logsheet td.l{text-align:left}
+.log-filters{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--surface2)}
+.log-filters label{font-size:12px;font-weight:600;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+.log-filters select,.log-filters input{border:1.5px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 10px;min-width:140px}
+.log-note{padding:10px 16px;font-size:13px;color:var(--muted);border-top:1px solid var(--line);background:var(--surface2)}
+.quick{display:flex;gap:6px;flex-wrap:wrap;align-items:flex-end;padding-bottom:2px}
+.chip.warn[aria-pressed="true"]{background:var(--danger);border-color:var(--danger);color:#fff}
+.alertbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:12px 16px;background:color-mix(in srgb,var(--danger) 12%,var(--surface));color:var(--danger);border-bottom:1px solid var(--line);font-weight:600}
+.alertbar[hidden]{display:none}
+.alertbar button{margin-left:auto;border:2px solid var(--danger);background:transparent;color:var(--danger);border-radius:8px;padding:5px 12px;font-weight:700}
+.tag.alert{background:var(--danger);font-size:11px;padding:2px 7px;margin:0}
+.fr-alert{color:var(--danger);font-weight:700}
+.logsheet .scroll{max-height:74vh;overflow:auto}
+.logsheet tbody tr.lr{cursor:pointer}
+.logsheet tbody tr.lr:hover td{background:var(--surface2)}
+.logsheet tbody tr.lr.alert td{background:color-mix(in srgb,var(--danger) 11%,var(--surface))}
+.logsheet tbody tr.lr.dsep td{border-top:3px solid var(--line)}
+.logsheet tfoot td{position:sticky;bottom:0}
+.logview .track,.logview .kpis,.logview .mainsheet,.logview .insights,.logview .mainonly{display:none!important}
+.logview .logsheet{margin-top:22px}
 
 /* ============ INSIGHTS ============ */
 .insights{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:22px 0 40px}
@@ -320,7 +347,7 @@ td.party{border-left-width:10px}
       </div>
     </div>
     <div class="board-right">
-    <div class="plate" role="group" aria-label="Sheet date">
+    <div class="plate mainonly" role="group" aria-label="Sheet date">
       <button id="prevDay" aria-label="Previous day">&#8249;</button>
       <div class="when">
         <b id="dateMain" class="num">06 Nov 2026</b>
@@ -330,13 +357,16 @@ td.party{border-left-width:10px}
       <button id="nextDay" aria-label="Next day">&#8250;</button>
     </div>
     <div class="tools">
-      <button class="btn primary" id="newBtn" title="Shortcut: N">
+      <button class="btn primary mainonly" id="newBtn" title="Shortcut: N">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>New entry
       </button>
-      <button class="btn" id="csvBtn">
+      <button class="btn mainonly" id="logBtn" title="Rake log: opens in a new page">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Rake log
+      </button>
+      <button class="btn mainonly" id="csvBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 21h16"/></svg>Export CSV
       </button>
-      <button class="btn" id="pngBtn" title="Save the full page as an image">
+      <button class="btn mainonly" id="pngBtn" title="Save the full page as an image">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.8"/><path d="m21 16-5-5-8 9"/></svg>Save PNG
       </button>
       <button class="btn icon" id="themeBtn" aria-label="Switch light or dark theme" title="Theme">
@@ -395,8 +425,75 @@ td.party{border-left-width:10px}
     </div>
   </section>
 
+  <!-- ================= RAKE LOG (shown only on the log page: this file opened with ?view=log) ================= -->
+  <section class="sheet logsheet" id="logSheet" aria-label="Rake log" hidden>
+    <div class="sheet-bar">
+      <h2>Rake log</h2>
+      <span id="logCount" style="font-size:13px;color:var(--muted)"></span>
+      <span style="flex:1"></span>
+      <button class="textbtn" id="logCsv" type="button">Export CSV</button>
+    </div>
+    <div class="log-filters">
+      <label>From date
+        <input type="date" id="logFrom" aria-label="From date">
+      </label>
+      <label>To date
+        <input type="date" id="logTo" aria-label="To date">
+      </label>
+      <div class="quick" id="logQuick" role="group" aria-label="Quick date ranges">
+        <button class="chip" type="button" data-r="yest">Yesterday</button>
+        <button class="chip" type="button" data-r="7">Last 7 days</button>
+        <button class="chip" type="button" data-r="mtd">This month</button>
+        <button class="chip" type="button" data-r="lm">Last month</button>
+      </div>
+      <label>Party
+        <select id="logParty" aria-label="Filter by party"><option value="ALL">All parties</option></select>
+      </label>
+      <label>Box type
+        <select id="logBox" aria-label="Filter by box type"><option value="ALL">All box types</option></select>
+      </label>
+      <label>Search
+        <input type="search" id="logSearch" placeholder="Area or siding" aria-label="Search area or siding">
+      </label>
+      <button class="chip warn" id="logAlertOnly" type="button" aria-pressed="false">&#9888; Freight alerts only</button>
+    </div>
+    <div class="alertbar" id="alertBar" hidden>
+      <span id="alertMsg"></span>
+      <button type="button" id="alertShow">Show only these</button>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead>
+          <tr>
+            <th class="c">#</th>
+            <th class="l">Date</th>
+            <th class="l">Party</th>
+            <th class="l">Area</th>
+            <th class="l">Siding</th>
+            <th class="c">Rakes</th>
+            <th class="l">Box</th>
+            <th>RR QTY</th>
+            <th>CHARBALE</th>
+            <th>Underload qty</th>
+            <th>Overload qty</th>
+            <th>Freight</th>
+            <th class="pen">Underload Pen.</th>
+            <th class="pen">Overload Pen.</th>
+            <th class="pen">ENCH</th>
+            <th class="pen">TOTAL</th>
+            <th class="pen">Per M/T</th>
+            <th class="l">Alert</th>
+          </tr>
+        </thead>
+        <tbody id="logBody"></tbody>
+        <tfoot id="logFoot"></tfoot>
+      </table>
+    </div>
+    <div class="log-note"><b>Freight alert:</b> BOXN, BOXNHL and BOXN+NHL rakes do not need freight, so any row with these box types that still has a freight rate or an underload penalty is flagged in red. Click a row to open that date in the check sheet (new tab) and correct it. The log only reads data; nothing is changed here.</div>
+  </section>
+
   <!-- ================= LEDGER ================= -->
-  <section class="sheet" aria-label="Penalty check sheet">
+  <section class="sheet mainsheet" aria-label="Penalty check sheet">
     <div class="sheet-bar">
       <h2>Check sheet</h2>
       <div class="chips" id="chips" role="group" aria-label="Filter by party"></div>
@@ -430,7 +527,7 @@ td.party{border-left-width:10px}
         <tfoot id="tfoot"></tfoot>
       </table>
     </div>
-    <div class="hint">Rows marked LIVE are the GUJRAT POWER (Gujarat dashboard), HZL (HZL dashboard) and NALCO (NALCO dashboard) rakes read live, grouped by area, siding and party (for example SECL · BGCK TO GETS and SECL · BGCK TO TPHS are separate rows) for the date, and refreshed every 30 seconds. For each live rake: Underload qty = CH weight − RR weight (when CH is more), Overload qty = RR weight − CH weight (when RR is more). <b>Live rows can be edited here too</b> (pencil button, or click RR QTY, CHARBALE QTY, Freight, Overload Penalty or ENCH). Underload Penalty = Underload qty × Freight on every row. A hand-edited row is marked EDITED, is saved for that date only, is never overwritten by the live refresh, and does <b>not</b> change the Gujarat, HZL or NALCO dashboard. The arrow button on an EDITED row goes back to the live values. All other rows come from the database: click RR QTY, CHARBALE QTY, Freight or ENCH to change them in place. Per M/T = TOTAL ÷ RR QTY.</div>
+    <div class="hint">Rows marked LIVE are the GUJRAT POWER (Gujarat dashboard), HZL (HZL dashboard) and NALCO (NALCO dashboard) rakes read live, grouped by area, siding and party (for example SECL · BGCK TO GETS and SECL · BGCK TO TPHS are separate rows) for the date, and refreshed every 30 seconds. For each live rake: Underload qty = CH weight − RR weight (when CH is more), Overload qty = RR weight − CH weight (when RR is more). <b>Live rows can be edited here too</b> (pencil button, or click RR QTY, CHARBALE QTY, Freight, Overload Penalty or ENCH). Underload Penalty = Underload qty × Freight on every row. Where a live row has no underload charge from the dashboard, its Freight may use a saved box-type rate when one exists. A hand-edited row is marked EDITED, is saved for that date only, is never overwritten by the live refresh, and does <b>not</b> change the Gujarat, HZL or NALCO dashboard. The arrow button on an EDITED row goes back to the live values. All other rows come from the database: click RR QTY, CHARBALE QTY, Freight or ENCH to change them in place. Per M/T = TOTAL ÷ RR QTY.</div>
   </section>
 
   <!-- ================= INSIGHTS ================= -->
@@ -549,6 +646,9 @@ var CFG_KEY='amm_sb_cfg', TABLE='amm_penalty_entries';
 /* Hand-edited live rows are saved here (one row per date + party + area + siding).
    Create this table once in Supabase, see the SQL given with this file. */
 var OV_TABLE='amm_penalty_live_overrides';
+/* Freight rate per box type (one row per box type). Create once in Supabase, see the SQL given with this file. */
+var BOX_TABLE='amm_box_rates';
+var DEFAULT_BOXES=['BOXN','BOXNHL','BOXNHA','BOBRN','BOBYN','BCN'];
 /* Supabase details. You can also click the status pill at the top and paste them once. */
 var SUPABASE_URL='https://pycmkjrmdieaqsbgrher.supabase.co';
 var SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5Y21ranJtZGllYXFzYmdyaGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwMjMxNzAsImV4cCI6MjEwNjU5OTE3MH0.9IE2c2FZ4BPv6Rvhfa_VniQ7LJvQ_c4EGDXFihYR4Lc';
@@ -560,6 +660,12 @@ var GUJP='GUJRAT POWER';
 var LIVE_SRC=[{party:'GUJRAT POWER',table:'gujarat_rake_records'},{party:'HZL',table:'hzl_rake_records'},{party:'NALCO',table:'nalco_rake_records',cfg:NALCO_CFG}];   /* parties fed live from their dashboards */
 var NEW='__new__';
 var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* This one file is two pages: the check sheet, and the Rake log (same file opened with ?view=log in a new tab) */
+var QS={};try{new URLSearchParams(location.search).forEach(function(v,k){QS[k]=v})}catch(e){}
+var ISO_RE=/^\d{4}-\d{2}-\d{2}$/;
+var LOGVIEW=QS.view==='log';
+function pageBase(){return location.href.split('#')[0].split('?')[0]}
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function fmt(n){return Number(n).toLocaleString('en-IN',{maximumFractionDigits:2})}
@@ -582,7 +688,8 @@ var DAY=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
    LIVE rows (per area and siding, per date, read from gujarat_rake_records / hzl_rake_records / nalco_rake_records):
    Underload qty = sum of (CH wt - RR wt) of rakes where CH wt is more
    Overload qty  = sum of (RR wt - CH wt) of rakes where RR wt is more
-   Underload penalty = sum of underload charge, Overload penalty = POL group + EHBC charge
+   Underload penalty = sum of underload charge, or underload qty x box-type rate when the dashboard has no charge
+   Overload penalty = POL group + EHBC charge
    ENCH = ENHC charge. Dead freight is not shown here.
    A live row that was edited by hand (edited=true) keeps exactly the values typed in. */
 function calc(e){
@@ -609,8 +716,11 @@ var SIDING_BY_AREA={SECL:'KMKA',CCL:'BOCM',WCL:'DKJC',MCL:'DFJH',NCL:'IJJS'};
 
 var store={days:{},loaded:{},parties:DEFAULT_PARTIES.slice(),areas:DEFAULT_AREAS.slice()};
 var live={};   /* live rows per date (with hand edits applied), live values are never written to the penalty table */
+var rawLive={};/* the raw dashboard data per date, kept so live rows can be rebuilt when a box rate changes */
 var ovr={};    /* hand-edited live rows per date: {date:{rowId:row}} from OV_TABLE */
+var boxRates={};/* freight rate per box type (upper case) from BOX_TABLE */
 var date=yesterdayIso();
+if(ISO_RE.test(QS.date||''))date=QS.date;   /* the Rake log opens a date of the check sheet with ?date= */
 var filterParty='ALL', underOnly=false, query='';
 var editId=null, liveMode=false;
 var loading=false, loadErr='';
@@ -830,6 +940,164 @@ function renderInsights(){
   }).join(''):'<li class="empty">No data yet</li>';
 }
 
+/* ============ BOX RATE HELPERS (used by live underload when dashboard has no charge) ============ */
+function firstBox(s){return String(s==null?'':s).split(',')[0].trim().toUpperCase()}
+function rateFor(box){var b=firstBox(box);return b&&boxRates[b]!==undefined?boxRates[b]:null}
+
+/* ============ RAKE LOG PAGE (this file opened with ?view=log) ============
+   A full page with a date range, party / box filters and a freight alert. It only reads data. */
+/* box types that do not need freight: BOXN, BOXNHL and BOXN+NHL */
+var NO_FREIGHT={BOXN:1,BOXNHL:1,NHL:1};
+function boxTokens(b){return String(b==null?'':b).toUpperCase().split(/[,+\/;&\s]+/).filter(Boolean)}
+function isNoFreightBox(b){var t=boxTokens(b);return t.length>0&&t.every(function(x){return NO_FREIGHT[x]===1})}
+function freightOf(e){return e.live?liveFreight(e):num(e.freight)}
+/* alert when one of those box types still carries a freight rate or an underload penalty */
+function alertOf(e){
+  if(!isNoFreightBox(e.box))return null;
+  var f=freightOf(e),c=calc(e);
+  return (f>0||c.up>0)?{freight:f,pen:c.up}:null;
+}
+var LR=[], logAlertOnly=false, logTok=0;
+
+function logFiltered(){
+  var p=$('#logParty').value,b=$('#logBox').value,q=$('#logSearch').value.trim().toLowerCase();
+  return LR.filter(function(e){
+    if(p!=='ALL'&&e.party!==p)return false;
+    if(b!=='ALL'&&boxTokens(e.box).indexOf(b)<0)return false;
+    if(q&&(e.area+' '+e.siding+' '+e.party).toLowerCase().indexOf(q)<0)return false;
+    return true;
+  });
+}
+function fillLogFilters(){
+  var ps=$('#logParty'),bs=$('#logBox'),pv=ps.value,bv=bs.value,boxes={};
+  var pl=['ALL'].concat(store.parties.filter(function(p){return LR.some(function(e){return e.party===p})}));
+  LR.forEach(function(e){boxTokens(e.box).forEach(function(x){boxes[x]=1})});
+  DEFAULT_BOXES.forEach(function(x){boxes[x]=1});
+  var bl=['ALL'].concat(Object.keys(boxes).sort());
+  ps.innerHTML=pl.map(function(p){return '<option value="'+esc(p)+'">'+(p==='ALL'?'All parties':esc(p))+'</option>'}).join('');
+  bs.innerHTML=bl.map(function(x){return '<option value="'+esc(x)+'">'+(x==='ALL'?'All box types':esc(x))+'</option>'}).join('');
+  ps.value=pl.indexOf(pv)>=0?pv:'ALL';bs.value=bl.indexOf(bv)>=0?bv:'ALL';
+}
+function logVisible(){
+  var base=logFiltered();
+  return {base:base,alerts:base.filter(function(e){return alertOf(e)})};
+}
+function renderLog(){
+  if(!LOGVIEW)return;
+  var v=logVisible(),list=logAlertOnly?v.alerts:v.base;
+  var bar=$('#alertBar');
+  if(v.alerts.length){
+    bar.hidden=false;
+    $('#alertMsg').textContent='⚠ '+v.alerts.length+(v.alerts.length===1?' row has':' rows have')+' freight on BOXN / BOXNHL / BOXN+NHL, where freight is not required.';
+    $('#alertShow').textContent=logAlertOnly?'Show all rows':'Show only these';
+  }else bar.hidden=true;
+  $('#logAlertOnly').setAttribute('aria-pressed',logAlertOnly);
+  var h='',prev='',t={rr:0,ch:0,uU:0,uO:0,up:0,op:0,en:0,total:0,rakes:0};
+  list.forEach(function(e,i){
+    var c=calc(e),a=alertOf(e),f=freightOf(e);
+    var tag=c.status==='under'?'<span class="tag under">UNDER</span>':c.status==='over'?'<span class="tag over">OVER</span>':'<span class="tag exact">EXACT</span>';
+    t.rr+=num(e.rr);t.ch+=num(e.ch);t.uU+=c.uU;t.uO+=c.uO;t.up+=c.up;t.op+=c.op;t.en+=c.en;t.total+=c.total;t.rakes+=num(e.rakes);
+    h+='<tr class="lr'+(a?' alert':'')+(prev&&prev!==e.date?' dsep':'')+'" data-d="'+esc(e.date)+'" title="Open this date in the check sheet">';
+    h+='<td class="c num">'+(i+1)+'</td>';
+    var d=fromIso(e.date);
+    h+='<td class="l">'+pad(d.getDate())+' '+MON[d.getMonth()]+' '+d.getFullYear()+'</td>';
+    h+='<td class="l">'+esc(e.party)+(e.live?(e.edited?' <span class="tag edited">EDITED</span>':' <span class="tag exact">LIVE</span>'):'')+'</td>';
+    h+='<td class="l">'+esc(e.area)+'</td>';
+    h+='<td class="l">'+esc(e.siding)+'</td>';
+    h+='<td class="c">'+esc(e.rakes)+'</td>';
+    h+='<td class="l">'+(e.box?'<span class="boxt" style="margin-left:0">'+esc(e.box)+'</span>':'—')+'</td>';
+    h+='<td class="num">'+fmt(e.rr)+'</td><td class="num">'+fmt(e.ch)+'</td>';
+    h+='<td class="num">'+tag+' '+fmt(c.uU)+'</td>';
+    h+='<td class="num">'+fmt(c.uO)+'</td>';
+    h+='<td class="num'+(a?' fr-alert':'')+'">'+fmt(f)+'</td>';
+    h+='<td class="num pen-u'+(c.up?'':' zero')+'">'+fmt(c.up)+'</td>';
+    h+='<td class="num">'+fmt(c.op)+'</td><td class="num">'+fmt(c.en)+'</td>';
+    h+='<td class="num tot"><span>'+fmt(c.total)+'</span></td>';
+    h+='<td class="num pmt">'+perMT(c.total,e.rr)+'</td>';
+    h+='<td class="l">'+(a?'<span class="tag alert">⚠ Freight '+fmt(a.freight)+' not required for '+esc(e.box)+'</span>':'')+'</td>';
+    h+='</tr>';
+    prev=e.date;
+  });
+  if(!h)h='<tr><td colspan="18" class="empty"><b>No rakes found</b>Change the date range, party or box type filter.</td></tr>';
+  $('#logBody').innerHTML=h;
+  $('#logFoot').innerHTML=list.length?'<tr><td class="l" colspan="7">Total of rows shown ('+fmt(t.rakes)+' rakes)</td><td class="num">'+fmt(t.rr)+'</td><td class="num">'+fmt(t.ch)+'</td><td class="num">'+fmt(t.uU)+'</td><td class="num">'+fmt(t.uO)+'</td><td></td><td class="num">'+fmt(t.up)+'</td><td class="num">'+fmt(t.op)+'</td><td class="num">'+fmt(t.en)+'</td><td class="num">'+fmt(t.total)+'</td><td class="num">'+perMT(t.total,t.rr)+'</td><td></td></tr>':'';
+  $('#logCount').textContent=list.length+(list.length===1?' row':' rows')+' shown';
+}
+
+/* load every saved row, live row, hand edit and box rate between the From and To dates */
+function loadLog(){
+  var from=$('#logFrom').value,to=$('#logTo').value;
+  if(!from||!to)return;
+  if(from>to){var tmp=from;from=to;to=tmp;$('#logFrom').value=from;$('#logTo').value=to}
+  var my=++logTok,c=cfg();
+  if(!c){
+    $('#logBody').innerHTML='<tr><td colspan="18" class="empty"><b>Supabase is not connected</b>Click the status pill at the top and add your project URL and anon key.</td></tr>';
+    setPill('err','Not connected');return;
+  }
+  setPill('','Loading…');
+  $('#logBody').innerHTML='<tr><td colspan="18" class="empty"><b>Loading…</b></td></tr>';
+  var lim='&limit=5000';
+  function rng(col){return col+'=gte.'+from+'&'+col+'=lte.'+to}
+  Promise.all([
+    api(c,TABLE+'?'+rng('sheet_date')+'&order=sheet_date.asc,sort_order.asc'+lim),
+    Promise.all(LIVE_SRC.map(function(s){
+      return api(s.cfg||c,s.table+'?select=*&'+rng('date')+lim)
+        .then(function(rows){return (rows||[]).map(function(r){r._p=s.party;return r})},function(){return null});
+    })),
+    api(c,OV_TABLE+'?'+rng('sheet_date')+lim).catch(function(){return null}),
+    fetchBoxRates(c)
+  ]).then(function(res){
+    if(my!==logTok)return;
+    var man=res[0]||[],lv=res[1],ovs=res[2],br=res[3];
+    var failed=lv.some(function(x){return x===null});
+    if(!br.failed)boxRates=br.map;
+    var liveBy={},ovBy={},dates={};
+    lv.forEach(function(x){(x||[]).forEach(function(r){(liveBy[r.date]=liveBy[r.date]||[]).push(r);dates[r.date]=1})});
+    (ovs||[]).forEach(function(r){(ovBy[r.sheet_date]=ovBy[r.sheet_date]||{})[r.id]=r;dates[r.sheet_date]=1});
+    var out=man.map(function(r){
+      return {id:r.id,date:r.sheet_date,party:r.party,area:r.area,siding:r.siding,rakes:+r.rakes,rr:+r.rr,ch:+r.ch,freight:+r.freight,o1:+r.o1,o2:+r.o2,o3:+r.o3,ench:+r.ench,box:r.box_type||''};
+    });
+    Object.keys(dates).forEach(function(d){
+      ovr[d]=ovBy[d]||{};
+      buildLive({rows:liveBy[d]||[]},d).forEach(function(x){x.date=d;out.push(x)});
+    });
+    out.forEach(function(e){if(store.parties.indexOf(e.party)<0)store.parties.push(e.party)});
+    out.sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:store.parties.indexOf(a.party)-store.parties.indexOf(b.party)});
+    LR=out;
+    if(failed)toast('Some live data (Gujarat, HZL or NALCO) could not be read.');
+    if(ovs===null)toast('Edits on live rows could not be read. Create the table '+OV_TABLE+' in Supabase.');
+    fillLogFilters();renderLog();
+    setPill('ok','Loaded '+hhmm(new Date()));
+  }).catch(function(err){
+    if(my!==logTok)return;
+    setPill('err','Load failed');
+    $('#logBody').innerHTML='<tr><td colspan="18" class="empty"><b>Could not load from the database</b>'+esc(String(err.message||err).slice(0,200))+'</td></tr>';
+  });
+}
+function setLogRange(r){
+  var n=new Date(),a,b;
+  if(r==='yest'){a=b=new Date(n.getFullYear(),n.getMonth(),n.getDate()-1)}
+  else if(r==='7'){b=new Date(n.getFullYear(),n.getMonth(),n.getDate()-1);a=new Date(b.getFullYear(),b.getMonth(),b.getDate()-6)}
+  else if(r==='mtd'){a=new Date(n.getFullYear(),n.getMonth(),1);b=new Date(n.getFullYear(),n.getMonth(),n.getDate()-1);if(b<a)b=a}
+  else{a=new Date(n.getFullYear(),n.getMonth()-1,1);b=new Date(n.getFullYear(),n.getMonth(),0)}
+  $('#logFrom').value=isoOf(a);$('#logTo').value=isoOf(b);loadLog();
+}
+function logCsv(){
+  var v=logVisible(),list=logAlertOnly?v.alerts:v.base;
+  var rows=[['Date','Party','Area','Siding','Rake Loaded','Box Type','RR QTY','CHARBALE QTY','Underload qty','Overload qty','Freight','Underload Penalty','Overload Penalty','ENCH','TOTAL','Per M/T','Freight alert']];
+  list.forEach(function(e){
+    var c=calc(e),a=alertOf(e);
+    rows.push([e.date,e.party,e.area,e.siding,e.rakes+'RAKE',e.box||'',e.rr,e.ch,c.uU,c.uO,freightOf(e),c.up,c.op,c.en,c.total,perMTcsv(c.total,e.rr),a?'Freight not required for '+e.box:'']);
+  });
+  var csv='\uFEFF'+rows.map(function(r){return r.map(function(x){x=String(x);return /[",\n]/.test(x)?'"'+x.replace(/"/g,'""')+'"':x}).join(',')}).join('\r\n');
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download='AMM_Rake_Log_'+$('#logFrom').value+'_to_'+$('#logTo').value+'.csv';
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500);
+  toast('CSV exported');
+}
+
 /* ============ TOASTS ============ */
 function toast(msg,undoFn){
   var t=document.createElement('div');t.className='toast';
@@ -927,6 +1195,14 @@ function fetchOv(c,d){
     return {map:m,failed:false};
   },function(){return {map:{},failed:true}});
 }
+/* box type freight rates. failed=true when the table is missing or unreadable */
+function fetchBoxRates(c){
+  return api(c,BOX_TABLE+'?select=*&limit=1000').then(function(rows){
+    var m={};
+    (rows||[]).forEach(function(r){var v=parseFloat(r.freight);if(!isNaN(v))m[String(r.box_type).trim().toUpperCase()]=v});
+    return {map:m,failed:false};
+  },function(){return {map:{},failed:true}});
+}
 function applyOv(x,o){
   x.rakes=Math.max(1,+o.rakes||1);if(o.box_type!==null&&o.box_type!==undefined&&o.box_type!=='')x.box=String(o.box_type);
   x.rr=num(o.rr);x.ch=num(o.ch);
@@ -954,6 +1230,8 @@ function buildLive(g,d){
   Object.keys(m).forEach(function(k){
     var x=m[k];['rr','ch','gU','gO','gUp','gOp','gEn'].forEach(function(f){x[f]=r2(x[f])});
     seen[x.id]=1;x.rakes=x.keys.length;
+    /* no underload charge on the dashboard for this row: use the box type rate, if one is set */
+    if(!x.gUp&&x.gU>0){var br=rateFor(x.box);if(br!==null)x.freight=br}
     if(ov[x.id])applyOv(x,ov[x.id]);
   });
   /* edited rows whose live source is gone (rake removed or date changed in the dashboard) still stay */
@@ -969,12 +1247,14 @@ function buildLive(g,d){
   });
   return Object.keys(m).sort().map(function(k){return m[k]});
 }
+function rebuildLive(d){if(rawLive[d])live[d]=buildLive(rawLive[d],d)}
 function refreshLive(){
   var c=cfg(),d=date;
   if(!c||loading||(drawer&&drawer.classList.contains('open')))return;
   if(document.activeElement&&document.activeElement.classList&&document.activeElement.classList.contains('cell-input'))return;
   fetchLive(c,d).then(function(g){
     if(!g||g.failed||d!==date)return;
+    rawLive[d]=g;
     var n=buildLive(g,d);
     if(JSON.stringify(n)!==JSON.stringify(live[d]||[])){live[d]=n;renderAll()}
   });
@@ -985,7 +1265,7 @@ var pill=document.createElement('span');pill.className='sbpill';pill.innerHTML='
 pill.title='Click to change the Supabase URL / key';
 $('.tools').insertBefore(pill,$('.tools').firstChild);
 function setPill(cls,txt){pill.className='sbpill '+cls;pill.lastChild.textContent=txt}
-pill.onclick=function(){if(askCfg())loadDay()};
+pill.onclick=function(){if(askCfg()){if(LOGVIEW)loadLog();else loadDay()}};
 
 /* every change is written to the database straight away, in order */
 var queue=Promise.resolve(), pending=0, loadTok=0;
@@ -1058,7 +1338,7 @@ function resetOverride(e){
   loadDay(true);   /* queued behind the delete, then shows the live values again */
 }
 
-/* load the selected day from the database (saved rows, hand edits) and from the Gujarat / HZL / NALCO dashboards (live rows) */
+/* load the selected day from the database (saved rows, hand edits, box rates) and from the Gujarat / HZL / NALCO dashboards (live rows) */
 function loadDay(keepPill){
   var d=date,my=++loadTok;
   loading=true;loadErr='';store.loaded[d]=false;store.days[d]=[];live[d]=[];
@@ -1070,14 +1350,17 @@ function loadDay(keepPill){
   }
   if(!keepPill)setPill('','Loading…');
   queue.then(function(){
-    return Promise.all([api(c,TABLE+'?sheet_date=eq.'+d+'&order=sort_order.asc'),fetchLive(c,d),fetchOv(c,d)]);
+    return Promise.all([api(c,TABLE+'?sheet_date=eq.'+d+'&order=sort_order.asc'),fetchLive(c,d),fetchOv(c,d),fetchBoxRates(c)]);
   }).then(function(res){
     if(my!==loadTok)return;
-    var rows=res[0],g=res[1],ov=res[2];
+    var rows=res[0],g=res[1],ov=res[2],br=res[3];
+    if(br.failed)toast('Box type rates could not be read. Create the table '+BOX_TABLE+' in Supabase (SQL is given with this file).');
+    else boxRates=br.map;
     var list=(rows||[]).map(function(r){
       return {id:r.id,party:r.party,area:r.area,siding:r.siding,rakes:+r.rakes,rr:+r.rr,ch:+r.ch,freight:+r.freight,o1:+r.o1,o2:+r.o2,o3:+r.o3,ench:+r.ench,box:r.box_type||''};
     });
     ovr[d]=ov.map;
+    rawLive[d]=g;
     live[d]=buildLive(g,d);
     if(g.failed)toast('Some live data (Gujarat, HZL or NALCO) could not be read.');
     if(ov.failed)toast('Edits on live rows could not be read. Create the table '+OV_TABLE+' in Supabase (SQL is given with this file).');
@@ -1170,10 +1453,30 @@ $('#byParty').addEventListener('click',function(ev){
   var r=ev.target.closest('.bar-row');if(!r)return;
   filterParty=filterParty===r.dataset.p?'ALL':r.dataset.p;
   renderChips();renderTable();
-  $('.sheet').scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});
+  $('.mainsheet').scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});
 });
 $('#underOnly').addEventListener('click',function(){underOnly=!underOnly;renderChips();renderTable()});
 $('#search').addEventListener('input',function(e){query=e.target.value;renderTable()});
+
+/* ============ RAKE LOG EVENTS ============ */
+/* the Rake log button opens this same file as a full page in a new tab */
+$('#logBtn').onclick=function(){
+  window.open(pageBase()+'?view=log&from='+encodeURIComponent(date)+'&to='+encodeURIComponent(date),'_blank');
+};
+$('#logFrom').addEventListener('change',loadLog);
+$('#logTo').addEventListener('change',loadLog);
+$('#logQuick').addEventListener('click',function(ev){var b=ev.target.closest('button[data-r]');if(b)setLogRange(b.dataset.r)});
+$('#logParty').addEventListener('change',renderLog);
+$('#logBox').addEventListener('change',renderLog);
+$('#logSearch').addEventListener('input',renderLog);
+$('#logAlertOnly').addEventListener('click',function(){logAlertOnly=!logAlertOnly;renderLog()});
+$('#alertShow').addEventListener('click',function(){logAlertOnly=!logAlertOnly;renderLog()});
+$('#logCsv').addEventListener('click',logCsv);
+/* click a log row: open that date in the check sheet (new tab) to correct it */
+$('#logBody').addEventListener('click',function(ev){
+  var tr=ev.target.closest('tr[data-d]');if(!tr)return;
+  window.open(pageBase()+'?date='+encodeURIComponent(tr.dataset.d),'_blank');
+});
 
 $('#clearBtn').addEventListener('click',function(){
   if(!canEdit())return;
@@ -1406,7 +1709,7 @@ document.addEventListener('keydown',function(ev){
     return;
   }
   var tag=(document.activeElement&&document.activeElement.tagName)||'';
-  if((ev.key==='n'||ev.key==='N')&&!ev.ctrlKey&&!ev.metaKey&&!ev.altKey&&!/INPUT|SELECT|TEXTAREA|BUTTON/.test(tag)){ev.preventDefault();openDrawer(null)}
+  if(!LOGVIEW&&(ev.key==='n'||ev.key==='N')&&!ev.ctrlKey&&!ev.metaKey&&!ev.altKey&&!/INPUT|SELECT|TEXTAREA|BUTTON/.test(tag)){ev.preventDefault();openDrawer(null)}
 });
 
 /* ============ FULL-PAGE PNG (header, rakes, KPIs, sheet, insights) ============ */
@@ -1474,8 +1777,21 @@ $('#pngBtn').onclick=function(){
 };
 
 /* ============ GO ============ */
-loadDay();
-setInterval(function(){if(!document.hidden)refreshLive()},30000);   /* keeps the live rows up to date (hand-edited rows stay as typed) */
+if(LOGVIEW){
+  /* Rake log page: same file, opened in a new tab with ?view=log&from=...&to=... */
+  document.body.classList.add('logview');
+  document.title='AMM Rake Log';
+  $('.brand h1').textContent='AMM Rake Log';
+  $('.brand p').textContent='All rakes for a date range, with filters and freight alerts';
+  $('#logSheet').hidden=false;
+  var bk=$('.btn.back');bk.href=pageBase();bk.setAttribute('aria-label','Back to the check sheet');bk.lastChild.textContent='Check sheet';
+  var lf=ISO_RE.test(QS.from||'')?QS.from:date,lt=ISO_RE.test(QS.to||'')?QS.to:lf;
+  $('#logFrom').value=lf;$('#logTo').value=lt;
+  loadLog();
+}else{
+  loadDay();
+  setInterval(function(){if(!document.hidden)refreshLive()},30000);   /* keeps the live rows up to date (hand-edited rows stay as typed) */
+}
 })();
 </script>
 </body>
