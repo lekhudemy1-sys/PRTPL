@@ -1438,6 +1438,8 @@
   /* ===== full backup: every table in all three projects, one zip (send "need backup") ===== */
   const BACKUP_RE = /\bback[\s-]?up\b/i;
   const ACTIVITY_RE = /^\s*show\s+activity\s*$/i;
+  /* "open <name>" opens <name>.html in this folder, e.g. "open balco" -> balco.html. Only plain page names are accepted. */
+  const OPEN_RE = /^\s*open\s+([a-z0-9][a-z0-9_-]*)\s*$/i;
   const BK_DB = { jz: 'jz (dispatch, daily loading, ODR)', pc: 'pc (HZL, Gujarat, PJPB)', lf: 'lf (KSK, Jhabua)', nl: 'nl (NALCO MIS)' };
   // Folder for each known table. Any table the database exposes that is not listed goes to "other".
   const BK_FOLDER = {
@@ -2077,6 +2079,15 @@ textarea::placeholder{color:var(--mute)}
         addBot({ kind: 'text', headline: 'Opening the console.', notes: [] });
         setBusy(false); ta.focus();
         setTimeout(function () { location.href = 'sys-health-7c1e.html'; }, 600);
+        return;
+      }
+      /* "open balco" opens balco.html. Like "show activity", it is never kept in recent questions. */
+      const openM = !secret && q.match(OPEN_RE);
+      if (openM) {
+        const page = openM[1].toLowerCase() + '.html';
+        addBot({ kind: 'text', headline: 'Opening ' + page + '.', notes: [] });
+        setBusy(false); ta.focus();
+        setTimeout(function () { location.href = page; }, 600);
         return;
       }
       const th = addThinking(), t0 = Date.now();
