@@ -252,19 +252,25 @@ function rakeOf(r,party){
 }
 
 /* groups = one party, date, area and siding (the same rows as the daily penalty sheet),
-   plus receive-only groups for NALCO (its penalty rows stay on the sheet, its receive data comes from its own dashboard)
-   and for JHABUA (its receive data comes from the PJPB MIS; rakes, RR qty and penalties stay from the penalty sheet) */
+   plus live groups for GUJRAT POWER, HZL and NALCO read from their dashboards.
+   For NALCO the live penalty groups are used only on dates where the penalty sheet has no saved NALCO rows,
+   so a date is never counted twice. NALCO receive status comes from one receive-only group per date
+   that carries rakes received / pending but no RR qty (the RR qty comes from the penalty groups).
+   JHABUA receive data comes from the PJPB MIS, with the same no-RR-qty rule. */
 function buildGroups(sheet,gj,hz,nalcoRows,ovMap,jhRows){
   var groups=[];
+  var nalcoSheetDates={};
   sheet.forEach(function(r){
+    if(uc(r.party)==='NALCO')nalcoSheetDates[r.sheet_date]=1;
     var rr=num(r.rr),ch=num(r.ch),fr=num(r.freight),uq=ch-rr;
     groups.push({src:'sheet',date:r.sheet_date,party:r.party,area:r.area,siding:r.siding,
       rakes:num(r.rakes),rr:rr,ch:ch,uQty:uq>0?uq:0,oQty:uq<0?-uq:0,
       up:uq<0?0:uq*fr,op:num(r.o1)+num(r.o2)+num(r.o3),en:num(r.ench),recs:[]});
   });
 
+  var liveRows=gj.concat(hz).concat((nalcoRows||[]).filter(function(r){return !nalcoSheetDates[r.date]}));
   var lm={};
-  gj.concat(hz).forEach(function(r){
+  liveRows.forEach(function(r){
     var area=uc(r.area||'-'),sid=uc(r.siding||'-'),pl=plantOf(r);
     if(pl&&!/\sTO\s/i.test(sid))sid=sid+' TO '+pl;
     var id='L|'+r.date+'|'+r._p+'|'+area+'|'+sid;
@@ -274,7 +280,8 @@ function buildGroups(sheet,gj,hz,nalcoRows,ovMap,jhRows){
     g.rakes++;g.rr+=x.rrw;g.ch+=x.chw;
     if(hasN(r.rr_wt)&&hasN(r.ch_wt)){if(x.chw>x.rrw)g.uQty+=x.chw-x.rrw;else if(x.rrw>x.chw)g.oQty+=x.rrw-x.chw}
     g.up+=num(r.ul_ch);g.op+=num(r.pol_group)+num(r.ehbc_group);g.en+=num(r.enhc_charge);
-    g.recs.push(x);
+    /* NALCO receive data is taken from its receive-only groups below, so its live groups hold no records */
+    if(r._p!=='NALCO')g.recs.push(x);
   });
   Object.keys(lm).forEach(function(k){
     var g=lm[k];
@@ -289,7 +296,7 @@ function buildGroups(sheet,gj,hz,nalcoRows,ovMap,jhRows){
     groups.push(g);
   });
 
-  /* NALCO receive data: one group per date, no penalty amounts */
+  /* NALCO receive data: one group per date, received / pending rakes only, RR qty = 0 (counted in the penalty groups) */
   var nm={};
   (nalcoRows||[]).forEach(function(r){
     var g=nm[r.date]||(nm[r.date]={id:'N|'+r.date,src:'recv',date:r.date,party:'NALCO',area:'',siding:'',
@@ -297,10 +304,7 @@ function buildGroups(sheet,gj,hz,nalcoRows,ovMap,jhRows){
     g.recs.push(rakeOf(r,'NALCO'));
     nm[r.date]=g;
   });
-  Object.keys(nm).forEach(function(d){
-    var g=nm[d];g.rr=r2(g.recs.reduce(function(s,x){return s+x.rrw},0));
-    groups.push(g);
-  });
+  Object.keys(nm).forEach(function(d){groups.push(nm[d])});
 
   /* JHABUA receive data only, from the PJPB MIS: one group per loading date, no penalty amounts.
      Rakes, RR qty, chargeable and penalties all stay from the daily penalty sheet, so every
@@ -363,7 +367,7 @@ function load(){
     sel(SB,KEY,'amm_penalty_entries',q('sheet_date')+'&order=sheet_date.asc,sort_order.asc').catch(fail('Penalty sheet')),
     sel(SB,KEY,'gujarat_rake_records',q('date')+'&order=date.asc').then(function(r){return r.map(function(x){x._p='GUJRAT POWER';return x})}).catch(fail('Gujarat dashboard')),
     sel(SB,KEY,'hzl_rake_records',q('date')+'&order=date.asc').then(function(r){return r.map(function(x){x._p='HZL';return x})}).catch(fail('HZL dashboard')),
-    sel(NSB,NKEY,'nalco_rake_records',q('date')+'&order=date.asc').catch(fail('NALCO dashboard')),
+    sel(NSB,NKEY,'nalco_rake_records',q('date')+'&order=date.asc').then(function(r){return r.map(function(x){x._p='NALCO';return x})}).catch(fail('NALCO dashboard')),
     sel(SB,KEY,'amm_penalty_live_overrides',q('sheet_date')).catch(function(){return []}),
     /* JHABUA receive data only (PJPB MIS). Only loaded rakes, i.e. rows with an RR weight or RR number */
     sel(SB,KEY,'pjpb_mis_rows',q('loading_date')+'&order=loading_date.asc').then(function(r){
