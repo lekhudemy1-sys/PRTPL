@@ -256,8 +256,9 @@ function rakeOf(r,party){
    For NALCO the live penalty groups are used only on dates where the penalty sheet has no saved NALCO rows,
    so a date is never counted twice. NALCO receive status comes from one receive-only group per date
    that carries rakes received / pending but no RR qty (the RR qty comes from the penalty groups).
-   JHABUA receive data comes from the PJPB MIS, with the same no-RR-qty rule. */
-function buildGroups(sheet,gj,hz,nalcoRows,ovMap,jhRows){
+   JHABUA receive data comes from the PJPB MIS, with the same no-RR-qty rule.
+   BALCO receive data comes from the BALCO MIS (mis_rake_log), with the same no-RR-qty rule. */
+function buildGroups(sheet,gj,hz,nalcoRows,ovMap,jhRows,balRows){
   var groups=[];
   var nalcoSheetDates={};
   sheet.forEach(function(r){
@@ -317,6 +318,16 @@ function buildGroups(sheet,gj,hz,nalcoRows,ovMap,jhRows){
   });
   Object.keys(jm).forEach(function(d){groups.push(jm[d])});
 
+  /* BALCO receive data only, from the BALCO MIS (mis_rake_log): one group per rake date, no penalty amounts.
+     Same rule as JHABUA: rakes, RR qty, chargeable and penalties stay from the daily penalty sheet. */
+  var bm={};
+  (balRows||[]).forEach(function(r){
+    var g=bm[r.date]||(bm[r.date]={id:'B|'+r.date,src:'recv',recvOnly:true,date:r.date,party:'BALCO',area:'',siding:'',
+      rakes:0,rr:0,ch:0,uQty:0,oQty:0,up:0,op:0,en:0,recs:[]});
+    g.recs.push(rakeOf(r,'BALCO'));
+  });
+  Object.keys(bm).forEach(function(d){groups.push(bm[d])});
+
   return groups;
 }
 
@@ -373,11 +384,16 @@ function load(){
     sel(SB,KEY,'pjpb_mis_rows',q('loading_date')+'&order=loading_date.asc').then(function(r){
       return r.filter(function(x){return num(x.rr_weight)>0||String(x.rr_number==null?'':x.rr_number).trim()!==''})
         .map(function(x){return {date:x.loading_date,rr_wt:x.rr_weight,recv_wt:x.recv_qty,rr_no:x.rr_number}});
-    }).catch(fail('PJPB MIS'))
+    }).catch(fail('PJPB MIS')),
+    /* BALCO receive data only (BALCO MIS, mis_rake_log). Only loaded rakes, i.e. rows with an RR number */
+    sel(NSB,NKEY,'mis_rake_log',q('rake_date')+'&order=rake_date.asc').then(function(r){
+      return r.filter(function(x){return String(x.rr_number==null?'':x.rr_number).trim()!==''})
+        .map(function(x){return {date:x.rake_date,rr_wt:x.rr_weight,recv_wt:x.received_wt,rr_no:x.rr_number}});
+    }).catch(fail('BALCO MIS'))
   ]).then(function(res){
     if(myId!==S.loadId)return;   /* a newer request has replaced this one */
     var ovMap={};res[4].forEach(function(o){ovMap[o.id]=o});
-    S.groups=buildGroups(res[0],res[1],res[2],res[3],ovMap,res[5]);
+    S.groups=buildGroups(res[0],res[1],res[2],res[3],ovMap,res[5],res[6]);
     S.warn=warn;
     setStatus(warn.length?'Loaded with warnings':'Updated '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}),warn.length?'err':'ok');
     render();
