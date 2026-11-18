@@ -56,11 +56,11 @@ body{font-family:var(--body);color:var(--ink);min-height:100vh;line-height:1.4;o
 .c-upload{--c:#c48a3a;--t:#fdf6e9;--l:#e8c98a;--d:#8b5e1e}
 .c-log{--c:#6b4c2a;--t:#f5efe6;--l:#c9b090;--d:#3b2a1a}
 
-.log-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--line);max-height:420px;overflow-y:auto}
-.log-table{width:100%;min-width:1100px;border-collapse:separate;border-spacing:0;font-variant-numeric:tabular-nums}
-.log-table th{position:sticky;top:0;z-index:1;background:linear-gradient(120deg,var(--brown),var(--brown2));color:#fff;font-size:.66rem;letter-spacing:.3px;text-transform:uppercase;font-weight:700;padding:.5rem .4rem;text-align:center;white-space:nowrap}
-.log-table td{padding:.35rem .4rem;text-align:center;font-size:.78rem;font-weight:600;color:var(--ink);border-bottom:1px solid var(--line);white-space:nowrap}
-.log-table td:nth-child(3),.log-table td:nth-child(4){text-align:left}
+.log-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--line);max-height:480px;overflow-y:auto}
+.log-table{width:max-content;min-width:100%;border-collapse:separate;border-spacing:0;font-variant-numeric:tabular-nums}
+.log-table th{position:sticky;top:0;z-index:1;background:linear-gradient(120deg,var(--brown),var(--brown2));color:#fff;font-size:.66rem;letter-spacing:.3px;text-transform:uppercase;font-weight:700;padding:.5rem .6rem;text-align:center;white-space:nowrap}
+.log-table td{padding:.35rem .6rem;text-align:center;font-size:.78rem;font-weight:600;color:var(--ink);border-bottom:1px solid var(--line);white-space:nowrap}
+.log-table td.l{text-align:left}
 .log-table tbody tr:nth-child(even) td{background:#faf6f0}
 .log-table tbody tr:hover td{background:#f3e8d4}
 .log-meta{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-bottom:.55rem;font-size:.78rem;color:var(--mute)}
@@ -163,7 +163,7 @@ body{font-family:var(--body);color:var(--ink);min-height:100vh;line-height:1.4;o
     </div>
     <div class="source-line" id="source"></div>
     <div class="upload-hint">
-      Upload the BB MIS workbook (.xlsm / .xlsx). The page reads the <b>Dashboard</b> sheet and the <b>MIS RAKE DISPATCH</b> sheet, then <b>replaces</b> all previous data in Supabase (no duplicates). Dashboard values go into the <code>dashboard</code> table; rake rows go into the <code>mis_rake_log</code> table. On next visit the page loads the latest snapshot from Supabase automatically.
+      Upload the BB MIS workbook (.xlsm / .xlsx). The page reads the <b>Dashboard</b> sheet and the <b>MIS RAKE DISPATCH</b> sheet, then <b>replaces</b> all previous data in Supabase (no duplicates). Dashboard values go into the <code>dashboard</code> table; rake rows go into the <code>mis_rake_log</code> table. Rows without an <b>RR Number</b> (e.g. total rows) are skipped. On next visit the page loads the latest snapshot from Supabase automatically.
     </div>
 
   </div>
@@ -320,27 +320,9 @@ body{font-family:var(--body);color:var(--ink);min-height:100vh;line-height:1.4;o
       </div>
       <div class="log-wrap">
         <table class="log-table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Date</th>
-              <th>Siding</th>
-              <th>Unit</th>
-              <th>FSA</th>
-              <th>Box Type</th>
-              <th>Net Wt</th>
-              <th>Received Wt</th>
-              <th>Ch Wt</th>
-              <th>RR Wt</th>
-              <th>GCV ARB</th>
-              <th>RR Number</th>
-              <th>RR Date</th>
-              <th>POL</th>
-              <th>ENHC</th>
-            </tr>
-          </thead>
+          <thead><tr id="logHead"></tr></thead>
           <tbody id="logBody">
-            <tr><td colspan="15" class="log-empty">Loading log from Supabase…</td></tr>
+            <tr><td class="log-empty">Loading log from Supabase…</td></tr>
           </tbody>
         </table>
       </div>
@@ -518,6 +500,21 @@ body{font-family:var(--body);color:var(--ink);min-height:100vh;line-height:1.4;o
   /* ---------- MIS Rake Log (from Supabase) ---------- */
   let LOG_ROWS = [];
 
+  // [db column, header label, format]  t=text, n0/n1/n2 = number with 0/1/2 decimals, date = ISO date
+  const LOG_COLS = [
+    ['sr_no','#','n0'],['rake_date','Date','date'],['siding','Siding','t'],['unit','Unit','t'],['tranch','Tranch','t'],['fsa','FSA','t'],
+    ['date_of_allotment','Date of Allotment','t'],['seniority_no','Seniority No','t'],['pt_time','PT Time','t'],['ct_time','CT Time','t'],
+    ['dot_time','DOT Time','t'],['mines_loading_duration','Mines Loading Duration','t'],['supply_box','Supply Box','n0'],
+    ['load_box','Load Box','n0'],['sick_box','Sick Box','n0'],['balco_box_type','Box Type','t'],['pcc','PCC','n0'],
+    ['net_wt','Net Wt','n1'],['received_wt','Received Wt','n1'],['grn_qty','GRN Qty','n1'],['diff_qty','Diff Qty','n1'],
+    ['plant_excess_coal','Plant Excess Coal','n1'],['avg_loading','Avg Loading','n1'],['gcv_arb','GCV ARB','n0'],
+    ['arb_tm_pct','ARB TM %','n2'],['ch_weight','Ch Wt','n1'],['rr_weight','RR Wt','n1'],['rr_number','RR Number','t'],
+    ['rr_date','RR Date','t'],['overload_qty','Overload Qty','n1'],['underload_qty','Underload Qty','n1'],
+    ['push_back_charge','Push Back Charge','n0'],['pol_charges','POL','n0'],['ehbc_fauc_tc','EHBC/FAUC/TC','n0'],
+    ['enhc_charge','ENHC','n0'],['total_freight','Total Freight','n0'],['dead_freight_qty','Dead Freight Qty','n1'],
+    ['dead_freight_charges','Dead Freight Charges','n0'],['total_dc','Total DC','n0']
+  ];
+
   function fmtLogNum(v, d) {
     if (v == null || v === '' || !isFinite(Number(v))) return '–';
     return Number(v).toLocaleString('en-IN', {minimumFractionDigits: d || 0, maximumFractionDigits: d || 0});
@@ -542,6 +539,7 @@ body{font-family:var(--body);color:var(--ink);min-height:100vh;line-height:1.4;o
     });
 
     $('logCount').textContent = rows.length + (rows.length !== LOG_ROWS.length ? ' / ' + LOG_ROWS.length : '');
+    $('logHead').innerHTML = LOG_COLS.map(c => '<th>' + c[1] + '</th>').join('');
 
     // populate siding filter options once
     const sel = $('logSidingFilter');
@@ -555,45 +553,34 @@ body{font-family:var(--body);color:var(--ink);min-height:100vh;line-height:1.4;o
     }
 
     if (!rows.length) {
-      $('logBody').innerHTML = '<tr><td colspan="15" class="log-empty">' +
+      $('logBody').innerHTML = '<tr><td colspan="' + LOG_COLS.length + '" class="log-empty">' +
         (LOG_ROWS.length ? 'No rows match the selected filters.' : 'No log data yet. Upload a MIS workbook to populate the log.') +
         '</td></tr>';
       return;
     }
 
-    let html = '';
-    rows.forEach((r, i) => {
-      html += '<tr>' +
-        '<td>' + (r.sr_no != null ? r.sr_no : i + 1) + '</td>' +
-        '<td>' + fmtLogDate(r.rake_date) + '</td>' +
-        '<td>' + esc(r.siding || '–') + '</td>' +
-        '<td>' + esc(r.unit || '–') + '</td>' +
-        '<td>' + esc(r.fsa || '–') + '</td>' +
-        '<td>' + esc(r.balco_box_type || '–') + '</td>' +
-        '<td>' + fmtLogNum(r.net_wt, 1) + '</td>' +
-        '<td>' + fmtLogNum(r.received_wt, 1) + '</td>' +
-        '<td>' + fmtLogNum(r.ch_weight, 1) + '</td>' +
-        '<td>' + fmtLogNum(r.rr_weight, 1) + '</td>' +
-        '<td>' + fmtLogNum(r.gcv_arb, 0) + '</td>' +
-        '<td>' + esc(r.rr_number || '–') + '</td>' +
-        '<td>' + esc(r.rr_date || '–') + '</td>' +
-        '<td>' + fmtLogNum(r.pol_charges, 0) + '</td>' +
-        '<td>' + fmtLogNum(r.enhc_charge, 0) + '</td>' +
-        '</tr>';
-    });
-    $('logBody').innerHTML = html;
+    $('logBody').innerHTML = rows.map((r, i) => '<tr>' + LOG_COLS.map(([k, , f]) => {
+      let v = r[k];
+      if (k === 'sr_no' && v == null) v = i + 1;
+      let out;
+      if (f === 'date') out = fmtLogDate(v);
+      else if (f === 't') out = (v == null || v === '') ? '–' : esc(v);
+      else out = fmtLogNum(v, f === 'n0' ? 0 : f === 'n1' ? 1 : 2);
+      return '<td' + (f === 't' ? ' class="l"' : '') + '>' + out + '</td>';
+    }).join('') + '</tr>').join('');
   }
 
   async function loadLogFromSupabase() {
     try {
       const { data, error } = await sb
         .from('mis_rake_log')
-        .select('sr_no, rake_date, siding, unit, fsa, balco_box_type, net_wt, received_wt, ch_weight, rr_weight, gcv_arb, rr_number, rr_date, pol_charges, enhc_charge, source_file')
+        .select('*')
         .order('rake_date', { ascending: true })
         .order('sr_no', { ascending: true })
-        .limit(2000);
+        .limit(5000);
       if (error) throw error;
-      LOG_ROWS = data || [];
+      // ignore rows without an RR number (e.g. total rows)
+      LOG_ROWS = (data || []).filter(r => r.rr_number != null && String(r.rr_number).trim() !== '');
       if (LOG_ROWS.length && LOG_ROWS[0].source_file) {
         $('logSource').textContent = 'Source: ' + LOG_ROWS[0].source_file;
       } else {
@@ -603,7 +590,7 @@ body{font-family:var(--body);color:var(--ink);min-height:100vh;line-height:1.4;o
       return true;
     } catch (err) {
       console.warn('Log load failed:', err.message || err);
-      $('logBody').innerHTML = '<tr><td colspan="15" class="log-empty">Could not load log from Supabase. Upload a workbook or check the connection.</td></tr>';
+      $('logBody').innerHTML = '<tr><td colspan="' + LOG_COLS.length + '" class="log-empty">Could not load log from Supabase. Upload a workbook or check the connection.</td></tr>';
       return false;
     }
   }
@@ -668,6 +655,14 @@ body{font-family:var(--body);color:var(--ink);min-height:100vh;line-height:1.4;o
         const cell = ws[XLSX.utils.encode_cell({c, r})];
         return cell ? cell.v : null;
       };
+      // formatted text as shown in Excel (good for dates / times)
+      const getW = (c) => {
+        const cell = ws[XLSX.utils.encode_cell({c, r})];
+        return cell ? (cell.w != null ? cell.w : cell.v) : null;
+      };
+      // skip rows without an RR number (e.g. total rows)
+      const rrNo = cellStr(get(27));
+      if (!rrNo) continue;
       rows.push({
         sr_no:                  cellNum(get(0)),
         rake_date:              excelSerialToISO(get(1)),
@@ -675,12 +670,12 @@ body{font-family:var(--body);color:var(--ink);min-height:100vh;line-height:1.4;o
         unit:                   cellStr(get(3)),
         tranch:                 cellStr(get(4)),
         fsa:                    cellStr(get(5)),
-        date_of_allotment:      cellStr(get(6)),
+        date_of_allotment:      cellStr(getW(6)),
         seniority_no:           cellStr(get(7)),
-        pt_time:                cellStr(get(8)),
-        ct_time:                cellStr(get(9)),
-        dot_time:               cellStr(get(10)),
-        mines_loading_duration: cellStr(get(11)),
+        pt_time:                cellStr(getW(8)),
+        ct_time:                cellStr(getW(9)),
+        dot_time:               cellStr(getW(10)),
+        mines_loading_duration: cellStr(getW(11)),
         supply_box:             cellNum(get(12)),
         load_box:               cellNum(get(13)),
         sick_box:               cellNum(get(14)),
@@ -696,8 +691,8 @@ body{font-family:var(--body);color:var(--ink);min-height:100vh;line-height:1.4;o
         arb_tm_pct:             cellNum(get(24)),
         ch_weight:              cellNum(get(25)),
         rr_weight:              cellNum(get(26)),
-        rr_number:              cellStr(get(27)),
-        rr_date:                cellStr(get(28)),
+        rr_number:              rrNo,
+        rr_date:                cellStr(getW(28)),
         overload_qty:           cellNum(get(29)),
         underload_qty:          cellNum(get(30)),
         push_back_charge:       cellNum(get(31)),
