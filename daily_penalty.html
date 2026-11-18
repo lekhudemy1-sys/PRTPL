@@ -217,7 +217,7 @@ td.party{border-left-width:10px}
 @media (max-width:1650px){.dv{display:none}}
 
 
-/* ============ RAKE LOG (full page view of this same file, opened in a new tab) ============ */
+/* ============ RAKE LOG (full page view of this same file, opened in the same tab) ============ */
 .logsheet{margin:0 0 22px}
 .logsheet[hidden]{display:none}
 .logsheet td.l{text-align:left}
@@ -360,7 +360,7 @@ td.party{border-left-width:10px}
       <button class="btn primary mainonly" id="newBtn" title="Shortcut: N">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>New entry
       </button>
-      <button class="btn mainonly" id="logBtn" title="Rake log: opens in a new page">
+      <button class="btn mainonly" id="logBtn" title="Rake log: opens on this same page">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Rake log
       </button>
       <button class="btn mainonly" id="csvBtn">
@@ -425,7 +425,7 @@ td.party{border-left-width:10px}
     </div>
   </section>
 
-  <!-- ================= RAKE LOG (shown only on the log page: this file opened with ?view=log) ================= -->
+  <!-- ================= RAKE LOG (shown only on the log view: this file opened with ?view=log) ================= -->
   <section class="sheet logsheet" id="logSheet" aria-label="Rake log" hidden>
     <div class="sheet-bar">
       <h2>Rake log</h2>
@@ -489,7 +489,7 @@ td.party{border-left-width:10px}
         <tfoot id="logFoot"></tfoot>
       </table>
     </div>
-    <div class="log-note"><b>Freight alert:</b> BOXN, BOXNHL and BOXN+NHL rakes do not need freight, so any row with these box types that still has a freight rate or an underload penalty is flagged in red. Click a row to open that date in the check sheet (new tab) and correct it. The log only reads data; nothing is changed here.</div>
+    <div class="log-note"><b>Freight alert:</b> BOXN, BOXNHL and BOXN+NHL rakes do not need freight, so any row with these box types that still has a freight rate or an underload penalty is flagged in red. Click a row to open that date in the check sheet (same page) and correct it. Use the Check sheet button at the top to come back. The log only reads data; nothing is changed here.</div>
   </section>
 
   <!-- ================= LEDGER ================= -->
@@ -661,7 +661,7 @@ var LIVE_SRC=[{party:'GUJRAT POWER',table:'gujarat_rake_records'},{party:'HZL',t
 var NEW='__new__';
 var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-/* This one file is two pages: the check sheet, and the Rake log (same file opened with ?view=log in a new tab) */
+/* This one file is two views: the check sheet, and the Rake log (same file opened with ?view=log, in the same tab) */
 var QS={};try{new URLSearchParams(location.search).forEach(function(v,k){QS[k]=v})}catch(e){}
 var ISO_RE=/^\d{4}-\d{2}-\d{2}$/;
 var LOGVIEW=QS.view==='log';
@@ -944,8 +944,8 @@ function renderInsights(){
 function firstBox(s){return String(s==null?'':s).split(',')[0].trim().toUpperCase()}
 function rateFor(box){var b=firstBox(box);return b&&boxRates[b]!==undefined?boxRates[b]:null}
 
-/* ============ RAKE LOG PAGE (this file opened with ?view=log) ============
-   A full page with a date range, party / box filters and a freight alert. It only reads data. */
+/* ============ RAKE LOG VIEW (this file opened with ?view=log, in the same tab) ============
+   A full view with a date range, party / box filters and a freight alert. It only reads data. */
 /* box types that do not need freight: BOXN, BOXNHL and BOXN+NHL */
 var NO_FREIGHT={BOXN:1,BOXNHL:1,NHL:1};
 function boxTokens(b){return String(b==null?'':b).toUpperCase().split(/[,+\/;&\s]+/).filter(Boolean)}
@@ -1459,9 +1459,9 @@ $('#underOnly').addEventListener('click',function(){underOnly=!underOnly;renderC
 $('#search').addEventListener('input',function(e){query=e.target.value;renderTable()});
 
 /* ============ RAKE LOG EVENTS ============ */
-/* the Rake log button opens this same file as a full page in a new tab */
+/* the Rake log button opens this same file's log view in the SAME tab (use the Check sheet button there to come back) */
 $('#logBtn').onclick=function(){
-  window.open(pageBase()+'?view=log&from='+encodeURIComponent(date)+'&to='+encodeURIComponent(date),'_blank');
+  location.href=pageBase()+'?view=log&from='+encodeURIComponent(date)+'&to='+encodeURIComponent(date);
 };
 $('#logFrom').addEventListener('change',loadLog);
 $('#logTo').addEventListener('change',loadLog);
@@ -1472,10 +1472,10 @@ $('#logSearch').addEventListener('input',renderLog);
 $('#logAlertOnly').addEventListener('click',function(){logAlertOnly=!logAlertOnly;renderLog()});
 $('#alertShow').addEventListener('click',function(){logAlertOnly=!logAlertOnly;renderLog()});
 $('#logCsv').addEventListener('click',logCsv);
-/* click a log row: open that date in the check sheet (new tab) to correct it */
+/* click a log row: open that date in the check sheet (same tab) to correct it */
 $('#logBody').addEventListener('click',function(ev){
   var tr=ev.target.closest('tr[data-d]');if(!tr)return;
-  window.open(pageBase()+'?date='+encodeURIComponent(tr.dataset.d),'_blank');
+  location.href=pageBase()+'?date='+encodeURIComponent(tr.dataset.d);
 });
 
 $('#clearBtn').addEventListener('click',function(){
@@ -1778,14 +1778,15 @@ $('#pngBtn').onclick=function(){
 
 /* ============ GO ============ */
 if(LOGVIEW){
-  /* Rake log page: same file, opened in a new tab with ?view=log&from=...&to=... */
+  /* Rake log view: same file, same tab, opened with ?view=log&from=...&to=... */
   document.body.classList.add('logview');
   document.title='AMM Rake Log';
   $('.brand h1').textContent='AMM Rake Log';
   $('.brand p').textContent='All rakes for a date range, with filters and freight alerts';
   $('#logSheet').hidden=false;
-  var bk=$('.btn.back');bk.href=pageBase();bk.setAttribute('aria-label','Back to the check sheet');bk.lastChild.textContent='Check sheet';
   var lf=ISO_RE.test(QS.from||'')?QS.from:date,lt=ISO_RE.test(QS.to||'')?QS.to:lf;
+  /* the Back button returns to the check sheet (same page) on the date the log was opened from */
+  var bk=$('.btn.back');bk.href=pageBase()+'?date='+encodeURIComponent(lf);bk.setAttribute('aria-label','Back to the check sheet');bk.lastChild.textContent='Check sheet';
   $('#logFrom').value=lf;$('#logTo').value=lt;
   loadLog();
 }else{
