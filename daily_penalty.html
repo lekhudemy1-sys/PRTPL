@@ -174,6 +174,7 @@ tbody td.party{text-align:left}
 .tag.over{background:var(--over)}
 .tag.exact{background:var(--ok)}
 .tag.edited{background:var(--ench)}
+.boxt{display:inline-block;margin-left:6px;font-size:11px;font-weight:700;border-radius:4px;padding:1px 6px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);white-space:nowrap}
 .uq{display:flex;align-items:center;justify-content:flex-end;gap:5px}
 .dv{position:relative;width:26px;height:8px;background:var(--surface2);border-radius:4px;flex:none}
 .dv::before{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:1.5px;background:var(--muted);opacity:.5}
@@ -388,7 +389,7 @@ td.party{border-left-width:10px}
       <div class="s" id="kEnchSub"></div>
     </div>
     <div class="kpi" style="--c:var(--blue)">
-      <h3>Rakes checked</h3>
+      <h3>Rakes loaded</h3>
       <div class="v num" id="kRakes">0</div>
       <div class="split" id="kRakeSplit"></div>
     </div>
@@ -429,7 +430,7 @@ td.party{border-left-width:10px}
         <tfoot id="tfoot"></tfoot>
       </table>
     </div>
-    <div class="hint">Rows marked LIVE are the GUJRAT POWER (Gujarat dashboard) and HZL (HZL dashboard) rakes read live, grouped by area, siding and party (for example SECL · BGCK TO GETS and SECL · BGCK TO TPHS are separate rows) for the date, and refreshed every 30 seconds. For each live rake: Underload qty = CH weight − RR weight (when CH is more), Overload qty = RR weight − CH weight (when RR is more). <b>Live rows can be edited here too</b> (pencil button, or click RR QTY, CHARBALE QTY, Freight, Overload Penalty or ENCH). Underload Penalty = Underload qty × Freight on every row. A hand-edited row is marked EDITED, is saved for that date only, is never overwritten by the live refresh, and does <b>not</b> change the Gujarat or HZL dashboard. The arrow button on an EDITED row goes back to the live values. All other rows come from the database: click RR QTY, CHARBALE QTY, Freight or ENCH to change them in place. Per M/T = TOTAL ÷ RR QTY.</div>
+    <div class="hint">Rows marked LIVE are the GUJRAT POWER (Gujarat dashboard), HZL (HZL dashboard) and NALCO (NALCO dashboard) rakes read live, grouped by area, siding and party (for example SECL · BGCK TO GETS and SECL · BGCK TO TPHS are separate rows) for the date, and refreshed every 30 seconds. For each live rake: Underload qty = CH weight − RR weight (when CH is more), Overload qty = RR weight − CH weight (when RR is more). <b>Live rows can be edited here too</b> (pencil button, or click RR QTY, CHARBALE QTY, Freight, Overload Penalty or ENCH). Underload Penalty = Underload qty × Freight on every row. A hand-edited row is marked EDITED, is saved for that date only, is never overwritten by the live refresh, and does <b>not</b> change the Gujarat, HZL or NALCO dashboard. The arrow button on an EDITED row goes back to the live values. All other rows come from the database: click RR QTY, CHARBALE QTY, Freight or ENCH to change them in place. Per M/T = TOTAL ÷ RR QTY.</div>
   </section>
 
   <!-- ================= INSIGHTS ================= -->
@@ -465,7 +466,7 @@ td.party{border-left-width:10px}
   </div>
   <form id="form" novalidate class="d-body-wrap" style="display:flex;flex-direction:column;flex:1;min-height:0">
     <div class="d-body">
-      <p class="note" id="liveNote" hidden>This is a live row. Changes made here are saved for this date only and do not change the Gujarat or HZL dashboard. The live refresh will no longer overwrite this row.</p>
+      <p class="note" id="liveNote" hidden>This is a live row. Changes made here are saved for this date only and do not change the Gujarat, HZL or NALCO dashboard. The live refresh will no longer overwrite this row.</p>
       <div class="grid2">
         <div class="fld">
           <label for="fParty">Party</label>
@@ -481,6 +482,9 @@ td.party{border-left-width:10px}
       <div class="grid2">
         <div class="fld"><label for="fSiding">Siding</label><input id="fSiding" type="text" list="sidings" autocomplete="off" placeholder="e.g. KMKA"><datalist id="sidings"></datalist></div>
         <div class="fld"><label for="fRakes">Rakes loaded</label><input id="fRakes" type="number" min="1" step="1" inputmode="numeric"></div>
+      </div>
+      <div class="grid2">
+        <div class="fld"><label for="fBox">Box type</label><input id="fBox" type="text" list="boxtypes" autocomplete="off" placeholder="e.g. BOXN"><datalist id="boxtypes"><option value="BOXN"><option value="BOXNHL"><option value="BOXNHA"><option value="BOBRN"><option value="BOBYN"><option value="BCN"></datalist></div>
       </div>
       <div class="grid2">
         <div class="fld"><label for="fRR">RR QTY</label><input id="fRR" type="number" min="0" step="any" inputmode="decimal"></div>
@@ -548,8 +552,12 @@ var OV_TABLE='amm_penalty_live_overrides';
 /* Supabase details. You can also click the status pill at the top and paste them once. */
 var SUPABASE_URL='https://pycmkjrmdieaqsbgrher.supabase.co';
 var SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5Y21ranJtZGllYXFzYmdyaGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwMjMxNzAsImV4cCI6MjEwNjU5OTE3MH0.9IE2c2FZ4BPv6Rvhfa_VniQ7LJvQ_c4EGDXFihYR4Lc';
+/* NALCO rake records live in a different Supabase project (read-only here) */
+var NALCO_URL='https://gcedsyxvfmlyujhftiyf.supabase.co';
+var NALCO_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdjZWRzeXh2Zm1seXVqaGZ0aXlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ2Mjg5ODMsImV4cCI6MjExMDIwNDk4M30.QsFXFMT1zS62UIfdbgtpXJHEicCVglvXHqgvik5Q5Rk';
+var NALCO_CFG={url:NALCO_URL,key:NALCO_KEY};
 var GUJP='GUJRAT POWER';
-var LIVE_SRC=[{party:'GUJRAT POWER',table:'gujarat_rake_records'},{party:'HZL',table:'hzl_rake_records'}];   /* parties fed live from their dashboards */
+var LIVE_SRC=[{party:'GUJRAT POWER',table:'gujarat_rake_records'},{party:'HZL',table:'hzl_rake_records'},{party:'NALCO',table:'nalco_rake_records',cfg:NALCO_CFG}];   /* parties fed live from their dashboards */
 var NEW='__new__';
 var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -571,7 +579,7 @@ var DAY=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
    Underload qty = CHARBALE QTY - RR QTY (when positive), overload qty = the opposite
    Underload penalty = underload qty * freight, Overload penalty = part 1 + 2 + 3
    TOTAL = underload penalty + overload penalty + ENCH, Per M/T = TOTAL / RR QTY
-   LIVE rows (per area and siding, per date, read from gujarat_rake_records / hzl_rake_records):
+   LIVE rows (per area and siding, per date, read from gujarat_rake_records / hzl_rake_records / nalco_rake_records):
    Underload qty = sum of (CH wt - RR wt) of rakes where CH wt is more
    Overload qty  = sum of (RR wt - CH wt) of rakes where RR wt is more
    Underload penalty = sum of underload charge, Overload penalty = POL group + EHBC charge
@@ -630,7 +638,7 @@ function isLive(id){return (live[date]||[]).some(function(e){return e.id===id})}
 
 /* ============ AGGREGATES ============ */
 function agg(list){
-  var t={rr:0,ch:0,uU:0,uO:0,up:0,op:0,en:0,total:0,under:0,over:0,exact:0,n:list.length};
+  var t={rr:0,ch:0,uU:0,uO:0,up:0,op:0,en:0,total:0,under:0,over:0,exact:0,n:list.length,rakes:rakeCount(list)};
   list.forEach(function(e){
     var c=calc(e);t.rr+=num(e.rr);t.ch+=num(e.ch);t.uU+=c.uU;t.uO+=c.uO;t.up+=c.up;t.op+=c.op;t.en+=c.en;t.total+=c.total;t[c.status]++;
   });
@@ -685,16 +693,16 @@ function renderTrain(){
 function renderKpis(){
   var all=allRows(),t=agg(all);
   setNum($('#kTotal'),t.total,round(money));
-  $('#kTotalSub').textContent=t.n+(t.n===1?' rake':' rakes')+' across '+new Set(all.map(function(e){return e.party})).size+' parties';
+  $('#kTotalSub').textContent=t.rakes+(t.rakes===1?' rake':' rakes')+' across '+new Set(all.map(function(e){return e.party})).size+' parties';
   var tot=t.total||1;
   $('#kStack').innerHTML='<span style="width:'+(t.up/tot*100)+'%;background:var(--under)"></span><span style="width:'+(t.op/tot*100)+'%;background:var(--over)"></span><span style="width:'+(t.en/tot*100)+'%;background:var(--ench)"></span>';
   setNum($('#kUnder'),t.up,round(money));
-  $('#kUnderSub').textContent=t.under+' of '+t.n+' rakes loaded short';
+  $('#kUnderSub').textContent=t.under+' of '+t.n+' rows loaded short';
   setNum($('#kOver'),t.op,round(money));
-  $('#kOverSub').textContent='Charged on '+t.n+' rakes';
+  $('#kOverSub').textContent='Charged on '+t.n+' rows';
   setNum($('#kEnch'),t.en,round(money));
-  $('#kEnchSub').textContent=t.n?'Average '+money(Math.round(t.en/t.n))+' a rake':'';
-  setNum($('#kRakes'),t.n,round(fmt));
+  $('#kEnchSub').textContent=t.rakes?'Average '+money(Math.round(t.en/t.rakes))+' a rake':'';
+  setNum($('#kRakes'),t.rakes,round(fmt));
   $('#kRakeSplit').innerHTML='<span><b style="color:var(--under)">'+t.under+'</b> under</span><span><b style="color:var(--over)">'+t.over+'</b> over</span><span><b style="color:var(--ok)">'+t.exact+'</b> exact</span>';
 }
 
@@ -750,7 +758,7 @@ function renderTable(){
       }
       html+='<td class="l">'+esc(e.area)+'</td>';
       html+='<td class="l">'+esc(e.siding)+'</td>';
-      html+='<td class="c">'+esc(e.rakes)+'RAKE</td>';
+      html+='<td class="c">'+esc(e.rakes)+'RAKE'+(e.box?'<span class="boxt">'+esc(e.box)+'</span>':'')+'</td>';
       html+=edCell(e,'rr',e.rr)+edCell(e,'ch',e.ch);
       html+='<td class="num"><div class="uq">'+tag+'<span>'+fmt(c.uU)+'</span><span class="dv" aria-hidden="true">'+bar+'</span></div></td>';
       html+='<td class="num">'+fmt(c.uO)+'</td>';
@@ -861,8 +869,31 @@ function api(c,path,opt){
   });
 }
 
-/* ============ LIVE ROWS (Gujarat + HZL) ============ */
+/* ============ LIVE ROWS (Gujarat + HZL + NALCO) ============ */
 function hasN(v){return v!==null&&v!==undefined&&v!==''&&!isNaN(parseFloat(v))}
+var BOX_COLS=['box_type','boxtype','box','wagon_type','type_of_box','rake_type'];
+var RAKE_COLS=['rr_no','rr_number','rake_no','rake_number','rake_id'];
+var recSeq=0;
+function boxOf(r){
+  var i,v,ks;
+  for(i=0;i<BOX_COLS.length;i++){v=r[BOX_COLS[i]];if(v!==null&&v!==undefined&&String(v).trim()!=='')return String(v).trim().toUpperCase()}
+  ks=Object.keys(r);
+  for(i=0;i<ks.length;i++){v=r[ks[i]];if(/box/i.test(ks[i])&&typeof v==='string'&&v.trim()!==''&&isNaN(Number(v)))return v.trim().toUpperCase()}
+  return '';
+}
+function rakeKeyOf(r){
+  for(var i=0;i<RAKE_COLS.length;i++){var v=r[RAKE_COLS[i]];if(v!==null&&v!==undefined&&String(v).trim()!=='')return String(v).trim().toUpperCase()}
+  return 'rec'+(++recSeq);
+}
+/* total rakes: a rake placed in two parts (same rake no.) is counted once */
+function rakeCount(list){
+  var set={},n=0;
+  list.forEach(function(e){
+    if(e.live&&e.keys&&!e.edited){e.keys.forEach(function(k){set[k]=1})}
+    else n+=num(e.rakes);
+  });
+  return n+Object.keys(set).length;
+}
 /* Gujarat rakes are also split by the receiving party (plant), e.g. SECL / BGCK TO GETS and SECL / BGCK TO TPHS are two rows.
    The party is taken from the record's party/plant column, or from the siding text when it already reads "... TO GETS". */
 var PLANT_COLS=['party','plant','power_plant','plant_name','consignee','destination','dest','to_plant'];
@@ -881,7 +912,7 @@ function plantOf(r){
 }
 function fetchLive(c,d){
   return Promise.all(LIVE_SRC.map(function(s){
-    return api(c,s.table+'?select=*&date=eq.'+d+'&limit=1000')
+    return api(s.cfg||c,s.table+'?select=*&date=eq.'+d+'&limit=1000')
       .then(function(rows){return (rows||[]).map(function(r){r._p=s.party;return r})},function(){return null});
   })).then(function(res){
     var rows=[],failed=0;
@@ -897,7 +928,7 @@ function fetchOv(c,d){
   },function(){return {map:{},failed:true}});
 }
 function applyOv(x,o){
-  x.rakes=Math.max(1,+o.rakes||1);
+  x.rakes=Math.max(1,+o.rakes||1);if(o.box_type!==null&&o.box_type!==undefined&&o.box_type!=='')x.box=String(o.box_type);
   x.rr=num(o.rr);x.ch=num(o.ch);
   x.freight=hasN(o.freight)?num(o.freight):null;x.gU=num(o.u_qty);x.gO=num(o.o_qty);x.gUp=num(o.u_pen);x.gOp=num(o.o_pen);x.gEn=num(o.ench);
   x.edited=true;
@@ -910,8 +941,10 @@ function buildLive(g,d){
     var area=String(r.area||'-').trim().toUpperCase(),sid=String(r.siding||'-').trim().toUpperCase(),pl=plantOf(r);
     if(pl&&!/\sTO\s/i.test(sid))sid=sid+' TO '+pl;   /* siding shown as in the Gujarat dashboard, e.g. BGCK TO GETS */
     var k=r._p+'|'+area+'|'+sid;
-    var x=m[k]||(m[k]={id:'L|'+d+'|'+k,live:true,party:r._p,area:area,siding:sid,rakes:0,rr:0,ch:0,freight:null,o1:0,o2:0,o3:0,ench:0,gU:0,gO:0,gUp:0,gOp:0,gEn:0});
-    x.rakes++;x.rr+=num(r.rr_wt);x.ch+=num(r.ch_wt);
+    var x=m[k]||(m[k]={id:'L|'+d+'|'+k,live:true,party:r._p,area:area,siding:sid,rakes:0,box:'',keys:[],rr:0,ch:0,freight:null,o1:0,o2:0,o3:0,ench:0,gU:0,gO:0,gUp:0,gOp:0,gEn:0});
+    var rk=r._p+'|'+d+'|'+rakeKeyOf(r);if(x.keys.indexOf(rk)<0)x.keys.push(rk);
+    var bx=boxOf(r);if(bx&&(x.box?x.box.split(', '):[]).indexOf(bx)<0)x.box=x.box?x.box+', '+bx:bx;
+    x.rr+=num(r.rr_wt);x.ch+=num(r.ch_wt);
     if(hasN(r.rr_wt)&&hasN(r.ch_wt)){   /* needs both weights entered */
       var rr=num(r.rr_wt),ch=num(r.ch_wt);
       if(ch>rr)x.gU+=ch-rr;else if(rr>ch)x.gO+=rr-ch;
@@ -920,7 +953,7 @@ function buildLive(g,d){
   });
   Object.keys(m).forEach(function(k){
     var x=m[k];['rr','ch','gU','gO','gUp','gOp','gEn'].forEach(function(f){x[f]=r2(x[f])});
-    seen[x.id]=1;
+    seen[x.id]=1;x.rakes=x.keys.length;
     if(ov[x.id])applyOv(x,ov[x.id]);
   });
   /* edited rows whose live source is gone (rake removed or date changed in the dashboard) still stay */
@@ -931,7 +964,7 @@ function buildLive(g,d){
        split rows, so it is not shown again */
     var base=String(o.siding||'');
     if(!/\sTO\s/i.test(base)&&Object.keys(m).some(function(k){var y=m[k];return y.party===o.party&&y.area===o.area&&y.siding.indexOf(base+' TO ')===0}))return;
-    var x={id:id,live:true,party:o.party,area:o.area,siding:o.siding,rakes:1,rr:0,ch:0,freight:null,o1:0,o2:0,o3:0,ench:0,gU:0,gO:0,gUp:0,gOp:0,gEn:0};
+    var x={id:id,live:true,party:o.party,area:o.area,siding:o.siding,rakes:1,box:o.box_type||'',keys:[],rr:0,ch:0,freight:null,o1:0,o2:0,o3:0,ench:0,gU:0,gO:0,gUp:0,gOp:0,gEn:0};
     applyOv(x,o);m[id]=x;
   });
   return Object.keys(m).sort().map(function(k){return m[k]});
@@ -977,7 +1010,7 @@ function doSync(d,list){
   var rows=list.map(function(e,i){
     var k=calc(e);
     return {id:e.id,sheet_date:d,sort_order:i,party:e.party,area:e.area,siding:e.siding,rakes:+e.rakes,
-      rr:+e.rr,ch:+e.ch,freight:+e.freight,o1:+e.o1,o2:+e.o2,o3:+e.o3,ench:+e.ench,
+      rr:+e.rr,ch:+e.ch,freight:+e.freight,o1:+e.o1,o2:+e.o2,o3:+e.o3,ench:+e.ench,box_type:e.box||'',
       underload_qty:k.uq,underload_penalty:k.up,overload_penalty:k.op,total:k.total,updated_at:now};
   });
   var ids=rows.map(function(r){return r.id});
@@ -987,10 +1020,10 @@ function doSync(d,list){
   });
 }
 
-/* ---- hand-edited live rows: saved in OV_TABLE for that date only, the Gujarat / HZL dashboards are never touched ---- */
+/* ---- hand-edited live rows: saved in OV_TABLE for that date only, the Gujarat / HZL / NALCO dashboards are never touched ---- */
 function ovRow(e,d){
   return {id:e.id,sheet_date:d,party:e.party,area:e.area,siding:e.siding,rakes:+e.rakes||1,
-    rr:r2(num(e.rr)),ch:r2(num(e.ch)),u_qty:r2(num(e.gU)),o_qty:r2(num(e.gO)),u_pen:r2(calc(e).up),freight:hasN(e.freight)?Math.round(num(e.freight)*10000)/10000:null,o_pen:r2(num(e.gOp)),ench:r2(num(e.gEn)),
+    rr:r2(num(e.rr)),ch:r2(num(e.ch)),box_type:e.box||'',u_qty:r2(num(e.gU)),o_qty:r2(num(e.gO)),u_pen:r2(calc(e).up),freight:hasN(e.freight)?Math.round(num(e.freight)*10000)/10000:null,o_pen:r2(num(e.gOp)),ench:r2(num(e.gEn)),
     updated_at:new Date().toISOString()};
 }
 function ovFail(err,d){
@@ -1025,7 +1058,7 @@ function resetOverride(e){
   loadDay(true);   /* queued behind the delete, then shows the live values again */
 }
 
-/* load the selected day from the database (saved rows, hand edits) and from the Gujarat / HZL dashboards (live rows) */
+/* load the selected day from the database (saved rows, hand edits) and from the Gujarat / HZL / NALCO dashboards (live rows) */
 function loadDay(keepPill){
   var d=date,my=++loadTok;
   loading=true;loadErr='';store.loaded[d]=false;store.days[d]=[];live[d]=[];
@@ -1042,11 +1075,11 @@ function loadDay(keepPill){
     if(my!==loadTok)return;
     var rows=res[0],g=res[1],ov=res[2];
     var list=(rows||[]).map(function(r){
-      return {id:r.id,party:r.party,area:r.area,siding:r.siding,rakes:+r.rakes,rr:+r.rr,ch:+r.ch,freight:+r.freight,o1:+r.o1,o2:+r.o2,o3:+r.o3,ench:+r.ench};
+      return {id:r.id,party:r.party,area:r.area,siding:r.siding,rakes:+r.rakes,rr:+r.rr,ch:+r.ch,freight:+r.freight,o1:+r.o1,o2:+r.o2,o3:+r.o3,ench:+r.ench,box:r.box_type||''};
     });
     ovr[d]=ov.map;
     live[d]=buildLive(g,d);
-    if(g.failed)toast('Some live data (Gujarat or HZL) could not be read.');
+    if(g.failed)toast('Some live data (Gujarat, HZL or NALCO) could not be read.');
     if(ov.failed)toast('Edits on live rows could not be read. Create the table '+OV_TABLE+' in Supabase (SQL is given with this file).');
     list.forEach(function(e){
       if(store.parties.indexOf(e.party)<0)store.parties.push(e.party);
@@ -1164,16 +1197,16 @@ $('#themeBtn').onclick=function(){
   try{localStorage.setItem(THEME_KEY,nx)}catch(e){}
 };
 $('#csvBtn').onclick=function(){
-  var rows=[['Date','Sr. No.','Party','Area','Siding','Rake Loaded','RR QTY','CHARBALE QTY','Underload qty','Overload qty','Freight','Underload Penalty','Overload Penalty','ENCH','TOTAL','Per M/T']];
+  var rows=[['Date','Sr. No.','Party','Area','Siding','Rake Loaded','Box Type','RR QTY','CHARBALE QTY','Underload qty','Overload qty','Freight','Underload Penalty','Overload Penalty','ENCH','TOTAL','Per M/T']];
   var d=fromIso(date),ds=pad(d.getDate())+'-'+pad(d.getMonth()+1)+'-'+d.getFullYear();
   var all=allRows(),t=agg(all);
   store.parties.forEach(function(p){
     all.filter(function(e){return e.party===p}).forEach(function(e,i){
       var c=calc(e);
-      rows.push([ds,i+1,e.party,e.area,e.siding,e.rakes+'RAKE',e.rr,e.ch,c.uU,c.uO,e.live?liveFreight(e):e.freight,c.up,c.op,c.en,c.total,perMTcsv(c.total,e.rr)]);
+      rows.push([ds,i+1,e.party,e.area,e.siding,e.rakes+'RAKE',e.box||'',e.rr,e.ch,c.uU,c.uO,e.live?liveFreight(e):e.freight,c.up,c.op,c.en,c.total,perMTcsv(c.total,e.rr)]);
     });
   });
-  rows.push([ds,'','GRAND TOTAL','','','',t.rr,t.ch,t.uU,t.uO,'',t.up,t.op,t.en,t.total,perMTcsv(t.total,t.rr)]);
+  rows.push([ds,'','GRAND TOTAL','','',t.rakes+'RAKE','',t.rr,t.ch,t.uU,t.uO,'',t.up,t.op,t.en,t.total,perMTcsv(t.total,t.rr)]);
   var csv='\uFEFF'+rows.map(function(r){return r.map(function(v){v=String(v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}).join(',')}).join('\r\n');
   var a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
@@ -1238,7 +1271,7 @@ function setForm(e){
   $('#fParty').disabled=liveMode;$('#fArea').disabled=liveMode;$('#fSiding').disabled=liveMode;
   $('#manualBlk').hidden=liveMode;$('#liveBlk').hidden=!liveMode;$('#liveNote').hidden=!liveMode;
   $('#fSiding').value=e.siding||'';
-  $('#fRakes').value=e.rakes;
+  $('#fRakes').value=e.rakes;$('#fBox').value=e.box||'';
   $('#fRR').value=e.rr;$('#fCH').value=e.ch;
   if(liveMode){
     $('#fLU').value=e.gU;$('#fLO').value=e.gO;$('#fLFr').value=liveFreight(e);$('#fLOp').value=e.gOp;$('#fLEn').value=e.gEn;
@@ -1301,7 +1334,7 @@ $('#fArea').addEventListener('change',function(){
 });
 $$('input',form).forEach(function(i){i.addEventListener('input',function(){i.classList.remove('bad');updatePreview()})});
 
-/* save a live row: kept for this date only, the Gujarat / HZL dashboards are not touched */
+/* save a live row: kept for this date only, the Gujarat / HZL / NALCO dashboards are not touched */
 function saveLive(){
   var e=findLive(editId);
   if(!e){closeDrawer();return}
@@ -1316,7 +1349,7 @@ function saveLive(){
     $('#err').textContent='Fill in '+bad.join(', ')+' with a valid value (numbers must be zero or more).';
     return;
   }
-  e.rakes=rk;e.rr=num($('#fRR').value);e.ch=num($('#fCH').value);
+  e.rakes=rk;e.box=$('#fBox').value.trim().toUpperCase();e.rr=num($('#fRR').value);e.ch=num($('#fCH').value);
   e.gU=num($('#fLU').value);e.gO=num($('#fLO').value);e.freight=num($('#fLFr').value);e.gUp=r2(e.gU*e.freight);e.gOp=num($('#fLOp').value);e.gEn=num($('#fLEn').value);
   saveOverride(e);
   toast('Saved for this date only. The '+e.party+' dashboard is not changed.');
@@ -1342,7 +1375,7 @@ function save(andAdd){
   }
   if(store.parties.indexOf(party)<0)store.parties.push(party);
   if(store.areas.indexOf(area)<0)store.areas.push(area);
-  var data={party:party,area:area,siding:siding,rakes:rk,rr:num($('#fRR').value),ch:num($('#fCH').value),freight:num($('#fFreight').value),o1:num($('#fO1').value),o2:num($('#fO2').value),o3:num($('#fO3').value),ench:num($('#fEnch').value)};
+  var data={party:party,area:area,siding:siding,rakes:rk,rr:num($('#fRR').value),ch:num($('#fCH').value),freight:num($('#fFreight').value),o1:num($('#fO1').value),o2:num($('#fO2').value),o3:num($('#fO3').value),ench:num($('#fEnch').value),box:$('#fBox').value.trim().toUpperCase()};
   if(editId){
     var e=find(editId);Object.keys(data).forEach(function(k){e[k]=data[k]});
     toast('Changes saved');
