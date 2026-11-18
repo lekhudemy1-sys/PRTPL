@@ -54,6 +54,19 @@ body{font-family:var(--body);color:var(--ink);min-height:100vh;line-height:1.4;o
 .c-cost{--c:#a67c3d;--t:#faf3e6;--l:#e0c9a0;--d:#6b4c2a}
 .c-trend{--c:#8b6b3a;--t:#f7f2e8;--l:#d4c0a0;--d:#5c4520}
 .c-upload{--c:#c48a3a;--t:#fdf6e9;--l:#e8c98a;--d:#8b5e1e}
+.c-log{--c:#6b4c2a;--t:#f5efe6;--l:#c9b090;--d:#3b2a1a}
+
+.log-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--line);max-height:420px;overflow-y:auto}
+.log-table{width:100%;min-width:1100px;border-collapse:separate;border-spacing:0;font-variant-numeric:tabular-nums}
+.log-table th{position:sticky;top:0;z-index:1;background:linear-gradient(120deg,var(--brown),var(--brown2));color:#fff;font-size:.66rem;letter-spacing:.3px;text-transform:uppercase;font-weight:700;padding:.5rem .4rem;text-align:center;white-space:nowrap}
+.log-table td{padding:.35rem .4rem;text-align:center;font-size:.78rem;font-weight:600;color:var(--ink);border-bottom:1px solid var(--line);white-space:nowrap}
+.log-table td:nth-child(3),.log-table td:nth-child(4){text-align:left}
+.log-table tbody tr:nth-child(even) td{background:#faf6f0}
+.log-table tbody tr:hover td{background:#f3e8d4}
+.log-meta{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-bottom:.55rem;font-size:.78rem;color:var(--mute)}
+.log-meta b{color:var(--ink)}
+.log-filter{font:600 .78rem var(--body);border:1px solid var(--line);border-radius:999px;padding:.3rem .7rem;background:#fff;color:var(--ink)}
+.log-empty{text-align:center;padding:1.4rem;color:var(--mute);font-size:.85rem}
 
 .metric-row{display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.38rem .2rem;border-bottom:1px dashed var(--line);border-radius:9px}
 .metric-row:last-child{border-bottom:0}
@@ -150,8 +163,9 @@ body{font-family:var(--body);color:var(--ink);min-height:100vh;line-height:1.4;o
     </div>
     <div class="source-line" id="source"></div>
     <div class="upload-hint">
-      The figures built into this page are permanent. To view a newer workbook, save it in Excel and upload it; the dashboard then shows that workbook's figures for this session. Every figure is read from the <b>Dashboard</b> sheet. The page finds each block by its heading (for example "MINES" or "RAILWAY FREIGHT PENALTIES"), so blocks may move, but keep the sheet name and the headings unchanged.
+      Upload the BB MIS workbook (.xlsm / .xlsx). The page reads the <b>Dashboard</b> sheet and the <b>MIS RAKE DISPATCH</b> sheet, then <b>replaces</b> all previous data in Supabase (no duplicates). Dashboard values go into the <code>dashboard</code> table; rake rows go into the <code>mis_rake_log</code> table. On next visit the page loads the latest snapshot from Supabase automatically.
     </div>
+
   </div>
 
   <!-- Row 1 -->
@@ -285,14 +299,68 @@ body{font-family:var(--body);color:var(--ink);min-height:100vh;line-height:1.4;o
     </div>
   </div>
 
-  <div class="footer-note">PERFORMANCE METER AMM BALCO · figures read from the Dashboard sheet of the BB MIS workbook</div>
+  <!-- MIS Rake Dispatch Log -->
+  <div class="grid-full">
+    <div class="card c-log">
+      <div class="card-header">
+        <h3><i class="fas fa-list"></i> MIS Rake Dispatch Log</h3>
+      </div>
+      <div class="log-meta">
+        <span>Rows: <b id="logCount">0</b></span>
+        <select id="logUnitFilter" class="log-filter">
+          <option value="">All Units</option>
+          <option value="CPP">CPP</option>
+          <option value="EAC">EAC</option>
+          <option value="IPP">IPP</option>
+        </select>
+        <select id="logSidingFilter" class="log-filter">
+          <option value="">All Sidings</option>
+        </select>
+        <span id="logSource" style="margin-left:auto"></span>
+      </div>
+      <div class="log-wrap">
+        <table class="log-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Date</th>
+              <th>Siding</th>
+              <th>Unit</th>
+              <th>FSA</th>
+              <th>Box Type</th>
+              <th>Net Wt</th>
+              <th>Received Wt</th>
+              <th>Ch Wt</th>
+              <th>RR Wt</th>
+              <th>GCV ARB</th>
+              <th>RR Number</th>
+              <th>RR Date</th>
+              <th>POL</th>
+              <th>ENHC</th>
+            </tr>
+          </thead>
+          <tbody id="logBody">
+            <tr><td colspan="15" class="log-empty">Loading log from Supabase…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-note">PERFORMANCE METER AMM BALCO · Dashboard + Log from Supabase · BB MIS workbook</div>
 </main>
 
 <script type="application/json" id="snap-data">{"Dashboard!C3":"PERFORMANCE METER AMM BALCO_M/O  SEPTEMBER' 2026","Dashboard!X4":"Month","Dashboard!Y4":"Rs.Per GCV Cost","Dashboard!Z4":"Per Day Qty.","Dashboard!AA4":"WT. GCV","Dashboard!AB4":"Quarter","Dashboard!AC4":"Quaterly Avg. Rs./- Gcv.","Dashboard!AD4":"Quaterly Billing","Dashboard!AE4":"Quaterly Avg. Qty. ","Dashboard!AF4":"AVG. WT. GCV","Dashboard!AG4":"%","Dashboard!C5":"PER DAY REQUIRED RAKE FOR TARGET 194","Dashboard!G5":1.4482758620689655,"Dashboard!H5":"UNIT","Dashboard!K5":"ALL","Dashboard!L5":"CPP","Dashboard!M5":"E/A","Dashboard!N5":"IPP","Dashboard!R5":"SHORTAGE/EXCESS COAL","Dashboard!X5":45748,"Dashboard!Y5":0.654,"Dashboard!Z5":15465,"Dashboard!AA5":3681,"Dashboard!AB5":"APR-JUN'25 (Q1)","Dashboard!AC5":0.6903333333333334,"Dashboard!AD5":73256651,"Dashboard!AE5":15531.333333333334,"Dashboard!AF5":3515.6666666666665,"Dashboard!AG5":1,"Dashboard!C6":"PERFORMACE ON RAKE MATERLIZATION","Dashboard!G6":19.043478260869563,"Dashboard!H6":"TARGET OF MONTH","Dashboard!K6":115,"Dashboard!L6":70,"Dashboard!M6":20,"Dashboard!N6":25,"Dashboard!R6":"Average","Dashboard!S6":1.9366141088167117,"Dashboard!T6":"Normalised Qty. %","Dashboard!U6":"PER GCV COST","Dashboard!X6":45778,"Dashboard!Y6":0.692,"Dashboard!Z6":15120,"Dashboard!AA6":3480,"Dashboard!C7":"PERFORANCE ON GCV (GEVRA/KUS/DIP/MCK)","Dashboard!G7":3529.540457007454,"Dashboard!R7":73.10202702702699,"Dashboard!T7":"Shortage/Excess MT","Dashboard!X7":45809,"Dashboard!Y7":0.725,"Dashboard!Z7":16009,"Dashboard!AA7":3386,"Dashboard!C8":"POSITION OF GCV FOR ACHIEVE TARGET","Dashboard!G8":222.7192390985515,"Dashboard!H8":"RAKE LOADED TILL","Dashboard!K8":73,"Dashboard!L8":42,"Dashboard!M8":6,"Dashboard!N8":25,"Dashboard!Q8":3438.845165698545,"Dashboard!R8":"(CPP)_ Avg. Wt. GCV  ","Dashboard!T8":3420.285647753929,"Dashboard!U8":0.5599828781773689,"Dashboard!X8":45839,"Dashboard!Y8":0.753,"Dashboard!Z8":13572,"Dashboard!AA8":3237,"Dashboard!AB8":"JULY-SEPT'25 (Q2)","Dashboard!AC8":0.7237562192971884,"Dashboard!AD8":38862407,"Dashboard!AE8":12042.758777777779,"Dashboard!AF8":3384,"Dashboard!AG8":1,"Dashboard!C9":"POSITION OF GCV FOR CPP RAKES","Dashboard!G9":-312.79501736385237,"Dashboard!H9":"BALANCE RAKE","Dashboard!K9":42,"Dashboard!L9":28,"Dashboard!M9":14,"Dashboard!N9":0,"Dashboard!R9":"(EAC)_ Avg. Wt. GCV  ","Dashboard!T9":3568.761791310855,"Dashboard!U9":0.6320583830154047,"Dashboard!X9":45870,"Dashboard!Y9":0.709,"Dashboard!Z9":11979,"Dashboard!AA9":3530,"Dashboard!C10":"POSITION OF GCV FOR IPP RAKES","Dashboard!G10":-145.93770799923186,"Dashboard!H10":"ASKING PER DAY","Dashboard!K10":1.4482758620689655,"Dashboard!L10":19.043478260869563,"Dashboard!M10":0,"Dashboard!N10":0,"Dashboard!R10":"(IPP)_ Avg. Wt. GCV  ","Dashboard!T10":3704.062292000769,"Dashboard!U10":0,"Dashboard!X10":45901,"Dashboard!Y10":0.7092686578915653,"Dashboard!Z10":10577.276333333335,"Dashboard!AA10":3385,"Dashboard!X11":45931,"Dashboard!Y11":0.5642494138067371,"Dashboard!Z11":12344.103225806452,"Dashboard!AA11":3719,"Dashboard!AB11":"OCT-DEC'25 (Q3)","Dashboard!AC11":0.562083137935579,"Dashboard!AD11":87760841,"Dashboard!AE11":14643.367741935484,"Dashboard!AF11":3789.6666666666665,"Dashboard!AG11":1,"Dashboard!X12":45962,"Dashboard!Y12":0.538,"Dashboard!Z12":15430,"Dashboard!AA12":3912,"Dashboard!K13":"Rake Performance","Dashboard!M13":"Achive","Dashboard!O13":"Target","Dashboard!R13":"RAILWAY FREIGHT PENALTIES","Dashboard!X13":45992,"Dashboard!Y13":0.584,"Dashboard!Z13":16156,"Dashboard!AA13":3738,"Dashboard!C14":"PARTICULERS","Dashboard!G14":"BILLINGS","Dashboard!H14":"PER MT","Dashboard!R14":"PARTICULERS","Dashboard!T14":"AMOUNT","Dashboard!U14":"PER MT ","Dashboard!X14":46023,"Dashboard!Y14":0.57,"Dashboard!Z14":16811,"Dashboard!AA14":3562,"Dashboard!AB14":"JAN-MAR'26 (Q4)","Dashboard!AC14":0.5773333333333334,"Dashboard!AD14":84158592,"Dashboard!AE14":16509.666666666668,"Dashboard!AF14":3525.6666666666665,"Dashboard!AG14":1,"Dashboard!C15":"PERFORANCE ON  QUANTITY RECO","Dashboard!G15":530727.57,"Dashboard!H15":1.8639033840890198,"Dashboard!K15":"Per Day Rakes","Dashboard!M15":1.6,"Dashboard!O15":4,"Dashboard!R15":"UNDERLOAD CHARGE","Dashboard!T15":0,"Dashboard!U15":0,"Dashboard!X15":46054,"Dashboard!Y15":0.559,"Dashboard!Z15":16803,"Dashboard!AA15":3613,"Dashboard!C16":"PERFORANCE ON  GCV RECO","Dashboard!G16":1621715.018,"Dashboard!H16":6.122105052945506,"Dashboard!R16":"OVERLOAD CHARGE","Dashboard!T16":0,"Dashboard!U16":0,"Dashboard!X16":46082,"Dashboard!Y16":0.603,"Dashboard!Z16":15915,"Dashboard!AA16":3402,"Dashboard!C17":"PERFORANCE ON  SERVICE CHARGE (RAIL)","Dashboard!G17":1061455.1400000001,"Dashboard!H17":3.8000000000000007,"Dashboard!K17":"Per Day Quantity ","Dashboard!M17":6283.661666666668,"Dashboard!O17":16000,"Dashboard!R17":"PUNITATIVE SUM","Dashboard!T17":137330.4,"Dashboard!U17":0.4916416156786428,"Dashboard!X17":46113,"Dashboard!Y17":0.564,"Dashboard!Z17":13587,"Dashboard!AA17":3529,"Dashboard!AB17":"APR-JUN '26 (Q5)","Dashboard!AC17":0.5902819584585962,"Dashboard!AD17":66050864,"Dashboard!AE17":15067.371999999998,"Dashboard!AF17":3520.7718163430077,"Dashboard!AG17":0.9016364125081284,"Dashboard!C18":"PERFORANCE ON  SERVICE CHARGE (ROAD)","Dashboard!G18":353192,"Dashboard!H18":7,"Dashboard!R18":"EHBC/FAUC/TC","Dashboard!T18":35400,"Dashboard!U18":0.12673168646580768,"Dashboard!X18":46143,"Dashboard!Y18":0.646,"Dashboard!Z18":16193,"Dashboard!AA18":3425,"Dashboard!C19":"LOADING END DC CHARGES","Dashboard!G19":-126839.41000000002,"Dashboard!H19":0.4540839643962722,"Dashboard!K19":"Per GCV Cost","Dashboard!M19":0.5677024966802281,"Dashboard!O19":0.69,"Dashboard!R19":"ENHC CHARGES","Dashboard!T19":66360,"Dashboard!U19":0.2375682122562429,"Dashboard!X19":46174,"Dashboard!Y19":0.5608458753757886,"Dashboard!Z19":15422.115999999996,"Dashboard!AA19":3608.315449029024,"Dashboard!C20":"PROFORMANCE ON WAGONS SUPPLY","Dashboard!G20":12500,"Dashboard!H20":0.00592,"Dashboard!R20":"DEAD FREIGHT","Dashboard!T20":538855.1999999998,"Dashboard!U20":0.008931003904696339,"Dashboard!X20":46204,"Dashboard!Y20":0.576,"Dashboard!Z20":14282,"Dashboard!AA20":3545,"Dashboard!AB20":"JULY-SEPT'25 (Q6)","Dashboard!AC20":0.5755674988934093,"Dashboard!AD20":55135140.96251507,"Dashboard!AE20":10646.55388888889,"Dashboard!AF20":3513.6150552328486,"Dashboard!AG20":1.418726867909007,"Dashboard!C21":"TOTAL BILLING","Dashboard!G21":3452750.318,"Dashboard!H21":19.246012401430797,"Dashboard!R21":" TOTAL PENALTY","Dashboard!T21":777945.5999999999,"Dashboard!U21":0.8648725183053897,"Dashboard!X21":46235,"Dashboard!Y21":0.583,"Dashboard!Z21":11374,"Dashboard!AA21":3557,"Dashboard!C22":"EXPECTED BILLING OF THE MONTH","Dashboard!G22":3452750.318,"Dashboard!X22":46266,"Dashboard!Y22":0.5677024966802281,"Dashboard!Z22":6283.661666666668,"Dashboard!AA22":3438.845165698545,"Dashboard!T23":"(CPP+E AUC)_ Avg. CH.Wt. ","Dashboard!V23":3861.05,"Dashboard!T24":"(CPP+E AUC)_ Avg. RR.Wt. ","Dashboard!V24":3797.565,"Dashboard!A25":"    ","Dashboard!C25":"MINES","Dashboard!F25":"MCK","Dashboard!H25":"KMKA/NKCR/OKSR","Dashboard!K25":"JRGR/GPCK","Dashboard!M25":"DIPKA","Dashboard!O25":"SLOG","Dashboard!Q25":"SLCC","Dashboard!T25":"(CPP+E AUC)_ per day RR Qty.","Dashboard!V25":6132.913333333332,"Dashboard!C26":"GCV (ARB)","Dashboard!F26":2846.0045595847896,"Dashboard!H26":3655.5111075200102,"Dashboard!K26":3698.474496381413,"Dashboard!M26":3494.715323784535,"Dashboard!O26":3849.7650833183825,"Dashboard!Q26":0,"Dashboard!C27":"QUALITY DIFF. BETWEEN RAPID/ARB","Dashboard!F27":148.27777532942582,"Dashboard!H27":214.8572357827079,"Dashboard!K27":280.0086751472804,"Dashboard!M27":214.30382144496843,"Dashboard!O27":241.21502896883612,"Dashboard!Q27":0,"Dashboard!S27":"COST MODEL FINANCIAL","Dashboard!C28":"PERFORANCE ON GCV MINES WISE","Dashboard!F28":96257.42000000001,"Dashboard!H28":862703.9015000002,"Dashboard!K28":322432.8975,"Dashboard!M28":144040.33000000002,"Dashboard!O28":196280.469,"Dashboard!Q28":0,"Dashboard!S28":"                              COST MODEL BILLING AS ON DATE :-","Dashboard!V28":11099215.834463332,"Dashboard!C29":"Cost Rs. GCV Per Paisa (Mines Wise)","Dashboard!F29":0.629,"Dashboard!H29":0.54,"Dashboard!K29":0.501,"Dashboard!M29":0.632,"Dashboard!O29":0,"Dashboard!Q29":0,"Dashboard!S29":"       COST MODEL BILLING OF THE MONTH (EXPECTED):-","Dashboard!V29":11099215.834463332,"Dashboard!C30":"SHORTAGE","Dashboard!F30":170.95000000000027,"Dashboard!H30":43.01875000000018,"Dashboard!K30":54.76000000000058,"Dashboard!M30":101.82666666666692,"Dashboard!O30":41.01999999999971,"Dashboard!Q30":0,"Dashboard!C31":"PUNITATIVE SUM (POL1, POL2, POLA..)","Dashboard!F31":71884.8,"Dashboard!H31":7387.200000000001,"Dashboard!K31":6717.599999999999,"Dashboard!M31":45120,"Dashboard!O31":6220.8,"Dashboard!Q31":0,"Dashboard!C32":"EHBC /FAUC /SD /TC CHARGES","Dashboard!F32":0,"Dashboard!H32":0,"Dashboard!K32":0,"Dashboard!M32":35400,"Dashboard!O32":0,"Dashboard!Q32":0,"Dashboard!C33":"ENHC CHARGES","Dashboard!F33":0,"Dashboard!H33":0,"Dashboard!K33":0,"Dashboard!M33":66360,"Dashboard!O33":0,"Dashboard!Q33":0,"Dashboard!E36":"RECEIVED WEIGHT UP TO  :","Dashboard!H36":46295,"Dashboard!J36":"(1/1)","Dashboard!L36":"GCV RAPID UPTO: ","Dashboard!O36":46295,"Dashboard!P36":"(1/1)","Dashboard!R36":"GCV ARB UPTO :","Dashboard!T36":46293,"Dashboard!V36":"(1/2)","Dashboard!H37":"Performance Report updated upto.","Dashboard!N37":46295,"Dashboard!I40":"JRGR","Dashboard!J40":"DIPKA","Dashboard!K40":"SLOG","Dashboard!L40":"TOTAL","Dashboard!G41":"MCK","Dashboard!H41":"KMKA","Dashboard!I41":6717.599999999999,"Dashboard!J41":45120,"Dashboard!K41":6220.8,"Dashboard!L41":58058.4,"Dashboard!P41":"RAIL FRIGHT PENALTY","Dashboard!S41":239090.4,"Dashboard!G42":71884.8,"Dashboard!H42":7387.200000000001,"Dashboard!I42":0,"Dashboard!J42":70800,"Dashboard!K42":0,"Dashboard!L42":150072,"Dashboard!P42":"SUM FROM MINES WISE","Dashboard!S42":274490.4,"Dashboard!G43":0,"Dashboard!H43":0,"Dashboard!I43":0,"Dashboard!J43":66360,"Dashboard!K43":0,"Dashboard!L43":66360,"Dashboard!G44":0,"Dashboard!H44":0,"Dashboard!F47":46295}</script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function(){
+  /* ---------- Supabase ---------- */
+  const SUPABASE_URL = 'https://gcedsyxvfmlyujhftiyf.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdjZWRzeXh2Zm1seXVqaGZ0aXlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ2Mjg5ODMsImV4cCI6MjExMDIwNDk4M30.QsFXFMT1zS62UIfdbgtpXJHEicCVglvXHqgvik5Q5Rk';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
   const SNAP = JSON.parse(document.getElementById('snap-data').textContent);
   const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const $ = id => document.getElementById(id);
@@ -447,7 +515,100 @@ body{font-family:var(--body);color:var(--ink);min-height:100vh;line-height:1.4;o
     $('trendBody').innerHTML = html;
   }
 
-  function render(){ computeOffsets(); renderValues(); renderTrend(); renderSource(); }
+  /* ---------- MIS Rake Log (from Supabase) ---------- */
+  let LOG_ROWS = [];
+
+  function fmtLogNum(v, d) {
+    if (v == null || v === '' || !isFinite(Number(v))) return '–';
+    return Number(v).toLocaleString('en-IN', {minimumFractionDigits: d || 0, maximumFractionDigits: d || 0});
+  }
+  function fmtLogDate(v) {
+    if (!v) return '–';
+    const s = String(v);
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+      const [y, m, d] = s.slice(0, 10).split('-');
+      return d + '-' + m + '-' + y;
+    }
+    return esc(s);
+  }
+
+  function renderLog() {
+    const unitF = ($('logUnitFilter') && $('logUnitFilter').value) || '';
+    const sidingF = ($('logSidingFilter') && $('logSidingFilter').value) || '';
+    const rows = LOG_ROWS.filter(r => {
+      if (unitF && String(r.unit || '').toUpperCase() !== unitF) return false;
+      if (sidingF && String(r.siding || '') !== sidingF) return false;
+      return true;
+    });
+
+    $('logCount').textContent = rows.length + (rows.length !== LOG_ROWS.length ? ' / ' + LOG_ROWS.length : '');
+
+    // populate siding filter options once
+    const sel = $('logSidingFilter');
+    if (sel && sel.options.length <= 1 && LOG_ROWS.length) {
+      const sidings = [...new Set(LOG_ROWS.map(r => r.siding).filter(Boolean))].sort();
+      sidings.forEach(s => {
+        const o = document.createElement('option');
+        o.value = s; o.textContent = s;
+        sel.appendChild(o);
+      });
+    }
+
+    if (!rows.length) {
+      $('logBody').innerHTML = '<tr><td colspan="15" class="log-empty">' +
+        (LOG_ROWS.length ? 'No rows match the selected filters.' : 'No log data yet. Upload a MIS workbook to populate the log.') +
+        '</td></tr>';
+      return;
+    }
+
+    let html = '';
+    rows.forEach((r, i) => {
+      html += '<tr>' +
+        '<td>' + (r.sr_no != null ? r.sr_no : i + 1) + '</td>' +
+        '<td>' + fmtLogDate(r.rake_date) + '</td>' +
+        '<td>' + esc(r.siding || '–') + '</td>' +
+        '<td>' + esc(r.unit || '–') + '</td>' +
+        '<td>' + esc(r.fsa || '–') + '</td>' +
+        '<td>' + esc(r.balco_box_type || '–') + '</td>' +
+        '<td>' + fmtLogNum(r.net_wt, 1) + '</td>' +
+        '<td>' + fmtLogNum(r.received_wt, 1) + '</td>' +
+        '<td>' + fmtLogNum(r.ch_weight, 1) + '</td>' +
+        '<td>' + fmtLogNum(r.rr_weight, 1) + '</td>' +
+        '<td>' + fmtLogNum(r.gcv_arb, 0) + '</td>' +
+        '<td>' + esc(r.rr_number || '–') + '</td>' +
+        '<td>' + esc(r.rr_date || '–') + '</td>' +
+        '<td>' + fmtLogNum(r.pol_charges, 0) + '</td>' +
+        '<td>' + fmtLogNum(r.enhc_charge, 0) + '</td>' +
+        '</tr>';
+    });
+    $('logBody').innerHTML = html;
+  }
+
+  async function loadLogFromSupabase() {
+    try {
+      const { data, error } = await sb
+        .from('mis_rake_log')
+        .select('sr_no, rake_date, siding, unit, fsa, balco_box_type, net_wt, received_wt, ch_weight, rr_weight, gcv_arb, rr_number, rr_date, pol_charges, enhc_charge, source_file')
+        .order('rake_date', { ascending: true })
+        .order('sr_no', { ascending: true })
+        .limit(2000);
+      if (error) throw error;
+      LOG_ROWS = data || [];
+      if (LOG_ROWS.length && LOG_ROWS[0].source_file) {
+        $('logSource').textContent = 'Source: ' + LOG_ROWS[0].source_file;
+      } else {
+        $('logSource').textContent = '';
+      }
+      renderLog();
+      return true;
+    } catch (err) {
+      console.warn('Log load failed:', err.message || err);
+      $('logBody').innerHTML = '<tr><td colspan="15" class="log-empty">Could not load log from Supabase. Upload a workbook or check the connection.</td></tr>';
+      return false;
+    }
+  }
+
+  function render(){ computeOffsets(); renderValues(); renderTrend(); renderSource(); renderLog(); }
 
   function renderSource(){
     const miss = BLOCKS.filter((b, i) => !OFF[i].ok).map(b => b.t);
@@ -466,6 +627,151 @@ body{font-family:var(--body);color:var(--ink);min-height:100vh;line-height:1.4;o
 
   const NEEDED = {'Dashboard': null};   // null = all cells
 
+  /* ---------- Excel helpers for MIS Rake Dispatch log ---------- */
+  function excelSerialToISO(v) {
+    if (v == null || v === '') return null;
+    if (typeof v === 'number') {
+      const d = new Date(Math.round((v - 25569) * 86400000));
+      return d.toISOString().slice(0, 10);
+    }
+    const s = String(v).trim();
+    // already ISO-ish or DD.MM.YYYY
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+    const m = /^(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})$/.exec(s);
+    if (m) {
+      const y = m[3].length === 2 ? '20' + m[3] : m[3];
+      return y + '-' + m[2].padStart(2,'0') + '-' + m[1].padStart(2,'0');
+    }
+    return null;
+  }
+  function cellNum(v) {
+    if (v == null || v === '') return null;
+    if (typeof v === 'number' && isFinite(v)) return v;
+    const n = Number(String(v).replace(/[,₹\s]/g, ''));
+    return isFinite(n) ? n : null;
+  }
+  function cellStr(v) {
+    if (v == null || v === '') return null;
+    return String(v).trim();
+  }
+
+  function parseMisRakeLog(ws) {
+    if (!ws) return [];
+    const rows = [];
+    // Header is row 2 (1-indexed in Excel = row index 1 in sheet_to_json range)
+    // Data starts row 4
+    const range = XLSX.utils.decode_range(ws['!ref'] || 'A1:AW200');
+    for (let r = 3; r <= range.e.r; r++) {   // 0-based: row 3 = Excel row 4
+      const sr = ws[XLSX.utils.encode_cell({c:0, r})];
+      if (!sr || sr.v == null || sr.v === '') continue;
+      const get = (c) => {
+        const cell = ws[XLSX.utils.encode_cell({c, r})];
+        return cell ? cell.v : null;
+      };
+      rows.push({
+        sr_no:                  cellNum(get(0)),
+        rake_date:              excelSerialToISO(get(1)),
+        siding:                 cellStr(get(2)),
+        unit:                   cellStr(get(3)),
+        tranch:                 cellStr(get(4)),
+        fsa:                    cellStr(get(5)),
+        date_of_allotment:      cellStr(get(6)),
+        seniority_no:           cellStr(get(7)),
+        pt_time:                cellStr(get(8)),
+        ct_time:                cellStr(get(9)),
+        dot_time:               cellStr(get(10)),
+        mines_loading_duration: cellStr(get(11)),
+        supply_box:             cellNum(get(12)),
+        load_box:               cellNum(get(13)),
+        sick_box:               cellNum(get(14)),
+        balco_box_type:         cellStr(get(15)),
+        pcc:                    cellNum(get(16)),
+        net_wt:                 cellNum(get(17)),
+        received_wt:            cellNum(get(18)),
+        grn_qty:                cellNum(get(19)),
+        diff_qty:               cellNum(get(20)),
+        plant_excess_coal:      cellNum(get(21)),
+        avg_loading:            cellNum(get(22)),
+        gcv_arb:                cellNum(get(23)),
+        arb_tm_pct:             cellNum(get(24)),
+        ch_weight:              cellNum(get(25)),
+        rr_weight:              cellNum(get(26)),
+        rr_number:              cellStr(get(27)),
+        rr_date:                cellStr(get(28)),
+        overload_qty:           cellNum(get(29)),
+        underload_qty:          cellNum(get(30)),
+        push_back_charge:       cellNum(get(31)),
+        pol_charges:            cellNum(get(32)),
+        ehbc_fauc_tc:           cellNum(get(33)),
+        enhc_charge:            cellNum(get(34)),
+        total_freight:          cellNum(get(35)),
+        dead_freight_qty:       cellNum(get(36)),
+        dead_freight_charges:   cellNum(get(37)),
+        total_dc:               cellNum(get(48))   // AW = col 48 (0-based)
+      });
+    }
+    return rows;
+  }
+
+  async function saveToSupabase(dashboardData, logRows, fileName) {
+    const title = dashboardData['Dashboard!C3'] || '';
+    const reportMonth = String(title).replace(/.*M\/O\s*/i, '').trim() || null;
+
+    // Prefer the atomic RPC; fall back to two separate calls
+    const { error: rpcErr } = await sb.rpc('replace_dashboard_and_log', {
+      p_dashboard_data: dashboardData,
+      p_source_file:    fileName,
+      p_report_month:   reportMonth,
+      p_log_rows:       logRows
+    });
+
+    if (!rpcErr) return { ok: true };
+
+    // Fallback if RPC not yet created
+    console.warn('RPC failed, using direct replace:', rpcErr.message);
+
+    const { error: dErr } = await sb.from('dashboard').upsert({
+      id: 1,
+      data: dashboardData,
+      source_file: fileName,
+      report_month: reportMonth,
+      updated_at: new Date().toISOString()
+    });
+    if (dErr) throw dErr;
+
+    // Clear + insert log
+    const { error: delErr } = await sb.from('mis_rake_log').delete().neq('id', 0);
+    if (delErr) throw delErr;
+
+    if (logRows.length) {
+      // batch insert in chunks of 200
+      for (let i = 0; i < logRows.length; i += 200) {
+        const chunk = logRows.slice(i, i + 200).map(r => ({ ...r, source_file: fileName }));
+        const { error: insErr } = await sb.from('mis_rake_log').insert(chunk);
+        if (insErr) throw insErr;
+      }
+    }
+    return { ok: true };
+  }
+
+  async function loadFromSupabase() {
+    try {
+      const { data, error } = await sb.from('dashboard').select('data, source_file, report_month, updated_at').eq('id', 1).maybeSingle();
+      if (error) throw error;
+      if (data && data.data && Object.keys(data.data).length > 10) {
+        D = data.data;
+        meta = {
+          name: data.source_file || 'Supabase',
+          when: data.updated_at ? new Date(data.updated_at).toLocaleString('en-IN') : ''
+        };
+        return true;
+      }
+    } catch (err) {
+      console.warn('Could not load from Supabase:', err.message || err);
+    }
+    return false;
+  }
+
   $('xlsFile').addEventListener('change', e => {
     const file = e.target.files[0];
     e.target.value = '';
@@ -473,7 +779,7 @@ body{font-family:var(--body);color:var(--ink);min-height:100vh;line-height:1.4;o
     if (typeof XLSX === 'undefined') { setStatus('Excel reader did not load. Check your internet connection.', 'err'); return; }
     setStatus('Reading ' + file.name + ' …');
     const reader = new FileReader();
-    reader.onload = ev => {
+    reader.onload = async ev => {
       try {
         const wb = XLSX.read(new Uint8Array(ev.target.result), {type: 'array'});
         if (!wb.Sheets['Dashboard']) {
@@ -497,12 +803,29 @@ body{font-family:var(--body);color:var(--ink);min-height:100vh;line-height:1.4;o
           setStatus('The Dashboard sheet has no calculated values. Open the workbook in Excel, let it calculate, save it, then upload again.', 'err');
           return;
         }
+
+        // Parse MIS Rake Dispatch log (sheet name may have trailing space)
+        const logSheetName = wb.SheetNames.find(n => n.trim().toUpperCase() === 'MIS RAKE DISPATCH') || 'MIS RAKE DISPATCH';
+        const logRows = parseMisRakeLog(wb.Sheets[logSheetName]);
+
+        setStatus('Saving to Supabase …');
+        await saveToSupabase(data, logRows, file.name);
+
         D = data;
         meta = {name: file.name, when: new Date().toLocaleString('en-IN')};
+        // reset siding filter options so they rebuild from new data
+        const sel = $('logSidingFilter');
+        if (sel) {
+          sel.innerHTML = '<option value="">All Sidings</option>';
+          sel.value = '';
+        }
+        if ($('logUnitFilter')) $('logUnitFilter').value = '';
+        await loadLogFromSupabase();
         render();
-        setStatus('Dashboard updated from ' + file.name + '.', 'ok');
+        setStatus('Saved to Supabase · Dashboard + ' + logRows.length + ' log rows from ' + file.name, 'ok');
       } catch(err) {
-        setStatus('Could not read this file: ' + err.message, 'err');
+        setStatus('Could not process this file: ' + (err.message || err), 'err');
+        console.error(err);
       }
     };
     reader.readAsArrayBuffer(file);
@@ -533,8 +856,22 @@ body{font-family:var(--body);color:var(--ink);min-height:100vh;line-height:1.4;o
     });
   });
 
-  render();
+  // Log filters
+  if ($('logUnitFilter')) $('logUnitFilter').addEventListener('change', renderLog);
+  if ($('logSidingFilter')) $('logSidingFilter').addEventListener('change', renderLog);
+
+  /* Load live data from Supabase; fall back to built-in SNAP */
+  setStatus('Loading from Supabase …');
+  Promise.all([loadFromSupabase(), loadLogFromSupabase()]).then(([dashOk]) => {
+    render();
+    if (dashOk) setStatus('Loaded live data from Supabase.', 'ok');
+    else setStatus('Showing built-in figures (upload a workbook to sync with Supabase).');
+  }).catch(() => {
+    render();
+    setStatus('Could not reach Supabase – showing built-in figures.');
+  });
 })();
 </script>
 </body>
+
 </html>
