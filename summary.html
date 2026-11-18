@@ -667,8 +667,14 @@ function exportPng(){
       /* stop animations (logo ring, glow, live dot) so the header is captured in a clean state.
          Pseudo-elements such as .board::after cannot be selected in JS, so a style rule is used instead. */
       var st=doc.createElement('style');
-      st.textContent='*,*::before,*::after{animation:none!important;transition:none!important}';
+      st.textContent='*,*::before,*::after{animation:none!important;transition:none!important}'+
+        /* decorative spinning ring and glow blob look broken when captured, so leave them out of the image */
+        '.logo::before,.board::after{display:none!important}'+
+        /* the header keeps its colours and layout in the image */
+        '.board{box-shadow:none!important}';
       doc.head.appendChild(st);
+      /* keep the header banner, but no filter bar (dates, Refresh, Export PNG, status), no Back button and no breadcrumb chips */
+      doc.querySelectorAll('.controls,.back-top,.crumbs').forEach(function(el){el.style.display='none'});
     }
   }).then(function(canvas){
     var name='party_summary_'+S.from+'_to_'+S.to+'.png';
