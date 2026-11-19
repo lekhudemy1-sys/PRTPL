@@ -527,7 +527,7 @@ td.party{border-left-width:10px}
         <tfoot id="tfoot"></tfoot>
       </table>
     </div>
-    <div class="hint">Rows marked LIVE are the GUJRAT POWER (Gujarat dashboard), HZL (HZL dashboard) and NALCO (NALCO dashboard) rakes read live, grouped by area, siding and party (for example SECL · BGCK TO GETS and SECL · BGCK TO TPHS are separate rows) for the date, and refreshed every 30 seconds. For each live rake: Underload qty = CH weight − RR weight (when CH is more), Overload qty = RR weight − CH weight (when RR is more). <b>Live rows can be edited here too</b> (pencil button, or click RR QTY, CHARBALE QTY, Freight, Overload Penalty or ENCH). Underload Penalty = Underload qty × Freight on every row. Where a live row has no underload charge from the dashboard, its Freight may use a saved box-type rate when one exists. A hand-edited row is marked EDITED, is saved for that date only, is never overwritten by the live refresh, and does <b>not</b> change the Gujarat, HZL or NALCO dashboard. The arrow button on an EDITED row goes back to the live values. All other rows come from the database: click RR QTY, CHARBALE QTY, Freight or ENCH to change them in place. Per M/T = TOTAL ÷ RR QTY.</div>
+    <div class="hint">Rows marked LIVE are the GUJRAT POWER (Gujarat dashboard), HZL (HZL dashboard), NALCO (NALCO dashboard) and JHABUA (PJPB MIS sheet) rakes read live, grouped by area, siding and party (for example SECL · BGCK TO GETS and SECL · BGCK TO TPHS are separate rows) for the date, and refreshed every 30 seconds. For each live rake: Underload qty = CH weight − RR weight (when CH is more), Overload qty = RR weight − CH weight (when RR is more). <b>JHABUA</b> rows come from the PJPB MIS records of the loading date that have an RR Number: area, siding (source), box type, RR weight and chargeable weight are fetched, and the <b>Overload Penalty is the Final Charges column</b>. JHABUA has no other charge, so its Underload Penalty and ENCH stay 0 unless you type a value. <b>Live rows can be edited here too</b> (pencil button, or click RR QTY, CHARBALE QTY, Freight, Overload Penalty or ENCH). Underload Penalty = Underload qty × Freight on every row. Where a live row (other than JHABUA) has no underload charge from the dashboard, its Freight may use a saved box-type rate when one exists. A hand-edited row is marked EDITED, is saved for that date only, is never overwritten by the live refresh, and does <b>not</b> change the Gujarat, HZL, NALCO or PJPB records. The arrow button on an EDITED row goes back to the live values. All other rows come from the database: click RR QTY, CHARBALE QTY, Freight or ENCH to change them in place. Per M/T = TOTAL ÷ RR QTY.</div>
   </section>
 
   <!-- ================= INSIGHTS ================= -->
@@ -563,7 +563,7 @@ td.party{border-left-width:10px}
   </div>
   <form id="form" novalidate class="d-body-wrap" style="display:flex;flex-direction:column;flex:1;min-height:0">
     <div class="d-body">
-      <p class="note" id="liveNote" hidden>This is a live row. Changes made here are saved for this date only and do not change the Gujarat, HZL or NALCO dashboard. The live refresh will no longer overwrite this row.</p>
+      <p class="note" id="liveNote" hidden>This is a live row. Changes made here are saved for this date only and do not change the Gujarat, HZL, NALCO or PJPB records. The live refresh will no longer overwrite this row.</p>
       <div class="grid2">
         <div class="fld">
           <label for="fParty">Party</label>
@@ -657,7 +657,22 @@ var NALCO_URL='https://gcedsyxvfmlyujhftiyf.supabase.co';
 var NALCO_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdjZWRzeXh2Zm1seXVqaGZ0aXlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ2Mjg5ODMsImV4cCI6MjExMDIwNDk4M30.QsFXFMT1zS62UIfdbgtpXJHEicCVglvXHqgvik5Q5Rk';
 var NALCO_CFG={url:NALCO_URL,key:NALCO_KEY};
 var GUJP='GUJRAT POWER';
-var LIVE_SRC=[{party:'GUJRAT POWER',table:'gujarat_rake_records'},{party:'HZL',table:'hzl_rake_records'},{party:'NALCO',table:'nalco_rake_records',cfg:NALCO_CFG}];   /* parties fed live from their dashboards */
+/* parties fed live from their dashboards / MIS sheets.
+   JHABUA is read from the PJPB MIS table (pjpb_mis_rows, same Supabase project): only rows that have an RR Number,
+   by loading date. Its one charge is the Final Charges column, shown as the Overload Penalty. */
+var LIVE_SRC=[
+  {party:'GUJRAT POWER',table:'gujarat_rake_records'},
+  {party:'HZL',table:'hzl_rake_records'},
+  {party:'NALCO',table:'nalco_rake_records',cfg:NALCO_CFG},
+  {party:'JHABUA',table:'pjpb_mis_rows',dateCol:'loading_date',
+    select:'area,source,box_type,rr_weight,chargeable_wt,final_charges,rr_number,loading_date',
+    extra:'&rr_number=not.is.null',
+    map:function(r){return {date:r.loading_date,area:r.area,siding:r.source,box_type:r.box_type,rr_wt:r.rr_weight,ch_wt:r.chargeable_wt,pol_group:r.final_charges,rr_no:r.rr_number}}}
+];
+/* parties whose underload penalty must never be filled from a box-type rate */
+var NO_BOX_RATE={JHABUA:1};
+function liveSel(s){return s.table+'?select='+(s.select||'*')+(s.extra||'')}
+function liveFix(s,rows){return (rows||[]).map(function(r){if(s.map)r=s.map(r);r._p=s.party;return r})}
 var NEW='__new__';
 var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -685,11 +700,11 @@ var DAY=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
    Underload qty = CHARBALE QTY - RR QTY (when positive), overload qty = the opposite
    Underload penalty = underload qty * freight, Overload penalty = part 1 + 2 + 3
    TOTAL = underload penalty + overload penalty + ENCH, Per M/T = TOTAL / RR QTY
-   LIVE rows (per area and siding, per date, read from gujarat_rake_records / hzl_rake_records / nalco_rake_records):
+   LIVE rows (per area and siding, per date, read from gujarat_rake_records / hzl_rake_records / nalco_rake_records / pjpb_mis_rows):
    Underload qty = sum of (CH wt - RR wt) of rakes where CH wt is more
    Overload qty  = sum of (RR wt - CH wt) of rakes where RR wt is more
    Underload penalty = sum of underload charge, or underload qty x box-type rate when the dashboard has no charge
-   Overload penalty = POL group + EHBC charge
+   Overload penalty = POL group + EHBC charge   (JHABUA: the Final Charges column only)
    ENCH = ENHC charge. Dead freight is not shown here.
    A live row that was edited by hand (edited=true) keeps exactly the values typed in. */
 function calc(e){
@@ -1041,8 +1056,8 @@ function loadLog(){
   Promise.all([
     api(c,TABLE+'?'+rng('sheet_date')+'&order=sheet_date.asc,sort_order.asc'+lim),
     Promise.all(LIVE_SRC.map(function(s){
-      return api(s.cfg||c,s.table+'?select=*&'+rng('date')+lim)
-        .then(function(rows){return (rows||[]).map(function(r){r._p=s.party;return r})},function(){return null});
+      return api(s.cfg||c,liveSel(s)+'&'+rng(s.dateCol||'date')+lim)
+        .then(function(rows){return liveFix(s,rows)},function(){return null});
     })),
     api(c,OV_TABLE+'?'+rng('sheet_date')+lim).catch(function(){return null}),
     fetchBoxRates(c)
@@ -1064,7 +1079,7 @@ function loadLog(){
     out.forEach(function(e){if(store.parties.indexOf(e.party)<0)store.parties.push(e.party)});
     out.sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:store.parties.indexOf(a.party)-store.parties.indexOf(b.party)});
     LR=out;
-    if(failed)toast('Some live data (Gujarat, HZL or NALCO) could not be read.');
+    if(failed)toast('Some live data (Gujarat, HZL, NALCO or JHABUA) could not be read.');
     if(ovs===null)toast('Edits on live rows could not be read. Create the table '+OV_TABLE+' in Supabase.');
     fillLogFilters();renderLog();
     setPill('ok','Loaded '+hhmm(new Date()));
@@ -1137,7 +1152,7 @@ function api(c,path,opt){
   });
 }
 
-/* ============ LIVE ROWS (Gujarat + HZL + NALCO) ============ */
+/* ============ LIVE ROWS (Gujarat + HZL + NALCO + JHABUA) ============ */
 function hasN(v){return v!==null&&v!==undefined&&v!==''&&!isNaN(parseFloat(v))}
 var BOX_COLS=['box_type','boxtype','box','wagon_type','type_of_box','rake_type'];
 var RAKE_COLS=['rr_no','rr_number','rake_no','rake_number','rake_id'];
@@ -1180,8 +1195,8 @@ function plantOf(r){
 }
 function fetchLive(c,d){
   return Promise.all(LIVE_SRC.map(function(s){
-    return api(s.cfg||c,s.table+'?select=*&date=eq.'+d+'&limit=1000')
-      .then(function(rows){return (rows||[]).map(function(r){r._p=s.party;return r})},function(){return null});
+    return api(s.cfg||c,liveSel(s)+'&'+(s.dateCol||'date')+'=eq.'+d+'&limit=1000')
+      .then(function(rows){return liveFix(s,rows)},function(){return null});
   })).then(function(res){
     var rows=[],failed=0;
     res.forEach(function(x){if(x===null)failed++;else rows=rows.concat(x)});
@@ -1230,8 +1245,8 @@ function buildLive(g,d){
   Object.keys(m).forEach(function(k){
     var x=m[k];['rr','ch','gU','gO','gUp','gOp','gEn'].forEach(function(f){x[f]=r2(x[f])});
     seen[x.id]=1;x.rakes=x.keys.length;
-    /* no underload charge on the dashboard for this row: use the box type rate, if one is set */
-    if(!x.gUp&&x.gU>0){var br=rateFor(x.box);if(br!==null)x.freight=br}
+    /* no underload charge on the dashboard for this row: use the box type rate, if one is set (never for JHABUA, whose only charge is Final Charges) */
+    if(!x.gUp&&x.gU>0&&!NO_BOX_RATE[x.party]){var br=rateFor(x.box);if(br!==null)x.freight=br}
     if(ov[x.id])applyOv(x,ov[x.id]);
   });
   /* edited rows whose live source is gone (rake removed or date changed in the dashboard) still stay */
@@ -1300,7 +1315,7 @@ function doSync(d,list){
   });
 }
 
-/* ---- hand-edited live rows: saved in OV_TABLE for that date only, the Gujarat / HZL / NALCO dashboards are never touched ---- */
+/* ---- hand-edited live rows: saved in OV_TABLE for that date only, the Gujarat / HZL / NALCO / PJPB records are never touched ---- */
 function ovRow(e,d){
   return {id:e.id,sheet_date:d,party:e.party,area:e.area,siding:e.siding,rakes:+e.rakes||1,
     rr:r2(num(e.rr)),ch:r2(num(e.ch)),box_type:e.box||'',u_qty:r2(num(e.gU)),o_qty:r2(num(e.gO)),u_pen:r2(calc(e).up),freight:hasN(e.freight)?Math.round(num(e.freight)*10000)/10000:null,o_pen:r2(num(e.gOp)),ench:r2(num(e.gEn)),
@@ -1338,7 +1353,7 @@ function resetOverride(e){
   loadDay(true);   /* queued behind the delete, then shows the live values again */
 }
 
-/* load the selected day from the database (saved rows, hand edits, box rates) and from the Gujarat / HZL / NALCO dashboards (live rows) */
+/* load the selected day from the database (saved rows, hand edits, box rates) and from the Gujarat / HZL / NALCO dashboards and the PJPB MIS sheet (live rows) */
 function loadDay(keepPill){
   var d=date,my=++loadTok;
   loading=true;loadErr='';store.loaded[d]=false;store.days[d]=[];live[d]=[];
@@ -1362,7 +1377,7 @@ function loadDay(keepPill){
     ovr[d]=ov.map;
     rawLive[d]=g;
     live[d]=buildLive(g,d);
-    if(g.failed)toast('Some live data (Gujarat, HZL or NALCO) could not be read.');
+    if(g.failed)toast('Some live data (Gujarat, HZL, NALCO or JHABUA) could not be read.');
     if(ov.failed)toast('Edits on live rows could not be read. Create the table '+OV_TABLE+' in Supabase (SQL is given with this file).');
     list.forEach(function(e){
       if(store.parties.indexOf(e.party)<0)store.parties.push(e.party);
@@ -1637,7 +1652,7 @@ $('#fArea').addEventListener('change',function(){
 });
 $$('input',form).forEach(function(i){i.addEventListener('input',function(){i.classList.remove('bad');updatePreview()})});
 
-/* save a live row: kept for this date only, the Gujarat / HZL / NALCO dashboards are not touched */
+/* save a live row: kept for this date only, the Gujarat / HZL / NALCO / PJPB records are not touched */
 function saveLive(){
   var e=findLive(editId);
   if(!e){closeDrawer();return}
@@ -1655,7 +1670,7 @@ function saveLive(){
   e.rakes=rk;e.box=$('#fBox').value.trim().toUpperCase();e.rr=num($('#fRR').value);e.ch=num($('#fCH').value);
   e.gU=num($('#fLU').value);e.gO=num($('#fLO').value);e.freight=num($('#fLFr').value);e.gUp=r2(e.gU*e.freight);e.gOp=num($('#fLOp').value);e.gEn=num($('#fLEn').value);
   saveOverride(e);
-  toast('Saved for this date only. The '+e.party+' dashboard is not changed.');
+  toast('Saved for this date only. The '+e.party+' source records are not changed.');
   renderAll();closeDrawer();
 }
 
