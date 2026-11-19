@@ -636,6 +636,7 @@ body:not(.unlocked) .pro-tab{display:none}
       <li>Mines Wise GCV (ARB) = sum of (RR × GCV ARB) ÷ sum of RR, counting only the rakes that have a GCV ARB value</li>
       <li>Quarterly Performance: Bonus = GCV Reco + Quantity Reco; Deduction = 5% Penalty; Amount = Bonus − Deduction</li>
       <li>Mines Loading Duration = P/T to C/T time difference; Sick Box = Supply Box − Load Box; Underload Quantity = Ch Weight − RR Weight</li>
+      <li>Underload Charge = Underload Quantity × Freight (₹ / MT entered on the record); if RR Weight is more than Ch Weight the underload charge is 0</li>
     </ul>
   </div>
 </section>
@@ -840,15 +841,17 @@ $('noticeSave').addEventListener('click', saveNotice);
 $('noticeOn').addEventListener('change', saveNotice);
 
 /* ==================== DATABASE COLUMN MAP ==================== */
+/* NOTE: 'freight' needs a numeric column in hzl_rake_records:
+   alter table hzl_rake_records add column freight numeric; */
 const DB_COLS = [
   'sr_no','area','date','siding','unit','tranch','fsa','allot_date','seniority_no',
   'time_pt','time_ct','time_dot','duration','supply_box','load_box','sick_box','box_type',
   'net_wt','recv_wt','grn_qty','gcv_adb','gcv_arb','arb_tm','ch_wt','rr_wt','rr_no','rr_date',
-  'ul_qty','ul_paid_cil','ul_on_us','ol_qty','ul_ch','ol_ch','pol_group','ehbc_group','enhc_charge','total_fright',
+  'ul_qty','ul_paid_cil','ul_on_us','ol_qty','freight','ul_ch','ol_ch','pol_group','ehbc_group','enhc_charge','total_fright',
   'dead_fr_qty','dead_fr_chg','grade','landed_cost','declared_grade','remarks'
 ];
 const NUMERIC_COLS = new Set(['sr_no','seniority_no','supply_box','load_box','sick_box','net_wt','recv_wt','grn_qty',
-  'gcv_adb','gcv_arb','arb_tm','ch_wt','rr_wt','ul_qty','ul_paid_cil','ul_on_us','ol_qty','ul_ch','ol_ch','pol_group','ehbc_group',
+  'gcv_adb','gcv_arb','arb_tm','ch_wt','rr_wt','ul_qty','ul_paid_cil','ul_on_us','ol_qty','freight','ul_ch','ol_ch','pol_group','ehbc_group',
   'enhc_charge','total_fright','dead_fr_qty','dead_fr_chg','landed_cost']);
 const DATE_COLS = new Set(['date','allot_date','rr_date']);
 const TIME_COLS = new Set(['time_pt','time_ct','time_dot']);
@@ -899,6 +902,12 @@ function durationText(pt, ct) {
   if (p == null || c == null || isNaN(p) || isNaN(c)) return null;
   const d = Math.abs(c - p);
   return `${pad2(Math.floor(d / 60))}:${pad2(d % 60)} hrs`;
+}
+/* Underload Charge = Underload Qty (Ch Wt - RR Wt) x Freight. Zero when RR Wt is more than Ch Wt. */
+function underloadCharge(ch, rr, freight) {
+  if (!isNum(ch) || !isNum(rr) || !isNum(freight)) return null;
+  const ul = Math.round((Number(ch) - Number(rr)) * 100) / 100;
+  return Math.round(Math.max(0, ul) * Number(freight) * 100) / 100;
 }
 
 /* ==================== UPLOAD EXCEL ==================== */
@@ -960,6 +969,9 @@ function loadSheet(name) {
     if (!data.area) errors.push('no area');
     data.duration = durationText(data.time_pt, data.time_ct);
     if (data.supply_box != null && data.load_box != null) data.sick_box = data.supply_box - data.load_box;
+    // Underload Charge = (Ch Wt - RR Wt) x Freight, when freight is given in the sheet
+    const ulc = underloadCharge(data.ch_wt, data.rr_wt, data.freight);
+    if (ulc != null) data.ul_ch = ulc;
     parsedRows.push({ rowNo: r + 1, data, errors });
   }
   renderPreview(ignored);
@@ -1019,7 +1031,7 @@ let logRecords = [];
 const LOG_COLS = ['id','sr_no','area','date','siding','unit','tranch','fsa','allot_date','seniority_no',
   'time_pt','time_ct','time_dot','duration','supply_box','load_box','sick_box','box_type',
   'net_wt','recv_wt','grn_qty','gcv_adb','gcv_arb','arb_tm','ch_wt','rr_wt','rr_no','rr_date',
-  'ul_qty','ul_paid_cil','ul_on_us','ol_qty','ul_ch','ol_ch','pol_group','ehbc_group','enhc_charge','total_fright',
+  'ul_qty','ul_paid_cil','ul_on_us','ol_qty','freight','ul_ch','ol_ch','pol_group','ehbc_group','enhc_charge','total_fright',
   'dead_fr_qty','dead_fr_chg','grade','landed_cost','declared_grade','remarks','created_at','updated_at','gcv_bonus_penalty_per_mt','bonus_penalty'];
 
 async function loadLog() {
@@ -1061,7 +1073,7 @@ function renderLog() {
 
   // Total row: sum of every numeric column over ALL rows matching the search + filters
   const SUM_COLS = new Set([...NUMERIC_COLS, 'bonus_penalty', 'gcv_bonus_penalty_per_mt']);
-  ['id', 'sr_no', 'seniority_no'].forEach(k => SUM_COLS.delete(k));
+  ['id', 'sr_no', 'seniority_no', 'freight'].forEach(k => SUM_COLS.delete(k));
   const fmtSum = n => (Math.round(n * 100) / 100).toLocaleString('en-IN', { maximumFractionDigits: 2 });
   const sumCol = f => rows.reduce((s, r) => { const v = f(r); return s + (isNum(v) ? Number(v) : 0); }, 0);
   const foot = `<tfoot><tr>
@@ -1097,6 +1109,14 @@ function rowPatch(tr) {
 $('logTbl').addEventListener('input', e => {
   const tr = e.target.closest('tr[data-id]');
   if (tr && e.target.dataset.col) tr.classList.add('dirty');
+  // Ch Wt, RR Wt or Freight edited: recalculate Underload Qty and Underload Charge in the same row
+  if (tr && ['ch_wt', 'rr_wt', 'freight'].includes(e.target.dataset.col)) {
+    const cell = c => tr.querySelector(`input[data-col="${c}"]`);
+    const ch = cell('ch_wt').value, rr = cell('rr_wt').value, fr = cell('freight').value;
+    if (isNum(ch) && isNum(rr)) cell('ul_qty').value = Math.round((Number(ch) - Number(rr)) * 100) / 100;
+    const ulc = underloadCharge(ch, rr, fr);
+    if (ulc != null) cell('ul_ch').value = ulc;
+  }
 });
 // Save every edited row in one go
 $('logSaveAll').addEventListener('click', async () => {
@@ -1240,7 +1260,8 @@ const ENTRY_SECTIONS = [
     { key: 'ul_paid_cil', label: 'Underload Qty Paid Coal India', type: 'number', step: 0.01 },
     { key: 'ul_on_us', label: 'Underload Qty On Us', type: 'number', step: 0.01 },
     { key: 'ol_qty', label: 'Overload Quantity', type: 'number', step: 0.01, unit: 'MT' },
-    { key: 'ul_ch', label: 'Underload Charge', type: 'number', step: 0.01, unit: '₹' },
+    { key: 'freight', label: 'Freight (₹ / MT)', type: 'number', step: 0.01, unit: '₹' },
+    { key: 'ul_ch', label: 'Underload Charge (Underload Qty × Freight)', type: 'calc', tag: 'auto' },
     { key: 'ol_ch', label: 'Overload Charge', type: 'number', step: 0.01, unit: '₹' } ]},
   { title: 'Freight & Charges', icon: 'fa-indian-rupee-sign', fields: [
     { key: 'pol_group', label: 'POL1/PO2/POLA/PCLA/DCLA', type: 'number', step: 0.01, unit: '₹' },
@@ -1274,7 +1295,7 @@ function buildEntryForm() {
       }).join('')}</div>
     </div>`).join('');
 
-  ['supply_box', 'load_box', 'ch_wt', 'rr_wt'].forEach(k => $('f_' + k).addEventListener('input', recalcForm));
+  ['supply_box', 'load_box', 'ch_wt', 'rr_wt', 'freight'].forEach(k => $('f_' + k).addEventListener('input', recalcForm));
   ['time_pt', 'time_ct', 'time_dot'].forEach(k => {
     const el = $('f_' + k);
     el.addEventListener('input', () => {
@@ -1300,6 +1321,9 @@ function recalcForm() {
   $('f_sick_box').value = (s === '' || l === '') ? '' : (+s - +l);
   const ch = $('f_ch_wt').value, rr = $('f_rr_wt').value;
   $('f_ul_qty').value = (ch === '' || rr === '') ? '' : Math.round((+ch - +rr) * 100) / 100;
+  // Underload Charge = Underload Qty x Freight (0 when RR Wt is more than Ch Wt)
+  const ulc = underloadCharge(ch, rr, $('f_freight').value);
+  $('f_ul_ch').value = ulc == null ? '' : ulc;
 }
 
 let entryReady = false;
@@ -1375,6 +1399,7 @@ function formRow() {
   row.duration = durationText($('f_time_pt').value, $('f_time_ct').value);
   row.sick_box = $('f_sick_box').value === '' ? null : +$('f_sick_box').value;
   row.ul_qty = $('f_ul_qty').value === '' ? null : +$('f_ul_qty').value;
+  row.ul_ch = $('f_ul_ch').value === '' ? null : +$('f_ul_ch').value;
   row.sr_no = +$('f_sr_no').value || null;
   row.extra = { ...LOADED_EXTRA, ...customFormValues() };
   return row;
@@ -1406,6 +1431,8 @@ function fillForm(r) {
     el.value = v;
   });
   recalcForm();
+  // Older records have no freight: keep the Underload Charge that was saved for them
+  if (!isNum(r.freight) && r.ul_ch != null) $('f_ul_ch').value = r.ul_ch;
 }
 
 async function searchRecord() {
