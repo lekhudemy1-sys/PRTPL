@@ -1803,7 +1803,7 @@ async function computeDashboard(period = PERIOD) {
   const perMt = v => rrTotal ? v / rrTotal : 0;
   const punSum = sumOf(recs, r => r.pol_group), ehbcSum = sumOf(recs, r => r.ehbc_group);
   const enhcSum = sumOf(recs, r => r.enhc_charge), deadSum = sumOf(recs, r => r.dead_fr_chg);
-  const ulChgSum = sumOf(recs, r => r.ul_ch), olChgSum = sumOf(recs, r => r.ol_ch);
+  const ulChgSum = sumOf(recs, r => r.ul_on_us), olChgSum = sumOf(recs, r => r.ol_ch);
   const totalPen = olChgSum + punSum + ehbcSum + enhcSum;
   const pen5 = totalPen * FORMULAS.penaltyPct / 100;
   out.ulChg = ulChgSum; out.ulChgMt = perMt(ulChgSum);
