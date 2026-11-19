@@ -47,7 +47,7 @@ body{margin:0;background:radial-gradient(900px 420px at 100% -10%,rgba(29,58,120
 .controls{position:sticky;top:8px;z-index:30;display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:14px 0;padding:10px 12px;border-radius:14px;background:rgba(20,30,44,.82);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--line);box-shadow:0 10px 24px -16px rgba(0,0,0,.6)}
 .controls label{color:var(--muted);font-size:12px;font-weight:700;letter-spacing:.4px;text-transform:uppercase}
 .controls input{background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 9px;font:inherit;color-scheme:dark}
-.controls input:focus,.btn:focus-visible,.chip:focus-visible,.legend button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.controls input:focus,.btn:focus-visible,.chip:focus-visible,.legend button:focus-visible,.afilter select:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 .presets{display:flex;gap:6px;flex-wrap:wrap}
 .preset{background:transparent;border:1px solid var(--line);color:var(--ink);border-radius:999px;padding:6px 12px;font:inherit;font-weight:700;font-size:13px;cursor:pointer;transition:all .2s}
 .preset:hover{border-color:var(--yellow);color:var(--yellow)}
@@ -69,6 +69,13 @@ body{margin:0;background:radial-gradient(900px 420px at 100% -10%,rgba(29,58,120
 .chip.cur{cursor:default;background:linear-gradient(120deg,var(--head),#2a56a8);border-color:transparent;color:#fff}
 .chip.cur:hover{transform:none}
 .sep{color:var(--muted);font-size:16px}
+
+
+/* ---------- area filter (party view) ---------- */
+.afilter{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 14px}
+.afilter label{color:var(--muted);font-size:12px;font-weight:700;letter-spacing:.4px;text-transform:uppercase}
+.afilter select{background:var(--card2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 9px;font:inherit;color-scheme:dark;min-width:220px;cursor:pointer}
+.afilter .hint{color:var(--muted);font-size:12px}
 
 /* ---------- KPI cards ---------- */
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-bottom:14px}
@@ -366,12 +373,12 @@ function partyList(groups){
 }
 
 /* ============ STATE ============ */
-var S={from:'',to:'',groups:[],warn:[],view:{l:'home'},hide:{up:false,op:false,en:false},loadId:0};
+var S={from:'',to:'',groups:[],warn:[],view:{l:'home'},hide:{up:false,op:false,en:false},loadId:0,area:''};
 
 function load(){
   var from=$('#from').value,to=$('#to').value;
   if(!from||!to||from>to){setStatus('Pick a valid date range','err');return}
-  S.from=from;S.to=to;
+  S.from=from;S.to=to;S.area='';
   var myId=++S.loadId;
   setStatus('Loading…','load');
   $('#main').innerHTML='<div class="sk kp"></div><div class="sk kp"></div><div class="sk kp"></div><div class="sk kp"></div><div class="sk tb"></div>';
@@ -565,11 +572,30 @@ function bindCharts(rows,G){
 }
 
 function renderParty(p){
-  var gs=S.groups.filter(function(g){return g.party===p});
+  var all0=S.groups.filter(function(g){return g.party===p});
+  var ar=S.area;
+  var areaSet={};
+  all0.forEach(function(g){
+    if(g.src!=='recv'&&g.area)areaSet[uc(g.area)]=1;
+    g.recs.forEach(function(x){if(x.area)areaSet[x.area]=1});
+  });
+  var areas=Object.keys(areaSet).sort();
+  var gs=[];
+  all0.forEach(function(g){
+    if(g.src==='recv'){
+      var recs=g.recs.filter(function(x){return !ar||x.area===ar});
+      if(recs.length||!ar)gs.push(Object.assign({},g,{recs:recs}));
+    }else if(!ar||uc(g.area)===ar){
+      gs.push(g);
+    }
+  });
   var a=agg(gs);
   var byDate={};gs.forEach(function(g){(byDate[g.date]=byDate[g.date]||[]).push(g)});
   var dates=Object.keys(byDate).sort();
-  var h='<div class="kpis">'+
+  var h='<div class="afilter"><label for="areaSel">Area</label><select id="areaSel"><option value="">All areas</option>'+
+    areas.map(function(x){return '<option value="'+esc(x)+'"'+(x===ar?' selected':'')+'>'+esc(x)+'</option>'}).join('')+
+    '</select>'+(ar?'<span class="hint">Showing '+esc(ar)+' only</span>':'')+'</div>';
+  h+='<div class="kpis">'+
     kpi('Rakes loaded',fN(a.rakes,0),a.live?'Penalty rakes and live records':'Entered by hand in the penalty sheet',pcol(p))+
     kpi('Total penalty',fRi(a.total),'Underload + overload + ENCH','#f6c200')+
     kpi('Penalty / MT',a.pm==null?'—':'₹'+fN(a.pm,2),fN(a.rr,1)+' MT RR qty','#7ea4f2')+
@@ -596,6 +622,7 @@ function renderDate(p,d){
   var all=S.groups.filter(function(g){return g.party===p&&g.date===d});
   var gs=all.filter(function(g){return g.src!=='recv'}).sort(function(x,y){return x.area<y.area?-1:x.area>y.area?1:x.siding<y.siding?-1:1});
   var a=agg(all);
+
   var h='<div class="kpis">'+
     kpi('Rakes',fN(a.rakes,0),dfmt(d),pcol(p))+
     kpi('Total penalty',fRi(a.total),'Underload + overload + ENCH','#f6c200')+
@@ -603,6 +630,7 @@ function renderDate(p,d){
     kpi('Overload',fRi(a.op),fN(a.oQty,1)+' MT excess','#37c7c9')+
     kpi('Pending recv',a.n?a.pendN+'/'+a.n:'—',a.recvHas?fN(a.recvQty,1)+' MT received':'Not tracked for this party','#ff6a60')+
     '</div>';
+
   if(gs.length){
     h+='<div class="panel"><div class="panel-head"><div><h3 style="color:'+pcol(p)+'"><i class="fas fa-location-dot" style="color:'+pcol(p)+'"></i>'+esc(p)+' — '+dfmt(d)+' by area and siding</h3></div></div><table><thead><tr>'+
       '<th>Area</th><th>Siding</th><th>Rakes</th><th>RR qty (MT)</th><th>Chargeable (MT)</th><th>Under qty</th><th>Over qty</th><th>Underload ₹</th><th>Overload ₹</th><th>ENCH ₹</th><th>Total ₹</th><th>Pending recv / total</th></tr></thead><tbody>';
@@ -620,14 +648,18 @@ function renderDate(p,d){
   var rakes=[];
   all.forEach(function(g){if((g.src==='live'||g.src==='recv')&&!g.recvOnly)g.recs.forEach(function(x){rakes.push(x)})});
   if(rakes.length){
-    h+='<div class="panel"><div class="panel-head"><div><h3><i class="fas fa-train"></i>All rakes — '+dfmt(d)+'</h3><div class="hint">Pending recv means no received weight has been entered for that rake yet.</div></div></div><table><thead><tr>'+
-      '<th>#</th><th>RR no.</th><th>Area</th><th>Siding</th><th>RR qty (MT)</th><th>Recv qty (MT)</th><th>Chargeable (MT)</th><th>Under qty</th><th>Over qty</th><th>Underload ₹</th><th>Overload ₹</th><th>ENCH ₹</th><th>Status</th></tr></thead><tbody>';
+    h+='<div class="panel"><div class="panel-head"><div><h3><i class="fas fa-train"></i>All rakes — '+dfmt(d)+'</h3><div class="hint">Pending recv means no received weight has been entered for that rake yet. Freight is the rate per MT: the record value when present, otherwise underload ₹ ÷ under qty.</div></div></div><table><thead><tr>'+
+      '<th>#</th><th>RR no.</th><th>Area</th><th>Siding</th><th>Box type</th><th>RR qty (MT)</th><th>Recv qty (MT)</th><th>Chargeable (MT)</th><th>Under qty</th><th>Over qty</th><th>Freight ₹/MT</th><th>Overload ₹</th><th>ENCH ₹</th><th>Status</th></tr></thead><tbody>';
     rakes.forEach(function(x,i){
       var r=x.rec,uq=x.chw>x.rrw?x.chw-x.rrw:0,oq=x.rrw>x.chw?x.rrw-x.chw:0;
-      h+='<tr><td>'+(i+1)+'</td><td>'+esc(x.rrNo)+'</td><td>'+esc(x.area||'—')+'</td><td>'+esc(x.siding||'—')+'</td>'+
+      var ul=num(r.ul_ch);
+      var fr=hasN(r.freight)?num(r.freight):(uq>0&&ul>0?ul/uq:null);
+      var bt=(r.box_type==null||String(r.box_type).trim()==='')?'—':String(r.box_type).trim();
+      h+='<tr><td>'+(i+1)+'</td><td>'+esc(x.rrNo)+'</td><td>'+esc(x.area||'—')+'</td><td>'+esc(x.siding||'—')+'</td><td>'+esc(bt)+'</td>'+
         '<td>'+fN(x.rrw,1)+'</td><td>'+(x.recvDone?fN(x.recvQty,1):'<span class="muted">—</span>')+'</td>'+
         '<td>'+fN(x.chw,1)+'</td><td>'+fN(uq,1)+'</td><td>'+fN(oq,1)+'</td>'+
-        '<td>'+fN(num(r.ul_ch),2)+'</td><td>'+fN(num(r.pol_group)+num(r.ehbc_group),2)+'</td><td>'+fN(num(r.enhc_charge),2)+'</td>'+
+        '<td>'+(fr==null?'<span class="muted">—</span>':fN(fr,2))+'</td>'+
+        '<td>'+fN(num(r.pol_group)+num(r.ehbc_group),2)+'</td><td>'+fN(num(r.enhc_charge),2)+'</td>'+
         '<td class="pend'+(x.pending?' bad':'')+'">'+(x.pending?'Pending recv':'Received')+'</td></tr>';
     });
     h+='</tbody></table></div>';
@@ -701,6 +733,7 @@ function exportPng(){
 
 /* ============ EVENTS ============ */
 function go(t,el){
+  S.area='';
   if(t==='home')S.view={l:'home'};
   else if(t==='party')S.view={l:'party',p:el.getAttribute('data-p')};
   else if(t==='date')S.view={l:'date',p:el.getAttribute('data-p'),d:el.getAttribute('data-d')};
@@ -719,9 +752,16 @@ document.addEventListener('click',function(e){
   if(!el)return;
   go(el.getAttribute('data-go'),el);
 });
+/* area filter on the party view */
+document.addEventListener('change',function(e){
+  if(e.target&&e.target.id==='areaSel'){
+    S.area=e.target.value;
+    render();
+  }
+});
 /* keyboard: Enter or Space opens a row, Escape goes back to all parties */
 document.addEventListener('keydown',function(e){
-  if(e.key==='Escape'&&S.view.l!=='home'){S.view={l:'home'};render();return}
+  if(e.key==='Escape'&&S.view.l!=='home'){S.view={l:'home'};S.area='';render();return}
   if(e.key!=='Enter'&&e.key!==' ')return;
   var el=e.target.closest&&e.target.closest('[data-go],[data-toggle]');
   if(!el)return;
