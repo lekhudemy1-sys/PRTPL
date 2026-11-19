@@ -76,6 +76,11 @@ main{max-width:1800px;margin:0 auto;padding:1.1rem}
 .del:hover{background:#fbe6ea}
 .tag{font-size:.6rem;background:var(--gold);color:#3a2a00;border-radius:6px;padding:0 .3rem;margin-left:.2rem;vertical-align:middle}
 
+/* totals row (sticks to the bottom of the table area) */
+.tbl tfoot td{position:sticky;bottom:0;z-index:2;background:var(--navy);color:#fff;font-weight:700;border-top:2px solid var(--saffron);border-bottom:0;text-align:right;padding:.45rem .55rem}
+.tbl tfoot td.act{left:0;z-index:4;text-align:left;background:var(--navy);color:#fff}
+.tbl tfoot tr:hover td{background:var(--navy)}
+
 .drop{border:2px dashed var(--line);border-radius:16px;padding:1.6rem;text-align:center;cursor:pointer;color:var(--mute)}
 .drop:hover,.drop.over{border-color:var(--navy2);background:rgba(59,63,158,.05)}
 .drop i{font-size:2rem;color:var(--navy2);display:block;margin-bottom:.4rem}
@@ -132,7 +137,7 @@ main{max-width:1800px;margin:0 auto;padding:1.1rem}
         <div class="drop" id="drop">
           <i class="fas fa-cloud-arrow-up"></i>
           <div>Drop your MIS .xlsx here or click to browse</div>
-          <div class="muted">Every column is read. Columns the database doesn't know yet are saved automatically and shown in the log.</div>
+          <div class="muted">Only rows that have an RR Number are imported. Columns the database doesn't know yet are saved automatically and shown in the log.</div>
           <input type="file" id="fileInput" accept=".xlsx,.xlsm,.xls,.csv" hidden>
         </div>
         <div class="status" id="uploadStatus"></div>
@@ -246,6 +251,15 @@ const FIELDS = [
   ['basic_rate','Basic Rate','num',['Basic Rate']],
   ['basic_price','Basic Price','num',['Basic Price']],
   ['total_amount','Total Amount','num',['Total Amount']],
+  // ---- charge columns (PJPB NOV'26 sheet, AV to BC) ----
+  ['five_pct_freight','5% of Total Freight','num',['5% of Total Freight']],
+  ['ul_rate','UL Rate','num',['UL Rate']],
+  ['rate','Rate','num',['Rate']],
+  ['ul_charge','UL Charge','num',['UL Charge']],
+  ['puntative_sum','Puntative Sum','num',['Puntative Sum']],
+  ['per_ton_freight','Per ton Freight','num',['Per ton Freight']],
+  ['total_charges','Total Charges','num',['Total Charges']],
+  ['final_charges','Final Charges','num',['Final Charges','Final Charge']],
 ];
 const FIELD_BY_DB = Object.fromEntries(FIELDS.map(f => [f[0], { db: f[0], label: f[1], type: f[2] }]));
 const ALIAS = {};
@@ -343,6 +357,7 @@ function parseGrid(grid, sheetName) {
       cols.push({ j, label: name, db: null, type: null, slug });
     }
   }
+  if (!used.has('rr_number')) return { sheetName, error: 'No "RR Number" column found, so no rows can be imported' };
 
   const period = periodFromName(sheetName);
   const rows = [], extraLabels = {};
@@ -364,7 +379,8 @@ function parseGrid(grid, sheetName) {
         extra[c.slug] = toText(raw); labels[c.slug] = c.label;
       }
     }
-    if (rec.sr_no == null && rec.loading_date == null && rec.rr_number == null) { skipped++; continue; } // totals / footers
+    // Only rows that have an RR Number are taken (drops blank-RR rows, totals and footers)
+    if (rec.rr_number == null || rec.rr_number === '0') { skipped++; continue; }
     rec.sheet_name = sheetName;
     rec.extra = extra;
     rows.push(rec);
@@ -393,7 +409,6 @@ const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '
 const unwrap = ({ data, error }) => { if (error) throw error; return data; };
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const monthLabel = p => { const [y, m] = p.split('-'); return `${MONTHS[+m - 1]} ${y}`; };
-const nextMonthStart = p => { let [y, m] = p.split('-').map(Number); m++; if (m > 12) { m = 1; y++; } return `${y}-${String(m).padStart(2,'0')}-01`; };
 
 let toastTimer;
 function toast(msg, err) {
@@ -419,7 +434,10 @@ document.querySelectorAll('.nav').forEach(btn => btn.onclick = () => {
 /* ==================== RECORDS LOG ==================== */
 let logRows = [], rowsById = new Map(), extraCols = [];
 let pending = new Map();   // id -> { 'f:key' | 'x:key' : edited text }  (survives filter changes until saved)
+let viewRows = [];         // rows matching the current filters (the totals row is calculated from these)
 const LOG_FIELDS = FIELDS.map(([db, label, type]) => ({ kind: 'f', key: db, label, type }));
+// numeric columns that make no sense to add up (rates, percentages, serial no.)
+const NO_TOTAL = new Set(['sr_no','plant_end_gcv','tm_pct','basic_rate','ul_rate','rate','per_ton_freight','chbl_pun_rate']);
 
 async function fetchAllRows(build) {
   const out = [], PAGE = 1000;
@@ -491,12 +509,28 @@ function filteredRows() {
     return true;
   });
 }
+// Totals row: count of filtered rows at the left, sums of the numeric columns (all filtered rows, not only the 300 shown)
+function footHtml(cols) {
+  const sums = {};
+  for (const r of viewRows) {
+    const edits = pending.get(r.id) || {};
+    for (const c of cols) {
+      if (c.kind !== 'f' || (c.type !== 'num' && c.type !== 'int') || NO_TOTAL.has(c.key)) continue;
+      const k = 'f:' + c.key;
+      const n = toNumVal(k in edits ? edits[k] : r[c.key]);
+      if (typeof n === 'number') sums[c.key] = (sums[c.key] || 0) + n;
+    }
+  }
+  const fmt = n => n.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+  return `<tr><td class="act">Count: ${viewRows.length}</td>${cols.map(c => `<td>${c.kind === 'f' && c.key in sums ? fmt(sums[c.key]) : ''}</td>`).join('')}</tr>`;
+}
 function renderLog() {
   const cols = logColumns();
   const rows = filteredRows();
+  viewRows = rows;
   const shown = rows.length > LOG_MAX ? rows.slice(-LOG_MAX) : rows;
   $('logCount').textContent = `${rows.length} of ${logRows.length} records` +
-    (rows.length > LOG_MAX ? ` (showing latest ${LOG_MAX}, search to narrow)` : '') +
+    (rows.length > LOG_MAX ? ` (showing latest ${LOG_MAX}, search to narrow; totals cover all ${rows.length})` : '') +
     (pending.size ? ` · ${pending.size} unsaved` : '');
   const head = `<thead><tr><th class="act">Actions</th>${cols.map(c => `<th>${esc(c.label)}${c.kind === 'x' ? ' <span class="tag">extra</span>' : ''}</th>`).join('')}</tr></thead>`;
   const body = shown.map(r => {
@@ -509,7 +543,7 @@ function renderLog() {
     }).join('');
     return `<tr data-id="${r.id}"${pending.has(r.id) ? ' class="dirty"' : ''}><td class="act"><button class="del" data-del="${r.id}" title="Delete row"><i class="fas fa-trash"></i></button></td>${cells}</tr>`;
   }).join('');
-  $('logTbl').innerHTML = head + `<tbody>${body}</tbody>`;
+  $('logTbl').innerHTML = head + `<tbody>${body}</tbody><tfoot id="logFoot">${footHtml(cols)}</tfoot>`;
 }
 
 // Turn one row's pending edits into a database update
@@ -562,6 +596,7 @@ $('logTbl').addEventListener('input', e => {
   pending.set(id, edits);
   tr.classList.add('dirty');
   setStatus('logStatus', `${pending.size} row(s) edited, not saved yet`);
+  const foot = $('logFoot'); if (foot) foot.innerHTML = footHtml(logColumns());   // keep totals in step with edits
 });
 $('logTbl').addEventListener('click', async e => {
   const btn = e.target.closest('[data-del]');
@@ -628,7 +663,7 @@ function renderSheets() {
       <td>${esc(s.sheetName)}</td>
       <td>${s.period ? monthLabel(s.period) : '<span class="new">unknown</span>'}</td>
       <td>${s.headerRow}</td>
-      <td>${s.rows.length}${s.skipped ? ` <span class="muted">(${s.skipped} footer rows skipped)</span>` : ''}</td>
+      <td>${s.rows.length}${s.skipped ? ` <span class="muted">(${s.skipped} rows without RR Number skipped)</span>` : ''}</td>
       <td>${Object.keys(s.extraLabels).length}${newCount ? ` <span class="new">(${newCount} new)</span>` : ''}</td>
       <td>${imp ? `<span class="muted">Already imported, will be replaced</span>` : '<span class="known">New</span>'}</td>
     </tr>`;
@@ -669,7 +704,7 @@ function renderMapping() {
   $('mapTbl').innerHTML = head + `<tbody>${body}</tbody>`;
 }
 
-const PREVIEW_COLS = ['sr_no','loading_date','area','source','supply_wagons','load_wagons','sick_wagons','rr_number','rr_date','fnot_no','invoice_no','total_amount'];
+const PREVIEW_COLS = ['sr_no','loading_date','area','source','supply_wagons','load_wagons','sick_wagons','rr_number','rr_date','fnot_no','invoice_no','total_amount','final_charges'];
 function renderPreview() {
   const sel = selectedSheets();
   if (!sel.length) { $('previewPanel').hidden = true; return; }
@@ -679,7 +714,7 @@ function renderPreview() {
   const body = rows.map(r => `<tr>${PREVIEW_COLS.map(c => `<td>${esc(r[c] ?? '')}</td>`).join('')}<td class="muted">${Object.keys(r.extra).length}</td></tr>`).join('');
   $('previewTbl').innerHTML = head + `<tbody>${body}</tbody>`;
   const total = sel.reduce((n, s) => n + s.rows.length, 0);
-  $('importNote').textContent = `${total} rows from ${sel.length} sheet(s) will be saved.`;
+  $('importNote').textContent = `${total} rows (with RR Number) from ${sel.length} sheet(s) will be saved.`;
 }
 
 async function importSelected() {
