@@ -668,7 +668,7 @@ body:not(.unlocked) .pro-tab{display:none}
     <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Railway Freight Penalties</h4>
     <ul class="formula-list">
       <li>Underload Charge = sum of Underload Qty On Us (ul_on_us) of the month's rakes; per MT = that amount ÷ total RR weight</li>
-      <li>Underload Qty Paid Coal India, Paid by SECL, Underload Qty On Us, Underload Charge and Overload Charge are typed manually on each record</li>
+      <li>Underload Charge = Underload Quantity × Freight (₹/MT), calculated on each record. Underload Qty Paid Coal India, Paid by SECL, Underload Qty On Us and Overload Charge are typed manually on each record</li>
     </ul>
     <h4 style="margin:.9rem 0 .3rem;font-family:var(--head)">Shortage / Excess</h4>
     <ul class="formula-list">
@@ -1447,14 +1447,14 @@ const DB_COLS = [
   'sr_no','area','date','siding','unit','tranch','fsa','loading_gcv','loading_grade','unloading_grade',
   'time_pt','time_ct','time_dot','duration','supply_box','load_box','sick_box','box_type','dstn',
   'gross_wt','tare_wt','net_wt','recv_wt','grn_qty','gcv_arb','ch_wt','rr_wt','rr_no','rr_date',
-  'ul_qty','ul_paid_cil','ul_paid_secl','ul_on_us','ul_ch','ol_ch','push_back_ch',
+  'ul_qty','freight','ul_paid_cil','ul_paid_secl','ul_on_us','ul_ch','ol_ch','push_back_ch',
   'pol_group','ehbc_group','enhc_charge','total_fright','dead_fr_qty','dead_fr_chg',
   'declared_grade','landed_cost','remarks','grade_slippage','gcv_bonus_penalty_per_mt','bonus_penalty_rs'
 ];
 // Calculated by the database trigger (gujarat_calc_gcv); the page only reads them.
 const GCV_CALC_COLS = ['grade_slippage', 'gcv_bonus_penalty_per_mt', 'bonus_penalty_rs'];
 const NUMERIC_COLS = new Set(['sr_no','loading_gcv','supply_box','load_box','sick_box','gross_wt','tare_wt','net_wt','recv_wt',
-  'grn_qty','gcv_arb','ch_wt','rr_wt','ul_qty','ul_paid_cil','ul_paid_secl','ul_on_us','ul_ch','ol_ch','push_back_ch',
+  'grn_qty','gcv_arb','ch_wt','rr_wt','ul_qty','freight','ul_paid_cil','ul_paid_secl','ul_on_us','ul_ch','ol_ch','push_back_ch',
   'pol_group','ehbc_group','enhc_charge','total_fright','dead_fr_qty','dead_fr_chg','landed_cost','grade_slippage','gcv_bonus_penalty_per_mt','bonus_penalty_rs']);
 const DATE_COLS = new Set(['date','rr_date']);
 const TIME_COLS = new Set(['time_pt','time_ct','time_dot']);
@@ -1503,7 +1503,9 @@ function enrichRecord(row) {
   if (row.gross_wt != null && row.tare_wt != null) row.net_wt = +(row.gross_wt - row.tare_wt).toFixed(2);
   if (row.ch_wt != null && row.rr_wt != null) row.dead_fr_qty = +(row.ch_wt - row.rr_wt).toFixed(2);
   if (row.ch_wt != null && row.rr_wt != null) row.ul_qty = +(row.ch_wt - row.rr_wt).toFixed(2);
-  // ul_paid_cil, ul_paid_secl, ul_on_us, ul_ch and ol_ch are manual entries and are never calculated here.
+  // UL Charge = Underload Quantity x Freight (blank if either is missing)
+  row.ul_ch = (isNum(row.ul_qty) && isNum(row.freight)) ? +(Number(row.ul_qty) * Number(row.freight)).toFixed(2) : null;
+  // ul_paid_cil, ul_paid_secl and ul_on_us and ol_ch are manual entries and are never calculated here.
   // Grade Slippage, GCV Bonus/Penalty (Rs/MT) and Bonus/Penalty (Rs) are calculated by the database trigger.
   return row;
 }
@@ -1575,7 +1577,7 @@ const HEADER_LABELS = {
   duration: ['MINES LOADING DURATION'], supply_box: ['Supply Box'], load_box: ['Load Box'], sick_box: ['Sick Box'],
   box_type: ['Box Type'], dstn: ['DSTN'], gross_wt: ['Gross wt'], tare_wt: ['tare wt'], net_wt: ['Net Wt.'],
   recv_wt: ['Received Wt.'], grn_qty: ['GRN Qty. (MT)'], gcv_arb: ['GCV ARB'], ch_wt: ['Ch Weight'], rr_wt: ['RR Weight'],
-  rr_no: ['RR Number'], rr_date: ['RR Date'], ul_qty: ['UNDERLoad Quantity'], ul_paid_cil: ['UNDERLOAD QTY PAID COAL INDIA'],
+  rr_no: ['RR Number'], rr_date: ['RR Date'], ul_qty: ['UNDERLoad Quantity'], freight: ['Freight'], ul_paid_cil: ['UNDERLOAD QTY PAID COAL INDIA'],
   ul_paid_secl: ['PAID BY SECL'], ul_on_us: ['UNDERLOAD QTY ON US'], ul_ch: ['UNDERLOAD CHRGES'],
   ol_ch: ['Overload Charge'], push_back_ch: ['Push Back Charge'], pol_group: ['POL1/PO2/POLA/PCLA/DCLA'],
   ehbc_group: ['EHBC/FAUC/TC/ST'], enhc_charge: ['ENHC Charge'], total_fright: ['Total Fright'],
@@ -1727,7 +1729,7 @@ function renderLog() {
   const cols = ['id', ...DB_COLS.filter(c => !GCV_CALC_COLS.includes(c)).flatMap(c =>
     c === 'unloading_grade' ? [c, ...GCV_CALC_COLS] : [c]
   )];
-  const readonlyCols = new Set(['id', ...GCV_CALC_COLS]);
+  const readonlyCols = new Set(['id', ...GCV_CALC_COLS, 'ul_ch']);
   const logLabels = {
     grade_slippage: 'Grade Slippage',
     gcv_bonus_penalty_per_mt: 'GCV Bonus/Penalty (₹/MT)',
@@ -1777,7 +1779,7 @@ function rowPatch(tr) {
   const patch = {};
   tr.querySelectorAll('input[data-col]').forEach(inp => {
     const col = inp.dataset.col;
-    if (col === 'id' || GCV_CALC_COLS.includes(col) || col.startsWith('x:')) return;   // calculated by the database
+    if (col === 'id' || GCV_CALC_COLS.includes(col) || col === 'ul_ch' || col.startsWith('x:')) return;   // calculated by the database
     patch[col] = toDbValue(col, inp.value);
   });
   customPatch(tr, patch);
@@ -1877,10 +1879,11 @@ const ENTRY_SECTIONS = [
     { key: 'rr_no', label: 'RR Number', type: 'text' }, { key: 'rr_date', label: 'RR Date', type: 'date' } ]},
   { title: 'Underload & Overload', icon: 'fa-arrow-down-wide-short', fields: [
     { key: 'ul_qty', label: 'Underload Quantity (Ch Wt − RR Wt)', type: 'calc', step: 0.01, tag: 'auto' },
+    { key: 'freight', label: 'Freight (₹ / MT)', type: 'number', step: 0.01, unit: '₹' },
     { key: 'ul_paid_cil', label: 'Underload Qty Paid Coal India', type: 'number', step: 0.01 },
     { key: 'ul_paid_secl', label: 'Underload Paid by SECL', type: 'number', step: 0.01 },
     { key: 'ul_on_us', label: 'Underload Qty On Us', type: 'number', step: 0.01 },
-    { key: 'ul_ch', label: 'Underload Charge', type: 'number', step: 0.01, unit: '₹' },
+    { key: 'ul_ch', label: 'Underload Charge (Qty × Freight)', type: 'calc', unit: '₹', tag: 'auto' },
     { key: 'ol_ch', label: 'Overload Charge', type: 'number', step: 0.01, unit: '₹' },
     { key: 'push_back_ch', label: 'Push Back Charge', type: 'number', step: 0.01, unit: '₹' } ]},
   { title: 'Freight & Charges', icon: 'fa-indian-rupee-sign', fields: [
@@ -1909,7 +1912,7 @@ function buildEntryForm() {
         return `<div class="form-group">${label}${input}</div>`;
       }).join('')}</div>
     </div>`).join('');
-  ['time_pt', 'time_ct', 'supply_box', 'load_box', 'gross_wt', 'tare_wt', 'ch_wt', 'rr_wt', 'gcv_arb', 'loading_grade', 'unloading_grade', 'dstn']
+  ['time_pt', 'time_ct', 'supply_box', 'load_box', 'gross_wt', 'tare_wt', 'ch_wt', 'rr_wt', 'freight', 'gcv_arb', 'loading_grade', 'unloading_grade', 'dstn']
     .forEach(k => { const e = $('f_' + k); if (e) e.addEventListener('input', recalcForm); e && e.addEventListener('change', recalcForm); });
 
   // Dropdowns: "Add new option" saves the new value for everyone
@@ -1961,6 +1964,7 @@ function recalcForm() {
   $('f_net_wt').value = row.net_wt ?? '';
   $('f_dead_fr_qty').value = row.dead_fr_qty ?? '';
   $('f_ul_qty').value = row.ul_qty ?? '';
+  $('f_ul_ch').value = row.ul_ch ?? '';
   const slip = gradeSlip({ loading_grade: row.loading_grade, unloading_grade: row.unloading_grade });
   const pct = slipPct(slip, FORMULAS);
   const ratePerMt = slip == null || slip < 0 ? null : settingsFor(ENTRY_PERIOD).gcvBase * pct / 100;
