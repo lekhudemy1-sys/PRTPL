@@ -260,16 +260,19 @@ function rakeOf(r,party){
    BALCO receive data comes from the BALCO MIS (mis_rake_log), with the same no-RR-qty rule. */
 function buildGroups(sheet,gj,hz,nalcoRows,ovMap,jhRows,balRows){
   var groups=[];
-  var nalcoSheetDates={};
+  var nalcoSheetDates={},jhSheetDates={};
   sheet.forEach(function(r){
     if(uc(r.party)==='NALCO')nalcoSheetDates[r.sheet_date]=1;
+    if(uc(r.party)==='JHABUA')jhSheetDates[r.sheet_date]=1;
     var rr=num(r.rr),ch=num(r.ch),fr=num(r.freight),uq=ch-rr;
     groups.push({src:'sheet',date:r.sheet_date,party:r.party,area:r.area,siding:r.siding,
       rakes:num(r.rakes),rr:rr,ch:ch,uQty:uq>0?uq:0,oQty:uq<0?-uq:0,
       up:uq<0?0:uq*fr,op:num(r.o1)+num(r.o2)+num(r.o3),en:num(r.ench),recs:[]});
   });
 
-  var liveRows=gj.concat(hz).concat((nalcoRows||[]).filter(function(r){return !nalcoSheetDates[r.date]}));
+  /* JHABUA live rows (PJPB MIS, rows with an RR number) are used only on dates with no saved JHABUA sheet rows, same as NALCO */
+  var jhLive=(jhRows||[]).filter(function(r){return !jhSheetDates[r.date]});
+  var liveRows=gj.concat(hz).concat((nalcoRows||[]).filter(function(r){return !nalcoSheetDates[r.date]})).concat(jhLive);
   var lm={};
   liveRows.forEach(function(r){
     var area=uc(r.area||'-'),sid=uc(r.siding||'-'),pl=plantOf(r);
@@ -312,6 +315,7 @@ function buildGroups(sheet,gj,hz,nalcoRows,ovMap,jhRows,balRows){
      number except received / pending is 0 here and the penalty totals do not change. */
   var jm={};
   (jhRows||[]).forEach(function(r){
+    if(!jhSheetDates[r.date])return;   /* dates with a live JHABUA group above already carry these rakes */
     var g=jm[r.date]||(jm[r.date]={id:'J|'+r.date,src:'recv',recvOnly:true,date:r.date,party:'JHABUA',area:'',siding:'',
       rakes:0,rr:0,ch:0,uQty:0,oQty:0,up:0,op:0,en:0,recs:[]});
     g.recs.push(rakeOf(r,'JHABUA'));
@@ -381,9 +385,12 @@ function load(){
     sel(NSB,NKEY,'nalco_rake_records',q('date')+'&order=date.asc').then(function(r){return r.map(function(x){x._p='NALCO';return x})}).catch(fail('NALCO dashboard')),
     sel(SB,KEY,'amm_penalty_live_overrides',q('sheet_date')).catch(function(){return []}),
     /* JHABUA receive data only (PJPB MIS). Only loaded rakes, i.e. rows with an RR weight or RR number */
+    /* JHABUA (PJPB MIS, same rule as the daily penalty sheet): rows with an RR number, area and siding from the source,
+       the Final Charges column is the overload penalty, and no underload / ENCH charge */
     sel(SB,KEY,'pjpb_mis_rows',q('loading_date')+'&order=loading_date.asc').then(function(r){
-      return r.filter(function(x){return num(x.rr_weight)>0||String(x.rr_number==null?'':x.rr_number).trim()!==''})
-        .map(function(x){return {date:x.loading_date,rr_wt:x.rr_weight,recv_wt:x.recv_qty,rr_no:x.rr_number}});
+      return r.filter(function(x){return x.rr_number!==null&&x.rr_number!==undefined&&String(x.rr_number).trim()!==''})
+        .map(function(x){return {_p:'JHABUA',date:x.loading_date,area:x.area,siding:x.source,box_type:x.box_type,
+          rr_wt:x.rr_weight,ch_wt:x.chargeable_wt,pol_group:x.final_charges,recv_wt:x.recv_qty,rr_no:x.rr_number}});
     }).catch(fail('PJPB MIS')),
     /* BALCO receive data only (BALCO MIS, mis_rake_log). Only loaded rakes, i.e. rows with an RR number */
     sel(NSB,NKEY,'mis_rake_log',q('rake_date')+'&order=rake_date.asc').then(function(r){
