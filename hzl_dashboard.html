@@ -639,7 +639,7 @@ body:not(.unlocked) .pro-tab{display:none}
       <li>Shortage / Excess % = (sum of Recv − sum of RR) ÷ sum of RR × 100; MT per rake = (sum of Recv − sum of RR) ÷ number of rakes</li>
       <li>Quantity Reco = rate from the shortage table × sum of Recv; GCV Reco = sum of bonus_penalty from the database</li>
       <li>Service Charge SECL / CCL / MCL = area sum of Recv × fixed service charge (Data Entry)</li>
-      <li>5% of Total Railway Penalty = Total Penalty × penalty share % (Formulas); Total Penalty = Overload + Punitive + EHBC + ENHC (Dead Freight is shown but NOT included)</li>
+      <li>5% of Total Railway Penalty = Total Penalty × penalty share % (Formulas); Total Penalty = Underload + Overload + Punitive + EHBC + ENHC (Dead Freight is shown but NOT included)</li>
       <li>TOTAL BILLING = Quantity Reco + GCV Reco + Service SECL + Service CCL + Service MCL − 5% penalty</li>
       <li>Expected Billing of the Quarter = TOTAL BILLING ÷ days passed in the quarter × total days in the quarter</li>
       <li>Area Target, Loaded Till, Balance and Asking Per Day come from the Target Rake table in Data Entry</li>
@@ -1853,7 +1853,7 @@ async function computeDashboard(period = PERIOD) {
   const punSum = sumOf(recs, r => r.pol_group), ehbcSum = sumOf(recs, r => r.ehbc_group);
   const enhcSum = sumOf(recs, r => r.enhc_charge), deadSum = sumOf(recs, r => r.dead_fr_chg);
   const ulChgSum = sumOf(recs, r => r.ul_on_us), olChgSum = sumOf(recs, r => r.ol_ch);
-  const totalPen = olChgSum + punSum + ehbcSum + enhcSum;
+  const totalPen = ulChgSum + olChgSum + punSum + ehbcSum + enhcSum;
   const pen5 = totalPen * FORMULAS.penaltyPct / 100;
   out.ulChg = ulChgSum; out.ulChgMt = perMt(ulChgSum);
   out.olChg = olChgSum; out.olChgMt = perMt(olChgSum);
