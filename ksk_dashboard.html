@@ -2009,6 +2009,13 @@ main{overflow-y:auto!important}
    w.id='cap-root';w.className='capwrap';
    w.style.cssText='position:absolute;left:0;top:0;width:1500px;z-index:-1;pointer-events:none;background:#f6f8fc';
    w.innerHTML='<div class="caph"><span>KSK Mahanadi · Stock summary</span><span>'+new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'})+'</span></div>';
+ /* include the page header in the image (without the logo) */
+const hd=document.querySelector('header.top').cloneNode(true);
+hd.querySelectorAll('.back,#refresh,.logo').forEach(n=>n.remove());
+hd.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));
+hd.style.cssText+=';margin:0 0 16px;box-shadow:none';
+w.insertBefore(hd,w.firstChild);
+   
    ['#p-w','#p-r'].forEach(s=>{const c=document.querySelector(s).cloneNode(true);c.classList.remove('hidden');c.removeAttribute('id');
  c.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));
  c.querySelectorAll('.glass.xt').forEach(n=>n.remove());   /* hide RCR Rake details & Plant loading from image */
