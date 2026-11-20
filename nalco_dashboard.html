@@ -98,6 +98,17 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(31,111,209,.28
 .sync-modal-message{font-size:.92rem;font-weight:600;line-height:1.55}
 .sync-modal-select{width:100%;padding:.8rem .9rem;border:1px solid var(--line);border-radius:13px;margin-top:.8rem;font:600 .95rem var(--body)}
 .sync-modal-actions{display:flex;justify-content:flex-end;gap:.6rem;margin-top:1.1rem}
+
+/* ALERT POPUP: RR No. vertical, pending values horizontal */
+.modal.alert-modal{width:min(1150px,96vw)}
+.alert-filters{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;padding:.7rem 1rem;border-bottom:1px solid var(--line);flex-shrink:0}
+.alert-filters .field{width:auto;min-width:170px}
+.alert-tbl{min-width:640px}
+.alert-tbl th:first-child,.alert-tbl td:first-child{position:sticky;left:0;z-index:2;text-align:left}
+.alert-tbl th:first-child{z-index:3}
+.alert-tbl tbody td:first-child{background:var(--t);font-weight:800;border-right:1px solid var(--line)}
+.alert-pill{display:inline-block;padding:.15rem .6rem;border-radius:999px;background:var(--negbg);color:var(--neg);font-weight:700;font-size:.72rem}
+.alert-ok{color:#0c6b4a;font-weight:700}
 </style></head><body>
 <aside class="sidebar"><div class="pn"><i></i> NALCO</div>
 <nav class="nav"><button class="ni active" data-view="dash"><i class="fas fa-tachometer-alt"></i> Dashboard</button>
@@ -195,8 +206,22 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(31,111,209,.28
 </ul></div></section>
 </main>
 
-<div class="mb hidden" id="alertModal"><div class="modal"><div class="mh"><h2><i class="fas fa-bell"></i> Pending Rake Details (not received)</h2><button class="soft sm" id="alertClose"><i class="fas fa-xmark"></i></button></div>
-<div class="atabs" id="alertTabs"></div><div class="abody" id="alertBody"></div></div></div>
+<div class="mb hidden" id="alertModal">
+  <div class="modal alert-modal">
+    <div class="mh">
+      <h2><i class="fas fa-bell"></i> Pending Rake Details (not received)</h2>
+      <button class="soft sm" id="alertClose"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="alert-filters">
+      <select id="alertMonth" class="field" aria-label="Month"></select>
+      <select id="alertField" class="field" aria-label="Pending value"></select>
+      <button class="soft" id="alertFltClear"><i class="fas fa-filter-circle-xmark"></i> Clear</button>
+      <span class="muted" id="alertCount"></span>
+    </div>
+    <div class="abody" id="alertBody"></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
@@ -542,18 +567,74 @@ async function loadAlertRows(){const F=alertFields();if(!F.length)return[];
 async function loadAlerts(){try{const F=alertFields(),data=await loadAlertRows();
  ALERTS=data.map(r=>({r,miss:F.filter(([k])=>isBlank(valOf(r,k)))})).filter(x=>x.miss.length);
  $('bb').textContent=ALERTS.length>99?'99+':ALERTS.length;$('bb').classList.toggle('hidden',!ALERTS.length);if(!$('alertModal').classList.contains('hidden'))renderAlerts()}catch(e){console.warn('Alerts not loaded',e)}}
-function renderAlerts(){const tabs=$('alertTabs'),body=$('alertBody');
- if(!ALERTS.length){tabs.innerHTML='';body.innerHTML='<p class="muted">All rakes have their details received. Nothing pending.</p>';return}
- if(!ALERTS.some(x=>String(x.r.id)===String(ALERT_SEL)))ALERT_SEL=ALERTS[0].r.id;
- tabs.innerHTML=ALERTS.map(x=>`<button class="atab ${String(x.r.id)===String(ALERT_SEL)?'active':''}" data-id="${esc(x.r.id)}">${esc(x.r.rr_no||('Sr '+(x.r.sr_no??'-')))}<small>${x.miss.length}</small></button>`).join('');
- const cur=ALERTS.find(x=>String(x.r.id)===String(ALERT_SEL)),r=cur.r;
- body.innerHTML=`<div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.8rem">${[['RR No',r.rr_no||'-'],['Sr No',r.sr_no??'-'],['Date',r.date||'-'],['Area',r.area||'-'],['Siding',r.siding||'-']].map(([k,v])=>`<span class="chip">${k}: ${esc(v)}</span>`).join('')}</div>`+
-  cur.miss.map(([k,l])=>`<div class="amiss"><span>${esc(l)}</span><span>Not received</span></div>`).join('')+
-  `<button class="btn" style="margin-top:.8rem" data-fill="${esc(r.id)}"><i class="fas fa-pen-to-square"></i> Fill up (Sr No ${esc(r.sr_no??'-')})</button>`}
-$('bellBtn').onclick=()=>{$('alertModal').classList.remove('hidden');renderAlerts()};$('alertClose').onclick=()=>$('alertModal').classList.add('hidden');
-$('alertModal').onclick=e=>{if(e.target.id==='alertModal')return $('alertModal').classList.add('hidden');
- const f=e.target.closest('[data-fill]');if(f){PENDING_FILL=f.dataset.fill;$('alertModal').classList.add('hidden');showView('entry');return}   // asks for the password first if locked
- const t=e.target.closest('.atab');if(t){ALERT_SEL=t.dataset.id;renderAlerts()}};
+function renderAlerts() {
+  const body = $('alertBody');
+  const FIELDS = alertFields();
+  const monthOf = r => String(r.date || '').slice(0, 7);
+  const monthLabel = m => { const p = m.split('-'); return MON[Number(p[1]) - 1] + ' ' + p[0]; };
+
+  // filters (rebuilt only when their choices change, so an open dropdown is not disturbed)
+  const months = [...new Set(ALERTS.map(x => monthOf(x.r)).filter(Boolean))].sort().reverse();
+  const sig = JSON.stringify([months, FIELDS.map(f => f[0])]);
+  if (sig !== window.__alertSig) {
+    window.__alertSig = sig;
+    const flt = window.__alertFlt = window.__alertFlt || { month: '', field: '' };
+    $('alertMonth').innerHTML = '<option value="">All months</option>' + months.map(m => `<option value="${m}">${monthLabel(m)}</option>`).join('');
+    $('alertField').innerHTML = '<option value="">All pending values</option>' + FIELDS.map(([k, l]) => `<option value="${esc(k)}">${esc(l)}</option>`).join('');
+    if (!months.includes(flt.month)) flt.month = '';
+    if (!FIELDS.some(f => f[0] === flt.field)) flt.field = '';
+    $('alertMonth').value = flt.month;
+    $('alertField').value = flt.field;
+  }
+  const flt = window.__alertFlt = window.__alertFlt || { month: '', field: '' };
+
+  if (!ALERTS.length) {
+    $('alertCount').textContent = '';
+    body.innerHTML = '<p class="muted">All rakes have their details received. Nothing pending.</p>';
+    return;
+  }
+  const rows = ALERTS
+    .filter(x => (!flt.month || monthOf(x.r) === flt.month) && (!flt.field || x.miss.some(m => m[0] === flt.field)))
+    .sort((a, b) => String(a.r.date || '').localeCompare(String(b.r.date || '')) || (a.r.sr_no || 0) - (b.r.sr_no || 0));
+  $('alertCount').textContent = `${rows.length} of ${ALERTS.length} rakes`;
+  if (!rows.length) { body.innerHTML = '<p class="muted">No rakes match these filters.</p>'; return; }
+
+  const head = `<thead><tr><th>RR No</th><th>Sr No</th><th>Date</th><th>Area</th><th>Siding</th>` +
+    FIELDS.map(([k, l]) => `<th>${esc(l)}</th>`).join('') + `<th>Action</th></tr></thead>`;
+  const trs = rows.map(x => {
+    const r = x.r;
+    const missKeys = new Set(x.miss.map(m => m[0]));
+    const name = r.rr_no || ('Sr ' + (r.sr_no ?? '-'));
+    const action = `<button class="btn" data-fill="${esc(r.id)}"><i class="fas fa-pen-to-square"></i> Fill up</button>`;
+    return `<tr><td>${esc(name)}</td><td>${esc(r.sr_no ?? '-')}</td><td>${esc(r.date || '-')}</td>` +
+      `<td>${esc(r.area || '-')}</td><td>${esc(r.siding || '-')}</td>` +
+      FIELDS.map(([k]) => missKeys.has(k)
+        ? '<td><span class="alert-pill">Pending</span></td>'
+        : '<td><span class="alert-ok">\u2713</span></td>').join('') +
+      `<td>${action}</td></tr>`;
+  }).join('');
+  body.innerHTML = `<div class="tw" style="max-height:60vh"><table class="tbl alert-tbl">${head}<tbody>${trs}</tbody></table></div>`;
+}
+
+$('alertMonth').addEventListener('change', e => { (window.__alertFlt = window.__alertFlt || {}).month = e.target.value; renderAlerts(); });
+$('alertField').addEventListener('change', e => { (window.__alertFlt = window.__alertFlt || {}).field = e.target.value; renderAlerts(); });
+$('alertFltClear').addEventListener('click', () => {
+  window.__alertFlt = { month: '', field: '' };
+  $('alertMonth').value = ''; $('alertField').value = '';
+  renderAlerts();
+});
+
+$('bellBtn').addEventListener('click', () => { $('alertModal').classList.remove('hidden'); renderAlerts(); });
+$('alertClose').addEventListener('click', () => $('alertModal').classList.add('hidden'));
+$('alertModal').addEventListener('click', e => {
+  if (e.target.id === 'alertModal') { $('alertModal').classList.add('hidden'); return; }
+  const f = e.target.closest('[data-fill]');
+  if (f) {
+    PENDING_FILL = f.dataset.fill;
+    $('alertModal').classList.add('hidden');
+    showView('entry');
+  }
+});
 
 /* ---------- DAILY LOADING SYNC (NALCO) ---------- */
 const DAILY_URL='https://jzkrywwrsewchtiqsczk.supabase.co';
