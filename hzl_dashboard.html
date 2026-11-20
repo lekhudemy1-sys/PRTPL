@@ -265,6 +265,17 @@ body:not(.unlocked) .pro-tab{display:none}
   .main{padding:7rem .8rem 1rem}.topbar{justify-content:center;text-align:center}
   .report-stamp{margin-left:0}
 }
+
+/* ALERT POPUP: RR No. vertical, pending values horizontal */
+.modal.alert-modal{width:min(1150px,96vw)}
+.alert-filters{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;padding:.7rem 1rem;border-bottom:1px solid var(--line);flex-shrink:0}
+.alert-filters .field{width:auto;min-width:170px}
+.alert-tbl{min-width:640px}
+.alert-tbl th:first-child,.alert-tbl td:first-child{position:sticky;left:0;z-index:2;text-align:left}
+.alert-tbl th:first-child{z-index:3}
+.alert-tbl tbody td:first-child{background:#f6f9fe;font-weight:800;border-right:1px solid var(--line)}
+.alert-pill{display:inline-block;padding:.15rem .6rem;border-radius:999px;background:#fdeaec;color:#b3162b;font-weight:700;font-size:.72rem}
+.alert-ok{color:#0c6b4a;font-weight:700}
 </style>
 <meta name="pr-access" content="amm:HZL" />
 <meta name="description" content="HZL Dashboard | AMM HZL – Prithvi Realcon logistics and performance portal." />
@@ -645,12 +656,17 @@ body:not(.unlocked) .pro-tab{display:none}
 
 <!-- ============ ALERT POPUP ============ -->
 <div class="modal-back hidden" id="alertModal">
-  <div class="modal">
+  <div class="modal alert-modal">
     <div class="modal-head">
       <h2><i class="fas fa-bell"></i> Pending Rake Details (not received)</h2>
       <button class="btn-soft btn-sm" id="alertClose"><i class="fas fa-xmark"></i></button>
     </div>
-    <div class="alert-tabs" id="alertTabs"></div>
+    <div class="alert-filters">
+      <select id="alertMonth" class="field" aria-label="Month"></select>
+      <select id="alertField" class="field" aria-label="Pending value"></select>
+      <button class="btn-soft" id="alertFltClear"><i class="fas fa-filter-circle-xmark"></i> Clear</button>
+      <span class="muted" id="alertCount"></span>
+    </div>
     <div class="alert-body" id="alertBody"></div>
   </div>
 </div>
@@ -1183,27 +1199,63 @@ async function loadAlerts() {
 }
 
 function renderAlerts() {
-  const tabs = $('alertTabs'), body = $('alertBody');
+  const body = $('alertBody');
+  const FIELDS = ALERT_FIELDS;
+  const monthOf = r => String(r.date || '').slice(0, 7);
+  const monthLabel = m => { const p = m.split('-'); return MONTHS[Number(p[1]) - 1] + ' ' + p[0]; };
+
+  // filters (rebuilt only when their choices change, so an open dropdown is not disturbed)
+  const months = [...new Set(ALERTS.map(x => monthOf(x.r)).filter(Boolean))].sort().reverse();
+  const sig = JSON.stringify([months, FIELDS.map(f => f[0])]);
+  if (sig !== window.__alertSig) {
+    window.__alertSig = sig;
+    const flt = window.__alertFlt = window.__alertFlt || { month: '', field: '' };
+    $('alertMonth').innerHTML = '<option value="">All months</option>' + months.map(m => `<option value="${m}">${monthLabel(m)}</option>`).join('');
+    $('alertField').innerHTML = '<option value="">All pending values</option>' + FIELDS.map(([k, l]) => `<option value="${esc(k)}">${esc(l)}</option>`).join('');
+    if (!months.includes(flt.month)) flt.month = '';
+    if (!FIELDS.some(f => f[0] === flt.field)) flt.field = '';
+    $('alertMonth').value = flt.month;
+    $('alertField').value = flt.field;
+  }
+  const flt = window.__alertFlt = window.__alertFlt || { month: '', field: '' };
+
   if (!ALERTS.length) {
-    tabs.innerHTML = '';
+    $('alertCount').textContent = '';
     body.innerHTML = '<p class="muted">All rakes have their details received. Nothing pending.</p>';
     return;
   }
-  if (!ALERTS.some(x => String(x.r.id) === String(ALERT_SEL))) ALERT_SEL = ALERTS[0].r.id;
-  tabs.innerHTML = ALERTS.map(x => {
-    const name = x.r.rr_no || ('Sr ' + (x.r.sr_no ?? '-'));
-    return `<button class="alert-tab ${String(x.r.id) === String(ALERT_SEL) ? 'active' : ''}" data-id="${esc(x.r.id)}">${esc(name)}<small>${x.miss.length}</small></button>`;
+  const rows = ALERTS
+    .filter(x => (!flt.month || monthOf(x.r) === flt.month) && (!flt.field || x.miss.some(m => m[0] === flt.field)))
+    .sort((a, b) => String(a.r.date || '').localeCompare(String(b.r.date || '')) || (a.r.sr_no || 0) - (b.r.sr_no || 0));
+  $('alertCount').textContent = `${rows.length} of ${ALERTS.length} rakes`;
+  if (!rows.length) { body.innerHTML = '<p class="muted">No rakes match these filters.</p>'; return; }
+
+  const head = `<thead><tr><th>RR No</th><th>Sr No</th><th>Date</th><th>Area</th><th>Siding</th>` +
+    FIELDS.map(([k, l]) => `<th>${esc(l)}</th>`).join('') + `<th>Action</th></tr></thead>`;
+  const trs = rows.map(x => {
+    const r = x.r;
+    const missKeys = new Set(x.miss.map(m => m[0]));
+    const name = r.rr_no || ('Sr ' + (r.sr_no ?? '-'));
+    const action = isBlank(r.sr_no)
+      ? '<span class="muted">Open from Records Log</span>'
+      : `<button class="btn-go btn-sm" data-fill="${esc(r.sr_no)}"><i class="fas fa-pen-to-square"></i> Fill up</button>`;
+    return `<tr><td>${esc(name)}</td><td>${esc(r.sr_no ?? '-')}</td><td>${esc(r.date || '-')}</td>` +
+      `<td>${esc(r.area || '-')}</td><td>${esc(r.siding || '-')}</td>` +
+      FIELDS.map(([k]) => missKeys.has(k)
+        ? '<td><span class="alert-pill">Pending</span></td>'
+        : '<td><span class="alert-ok">\u2713</span></td>').join('') +
+      `<td>${action}</td></tr>`;
   }).join('');
-  const cur = ALERTS.find(x => String(x.r.id) === String(ALERT_SEL));
-  const r = cur.r;
-  const info = [['RR No', r.rr_no || '-'], ['Sr No', r.sr_no ?? '-'], ['Date', r.date || '-'], ['Area', r.area || '-'], ['Siding', r.siding || '-']];
-  body.innerHTML =
-    `<div class="alert-info">${info.map(([k, v]) => `<span class="chip">${k}: ${esc(v)}</span>`).join('')}</div>` +
-    cur.miss.map(([k, label]) => `<div class="alert-miss"><span>${esc(label)}</span><span>Not received</span></div>`).join('') +
-    (isBlank(r.sr_no)
-      ? '<p class="muted alert-fill">This rake has no Sr No, so open it from Records Log to fill it.</p>'
-      : `<button class="btn-go alert-fill" data-fill="${esc(r.sr_no)}"><i class="fas fa-pen-to-square"></i> Fill up (Sr No ${esc(r.sr_no)})</button>`);
+  body.innerHTML = `<div class="tbl-wrap" style="max-height:60vh"><table class="tbl alert-tbl">${head}<tbody>${trs}</tbody></table></div>`;
 }
+
+$('alertMonth').addEventListener('change', e => { (window.__alertFlt = window.__alertFlt || {}).month = e.target.value; renderAlerts(); });
+$('alertField').addEventListener('change', e => { (window.__alertFlt = window.__alertFlt || {}).field = e.target.value; renderAlerts(); });
+$('alertFltClear').addEventListener('click', () => {
+  window.__alertFlt = { month: '', field: '' };
+  $('alertMonth').value = ''; $('alertField').value = '';
+  renderAlerts();
+});
 
 $('alertBtn').addEventListener('click', () => { $('alertModal').classList.remove('hidden'); renderAlerts(); });
 $('alertClose').addEventListener('click', () => $('alertModal').classList.add('hidden'));
@@ -1214,10 +1266,7 @@ $('alertModal').addEventListener('click', e => {
     PENDING_FILL = f.dataset.fill;
     $('alertModal').classList.add('hidden');
     showView('entry');
-    return;
   }
-  const t = e.target.closest('.alert-tab');
-  if (t) { ALERT_SEL = t.dataset.id; renderAlerts(); }
 });
 
 /* ==================== DATA ENTRY: NEW RECORD ==================== */
