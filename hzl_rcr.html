@@ -1,0 +1,743 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>HZL RCR Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0f172a;--mut:#64748b;--line:rgba(15,23,42,.1);--glass:rgba(255,255,255,.88);--teal:#0d9488;--amber:#d97706;--violet:#7c3aed;--sky:#0284c7;--green:#059669;--rose:#e11d48}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{font:14px "Instrument Sans",system-ui,sans-serif;color:var(--ink);background:linear-gradient(-45deg,#f8fafc,#eef4ff,#f3f0ff,#effcf8);background-size:400% 400%;animation:drift 22s ease infinite;padding-bottom:110px}
+@keyframes drift{0%{background-position:0 50%}50%{background-position:100% 50%}100%{background-position:0 50%}}
+@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes grow{from{width:0}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 3px rgba(22,168,112,.25)}50%{box-shadow:0 0 0 7px rgba(22,168,112,.05)}}
+@keyframes shine{to{background-position:200% center}}
+.hidden{display:none!important}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.neg{color:#dc2626;font-weight:700}
+.muted{color:var(--mut)}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:14px 18px 0;padding:14px 20px;border-radius:22px;background:linear-gradient(120deg,#0b3b3a,#0f5f5a 55%,#1d7f86);color:#fff;box-shadow:0 18px 36px -18px rgba(11,59,58,.7);animation:up .5s both}
+.brand{display:flex;gap:12px;align-items:center}
+.logo{height:52px;width:auto;max-width:72px;display:block;border-radius:12px;object-fit:contain;flex-shrink:0;box-shadow:0 6px 16px rgba(0,0,0,.25)}
+.brand h1{margin:0;font:800 1.6rem "Bricolage Grotesque",sans-serif;background:linear-gradient(90deg,#fff,#a7f3d0,#fff);background-size:200% auto;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 5s linear infinite}
+.brand small{display:block;color:#bfe8e4;font-size:.85rem}
+.top-r{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-left:auto}
+#updated{color:#bfe8e4;font-size:.8rem}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:.45rem .9rem;border-radius:999px;background:#fff;color:#0b3b3a;font-weight:600;font-size:.85rem}
+.pill.err{background:#fde8ec;color:#be123c}
+.dot{width:8px;height:8px;border-radius:50%;background:#16a870;animation:pulse 2s infinite}
+.pill.err .dot{background:#e11d48;animation:none}
+main{padding:16px 18px}
+.view{display:none}
+.view.on{display:block;animation:up .45s both}
+.dock{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:6px;padding:6px;border-radius:999px;background:rgba(255,255,255,.92);backdrop-filter:blur(14px);border:1px solid var(--line);box-shadow:0 14px 34px rgba(15,23,42,.16);z-index:20}
+.dock button{border:0;background:transparent;color:var(--mut);padding:10px 18px;border-radius:999px;font:inherit;font-weight:600;cursor:pointer;transition:.25s}
+.dock button:hover{transform:translateY(-2px);color:var(--ink)}
+.dock button.on{color:#fff;background:linear-gradient(135deg,#0d9488,#14b8a6);box-shadow:0 6px 18px rgba(13,148,136,.35)}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+input,select{background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 11px;font:inherit;color:var(--ink);min-width:0}
+input:focus,select:focus{outline:none;border-color:var(--sky);box-shadow:0 0 0 3px rgba(2,132,199,.15)}
+.chk{display:flex;gap:6px;align-items:center;color:var(--mut);font-weight:600}
+.btn{background:#fff;border:1px solid var(--line);color:var(--ink);padding:9px 14px;border-radius:10px;font:inherit;font-weight:600;cursor:pointer;transition:.2s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 6px 14px -8px rgba(15,23,42,.4)}
+.btn.primary{background:linear-gradient(135deg,#0d9488,#14b8a6);color:#fff;border-color:transparent}
+.btn.ghost{background:transparent}
+.btn.red{color:#be123c}
+.btn.small{padding:5px 10px;font-size:12px}
+.btn:disabled{opacity:.45;cursor:default;transform:none}
+.alert{padding:10px 14px;border-radius:12px;background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.35);color:#9a3412;margin-bottom:12px;font-size:13px;display:grid;gap:4px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:14px 0}
+.card{position:relative;overflow:hidden;background:var(--glass);border:1px solid var(--line);border-radius:16px;padding:14px 16px;box-shadow:0 2px 10px rgba(15,23,42,.06);animation:up .6s both;animation-delay:calc(var(--i)*90ms);transition:transform .25s}
+.card:hover{transform:translateY(-3px)}
+.card::before{content:"";position:absolute;inset:0 0 auto 0;height:3px;background:var(--c,var(--teal))}
+.card span{display:block;color:var(--mut);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em}
+.card b{display:block;font:800 1.5rem "Bricolage Grotesque",sans-serif;margin-top:6px;font-variant-numeric:tabular-nums}
+.card small{color:var(--mut);font-size:12px}
+.card.teal{--c:#0d9488}.card.sky{--c:#0284c7}.card.amber{--c:#d97706}.card.green{--c:#059669}.card.violet{--c:#7c3aed}.card.rose{--c:#e11d48}
+.charts2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:14px}
+.panel{background:var(--glass);border:1px solid var(--line);border-radius:18px;box-shadow:0 2px 12px rgba(15,23,42,.05);overflow:hidden;animation:up .6s both}
+.panel-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--line);background:linear-gradient(90deg,rgba(13,148,136,.13),transparent)}
+.panel-h h2{margin:0;font:700 15px "Bricolage Grotesque",sans-serif}
+.sub{color:var(--mut);font-size:12px}
+.cbox{position:relative;height:300px;padding:10px 14px 14px}
+.scroll{overflow:auto;max-height:70vh}
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+th,td{padding:8px 11px;text-align:left;white-space:nowrap;border-bottom:1px solid rgba(15,23,42,.08)}
+thead th{position:sticky;top:0;z-index:2;background:#e9f5f3;color:#334155;font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+th.so{cursor:pointer}
+tbody tr{animation:up .45s both;animation-delay:var(--d,0ms);transition:background .2s}
+tbody tr:hover{background:rgba(13,148,136,.07)}
+tbody tr.done td{color:#64748b}
+tbody tr.clickable{cursor:pointer}
+.id{font-weight:700}
+tfoot td{position:sticky;bottom:0;background:#e9f5f3;font-weight:800;border-top:2px solid rgba(15,23,42,.15)}
+.st{padding:2px 8px;border-radius:999px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.03em}
+.st.ok{background:rgba(5,150,105,.14);color:#047857}
+.st.warn{background:rgba(217,119,6,.14);color:#b45309}
+.st.over{background:rgba(225,29,72,.11);color:#be123c}
+.st.done{background:rgba(100,116,139,.14);color:#475569}
+.st.open{background:rgba(2,132,199,.12);color:#0369a1}
+.warnmark{color:#d97706;font-weight:800;margin-left:4px;cursor:help}
+.badge{padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:800}
+.badge.IN{background:rgba(13,148,136,.14);color:#0f766e}.badge.OUT{background:rgba(2,132,199,.13);color:#0369a1}
+.src{font-size:11px;font-weight:700;color:#475569}
+.src.xl{color:#7c3aed}
+.prog{height:8px;min-width:90px;background:rgba(15,23,42,.08);border-radius:8px;overflow:hidden}
+.prog i{display:block;height:100%;width:var(--w);background:linear-gradient(90deg,#0d9488,#22d3ee);border-radius:8px;animation:grow 1s ease both}
+.form3{display:grid;grid-template-columns:1fr;gap:12px;padding:16px}
+.eg{display:grid;grid-template-columns:minmax(280px,380px) minmax(0,1fr);gap:14px;align-items:start}
+.fld{display:flex;flex-direction:column;gap:5px;min-width:0}
+.fld span{font-size:11px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
+.fld input,.fld select{width:100%}
+.row{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.msg{font-size:13px;min-height:1em}
+.msg.err{color:#be123c}
+.entry-tools{display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--line)}
+.entry-tools input{flex:1;min-width:180px}
+.drop{border:2px dashed rgba(13,148,136,.45);border-radius:16px;padding:26px;text-align:center;background:rgba(13,148,136,.05);cursor:pointer;transition:.2s}
+.drop:hover{background:rgba(13,148,136,.12);transform:scale(1.01)}
+.xg{display:grid;grid-template-columns:minmax(260px,320px) minmax(0,1fr);gap:14px;align-items:start}
+.xs{display:flex;flex-direction:column;gap:12px;padding:16px}
+.xr{display:flex;flex-direction:column;gap:14px;min-width:0}
+.cnt{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.cnt div{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center;font-size:12px;color:var(--mut)}
+.cnt b{display:block;font:800 20px "Bricolage Grotesque",sans-serif;color:var(--ink)}
+.xprog{height:8px;background:rgba(15,23,42,.08);border-radius:8px;overflow:hidden}
+.xprog i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7c3aed,#0284c7);transition:width .3s}
+.dcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;padding:14px}
+.dcard{border-radius:14px;padding:12px 14px;background:#fff;border:1px solid var(--line);border-left:4px solid var(--teal);animation:up .45s both}
+.dcard.warn{border-left-color:var(--amber)}
+.dc-h{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.dc-h b{font:800 1.05rem "Bricolage Grotesque",sans-serif}
+.dc-h span{color:var(--mut);font-size:12px;text-align:right}
+.dc-d{color:var(--mut);font-size:12px;margin:4px 0 8px}
+.dc-g{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.dc-g small{display:block;color:var(--mut);font-size:10px;text-transform:uppercase;letter-spacing:.05em}
+.dc-g b{font-variant-numeric:tabular-nums;font-size:13px}
+.dc-f{font-size:12px;margin-top:8px;color:#047857}
+.dcard.warn .dc-f{color:#b45309}
+dialog{border:0;border-radius:18px;padding:20px;width:min(720px,94vw);box-shadow:0 30px 70px -20px rgba(0,0,0,.4);animation:up .3s both}
+dialog::backdrop{background:rgba(15,23,42,.4);backdrop-filter:blur(3px)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+.toast{position:fixed;left:50%;bottom:86px;transform:translate(-50%,20px);background:linear-gradient(135deg,#0d9488,#6366f1);color:#fff;padding:11px 18px;border-radius:12px;font-weight:700;opacity:0;pointer-events:none;transition:.35s;z-index:50;max-width:92vw}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.err{background:#be123c}
+.capturing *{animation:none!important;transition:none!important}
+.capturing .scroll{overflow:visible!important;max-height:none!important}
+@media (prefers-reduced-motion:reduce){body,.card,.panel,tbody tr,.view.on,.brand h1,.dcard{animation:none!important}}
+@media (max-width:1000px){.charts2,.eg,.xg{grid-template-columns:1fr}}
+@media (max-width:640px){main{padding:12px 10px}.grid2{grid-template-columns:1fr}.dock span{display:none}.dock button{padding:10px 13px}.dc-g{grid-template-columns:1fr 1fr 1fr}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><img class="logo" src="data:image/png;base64,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" alt="HZL" width="66" height="60"><div><h1>HZL RCR</h1><small>Hindustan Zinc · Road cum Rail receipts</small></div></div>
+  <div class="top-r"><span id="status" class="pill">Starting…</span><span id="updated"></span><button id="refresh" class="btn ghost">Refresh</button></div>
+</header>
+
+<main>
+  <!-- DASHBOARD -->
+  <section id="v-dash" class="view on">
+    <div class="toolbar">
+      <input id="f-q" placeholder="Search D.O., colliery, party…" style="width:230px">
+      <select id="f-col"></select>
+      <label class="chk"><input type="checkbox" id="f-hide"> Hide closed</label>
+      <label class="chk">From <input type="date" id="f-from"></label>
+      <label class="chk">To <input type="date" id="f-to"></label>
+      <button id="f-clr" class="btn ghost small">Clear dates</button>
+      <span class="sub" id="scope"></span>
+      <button id="dl" class="btn primary small" style="margin-left:auto">⬇ Download image</button>
+    </div>
+    <div id="alert" class="alert hidden"></div>
+    <div id="dash">
+      <div class="cards" id="cards"></div>
+      <div class="panel">
+        <div class="panel-h"><h2>D.O. summary</h2><span class="sub">Click a row to see its vehicle movements · ⚠ = log differs from Excel totals</span></div>
+        <div class="scroll"><table id="t-do"></table></div>
+      </div>
+      <div class="charts2">
+        <div class="panel"><div class="panel-h"><h2>Daily receipts</h2><span class="sub">Bars: MT per day · line: running total</span></div><div class="cbox"><canvas id="cDaily"></canvas></div></div>
+        <div class="panel"><div class="panel-h"><h2>Position per D.O.</h2><span class="sub">MT received and balance against each D.O.</span></div><div class="cbox"><canvas id="cDo"></canvas></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DATA ENTRY -->
+  <section id="v-entry" class="view">
+    <div class="eg">
+      <div class="panel">
+        <div class="panel-h"><h2>New entry</h2><span class="sub">Date is saved as today</span></div>
+        <form id="mv-f" class="form3" novalidate>
+          <label class="fld"><span>D.O.</span><select name="do_no" id="mv-do"></select></label>
+          <label class="fld"><span>Vehicle No.</span><input name="vehicle_no" style="text-transform:uppercase" placeholder="CG04 JC 1234"></label>
+          <label class="fld"><span>Qty (MT)</span><input name="net_wt" type="number" step="any"></label>
+          <div class="msg" id="mv-msg"></div>
+          <div class="row"><button type="button" class="btn ghost" id="mv-clr">Clear</button><button class="btn primary">Save entry</button></div>
+        </form>
+      </div>
+      <div class="panel">
+        <div class="panel-h"><h2>Entries</h2><span class="sub" id="e-info"></span></div>
+        <div class="entry-tools">
+          <input id="e-q" placeholder="Search vehicle no. or D.O.…">
+          <select id="e-do"></select>
+        </div>
+        <div class="scroll"><table id="t-ent"></table></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOG -->
+  <section id="v-log" class="view">
+    <div class="toolbar">
+      <select id="l-t">
+        <option value="IN">Receipts (IN)</option><option value="ALL">All movements</option>
+        <option value="OUT">Dispatches (OUT)</option><option value="DO">D.O. list</option>
+      </select>
+      <input type="date" id="l-from" title="From"><input type="date" id="l-to" title="To">
+      <select id="l-do"></select>
+      <input id="l-veh" placeholder="Vehicle no." style="width:150px">
+      <button id="l-exp" class="btn small" style="margin-left:auto">⬇ Export Excel</button>
+    </div>
+    <div class="panel">
+      <div class="panel-h"><h2 id="l-title">Receipts</h2>
+        <span class="sub"><span id="l-info"></span> <button id="l-pv" class="btn ghost small">‹ Prev</button> <button id="l-nx" class="btn ghost small">Next ›</button></span></div>
+      <div class="scroll"><table id="t-log"></table></div>
+    </div>
+  </section>
+
+  <!-- EXCEL -->
+  <section id="v-excel" class="view">
+    <div class="xg">
+      <div class="panel"><div class="xs">
+        <div class="drop" id="drop"><b>Drop the RCR Excel here</b><br><small class="muted">or click · .xlsx / .xlsm / .xls</small>
+          <input type="file" id="x-f" accept=".xlsx,.xlsm,.xls" hidden></div>
+        <label class="chk">Sheet <select id="x-s" disabled><option>Choose a file first</option></select></label>
+        <div class="cnt"><div><b id="c-do">0</b>D.O.s found</div><div><b id="c-ok">0</b>Log rows ready</div><div><b id="c-skip">0</b>Rows skipped</div></div>
+        <button id="x-imp" class="btn primary" disabled>Import D.O.s and log</button>
+        <small class="muted">New D.O.s are added automatically; existing ones are updated. Excel rows for the D.O.s in this file are replaced, so uploading the same file again will not duplicate anything. Manual entries and other D.O.s are not changed.</small>
+        <div class="xprog"><i id="x-p"></i></div>
+        <div id="x-msg" class="msg"></div>
+      </div></div>
+      <div class="xr">
+        <div class="panel"><div class="panel-h"><h2>D.O. blocks in this file</h2><span class="sub">Checked against the totals printed in the file</span></div><div class="dcards" id="x-cards"></div></div>
+        <div class="panel"><div class="panel-h"><h2>Log preview</h2><span class="sub" id="x-i"></span></div><div class="scroll"><table id="t-x"></table></div></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<nav class="dock">
+  <button data-v="dash" class="on">📊 <span>Dashboard</span></button>
+  <button data-v="entry">➕ <span>Data entry</span></button>
+  <button data-v="log">🗂 <span>Log</span></button>
+  <button data-v="excel">📤 <span>Excel upload</span></button>
+</nav>
+
+<dialog id="dlg"><h3 id="dlg-t" style="margin:0 0 12px"></h3><div id="dlg-b"></div>
+  <div style="text-align:right;margin-top:12px"><button class="btn ghost" id="dlg-x">Close</button></div></dialog>
+<div id="toast" class="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+/* ===== Config ===== */
+const SB='https://gcedsyxvfmlyujhftiyf.supabase.co';
+const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdjZWRzeXh2Zm1seXVqaGZ0aXlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ2Mjg5ODMsImV4cCI6MjExMDIwNDk4M30.QsFXFMT1zS62UIfdbgtpXJHEicCVglvXHqgvik5Q5Rk';
+const db=window.supabase.createClient(SB,KEY);
+
+/*PARSER_START*/
+/* ===== Pure helpers and Excel parsing (no DOM access at load) ===== */
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num=v=>{if(v==null||v==='')return null;const n=Number(String(v).replace(/,/g,'').trim());return Number.isFinite(n)?n:null};
+const r3=v=>Math.round(v*1000)/1000;
+const p2=n=>String(n).padStart(2,'0');
+const fmt=(y,m,d)=>`${y}-${p2(m)}-${p2(d)}`;
+const iso=d=>fmt(d.getFullYear(),d.getMonth()+1,d.getDate());
+const vOk=(y,m,d)=>{const t=new Date(Date.UTC(y,m-1,d));return t.getUTCFullYear()===y&&t.getUTCMonth()===m-1&&t.getUTCDate()===d};
+const MON={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
+const txt=x=>x==null||String(x).trim()===''?null:String(x).trim();
+const normK=v=>String(v??'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+const fQ=v=>num(v)===null?'–':num(v).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fI=v=>num(v)===null?'–':num(v).toLocaleString('en-IN',{maximumFractionDigits:0});
+/* Indian default DD/MM/YYYY. Ambiguous values are read as DD/MM and flagged. */
+function parseDate(v){
+  if(v==null||v==='')return{iso:null};
+  if(v instanceof Date)return isNaN(v)?{iso:null}:{iso:iso(v)};
+  if(typeof v==='number'&&v>20000&&v<80000){const d=new Date(Math.round((v-25569)*864e5));return{iso:fmt(d.getUTCFullYear(),d.getUTCMonth()+1,d.getUTCDate())}}
+  const s=String(v).trim();
+  let m=s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/);
+  if(m)return vOk(+m[1],+m[2],+m[3])?{iso:fmt(+m[1],+m[2],+m[3])}:{iso:null};
+  m=s.match(/^(\d{1,2})[-\/. ]([A-Za-z]{3})[a-z]*[-\/., ]+(\d{2,4})$/);
+  if(m&&MON[m[2].toLowerCase()]){let y=+m[3];if(y<100)y+=2000;const mo=MON[m[2].toLowerCase()];return vOk(y,mo,+m[1])?{iso:fmt(y,mo,+m[1])}:{iso:null}}
+  m=s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})$/);
+  if(m){let y=+m[3];if(y<100)y+=2000;const a=+m[1],b=+m[2];const dmy=vOk(y,b,a),mdy=vOk(y,a,b);
+    if(dmy&&mdy&&a!==b)return{iso:fmt(y,b,a),amb:true};
+    if(dmy)return{iso:fmt(y,b,a)};if(mdy)return{iso:fmt(y,a,b)};}
+  return{iso:null};
+}
+const pd=s=>{if(!s)return null;const[y,m,d]=String(s).slice(0,10).split('-').map(Number);return new Date(y,m-1,d)};
+const fD=s=>{const d=pd(s);return d?d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'–'};
+const fShort=s=>{const d=pd(s);return d?d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'}):''};
+
+/* Finds every "D.O" block in the sheet, wherever it sits (side by side or stacked).
+   Layout per block: colliery name above the "D.O" label; VALID FROM / VALID TO / TOTAL QTY (value + balance)
+   / RECV QTY / TOTAL TRIP below it; then a Date | Vehicle No | Net Weight table. */
+function parseBlocks(rows){
+  const out=[],seen=new Set();
+  for(let r=0;r<rows.length;r++){
+    const row=rows[r]||[];
+    for(let c=0;c<row.length;c++){
+      if(normK(row[c])!=='DO')continue;
+      const doNo=num(row[c+1]);
+      if(!Number.isInteger(doNo))continue;
+      const b={doNo,colliery:txt(rows[r-1]?.[c]),start:null,end:null,total:null,balance:null,recvFile:null,tripsFile:null,rows:[],issues:[],dup:false};
+      if(seen.has(doNo)){b.dup=true;b.issues.push('D.O. appears twice in this sheet; second block ignored');out.push(b);continue}
+      seen.add(doNo);
+      for(let k=r+1;k<Math.min(rows.length,r+12);k++){
+        const lab=normK(rows[k]?.[c]),v=rows[k]?.[c+1],v2=rows[k]?.[c+2];
+        if(lab==='VALIDFROM')b.start=parseDate(v).iso;
+        else if(lab==='VALIDTO')b.end=parseDate(v).iso;
+        else if(lab==='TOTALQTY'){b.total=num(v);b.balance=num(v2)}
+        else if(lab==='RECVQTY')b.recvFile=num(v);
+        else if(lab==='TOTALTRIP')b.tripsFile=num(v);
+        else if(lab==='DATE'){
+          for(let j=k+1;j<rows.length;j++){
+            const d=rows[j]?.[c];
+            if(d==null||String(d).trim()==='')break;
+            const dt=parseDate(d),net=num(rows[j]?.[c+2]),veh=txt(rows[j]?.[c+1]);
+            b.rows.push({date:dt.iso,vehicle:veh?veh.toUpperCase().replace(/\s+/g,' '):null,net,amb:!!dt.amb,
+              bad:!dt.iso?'bad date':net==null?'no net weight':!veh?'no vehicle':''});
+          }
+          break;
+        }
+      }
+      if(!b.start||!b.end)b.issues.push('valid from / to date not found');
+      if(b.total==null)b.issues.push('total qty not found');
+      out.push(b);
+    }
+  }
+  return out;
+}
+/* Adds computed totals from the good detail rows and compares them with the file's own totals. */
+function summarize(b){
+  const good=b.rows.filter(x=>!x.bad);
+  const recv=r3(good.reduce((s,x)=>s+(x.net||0),0)),trips=good.length;
+  return{...b,recv,trips,skipped:b.rows.length-good.length,avg:trips?r3(recv/trips):0,
+    recvOk:b.recvFile==null||Math.abs(b.recvFile-recv)<0.01,
+    tripsOk:b.tripsFile==null||b.tripsFile===trips};
+}
+/*PARSER_END*/
+
+/* ===== Helpers ===== */
+const exErr=e=>{const s=(e?.message||'')+' '+(e?.code||'');
+  if(/42501|row-level|permission/i.test(s))return'Blocked by database security: run the setup SQL (policies).';
+  if(/42P01|42703|schema cache|does not exist|Could not find/i.test(s))return'Table or column missing: run the setup SQL, then reload.';
+  if(/23505|duplicate/i.test(s))return'Duplicate: this record already exists.';
+  return e?.message||String(e)};
+async function fetchAll(q){let o=[];for(let f=0;;f+=1000){const{data,error}=await q().range(f,f+999);if(error)throw error;o=o.concat(data||[]);if(!data||data.length<1000)break}return o}
+function toast(m,err){const t=$('#toast');t.textContent=m;t.className='toast show'+(err?' err':'');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),3600)}
+function setSt(t,c){const s=$('#status');s.innerHTML='<i class="dot"></i>'+esc(t);s.className='pill '+(c||'')}
+function msg(sel,t,err){const m=$(sel);m.textContent=t||'';m.className='msg'+(err?' err':'')}
+const inRangeFn=()=>{const f=$('#f-from').value,t=$('#f-to').value;return d=>{if(!f&&!t)return true;if(!d)return false;return(!f||d>=f)&&(!t||d<=t)}};
+
+/* ===== State ===== */
+const S={dos:[],mv:[],view:'dash',sort:{k:'do_no',d:1},log:{pg:0},editId:null,xl:{wb:null,blocks:[],msg:'',err:false}};
+const CH={};
+const C={teal:'#0d9488',sky:'#0284c7',amber:'#d97706',sand:'#fcd34d'};
+const STAT={closed:'<span class="st done">Closed</span>',overdue:'<span class="st over">Overdue</span>',ontrack:'<span class="st ok">On track</span>',behind:'<span class="st warn">Behind</span>',open:'<span class="st open">Open</span>'};
+const tick={color:'#64748b',font:{size:11}};
+const grid={color:'rgba(15,23,42,.06)'};
+const base={responsive:true,maintainAspectRatio:false,animation:{duration:900,easing:'easeOutQuart'},
+  plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8,font:{size:11}}},tooltip:{backgroundColor:'#0f172a',padding:10,cornerRadius:10,titleFont:{weight:'700'}}}};
+
+/* ===== Load ===== */
+async function load(){
+  setSt('Loading…');
+  try{
+    const[d,m]=await Promise.all([
+      fetchAll(()=>db.from('hzl_do').select('*').order('do_no')),
+      fetchAll(()=>db.from('hzl_movements').select('*').order('id'))]);
+    S.dos=d;S.mv=m;setSt('Live','live');
+    $('#updated').textContent='Updated '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    fillFilters();
+    if(S.view==='dash')renderDash();
+    if(S.view==='entry')renderEntries();
+    if(S.view==='log')renderLog();
+  }catch(e){setSt('Error','err');toast(exErr(e),true)}
+}
+function fillFilters(){
+  const cur=$('#f-col').value;
+  const cols=[...new Set(S.dos.map(d=>(d.colliery||'').trim()).filter(Boolean))].sort();
+  $('#f-col').innerHTML='<option value="">All collieries</option>'+cols.map(c=>`<option value="${esc(c.toLowerCase())}">${esc(c)}</option>`).join('');
+  $('#f-col').value=cur;
+  const opts=S.dos.map(d=>`<option value="${d.do_no}">${d.do_no} · ${esc(d.colliery||'')}</option>`).join('');
+  const lo=$('#l-do').value;
+  $('#l-do').innerHTML='<option value="">All D.O.s</option>'+opts;$('#l-do').value=lo;
+  const ed=$('#e-do').value;
+  $('#e-do').innerHTML='<option value="">All D.O.s</option>'+opts;$('#e-do').value=ed;
+  const md=$('#mv-do').value;
+  $('#mv-do').innerHTML='<option value="">Select D.O.</option>'+opts;$('#mv-do').value=md;
+}
+
+/* ===== Dashboard calculations ===== */
+function rowsFor(){
+  const inR=inRangeFn(),A={};
+  for(const x of S.mv){
+    if(x.direction!=='IN'||!inR(x.mv_date))continue;
+    const k=String(x.do_no),a=A[k]||(A[k]={rec:0,trips:0});
+    a.rec+=num(x.net_wt)||0;a.trips++;
+  }
+  const asOf=pd($('#f-to').value||iso(new Date()));
+  return S.dos.map(d=>{
+    const a=A[String(d.do_no)]||{rec:0,trips:0};
+    const q=num(d.do_qty)||0,rec=r3(a.rec),bal=r3(Math.max(0,q-rec));
+    const L=pd(d.lapsing_date),St=pd(d.issue_date);
+    const dl=L?Math.round((L-asOf)/864e5):null;
+    const elapsed=St?Math.max(1,Math.round((asOf-St)/864e5)+1):null;
+    const pace=elapsed?r3(rec/elapsed):null;
+    const need=dl!=null&&dl>0&&bal>0?r3(bal/dl):null;
+    const closed=bal<=.005;
+    let status;
+    if(closed)status='closed';
+    else if(dl!=null&&dl<0)status='overdue';
+    else if(need==null||pace==null)status='open';
+    else status=pace>=need?'ontrack':'behind';
+    const fr=num(d.file_recv),ft=num(d.file_trips);
+    const reconOk=(fr==null||Math.abs(fr-rec)<0.01)&&(ft==null||ft===a.trips);
+    return{...d,do_no:Number(d.do_no),q,rec,trips:a.trips,bal,dl,pace,need,avg:a.trips?r3(rec/a.trips):0,
+      pct:q?Math.min(100,rec/q*100):0,closed,status,reconOk,file_recv:fr,file_trips:ft};
+  });
+}
+function visibleRows(all){
+  const q=$('#f-q').value.trim().toLowerCase(),c=$('#f-col').value,h=$('#f-hide').checked;
+  const k=S.sort.k,dir=S.sort.d;
+  return all.filter(x=>(!c||(x.colliery||'').trim().toLowerCase()===c)&&(!h||!x.closed)&&(!q||[x.do_no,x.colliery,x.party_name].join(' ').toLowerCase().includes(q)))
+    .sort((a,b)=>{const x=a[k],y=b[k];if(x==null)return 1;if(y==null)return -1;return(typeof x==='number'?x-y:String(x).localeCompare(String(y),'en-IN',{numeric:true}))*dir});
+}
+
+/* ===== Dashboard render ===== */
+const COLS=[['do_no','D.O. No.',''],['colliery','Colliery',''],['issue_date','Start',''],['lapsing_date','End',''],
+  ['q','Total qty',' num'],['rec','Recv qty',' num'],['bal','Balance',' num'],['trips','Trips',' num'],['avg','Avg / trip',' num'],
+  ['pct','Recovery',''],['pace','Pace / day',' num'],['need','Need / day',' num'],['dl','Days left',' num'],['status','Status','']];
+function fmtBy(f,v){
+  if(f==='p')return (Number(v)||0).toFixed(1)+'%';
+  if(f==='i')return fI(v);
+  return fQ(v);
+}
+function renderDash(){
+  const all=rowsFor(),R=visibleRows(all);
+  const sum=(a,k)=>a.reduce((s,x)=>s+(x[k]||0),0);
+  const Q=sum(R,'q'),REC=sum(R,'rec'),BAL=sum(R,'bal'),TR=sum(R,'trips');
+  const openN=R.filter(x=>!x.closed).length;
+  const nextL=R.filter(x=>!x.closed&&x.dl!=null&&x.dl>=0).sort((a,b)=>a.dl-b.dl)[0];
+  const attn=R.filter(x=>x.status==='overdue'||x.status==='behind').length;
+  const pct=Q?REC/Q*100:0,avg=TR?REC/TR:0;
+  $('#scope').textContent=`${R.length} of ${all.length} D.O.s`;
+
+  const cards=[
+    ['Total D.O. qty',Q,'teal',`${R.length} D.O.s · ${openN} open`,'q'],
+    ['Received',REC,'sky',`${fI(TR)} trips`,'q'],
+    ['Balance',BAL,'amber',nextL?`Next lapse: D.O. ${nextL.do_no} in ${nextL.dl} d`:'No open lapse dates','q'],
+    ['Recovery',pct,'green','Received ÷ total qty','p'],
+    ['Avg load / trip',avg,'violet','MT per trip','q'],
+    ['Need attention',attn,'rose','Overdue or behind pace','i']];
+  $('#cards').innerHTML=cards.map((c,i)=>`<div class="card ${c[2]}" style="--i:${i}"><span>${c[0]}</span><b data-v="${c[1]}" data-f="${c[4]}">${fmtBy(c[4],c[1])}</b><small>${c[3]}</small></div>`).join('');
+  $$('#cards b').forEach(el=>{const to=num(el.dataset.v)||0,f=el.dataset.f,t0=performance.now();
+    const step=t=>{const p=Math.min(1,(t-t0)/900),v=to*(1-Math.pow(1-p,3));el.textContent=fmtBy(f,v);if(p<1)requestAnimationFrame(step)};requestAnimationFrame(step)});
+
+  const head=COLS.map(([k,l,c])=>`<th data-k="${k}" class="so${c}">${l}${S.sort.k===k?(S.sort.d>0?' ▲':' ▼'):''}</th>`).join('');
+  const body=R.map((x,i)=>`<tr class="clickable ${x.closed?'done':''}" data-do="${x.do_no}" style="--d:${Math.min(i,40)*18}ms">
+    <td class="id">${x.do_no}</td><td>${esc(x.colliery||'–')}</td><td>${fD(x.issue_date)}</td><td>${fD(x.lapsing_date)}</td>
+    <td class="num">${fQ(x.q)}</td>
+    <td class="num">${fQ(x.rec)}${x.reconOk?'':`<span class="warnmark" title="Excel says recv ${fQ(x.file_recv)} MT and ${fI(x.file_trips)} trips">⚠</span>`}</td>
+    <td class="num ${x.bal>0?'':'muted'}">${fQ(x.bal)}</td><td class="num">${fI(x.trips)}</td><td class="num">${fQ(x.avg)}</td>
+    <td><div class="prog"><i style="--w:${x.pct.toFixed(1)}%"></i></div><small class="muted">${x.pct.toFixed(1)}%</small></td>
+    <td class="num">${fQ(x.pace)}</td><td class="num">${fQ(x.need)}</td>
+    <td class="num ${x.dl!=null&&x.dl<0?'neg':''}">${x.dl==null?'–':x.dl}</td>
+    <td>${STAT[x.status]}</td></tr>`).join('');
+  $('#t-do').innerHTML=`<thead><tr>${head}</tr></thead>`+
+    (R.length?`<tbody>${body}</tbody><tfoot><tr><td>Total · ${R.length}</td><td></td><td></td><td></td>
+      <td class="num">${fQ(Q)}</td><td class="num">${fQ(REC)}</td><td class="num">${fQ(BAL)}</td><td class="num">${fI(TR)}</td><td class="num">${fQ(avg)}</td>
+      <td>${pct.toFixed(1)}%</td><td></td><td></td><td></td><td></td></tr></tfoot>`
+      :'<tbody><tr><td colspan="14" class="muted" style="text-align:center;padding:30px">No D.O.s match. Upload the Excel to add D.O.s.</td></tr></tbody>');
+
+  const unk=[...new Set(S.mv.map(x=>String(x.do_no)).filter(k=>!S.dos.some(d=>String(d.do_no)===k)))];
+  const mism=all.filter(x=>!x.reconOk).map(x=>x.do_no);
+  let ah='';
+  if(unk.length)ah+=`<div>⚠ D.O. ${esc(unk.join(', '))} is in the log but not in the D.O. list. Upload the Excel to add it.</div>`;
+  if(mism.length)ah+=`<div>⚠ The log differs from the Excel totals for D.O. ${mism.join(', ')}. Hover the ⚠ in the summary for the file's figures.</div>`;
+  $('#alert').innerHTML=ah;$('#alert').classList.toggle('hidden',!ah);
+
+  try{drawCharts(R)}catch(e){toast('Charts could not load: '+e.message,true)}
+}
+function put(id,cfg){
+  if(!window.Chart)throw new Error('chart library not loaded');
+  if(CH[id]){CH[id].data=cfg.data;CH[id].options=cfg.options;CH[id].update()}
+  else CH[id]=new Chart($('#'+id),cfg);
+}
+function drawCharts(R){
+  const inR=inRangeFn();
+  const ids=new Set(R.map(x=>x.do_no));
+  const mv=S.mv.filter(x=>x.direction==='IN'&&inR(x.mv_date)&&ids.has(Number(x.do_no)));
+  const tipBase={...base.plugins.tooltip};
+
+  /* Daily receipts: bars + cumulative line */
+  const dm={};mv.forEach(x=>{const a=dm[x.mv_date]||(dm[x.mv_date]={net:0,trips:0});a.net+=num(x.net_wt)||0;a.trips++});
+  const dk=Object.keys(dm).sort();let cum=0;
+  const dCum=dk.map(k=>{cum+=dm[k].net;return r3(cum)});
+  put('cDaily',{type:'bar',data:{labels:dk.map(fShort),datasets:[
+      {type:'bar',label:'MT per day',data:dk.map(k=>r3(dm[k].net)),backgroundColor:'rgba(13,148,136,.78)',borderRadius:6,yAxisID:'y',order:2},
+      {type:'line',label:'Cumulative MT',data:dCum,borderColor:'#7c3aed',backgroundColor:'rgba(124,58,237,.12)',fill:true,tension:.35,pointRadius:2,yAxisID:'y1',order:1}]},
+    options:{...base,interaction:{mode:'index',intersect:false},
+      plugins:{...base.plugins,tooltip:{...tipBase,callbacks:{afterBody:it=>{const k=dk[it[0].dataIndex];return k?`${dm[k].trips} trips`:''}}}},
+      scales:{x:{grid:{display:false},ticks:tick},y:{position:'left',grid,ticks:tick,beginAtZero:true,title:{display:true,text:'MT per day',color:'#64748b'}},
+        y1:{position:'right',grid:{display:false},ticks:tick,beginAtZero:true,title:{display:true,text:'Cumulative MT',color:'#64748b'}}}}});
+
+  /* Position per D.O. stacked bars */
+  const dsr=[...R].sort((a,b)=>a.do_no-b.do_no);
+  put('cDo',{type:'bar',data:{labels:dsr.map(x=>String(x.do_no)),datasets:[
+      {label:'Received',data:dsr.map(x=>x.rec),backgroundColor:C.teal,borderRadius:5},
+      {label:'Balance',data:dsr.map(x=>x.bal),backgroundColor:C.sand,borderRadius:5}]},
+    options:{...base,indexAxis:'y',plugins:{...base.plugins,tooltip:{...tipBase,callbacks:{footer:it=>{const x=dsr[it[0].dataIndex];return x?`Total ${fQ(x.q)} MT · ${x.pct.toFixed(1)}% received`:''}}}},
+      scales:{x:{stacked:true,grid,ticks:tick,title:{display:true,text:'MT',color:'#64748b'}},y:{stacked:true,grid:{display:false},ticks:{color:'#334155',font:{size:11,weight:'600'}}}}}});
+}
+
+function drill(doNo){
+  const rows=S.mv.filter(x=>String(x.do_no)===String(doNo)).sort((a,b)=>(b.mv_date||'').localeCompare(a.mv_date||'')||b.id-a.id);
+  const d=S.dos.find(x=>String(x.do_no)===String(doNo));
+  $('#dlg-t').textContent=`D.O. ${doNo}${d?' · '+(d.colliery||''):''}`;
+  $('#dlg-b').innerHTML=`<div class="scroll" style="max-height:60vh"><table><thead><tr><th>Date</th><th>Vehicle No</th><th class="num">Net Wt (MT)</th><th>Type</th><th>RR No.</th><th>Source</th></tr></thead><tbody>`+
+    (rows.length?rows.map(r=>`<tr><td>${fD(r.mv_date)}</td><td class="id">${esc(r.vehicle_no||'–')}</td><td class="num">${fQ(r.net_wt)}</td><td><span class="badge ${r.direction}">${r.direction}</span></td><td>${esc(r.rr_no||'–')}</td><td class="src ${r.source==='EXCEL'?'xl':''}">${esc(r.source||'')}</td></tr>`).join('')
+      :'<tr><td colspan="6" class="muted" style="text-align:center">No movements yet.</td></tr>')+'</tbody></table></div>';
+  $('#dlg').showModal();
+}
+async function capture(){
+  if(!window.html2canvas)return toast('Image library did not load',true);
+  toast('Preparing image…');
+  document.body.classList.add('capturing');
+  await new Promise(r=>setTimeout(r,120));
+  try{
+    const el=$('#dash');
+    const w=Math.max(el.scrollWidth,el.offsetWidth),h=el.scrollHeight;
+    const sc=Math.max(.5,Math.min(2,15000/w,15000/h));
+    const cv=await html2canvas(el,{backgroundColor:'#f6f8fc',scale:sc,useCORS:true,logging:false,width:w,height:h,windowWidth:w,windowHeight:h});
+    cv.toBlob(b=>{const a=document.createElement('a');a.download=`hzl-rcr-dashboard-${iso(new Date())}.png`;a.href=URL.createObjectURL(b);document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000);toast('Image downloaded')},'image/png');
+  }catch(e){toast('Image failed: '+(e.message||e),true)}
+  finally{document.body.classList.remove('capturing')}
+}
+
+/* ===== Data entry: D.O. / vehicle / qty, with search and update ===== */
+const doOpts=sel=>'<option value="">Select D.O.</option>'+S.dos.map(d=>`<option value="${d.do_no}" ${String(d.do_no)===String(sel)?'selected':''}>${d.do_no} · ${esc(d.colliery||'')}</option>`).join('');
+function renderEntries(){
+  const q=$('#e-q').value.trim().toUpperCase(),dn=$('#e-do').value;
+  const rows=S.mv.filter(x=>x.direction==='IN'&&x.source==='MANUAL'&&(!dn||String(x.do_no)===dn)&&(!q||(x.vehicle_no||'').includes(q)||String(x.do_no).includes(q)))
+    .sort((a,b)=>(b.mv_date||'').localeCompare(a.mv_date||'')||b.id-a.id);
+  const manualN=S.mv.filter(x=>x.direction==='IN'&&x.source==='MANUAL').length;
+  $('#e-info').textContent=`${rows.length} shown · ${manualN} manual entries in total`;
+  $('#t-ent').innerHTML='<thead><tr><th>Date</th><th>D.O.</th><th>Vehicle No</th><th class="num">Qty (MT)</th><th></th></tr></thead><tbody>'+
+    (rows.length?rows.map(r=>S.editId===String(r.id)
+        ?`<tr><td>${fD(r.mv_date)}</td><td><select id="ed-do">${doOpts(r.do_no)}</select></td><td><input id="ed-veh" value="${esc(r.vehicle_no||'')}" style="width:140px;text-transform:uppercase"></td><td><input id="ed-qty" type="number" step="any" value="${r.net_wt??''}" style="width:100px"></td><td><button class="btn small primary" data-e="save" data-id="${r.id}">Save</button> <button class="btn small" data-e="cancel">Cancel</button></td></tr>`
+        :`<tr><td>${fD(r.mv_date)}</td><td class="id">${r.do_no}</td><td class="id">${esc(r.vehicle_no||'–')}</td><td class="num">${fQ(r.net_wt)}</td><td><button class="btn small" data-e="edit" data-id="${r.id}">Edit</button> <button class="btn small red" data-e="del" data-id="${r.id}">Delete</button></td></tr>`).join('')
+      :'<tr><td colspan="5" class="muted" style="text-align:center;padding:24px">No entries match.</td></tr>')+'</tbody>';
+}
+function setupEntry(){
+  $('#mv-f').addEventListener('submit',async e=>{e.preventDefault();
+    const f=e.target,dn=num(f.elements.do_no.value),veh=txt(f.elements.vehicle_no.value),qty=num(f.elements.net_wt.value);
+    if(!Number.isInteger(dn))return msg('#mv-msg','Select a D.O.',true);
+    if(!veh)return msg('#mv-msg','Enter the vehicle number',true);
+    if(qty==null||qty<=0)return msg('#mv-msg','Enter the quantity in MT',true);
+    const{error}=await db.from('hzl_movements').insert({direction:'IN',do_no:dn,mv_date:iso(new Date()),vehicle_no:veh.toUpperCase().replace(/\s+/g,' '),net_wt:qty,source:'MANUAL'});
+    if(error)return msg('#mv-msg',exErr(error),true);
+    toast('Entry saved');msg('#mv-msg','');
+    f.elements.vehicle_no.value='';f.elements.net_wt.value='';f.elements.vehicle_no.focus();
+    await load();});
+  $('#mv-clr').onclick=()=>{$('#mv-f').reset();msg('#mv-msg','')};
+  ['#e-q','#e-do'].forEach(s=>$(s).addEventListener('input',renderEntries));
+  $('#t-ent').addEventListener('click',async e=>{const b=e.target.closest('button[data-e]');if(!b)return;const a=b.dataset.e,id=b.dataset.id;
+    if(a==='edit'){S.editId=id;renderEntries();return}
+    if(a==='cancel'){S.editId=null;renderEntries();return}
+    if(a==='save'){
+      const dn=num($('#ed-do').value),veh=txt($('#ed-veh').value),qty=num($('#ed-qty').value);
+      if(!Number.isInteger(dn))return toast('Select a D.O.',true);
+      if(!veh)return toast('Vehicle number is required',true);
+      if(qty==null||qty<=0)return toast('Qty must be above 0',true);
+      const{error}=await db.from('hzl_movements').update({do_no:dn,vehicle_no:veh.toUpperCase().replace(/\s+/g,' '),net_wt:qty}).eq('id',id);
+      if(error)return toast(exErr(error),true);
+      toast('Entry updated');S.editId=null;await load();return}
+    if(a==='del'){if(!confirm('Delete this entry?'))return;
+      const{error}=await db.from('hzl_movements').delete().eq('id',id);
+      if(error)return toast(exErr(error),true);toast('Entry deleted');await load()}
+  });
+}
+
+/* ===== Log ===== */
+function logRows(){
+  const t=$('#l-t').value,from=$('#l-from').value,to=$('#l-to').value,dn=$('#l-do').value,veh=$('#l-veh').value.trim().toUpperCase();
+  if(t==='DO')return S.dos.filter(d=>!dn||String(d.do_no)===dn);
+  return S.mv.filter(x=>(t==='ALL'||x.direction===t)&&(!from||x.mv_date>=from)&&(!to||x.mv_date<=to)&&(!dn||String(x.do_no)===dn)
+    &&(!veh||(x.vehicle_no||'').includes(veh)))
+    .sort((a,b)=>(b.mv_date||'').localeCompare(a.mv_date||'')||b.id-a.id);
+}
+function renderLog(){
+  const t=$('#l-t').value,PS=200,all=logRows(),pg=S.log.pg,slice=all.slice(pg*PS,pg*PS+PS);
+  $('#l-pv').disabled=pg===0;$('#l-nx').disabled=(pg+1)*PS>=all.length;
+  if(t==='DO'){
+    $('#l-title').textContent='D.O. list';
+    $('#l-info').textContent=`${all.length} D.O.(s)`;
+    $('#t-log').innerHTML='<thead><tr><th>D.O. No.</th><th>Colliery</th><th>Start</th><th>End</th><th class="num">Total qty</th><th class="num">Excel recv</th><th class="num">Excel trips</th><th>Party</th></tr></thead><tbody>'+
+      (all.length?all.slice(pg*PS,pg*PS+PS).map(d=>`<tr><td class="id">${d.do_no}</td><td>${esc(d.colliery||'–')}</td><td>${fD(d.issue_date)}</td><td>${fD(d.lapsing_date)}</td><td class="num">${fQ(d.do_qty)}</td><td class="num">${fQ(d.file_recv)}</td><td class="num">${fI(d.file_trips)}</td><td>${esc(d.party_name||'–')}</td></tr>`).join('')
+        :'<tr><td colspan="8" class="muted" style="text-align:center;padding:24px">No D.O.s yet. Upload the Excel.</td></tr>')+'</tbody>';
+    return;
+  }
+  const net=all.reduce((s,r)=>s+(num(r.net_wt)||0),0);
+  $('#l-title').textContent=t==='IN'?'Receipts (IN)':t==='OUT'?'Dispatches (OUT)':'All movements';
+  $('#l-info').textContent=`${fI(all.length)} row(s) · ${fQ(net)} MT · showing ${all.length?pg*PS+1:0}–${pg*PS+slice.length}   `;
+  $('#t-log').innerHTML='<thead><tr><th>Date</th><th>Vehicle No</th><th class="num">Net Wt (MT)</th><th>D.O. No.</th><th>Type</th><th>RR No.</th><th class="num">Gross</th><th class="num">Tare</th><th>Source</th><th></th></tr></thead><tbody>'+
+    (slice.length?slice.map(r=>`<tr><td>${fD(r.mv_date)}</td><td class="id">${esc(r.vehicle_no||'–')}</td><td class="num">${fQ(r.net_wt)}</td><td>${r.do_no}</td><td><span class="badge ${r.direction}">${r.direction}</span></td><td>${esc(r.rr_no||'–')}</td><td class="num">${fQ(r.gross_wt)}</td><td class="num">${fQ(r.tare_wt)}</td><td class="src ${r.source==='EXCEL'?'xl':''}">${esc(r.source||'')}</td>
+      <td><button class="btn small" data-a="edit" data-id="${r.id}">Edit</button> <button class="btn small red" data-a="del" data-id="${r.id}">Delete</button></td></tr>`).join('')
+      :'<tr><td colspan="10" class="muted" style="text-align:center;padding:24px">No records match.</td></tr>')+'</tbody>';
+}
+function mvFields(r){
+  const v=k=>esc(r[k]??'');
+  return `<label class="fld"><span>Type</span><select name="direction"><option value="IN" ${r.direction!=='OUT'?'selected':''}>IN · Receipt</option><option value="OUT" ${r.direction==='OUT'?'selected':''}>OUT · Dispatch</option></select></label>
+  <label class="fld"><span>Date</span><input name="mv_date" value="${v('mv_date')}" placeholder="dd-mm-yyyy"></label>
+  <label class="fld"><span>D.O. No.</span><input name="do_no" value="${v('do_no')}"></label>
+  <label class="fld"><span>Vehicle No.</span><input name="vehicle_no" value="${v('vehicle_no')}"></label>
+  <label class="fld"><span>RR No.</span><input name="rr_no" value="${v('rr_no')}"></label>
+  <label class="fld"><span>Unique No.</span><input name="unique_no" value="${v('unique_no')}"></label>
+  <label class="fld"><span>Gross (MT)</span><input name="gross_wt" type="number" step="any" value="${v('gross_wt')}"></label>
+  <label class="fld"><span>Tare (MT)</span><input name="tare_wt" type="number" step="any" value="${v('tare_wt')}"></label>
+  <label class="fld" style="grid-column:1/-1"><span>Net (MT)</span><input name="net_wt" type="number" step="any" value="${v('net_wt')}"></label>`;
+}
+function readMv(f){
+  const g=k=>(f.elements[k]?.value||'').trim();
+  const dn=num(g('do_no'));if(!Number.isInteger(dn))return{err:'D.O. No is required (whole number)'};
+  const d=parseDate(g('mv_date'));if(!d.iso)return{err:'Enter a valid date (dd-mm-yyyy)'};
+  const gross=num(g('gross_wt')),tare=num(g('tare_wt'));let net=num(g('net_wt'));
+  if(net===null&&gross!==null&&tare!==null)net=r3(gross-tare);
+  if(net===null)return{err:'Enter net weight, or gross and tare'};
+  return{p:{direction:g('direction')==='OUT'?'OUT':'IN',do_no:dn,mv_date:d.iso,vehicle_no:txt(g('vehicle_no'))?.toUpperCase()||null,rr_no:txt(g('rr_no')),unique_no:txt(g('unique_no')),gross_wt:gross,tare_wt:tare,net_wt:net}};
+}
+function setupLog(){
+  ['#l-t','#l-from','#l-to','#l-do','#l-veh'].forEach(s=>$(s).addEventListener('input',()=>{S.log.pg=0;renderLog()}));
+  $('#l-pv').onclick=()=>{S.log.pg--;renderLog()};$('#l-nx').onclick=()=>{S.log.pg++;renderLog()};
+  $('#l-exp').onclick=()=>{const t=$('#l-t').value,rows=logRows();
+    const data=t==='DO'?rows.map(d=>({'D.O. No.':d.do_no,Colliery:d.colliery,Party:d.party_name,Start:d.issue_date,End:d.lapsing_date,'Total qty':d.do_qty,'Excel recv':d.file_recv,'Excel trips':d.file_trips}))
+      :rows.map(r=>({Date:r.mv_date,'Vehicle No':r.vehicle_no,'Net Wt (MT)':r.net_wt,'D.O. No.':r.do_no,Type:r.direction,'RR No.':r.rr_no,Gross:r.gross_wt,Tare:r.tare_wt,Source:r.source}));
+    const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(data),'Log');
+    XLSX.writeFile(wb,`hzl-rcr-${t.toLowerCase()}-${iso(new Date())}.xlsx`)};
+  $('#t-log').addEventListener('click',async e=>{const b=e.target.closest('button[data-a]');if(!b)return;const a=b.dataset.a,id=b.dataset.id;
+    if(a==='del'){if(!confirm('Delete this entry permanently?'))return;const{error}=await db.from('hzl_movements').delete().eq('id',id);
+      if(error)return toast(exErr(error),true);toast('Deleted');await load();return}
+    const r=S.mv.find(x=>String(x.id)===id);if(!r)return;
+    $('#dlg-t').textContent=`Edit · ${r.vehicle_no||'entry'} · ${fD(r.mv_date)}`;
+    $('#dlg-b').innerHTML=`<form id="dlg-f" class="grid2">${mvFields(r)}<div class="msg" style="grid-column:1/-1" id="dlg-msg"></div><div class="row" style="grid-column:1/-1"><button class="btn primary">Save changes</button></div></form>`;
+    $('#dlg').showModal();
+    $('#dlg-f').onsubmit=async ev=>{ev.preventDefault();const rr=readMv(ev.target);if(rr.err)return msg('#dlg-msg',rr.err,true);
+      const{error}=await db.from('hzl_movements').update(rr.p).eq('id',id);
+      if(error)return msg('#dlg-msg',exErr(error),true);toast('Changes saved');$('#dlg').close();await load()};
+  });
+}
+
+/* ===== Excel upload ===== */
+function readXl(file){
+  const rd=new FileReader();
+  rd.onload=e=>{
+    try{S.xl.wb=XLSX.read(e.target.result,{type:'array'})}
+    catch(x){return toast('Cannot read file: '+x.message,true)}
+    const s=$('#x-s');s.disabled=false;s.innerHTML=S.xl.wb.SheetNames.map(n=>`<option>${esc(n)}</option>`).join('');
+    parseXl();
+  };
+  rd.readAsArrayBuffer(file);
+}
+function parseXl(){
+  const name=$('#x-s').value||S.xl.wb.SheetNames[0];
+  const rows=XLSX.utils.sheet_to_json(S.xl.wb.Sheets[name],{header:1,raw:true,defval:null,blankrows:true});
+  S.xl.blocks=parseBlocks(rows).map(summarize);
+  S.xl.err=!S.xl.blocks.length;
+  S.xl.msg=S.xl.blocks.length?'':'No "D.O" blocks found in this sheet. Pick another sheet, or check the file layout.';
+  drawXl();
+}
+function drawXl(){
+  const B=S.xl.blocks.filter(b=>!b.dup);
+  const flat=B.flatMap(b=>b.rows.map(x=>({...x,doNo:b.doNo})));
+  const ok=flat.filter(x=>!x.bad).length,skip=flat.length-ok;
+  $('#c-do').textContent=fI(B.length);$('#c-ok').textContent=fI(ok);$('#c-skip').textContent=fI(skip);
+  $('#x-imp').disabled=!B.length||!ok;
+  msg('#x-msg',S.xl.msg,S.xl.err);
+  $('#x-cards').innerHTML=B.length?B.map(b=>{
+    const badN=b.rows.filter(x=>x.bad).length;
+    const warn=!b.recvOk||!b.tripsOk||b.issues.length||badN>0;
+    const note=b.recvOk&&b.tripsOk?"Matches the file's totals":`File says ${fQ(b.recvFile)} MT and ${fI(b.tripsFile)} trips`;
+    return `<div class="dcard ${warn?'warn':''}">
+      <div class="dc-h"><b>D.O. ${b.doNo}</b><span>${esc(b.colliery||'')}</span></div>
+      <div class="dc-d">${fD(b.start)} → ${fD(b.end)}</div>
+      <div class="dc-g"><div><small>Total qty</small><b>${fQ(b.total)}</b></div><div><small>Recv (sum)</small><b>${fQ(b.recv)}</b></div><div><small>Trips</small><b>${fI(b.trips)}</b></div></div>
+      <div class="dc-f">${warn?'⚠ ':'✓ '}${note}${badN?` · ${badN} row(s) skipped`:''}${b.issues.length?` · ${esc(b.issues.join('; '))}`:''}</div></div>`;
+  }).join(''):'<p class="muted" style="padding:6px">Upload a file to see its D.O. blocks.</p>';
+  const show=flat.slice(0,200);
+  $('#x-i').textContent=`${fI(flat.length)} rows · showing ${fI(show.length)}`;
+  $('#t-x').innerHTML='<thead><tr><th>D.O.</th><th>Date</th><th>Vehicle No</th><th class="num">Net Wt (MT)</th><th>Check</th></tr></thead><tbody>'+
+    (show.length?show.map(x=>`<tr class="${x.bad?'badrow':''}"><td class="id">${x.doNo}</td><td>${fD(x.date)}</td><td class="id">${esc(x.vehicle||'–')}</td><td class="num">${fQ(x.net)}</td><td>${x.bad?`<span class="st warn">${esc(x.bad)}</span>`:'<span class="st ok">OK</span>'}</td></tr>`).join('')
+      :'<tr><td colspan="5" class="muted" style="text-align:center;padding:24px">Nothing to preview.</td></tr>')+'</tbody>';
+}
+async function impXl(){
+  const B=S.xl.blocks.filter(b=>!b.dup);
+  const ins=B.flatMap(b=>b.rows.filter(x=>!x.bad).map(x=>({direction:'IN',do_no:b.doNo,mv_date:x.date,vehicle_no:x.vehicle,net_wt:x.net,source:'EXCEL'})));
+  if(!B.length||!ins.length)return;
+  if(!confirm(`Import ${B.length} D.O.(s) and ${fI(ins.length)} log rows?\n\nExcel rows for these D.O.s are replaced. Manual entries and other D.O.s are not changed.`))return;
+  $('#x-imp').disabled=true;let n=0;
+  $('#x-p').style.width='0';
+  try{
+    const dos=B.map(b=>({do_no:b.doNo,colliery:b.colliery,issue_date:b.start,lapsing_date:b.end,do_qty:b.total,file_recv:b.recvFile,file_trips:b.tripsFile,updated_at:new Date().toISOString()}));
+    const{error:e1}=await db.from('hzl_do').upsert(dos,{onConflict:'do_no'});if(e1)throw e1;
+    const{error:e2}=await db.from('hzl_movements').delete().in('do_no',B.map(b=>b.doNo)).eq('source','EXCEL');if(e2)throw e2;
+    for(let i=0;i<ins.length;i+=500){
+      const ch=ins.slice(i,i+500);
+      const{error}=await db.from('hzl_movements').insert(ch);if(error)throw error;
+      n+=ch.length;$('#x-p').style.width=(n/ins.length*100)+'%';
+    }
+    S.xl.blocks=[];S.xl.err=false;S.xl.msg=`Imported ${fI(B.length)} D.O.(s) and ${fI(n)} log rows.`;
+    toast(`Excel imported: ${fI(n)} rows`);
+  }catch(e){S.xl.err=true;S.xl.msg=`Stopped after ${fI(n)} rows: ${exErr(e)}`;toast(S.xl.msg,true)}
+  finally{await load();setTimeout(()=>$('#x-p').style.width='0',1500);drawXl()}
+}
+function setupExcel(){
+  const dp=$('#drop');dp.onclick=()=>$('#x-f').click();
+  $('#x-f').onchange=e=>{const f=e.target.files[0];e.target.value='';f&&readXl(f)};
+  ['dragover','drop'].forEach(v=>dp.addEventListener(v,e=>e.preventDefault()));
+  dp.addEventListener('drop',e=>e.dataTransfer.files[0]&&readXl(e.dataTransfer.files[0]));
+  $('#x-s').onchange=parseXl;$('#x-imp').onclick=impXl;
+}
+
+/* ===== Navigation and init ===== */
+const VIEWS=['dash','entry','log','excel'];
+function show(v){
+  S.view=v;
+  $$('.dock button').forEach((b,i)=>b.classList.toggle('on',VIEWS[i]===v));
+  VIEWS.forEach(n=>$('#v-'+n).classList.toggle('on',n===v));
+  if(v==='log')renderLog();
+  if(v==='dash')renderDash();
+  if(v==='entry')renderEntries();
+}
+function init(){
+  $$('.dock button').forEach((b,i)=>b.onclick=()=>show(VIEWS[i]));
+  $('#t-do').addEventListener('click',e=>{const th=e.target.closest('th.so');if(th){const k=th.dataset.k;S.sort.k===k?S.sort.d*=-1:(S.sort={k,d:1});renderDash();return}
+    const tr=e.target.closest('tr[data-do]');if(tr)drill(tr.dataset.do)});
+  ['#f-q','#f-col','#f-hide','#f-from','#f-to'].forEach(s=>$(s).addEventListener('input',()=>renderDash()));
+  $('#f-clr').onclick=()=>{$('#f-from').value='';$('#f-to').value='';renderDash()};
+  $('#dl').onclick=capture;$('#refresh').onclick=load;$('#dlg-x').onclick=()=>$('#dlg').close();
+  $('#dlg').addEventListener('click',e=>{if(e.target.id==='dlg')$('#dlg').close()});
+  setupEntry();setupLog();setupExcel();
+  drawXl();
+  load();setInterval(()=>{if(!S.editId&&(S.view==='dash'||S.view==='log'||S.view==='entry'))load()},60000);
+}
+init();
+</script>
+</body></html>
