@@ -1852,9 +1852,10 @@ async function computeDashboard(period = PERIOD) {
   const perMt = v => rrTotal ? v / rrTotal : 0;
   const punSum = sumOf(recs, r => r.pol_group), ehbcSum = sumOf(recs, r => r.ehbc_group);
   const enhcSum = sumOf(recs, r => r.enhc_charge), deadSum = sumOf(recs, r => r.dead_fr_chg);
-  const ulChgSum = sumOf(recs, r => r.ul_on_us), olChgSum = sumOf(recs, r => r.ol_ch);
-  const totalPen = ulChgSum + olChgSum + punSum + ehbcSum + enhcSum;
-  const pen5 = totalPen * FORMULAS.penaltyPct / 100;
+ const ulChgSum = sumOf(recs, r => r.ul_ch), olChgSum = sumOf(recs, r => r.ol_ch);
+const ulOnUsSum = sumOf(recs, r => r.ul_on_us);          // added directly, not in Total Penalty
+const totalPen = ulChgSum + olChgSum + punSum + ehbcSum + enhcSum;
+const pen5 = totalPen * FORMULAS.penaltyPct / 100 + ulOnUsSum;
   out.ulChg = ulChgSum; out.ulChgMt = perMt(ulChgSum);
   out.olChg = olChgSum; out.olChgMt = perMt(olChgSum);
   out.punSum = punSum; out.punSumMt = perMt(punSum);
