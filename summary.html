@@ -197,6 +197,7 @@ var NSB='https://gcedsyxvfmlyujhftiyf.supabase.co';
 var NKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdjZWRzeXh2Zm1seXVqaGZ0aXlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ2Mjg5ODMsImV4cCI6MjExMDIwNDk4M30.QsFXFMT1zS62UIfdbgtpXJHEicCVglvXHqgvik5Q5Rk';
 
 var ORDER=['NALCO','GUJRAT POWER','JHABUA','BALCO','HZL'];
+var EXTRA_PCT={HZL:5};
 var COL={'NALCO':'#f07bb0','GUJRAT POWER':'#f7934a','JHABUA':'#2fc7c7','BALCO':'#7ea4f2','HZL':'#9acd32'};
 var SERIES=[{k:'up',n:'Underload',c:'var(--under)'},{k:'op',n:'Overload',c:'var(--over)'},{k:'en',n:'ENCH',c:'var(--ench)'}];
 var KPI_ICON={'Total penalty':'fa-indian-rupee-sign','Underload penalty':'fa-arrow-trend-down','Overload penalty':'fa-arrow-trend-up','ENCH penalty':'fa-bolt','Rakes loaded':'fa-train','Pending receive':'fa-hourglass-half','Pending recv':'fa-hourglass-half','Recv qty':'fa-box-open','Penalty / MT':'fa-scale-balanced','Rakes':'fa-train','Underload':'fa-arrow-trend-down','Overload':'fa-arrow-trend-up'};
@@ -296,13 +297,17 @@ function buildGroups(sheet,gj,hz,nalcoRows,ovMap,jhRows,balRows){
   });
   Object.keys(lm).forEach(function(k){
     var g=lm[k];
+    var xp=EXTRA_PCT[g.party]||0;
+    if(xp){g.op=g.op*(xp/100);g.en=g.en*(xp/100)}   /* HZL: Overload and ENCH at 5% */
     ['rr','ch','uQty','oQty','up','op','en'].forEach(function(f){g[f]=r2(g[f])});
     var o=ovMap[g.id];
     if(o){   /* a hand-edited live row keeps the values typed in the daily penalty sheet */
+      var kOp=g.op,kEn=g.en;
       g.rakes=Math.max(1,+o.rakes||1);g.rr=num(o.rr);g.ch=num(o.ch);
       g.uQty=num(o.u_qty);g.oQty=num(o.o_qty);
       g.up=hasN(o.freight)?r2(g.uQty*num(o.freight)):num(o.u_pen);
       g.op=num(o.o_pen);g.en=num(o.ench);g.edited=true;
+      if(xp){g.op=kOp;g.en=kEn}   /* HZL: Overload and ENCH stay at the live 5% */
     }
     groups.push(g);
   });
@@ -659,7 +664,7 @@ function renderDate(p,d){
         '<td>'+fN(x.rrw,1)+'</td><td>'+(x.recvDone?fN(x.recvQty,1):'<span class="muted">—</span>')+'</td>'+
         '<td>'+fN(x.chw,1)+'</td><td>'+fN(uq,1)+'</td><td>'+fN(oq,1)+'</td>'+
         '<td>'+(fr==null?'<span class="muted">—</span>':fN(fr,2))+'</td>'+
-        '<td>'+fN(num(r.pol_group)+num(r.ehbc_group),2)+'</td><td>'+fN(num(r.enhc_charge),2)+'</td>'+
+        '<td>'+fN((num(r.pol_group)+num(r.ehbc_group))*(EXTRA_PCT[p]?EXTRA_PCT[p]/100:1),2)+'</td><td>'+fN(num(r.enhc_charge)*(EXTRA_PCT[p]?EXTRA_PCT[p]/100:1),2)+'</td>'+
         '<td class="pend'+(x.pending?' bad':'')+'">'+(x.pending?'Pending recv':'Received')+'</td></tr>';
     });
     h+='</tbody></table></div>';
