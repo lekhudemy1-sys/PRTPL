@@ -671,6 +671,7 @@ var LIVE_SRC=[
 ];
 /* parties whose underload penalty must never be filled from a box-type rate */
 var NO_BOX_RATE={JHABUA:1};
+var EXTRA_PCT={HZL:5};
 function liveSel(s){return s.table+'?select='+(s.select||'*')+(s.extra||'')}
 function liveFix(s,rows){return (rows||[]).map(function(r){if(s.map)r=s.map(r);r._p=s.party;return r})}
 var NEW='__new__';
@@ -1243,7 +1244,10 @@ function buildLive(g,d){
     x.gUp+=num(r.ul_ch);x.gOp+=num(r.pol_group)+num(r.ehbc_group);x.gEn+=num(r.enhc_charge);
   });
   Object.keys(m).forEach(function(k){
-    var x=m[k];['rr','ch','gU','gO','gUp','gOp','gEn'].forEach(function(f){x[f]=r2(x[f])});
+       var x=m[k];
+    var xp=EXTRA_PCT[x.party]||0;
+    if(xp){x.gOp=x.gOp*(xp/100);x.gEn=x.gEn*(xp/100)}
+    ['rr','ch','gU','gO','gUp','gOp','gEn'].forEach(function(f){x[f]=r2(x[f])});
     seen[x.id]=1;x.rakes=x.keys.length;
     /* no underload charge on the dashboard for this row: use the box type rate, if one is set (never for JHABUA, whose only charge is Final Charges) */
     if(!x.gUp&&x.gU>0&&!NO_BOX_RATE[x.party]){var br=rateFor(x.box);if(br!==null)x.freight=br}
