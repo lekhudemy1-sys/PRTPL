@@ -247,7 +247,7 @@ const today=()=>new Date().toLocaleDateString('en-CA');
 const shiftMonth=(p,k)=>{const[Y,M]=p.split('-').map(Number),d=new Date(Date.UTC(Y,M-1+k,1));return d.getUTCFullYear()+'-'+pad(d.getUTCMonth()+1)};
 const daysBetween=(a,b)=>{const d=Math.round((new Date(b+'T00:00:00Z')-new Date(a+'T00:00:00Z'))/864e5);return d>0?d:0};
 // Contract end date. Change this when the NALCO extension is approved.
-const CONTRACT_END='2026-11-16';
+const CONTRACT_END='2026-12-16';
 const CONTRACTS=[{key:'C-2026-10-10',start:'2026-10-10',end:CONTRACT_END}];   // add future contracts here
 const ctOf=d=>(CONTRACTS.find(c=>d>=c.start&&d<=c.end)||{}).key||null;
 const cycleKey=d=>ctOf(d)||CONTRACTS[CONTRACTS.length-1].key;
