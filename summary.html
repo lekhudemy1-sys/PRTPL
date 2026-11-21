@@ -970,7 +970,7 @@ function savePng(canvas){
   var a=document.createElement('a');
   a.href=url;a.download=name;a.rel='noopener';
   document.body.appendChild(a);
-  if('download' in a){a.click();setStatus('PNG saved as '+name,'ok')}
+  if('download' in a){a.click();setStatus('PNG as '+name,'ok')}
   else{window.open(url,'_blank');setStatus('PNG opened in a new tab – save it from there','ok')}
   setTimeout(function(){a.remove()},300);
 }
