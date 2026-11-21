@@ -1524,5 +1524,49 @@ if (fine && !reduce) {
 }
 </script>
 <script src="ai-chat.js"></script>
+<script id="pending-panel">
+(function () {
+  var current = null;
+  var st = document.createElement('style');
+  st.textContent = '.pd-bd{position:fixed;inset:0;z-index:2147480000;background:rgba(5,8,18,.32);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);animation:pdFade .25s ease}' +
+    '.pd-frame{position:fixed;z-index:2147480001;left:50%;top:max(12px,env(safe-area-inset-top));transform:translateX(-50%);width:min(980px,calc(100vw - 24px));height:min(88vh,880px);border:1px solid rgba(127,140,170,.25);border-radius:22px;box-shadow:0 40px 90px -20px rgba(0,0,0,.5);background:transparent;animation:pdDrop .35s cubic-bezier(.16,1,.3,1)}' +
+    '@keyframes pdFade{from{opacity:0}}@keyframes pdDrop{from{opacity:0;transform:translate(-50%,-18px)}}';
+  document.head.appendChild(st);
+  function close() {
+    if (!current) return;
+    current.bd.remove(); current.fr.remove(); current = null;
+  }
+  function show(href) {
+    close();
+    var bd = document.createElement('div'); bd.className = 'pd-bd';
+    bd.addEventListener('click', close);
+    var fr = document.createElement('iframe'); fr.className = 'pd-frame'; fr.title = 'Pending';
+    fr.src = href + '?panel=1';
+    document.body.appendChild(bd); document.body.appendChild(fr);
+    current = { bd: bd, fr: fr };
+  }
+  function placeButton(tries) {
+    if (document.getElementById('pd-pending-btn')) return;
+    var btn = document.createElement('button');
+    btn.type = 'button'; btn.id = 'pd-pending-btn'; btn.className = 'pr-chipbtn icon';
+    btn.setAttribute('aria-label', 'Pending'); btn.title = 'Pending';
+    btn.innerHTML = '<i class="fas fa-hourglass-half" aria-hidden="true"></i>';
+    btn.addEventListener('click', function (e) { e.stopPropagation(); show('pending.html'); });
+    var theme = document.getElementById('pr-theme-btn');
+    if (theme) { theme.parentNode.insertBefore(btn, theme.nextSibling); return; }
+    if (tries < 40) { setTimeout(function () { placeButton(tries + 1); }, 150); return; }
+    var host = document.querySelector('.top-right, .pr-floatbar');
+    if (host) { host.appendChild(btn); return; }
+    btn.style.cssText = 'position:fixed;top:14px;right:14px;z-index:2147481000';
+    document.body.appendChild(btn);
+  }
+  placeButton(0);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+  window.addEventListener('message', function (e) {
+    if (e.origin === location.origin && e.data && e.data.type === 'pending-close') close();
+  });
+})();
+</script>
 </body>
+
 </html>
