@@ -928,6 +928,10 @@ function exportPng(){
       var i=k.querySelector('.t i');
       if(i){i.style.background=c;i.style.color='#fff';i.style.boxShadow='none'}
     });
+    /* PNG only: drop the explanatory hint lines under the panel titles */
+    doc.querySelectorAll('.panel-head .hint').forEach(function(el){el.style.display='none'});
+    /* PNG only: the date range sits on the header colour, with no separate box */
+    doc.querySelectorAll('.range').forEach(function(r){r.style.background='none';r.style.border='0';r.style.boxShadow='none'});
     /* keep the header, but no filter bar (dates, Refresh, Export PNG, status), no Back button and no breadcrumb chips */
     doc.querySelectorAll('.controls,.back-top,.crumbs').forEach(function(el){el.style.display='none'});
   }
