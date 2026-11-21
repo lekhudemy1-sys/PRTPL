@@ -7,7 +7,7 @@
 <meta name="referrer" content="strict-origin-when-cross-origin" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="theme-color" content="#f4f7fc" />
-<title>AMM Performance | Prithvi Realcon</title>
+<title>AMM & RCR Performance | Prithvi Realcon</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -234,7 +234,7 @@ a:focus-visible,button:focus-visible{outline:2px solid #1d4ed8;outline-offset:3p
 </style>
 <meta name="pr-hub" content="grid" />
 <meta name="pr-access" content="amm" />
-<meta name="description" content="AMM Performance | Prithvi Realcon – Prithvi Realcon logistics and performance portal." />
+<meta name="description" content="AMM & RCR Performance | Prithvi Realcon – Prithvi Realcon logistics and performance portal." />
 <link rel="icon" type="image/svg+xml" href="favicon.svg" />
 <link rel="apple-touch-icon" href="icon-192.png" />
 <link rel="manifest" href="manifest.webmanifest" />
@@ -873,8 +873,8 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
   /* ---------- command palette ---------- */
   var PAGES = [
     { t: 'Home', s: 'All dashboards', h: 'home_page.html', i: 'fa-house', c: '#1d4ed8', k: '' },
-    { t: 'AMM Performance', s: 'Party dashboards and reports', h: 'amm_home.html', i: 'fa-chart-line', c: '#1d4ed8', k: 'amm' },
-    { t: 'Hindustan Zinc', s: 'AMM · party dashboard', h: 'hzl_dashboard.html', i: 'fa-industry', c: '#0f8a6a', k: 'amm:HZL' },
+    { t: 'AMM & RCR Performance', s: 'Party dashboards and reports', h: 'amm_home.html', i: 'fa-chart-line', c: '#1d4ed8', k: 'amm' },
+    { t: 'Hindustan Zinc', s: 'AMM | RCR · party dashboard', h: 'hzl_dashboard.html', i: 'fa-industry', c: '#0f8a6a', k: 'amm:HZL' },
     { t: 'Jhabua Power (PJPB)', s: 'AMM · party dashboard', h: 'pjpb_dashboard.html', i: 'fa-bolt', c: '#1d4ed8', k: 'amm:PJPB' },
     { t: 'JSW Mahanadi Power', s: 'AMM · party dashboard', h: 'ksk_dashboard.html', i: 'fa-plug', c: '#b45309', k: 'amm:JSW' },
     { t: 'Gujarat Power Corporation', s: 'AMM · party dashboard', h: 'gujarat_dashboard.html', i: 'fa-gauge-high', c: '#be185d', k: 'amm:GPCL' },
@@ -1131,7 +1131,7 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
     ['/', 'Open search'],
     ['?', 'Show this list'],
     ['G then H', 'Go to Home'],
-    ['G then A', 'Go to AMM Performance'],
+    ['G then A', 'Go to AMM & RCR Performance'],
     ['G then O', 'Go to ODR Data'],
     ['G then N', 'Go to Notices'],
     ['Esc', 'Close any open panel']
@@ -1382,8 +1382,9 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
 
 <nav class="grid amm" aria-label="Parties">
   <a class="tile" href="hzl_home.html" data-access="amm:HZL" style="--i:0;--c:#0f8a6a">
+    <span class="pr-badge">RCR | AMM</span>
     <div class="ico"><img src="https://upload.wikimedia.org/wikipedia/commons/f/f0/HZL_Logo.png" alt="Hindustan Zinc logo" width="64" height="64" loading="lazy" /></div>
-    <div class="foot"><div><span class="name">Hindustan Zinc</span><span class="desc">Party dashboard</span></div><span class="go"><i class="fas fa-arrow-right"></i></span></div>
+    <div class="foot"><div><span class="name">Hindustan Zinc</span><span class="desc">AMM | RCR</span></div><span class="go"><i class="fas fa-arrow-right"></i></span></div>
   </a>
   <a class="tile" href="pjpb_dashboard.html" data-access="amm:PJPB" style="--i:1;--c:#1d4ed8">
     <div class="ico"><img src="https://img1.wsimg.com/isteam/ip/bdbd16d3-5f12-43db-a1ba-484c583fa1a9/JPL-Logo-Transparent.png/:/rs=h:100,cg:true,m/qt=q:100/ll" alt="" /></div>
@@ -1394,6 +1395,7 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
     <div class="foot"><div><span class="name">National Aluminium Company</span><span class="desc">Party dashboard</span></div><span class="go"><i class="fas fa-arrow-right"></i></span></div>
   </a>
   <a class="tile" href="ksk_dashboard.html" data-access="amm:JSW" style="--i:3;--c:#b45309">
+    <span class="pr-badge">RCR</span>
     <div class="ico"><img src="https://www.liblogo.com/img-logo/js833j5a2-jsw-logo-jsw-energy-jswenergy-ns-market-capitalization.png" alt="" /></div>
     <div class="foot"><div><span class="name">JSW Mahanadi Power</span><span class="desc">Party dashboard</span></div><span class="go"><i class="fas fa-arrow-right"></i></span></div>
   </a>
@@ -1456,7 +1458,7 @@ else {
   const access = S.access || [];
   const can = k => access.includes('*') || access.includes(k) || access.includes(k.split(':')[0]);
   document.querySelectorAll('.tile').forEach(t => { if (!can(t.dataset.access)) t.hidden = true; });
-  typeText(document.getElementById('title'), 'AMM Performance');
+  typeText(document.getElementById('title'), 'AMM & RCR Performance');
 }
 
 (function () {
