@@ -503,6 +503,7 @@ body:not(.unlocked) .pro-tab{display:none}
       <select class="field" data-addnew="grade" id="lfGrade" style="max-width:130px"><option value="">All Grades</option><option>G-07</option><option>G-08</option><option>G-09</option><option>G-10</option><option>G-11</option><option>G-12</option><option>G-13</option><option>G-14</option><option>G-15</option></select>
       <select class="field" data-addnew="box_type" id="lfBox" style="max-width:140px"><option value="">All Box Types</option><option>N+NHL</option><option>BOXN</option><option>BOXNHL</option><option>BCN</option></select>
       <input class="field" id="lfSiding" placeholder="Siding contains..." style="max-width:170px">
+      <select class="field" id="lfMonth" title="Month" style="max-width:170px"><option value="">All Months</option></select>
       <input type="date" class="field" id="lfFrom" title="Date from" style="max-width:160px">
       <input type="date" class="field" id="lfTo" title="Date to" style="max-width:160px">
       <button class="btn-soft" id="lfClear"><i class="fas fa-xmark"></i> Clear Filters</button>
@@ -1060,9 +1061,21 @@ async function loadLog() {
 function renderLog() {
   const q = $('logSearch').value.toLowerCase();
   const sv = id => ($(id).value === '__new__' ? '' : $(id).value);
+  // Month list is built from the loaded records (newest month first)
+  const monthSel = $('lfMonth');
+  const monthList = [...new Set(logRecords.map(r => String(r.date || '').slice(0, 7)).filter(Boolean))].sort().reverse();
+  const monthSig = monthList.join(',');
+  if (monthSel.dataset.sig !== monthSig) {
+    const keep = monthSel.value;
+    monthSel.innerHTML = '<option value="">All Months</option>' +
+      monthList.map(m => `<option value="${m}">${MONTHS[Number(m.slice(5, 7)) - 1]} ${m.slice(0, 4)}</option>`).join('');
+    monthSel.value = monthList.includes(keep) ? keep : '';
+    monthSel.dataset.sig = monthSig;
+  }
   const lf = {
     area: sv('lfArea'), unit: sv('lfUnit'), tranch: sv('lfTranch'),
     grade: sv('lfGrade'), box: sv('lfBox'), siding: $('lfSiding').value.trim().toUpperCase(),
+    month: monthSel.value,
     from: $('lfFrom').value, to: $('lfTo').value
   };
   const rows = logRecords.filter(r =>
@@ -1073,6 +1086,7 @@ function renderLog() {
     (!lf.grade || r.grade === lf.grade) &&
     (!lf.box || r.box_type === lf.box) &&
     (!lf.siding || String(r.siding || '').toUpperCase().includes(lf.siding)) &&
+    (!lf.month || String(r.date || '').slice(0, 7) === lf.month) &&
     (!lf.from || String(r.date || '').slice(0, 10) >= lf.from) &&
     (!lf.to || String(r.date || '').slice(0, 10) <= lf.to));
   const shown = rows.length > LOG_MAX ? rows.slice(-LOG_MAX) : rows;
