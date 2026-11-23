@@ -1,293 +1,753 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex,nofollow">
 <title>HZL RCR Dashboard</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{
-  --ink:#0c1222;--mut:#5b6b7c;--line:rgba(12,18,34,.09);--glass:rgba(255,255,255,.92);
-  --teal:#0f766e;--teal-bright:#14b8a6;--amber:#c2410c;--violet:#6d28d9;--sky:#0369a1;
-  --green:#047857;--rose:#be123c;--zinc:#334155;
-  --header-from:#0a2e2c;--header-mid:#0f4a47;--header-to:#155e63;
+  --bg:#eef4fb;--ink:#0d1b2e;--mut:#5b6f8a;
+  --card:rgba(255,255,255,.72);--line:rgba(60,120,200,.16);
+  --blue:#1a7fff;--blue2:#4aa3ff;--grn:#0ea88a;--amb:#e89b0c;--red:#e03e55;
+  --shadow:0 6px 24px rgba(20,60,120,.08);
+  --shadow-hi:0 14px 36px rgba(20,60,120,.14);
+  --ease:cubic-bezier(.22,1,.36,1);
+  --r:16px;
 }
-*{box-sizing:border-box}
-html,body{margin:0;min-height:100%}
+:root[data-theme="dark"]{
+  --bg:#0b1523;--ink:#e6eef9;--mut:#8ea3c0;
+  --card:rgba(20,34,56,.72);--line:rgba(120,170,240,.16);
+  --shadow:0 6px 24px rgba(0,0,0,.35);--shadow-hi:0 14px 36px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
 body{
-  font:14px "Instrument Sans",system-ui,sans-serif;color:var(--ink);
+  font:14px/1.5 Manrope,system-ui,sans-serif;color:var(--ink);min-height:100vh;
   background:
-    radial-gradient(1200px 600px at 10% -10%,rgba(15,118,110,.08),transparent 55%),
-    radial-gradient(900px 500px at 90% 0%,rgba(3,105,161,.06),transparent 50%),
-    linear-gradient(180deg,#f1f5f9 0%,#e8eef5 40%,#f4f7fa 100%);
-  padding-bottom:110px;
+    radial-gradient(1000px 600px at 95% -10%,rgba(26,127,255,.16),transparent 60%),
+    radial-gradient(800px 500px at -10% 40%,rgba(14,168,138,.10),transparent 60%),
+    var(--bg);
+  background-attachment:fixed;overflow-x:hidden;
 }
-@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-@keyframes grow{from{width:0}}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 3px rgba(20,184,166,.28)}50%{box-shadow:0 0 0 7px rgba(20,184,166,.06)}}
-@keyframes shine{to{background-position:200% center}}
-.hidden{display:none!important}
-.num{text-align:right;font-variant-numeric:tabular-nums}
-.neg{color:#dc2626;font-weight:700}
+h1,h2,h3,.num,.big{font-family:Sora,Manrope,sans-serif}
+button,select,input,textarea{font:inherit;color:inherit}
+
+/* ---------- Header ---------- */
+header{
+  position:sticky;top:0;z-index:30;
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:12px 24px;
+  background:color-mix(in srgb,var(--bg) 85%,transparent);
+  backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);
+  border-bottom:1px solid var(--line);
+  box-shadow:0 4px 20px rgba(20,60,120,.06);
+  animation:slideDown .6s var(--ease) both;
+}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.logo{
+  width:42px;height:42px;border-radius:12px;flex:none;
+  background:linear-gradient(135deg,var(--blue),var(--grn));color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font:700 14px Sora;box-shadow:0 4px 18px rgba(26,127,255,.35);
+  transition:transform .3s var(--ease);
+}
+.logo:hover{transform:rotate(-6deg) scale(1.05)}
+header img{height:42px;border-radius:8px}
+.brand h1{font-size:18px;font-weight:700;letter-spacing:-.01em}
+.brand small{display:block;color:var(--mut);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.spacer{flex:1}
+.daybox{
+  color:var(--mut);font-size:12px;line-height:1.35;padding:6px 14px;
+  background:var(--card);border:1px solid var(--line);border-radius:12px;
+}
+.daybox b{display:block;font-size:14px;color:var(--ink)}
+.nav{display:flex;gap:8px;align-items:center}
+
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--card);border:1px solid var(--line);color:var(--ink);
+  padding:8px 16px;border-radius:999px;cursor:pointer;text-decoration:none;
+  font-weight:600;font-size:13px;
+  transition:transform .2s var(--ease),background .2s,box-shadow .2s,border-color .2s;
+}
+.btn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(26,127,255,.16);border-color:rgba(26,127,255,.45)}
+.btn:active{transform:scale(.97)}
+.btn.on{background:linear-gradient(135deg,var(--blue),var(--grn));border-color:transparent;color:#fff;box-shadow:0 6px 18px rgba(26,127,255,.3)}
+.btn:focus-visible,.chip:focus-visible,.tab:focus-visible,.pb:focus-visible{outline:2px solid var(--blue2);outline-offset:2px}
+
+/* ---------- Layout ---------- */
+main{max-width:1360px;margin:0 auto;padding:22px 18px 48px}
+.view{animation:fadeUp .5s var(--ease) both}
+.g{display:grid;gap:16px;grid-template-columns:repeat(12,minmax(0,1fr));margin-bottom:16px}
+.c4{grid-column:span 4}.c5{grid-column:span 5}.c6{grid-column:span 6}
+.c7{grid-column:span 7}.c8{grid-column:span 8}.c12{grid-column:span 12}
+@media (max-width:1100px){.c4,.c5,.c6,.c7,.c8{grid-column:span 12}}
+@media (max-width:640px){main{padding:14px 10px 40px}header{padding:10px 12px}}
+
+/* ---------- Cards ---------- */
+.card{
+  position:relative;background:var(--card);
+  backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2);
+  border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;
+  box-shadow:var(--shadow);min-width:0;
+  transition:transform .35s var(--ease),box-shadow .35s var(--ease),border-color .35s;
+  animation:cardIn .6s var(--ease) both;
+}
+.card:hover{transform:translateY(-3px);box-shadow:var(--shadow-hi);border-color:rgba(26,127,255,.3)}
+.card.flat:hover{transform:none}
+.card:nth-child(2){animation-delay:.05s}.card:nth-child(3){animation-delay:.1s}
+.card:nth-child(4){animation-delay:.15s}.card:nth-child(5){animation-delay:.2s}
+.card h2{font-size:15px;font-weight:600;margin-bottom:12px;display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.card h2 span{font:500 12px Manrope;color:var(--mut)}
+.hero{background:linear-gradient(135deg,rgba(26,127,255,.14),rgba(14,168,138,.07) 70%),var(--card)}
+.hero.loss{background:linear-gradient(135deg,rgba(224,62,85,.14),transparent 70%),var(--card)}
+.hero small,.kt small{color:var(--mut);font-size:12.5px;display:block}
+.big{font-size:40px;font-weight:700;line-height:1.1;letter-spacing:-.03em;margin:6px 0 12px}
+.big.neg,.kt b.neg{color:var(--red)}.big.pos{color:var(--grn)}
+.kt b{font-size:26px;display:block;margin:4px 0 6px;letter-spacing:-.02em;font-family:Sora,sans-serif}
+.kt em{font-style:normal;color:var(--mut);font-size:12px}
+.sub{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.sub div{background:rgba(255,255,255,.55);padding:8px 10px;border-radius:11px;font-size:12px;color:var(--mut);border:1px solid var(--line);transition:background .2s}
+.sub div:hover{background:rgba(255,255,255,.9)}
+.sub b{display:block;font-size:14px;color:var(--ink);margin-top:2px;font-family:Sora,sans-serif}
+:root[data-theme="dark"] .sub div{background:rgba(255,255,255,.04)}
+
+/* ---------- Progress ---------- */
+.bar{height:6px;background:rgba(26,127,255,.12);border-radius:4px;margin:8px 0 6px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;border-radius:4px;background:linear-gradient(90deg,var(--blue),var(--grn));transition:width 1s var(--ease)}
+td .bar{width:90px;margin-left:auto}
+
+/* ---------- Pills / filter ---------- */
+.bar2{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:16px;animation:fadeUp .5s var(--ease) both}
+.ins{display:flex;gap:8px;overflow-x:auto;max-width:100%;padding-bottom:2px;scrollbar-width:none}
+.ins::-webkit-scrollbar{display:none}
+.pill{flex:none;white-space:nowrap;padding:5px 13px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-size:12.5px;display:flex;align-items:center;gap:7px;transition:transform .2s,box-shadow .2s}
+.pill:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(26,127,255,.12)}
+.pill::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--mut);flex:none}
+.pill.r::before{background:var(--red);box-shadow:0 0 8px rgba(224,62,85,.5)}
+.pill.a::before{background:var(--amb);box-shadow:0 0 8px rgba(232,155,12,.5)}
+.pill.g::before{background:var(--grn);box-shadow:0 0 8px rgba(14,168,138,.5)}
+.pill.b::before{background:var(--blue);box-shadow:0 0 8px rgba(26,127,255,.5)}
+.sel{display:flex;align-items:center;gap:10px;color:var(--mut);font-size:12.5px}
+.sel select{min-width:240px;padding:9px 40px 9px 14px;border-radius:12px;border:1px solid rgba(26,127,255,.4);font-weight:700;background:var(--card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%231a7fff' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 14px center;appearance:none;-webkit-appearance:none;cursor:pointer}
+.sel select:focus{outline:none;box-shadow:0 0 0 3px rgba(26,127,255,.2)}
+option{background:var(--bg);color:var(--ink)}
+
+/* ---------- KPI ribbon ---------- */
+.rib{display:grid;gap:16px;grid-template-columns:1.5fr repeat(3,1fr);margin-bottom:16px}
+@media (max-width:1100px){.rib{grid-template-columns:1fr 1fr}}
+@media (max-width:560px){.rib{grid-template-columns:1fr}}
+
+/* ---------- Ring + tiles ---------- */
+.ringwrap{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.ring{width:128px;height:128px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;transition:transform .3s var(--ease)}
+.ring:hover{transform:scale(1.05)}
+.ring div{width:98px;height:98px;background:var(--bg);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring b{font-size:22px;line-height:1.1;font-family:Sora,sans-serif}
+.ring small{color:var(--mut);font-size:11px}
+.tg{display:grid;grid-template-columns:1fr 1fr;gap:9px;flex:1;min-width:200px}
+.tg div{background:rgba(255,255,255,.55);border-radius:11px;padding:8px 12px;border:1px solid var(--line);transition:background .2s}
+.tg div:hover{background:rgba(255,255,255,.9)}
+.tg b{font-size:20px;display:block;font-family:Sora,sans-serif}
+.tg small{color:var(--mut);font-size:12px}
+:root[data-theme="dark"] .tg div{background:rgba(255,255,255,.04)}
+:root[data-theme="dark"] .tg div:hover{background:rgba(255,255,255,.08)}
+
+/* ---------- Tables ---------- */
+.tw{overflow-x:auto;border-radius:12px}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th{font-weight:600;text-align:right;color:var(--mut);font-size:12px;padding:9px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:9px 12px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+tbody tr,table tr{transition:background .15s}
+table tr:hover td{background:rgba(26,127,255,.05)}
+tr.t td{font-weight:700;background:rgba(26,127,255,.08);border-top:1px solid rgba(26,127,255,.25)}
+.neg{color:var(--red)}.pos{color:var(--grn)}
 .muted{color:var(--mut)}
-.top{
-  display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
-  margin:14px 18px 0;padding:14px 22px;border-radius:18px;
-  background:linear-gradient(125deg,var(--header-from),var(--header-mid) 50%,var(--header-to));
-  color:#fff;box-shadow:0 16px 40px -16px rgba(10,46,44,.55), inset 0 1px 0 rgba(255,255,255,.12);
-  animation:up .5s both;border:1px solid rgba(255,255,255,.08);
+.chip{border:1px solid var(--line);background:var(--card);padding:3px 12px;border-radius:999px;cursor:pointer;font-weight:600;font-size:12px;transition:background .2s,border-color .2s}
+.chip:hover{border-color:rgba(26,127,255,.45)}
+
+/* ---------- Charts ---------- */
+.ch{height:260px;position:relative}
+
+/* ---------- Tabs / forms ---------- */
+.tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.tab{padding:8px 16px;border:1px solid var(--line);background:var(--card);border-radius:999px;cursor:pointer;font-weight:600;font-size:13px;transition:transform .2s var(--ease),background .2s,box-shadow .2s}
+.tab:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(26,127,255,.12)}
+.tab.on{background:linear-gradient(135deg,var(--blue),var(--grn));color:#fff;border-color:transparent;box-shadow:0 6px 16px rgba(26,127,255,.28)}
+.frm{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px;align-items:end;margin-bottom:16px}
+.frm label,.fl{font-size:12px;color:var(--mut);display:flex;flex-direction:column;gap:5px}
+input,select,textarea{
+  border:1px solid var(--line);border-radius:10px;padding:9px 12px;
+  background:rgba(255,255,255,.6);width:100%;min-width:0;
+  transition:border-color .2s,box-shadow .2s;
 }
-.brand{display:flex;gap:14px;align-items:center}
-.logo{height:54px;width:auto;max-width:78px;display:block;border-radius:12px;object-fit:contain;flex-shrink:0;box-shadow:0 4px 14px rgba(0,0,0,.3);background:#fff;padding:2px}
-.brand h1{margin:0;font:800 1.55rem "Bricolage Grotesque",sans-serif;letter-spacing:-.02em;background:linear-gradient(90deg,#fff 0%,#99f6e4 45%,#fff 90%);background-size:200% auto;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 6s linear infinite}
-.brand small{display:block;color:#a5d8d4;font-size:.82rem;font-weight:500;letter-spacing:.01em}
-.top-r{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-left:auto}
-#updated{color:#a5d8d4;font-size:.8rem}
-.pill{display:inline-flex;align-items:center;gap:6px;padding:.45rem .9rem;border-radius:999px;background:rgba(255,255,255,.95);color:#0a2e2c;font-weight:600;font-size:.85rem;box-shadow:0 2px 8px rgba(0,0,0,.12)}
-.pill.err{background:#fde8ec;color:#be123c}
-.dot{width:8px;height:8px;border-radius:50%;background:#14b8a6;animation:pulse 2s infinite}
-.pill.err .dot{background:#e11d48;animation:none}
-main{padding:16px 18px}
-.view{display:none}
-.view.on{display:block;animation:up .45s both}
-.dock{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:4px;padding:5px;border-radius:999px;background:rgba(255,255,255,.94);backdrop-filter:blur(16px);border:1px solid rgba(12,18,34,.08);box-shadow:0 12px 32px rgba(12,18,34,.14);z-index:20}
-.dock button{border:0;background:transparent;color:var(--mut);padding:10px 18px;border-radius:999px;font:inherit;font-weight:600;cursor:pointer;transition:.22s}
-.dock button:hover{transform:translateY(-2px);color:var(--ink)}
-.dock button.on{color:#fff;background:linear-gradient(135deg,#0f766e,#0d9488);box-shadow:0 5px 16px rgba(15,118,110,.35)}
-.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
-input,select{background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 11px;font:inherit;color:var(--ink);min-width:0}
-input:focus,select:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(15,118,110,.14)}
-.chk{display:flex;gap:6px;align-items:center;color:var(--mut);font-weight:600}
-.btn{background:#fff;border:1px solid var(--line);color:var(--ink);padding:9px 14px;border-radius:10px;font:inherit;font-weight:600;cursor:pointer;transition:.2s}
-.btn:hover{transform:translateY(-1px);box-shadow:0 6px 14px -8px rgba(12,18,34,.35)}
-.btn.primary{background:linear-gradient(135deg,#0f766e,#14b8a6);color:#fff;border-color:transparent}
-.btn.ghost{background:transparent}
-.btn.red{color:#be123c}
-.btn.small{padding:5px 10px;font-size:12px}
-.btn:disabled{opacity:.45;cursor:default;transform:none}
-.alert{padding:10px 14px;border-radius:12px;background:rgba(194,65,12,.08);border:1px solid rgba(194,65,12,.28);color:#9a3412;margin-bottom:12px;font-size:13px;display:grid;gap:4px}
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:14px 0}
-.card{position:relative;overflow:hidden;background:var(--glass);border:1px solid var(--line);border-radius:16px;padding:14px 16px;box-shadow:0 2px 12px rgba(12,18,34,.05);animation:up .6s both;animation-delay:calc(var(--i)*90ms);transition:transform .25s,box-shadow .25s}
-.card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(12,18,34,.08)}
-.card::before{content:"";position:absolute;inset:0 0 auto 0;height:3px;background:var(--c,var(--teal))}
-.card span{display:block;color:var(--mut);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em}
-.card b{display:block;font:800 1.5rem "Bricolage Grotesque",sans-serif;margin-top:6px;font-variant-numeric:tabular-nums}
-.card small{color:var(--mut);font-size:12px}
-.card.teal{--c:#0f766e}.card.sky{--c:#0369a1}.card.amber{--c:#c2410c}.card.green{--c:#047857}.card.violet{--c:#6d28d9}.card.rose{--c:#be123c}
-.charts2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:14px}
-.panel{background:var(--glass);border:1px solid var(--line);border-radius:16px;box-shadow:0 2px 14px rgba(12,18,34,.05);overflow:hidden;animation:up .6s both}
-.panel-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--line);background:linear-gradient(90deg,rgba(15,118,110,.1),transparent)}
-.panel-h h2{margin:0;font:700 15px "Bricolage Grotesque",sans-serif;color:var(--ink)}
-.sub{color:var(--mut);font-size:12px}
-.cbox{position:relative;height:300px;padding:10px 14px 14px}
-.scroll{overflow:auto;max-height:70vh}
-table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
-th,td{padding:8px 11px;text-align:left;white-space:nowrap;border-bottom:1px solid rgba(12,18,34,.07)}
-thead th{position:sticky;top:0;z-index:2;background:#e6f2f0;color:#1e3a3a;font-size:11px;text-transform:uppercase;letter-spacing:.05em}
-th.so{cursor:pointer}
-tbody tr{animation:up .45s both;animation-delay:var(--d,0ms);transition:background .2s}
-tbody tr:hover{background:rgba(15,118,110,.06)}
-tbody tr.done td{color:#64748b}
-tbody tr.clickable{cursor:pointer}
-.id{font-weight:700}
-tfoot td{position:sticky;bottom:0;background:#e6f2f0;font-weight:800;border-top:2px solid rgba(12,18,34,.12)}
-.st{padding:2px 8px;border-radius:999px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.03em}
-.st.ok{background:rgba(4,120,87,.12);color:#047857}
-.st.warn{background:rgba(194,65,12,.12);color:#c2410c}
-.st.over{background:rgba(190,18,60,.1);color:#be123c}
-.st.done{background:rgba(100,116,139,.12);color:#475569}
-.st.open{background:rgba(3,105,161,.1);color:#0369a1}
-.warnmark{color:#c2410c;font-weight:800;margin-left:4px;cursor:help}
-.badge{padding:2px 9px;border-radius:999px;font-size:10.5px;font-weight:800}
-.badge.IN{background:rgba(15,118,110,.12);color:#0f766e}.badge.OUT{background:rgba(3,105,161,.11);color:#0369a1}
-.src{font-size:11px;font-weight:700;color:#475569}
-.src.xl{color:#6d28d9}
-.prog{height:8px;min-width:90px;background:rgba(12,18,34,.07);border-radius:8px;overflow:hidden}
-.prog i{display:block;height:100%;width:var(--w);background:linear-gradient(90deg,#0f766e,#2dd4bf);border-radius:8px;animation:grow 1s ease both}
-.form3{display:grid;grid-template-columns:1fr;gap:12px;padding:16px}
-.eg{display:grid;grid-template-columns:minmax(280px,380px) minmax(0,1fr);gap:14px;align-items:start}
-.fld{display:flex;flex-direction:column;gap:5px;min-width:0}
-.fld span{font-size:11px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
-.fld input,.fld select{width:100%}
-.row{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
-.msg{font-size:13px;min-height:1em}
-.msg.err{color:#be123c}
-.entry-tools{display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--line)}
-.entry-tools input{flex:1;min-width:180px}
-.drop{border:2px dashed rgba(15,118,110,.4);border-radius:16px;padding:26px;text-align:center;background:rgba(15,118,110,.04);cursor:pointer;transition:.2s}
-.drop:hover{background:rgba(15,118,110,.1);transform:scale(1.01)}
-.xg{display:grid;grid-template-columns:minmax(260px,320px) minmax(0,1fr);gap:14px;align-items:start}
-.xs{display:flex;flex-direction:column;gap:12px;padding:16px}
-.xr{display:flex;flex-direction:column;gap:14px;min-width:0}
-.cnt{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.cnt div{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center;font-size:12px;color:var(--mut)}
-.cnt b{display:block;font:800 20px "Bricolage Grotesque",sans-serif;color:var(--ink)}
-.xprog{height:8px;background:rgba(12,18,34,.07);border-radius:8px;overflow:hidden}
-.xprog i{display:block;height:100%;width:0;background:linear-gradient(90deg,#0f766e,#0369a1);transition:width .3s}
-.dcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;padding:14px}
-.dcard{border-radius:14px;padding:12px 14px;background:#fff;border:1px solid var(--line);border-left:4px solid var(--teal);animation:up .45s both}
-.dcard.warn{border-left-color:var(--amber)}
-.dc-h{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
-.dc-h b{font:800 1.05rem "Bricolage Grotesque",sans-serif}
-.dc-h span{color:var(--mut);font-size:12px;text-align:right}
-.dc-d{color:var(--mut);font-size:12px;margin:4px 0 8px}
-.dc-g{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.dc-g small{display:block;color:var(--mut);font-size:10px;text-transform:uppercase;letter-spacing:.05em}
-.dc-g b{font-variant-numeric:tabular-nums;font-size:13px}
-.dc-f{font-size:12px;margin-top:8px;color:#047857}
-.dcard.warn .dc-f{color:#c2410c}
-dialog{border:0;border-radius:16px;padding:20px;width:min(720px,94vw);box-shadow:0 28px 64px -18px rgba(12,18,34,.4);animation:up .3s both}
-dialog::backdrop{background:rgba(12,18,34,.42);backdrop-filter:blur(4px)}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
-.toast{position:fixed;left:50%;bottom:86px;transform:translate(-50%,20px);background:linear-gradient(135deg,#0f766e,#0d9488);color:#fff;padding:11px 18px;border-radius:12px;font-weight:700;opacity:0;pointer-events:none;transition:.35s;z-index:50;max-width:92vw;box-shadow:0 8px 24px rgba(15,118,110,.3)}
-.toast.show{opacity:1;transform:translate(-50%,0)}
-.toast.err{background:#be123c}
-.capturing *{animation:none!important;transition:none!important}
-.cap-head{display:none;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px 18px;margin-bottom:14px;border-radius:16px;background:linear-gradient(125deg,var(--header-from),var(--header-mid) 50%,var(--header-to));color:#fff}
-.capturing .cap-head{display:flex}
-.cap-head b{font:800 1.4rem "Bricolage Grotesque",sans-serif;letter-spacing:-.02em}
-.cap-head small{color:#a5d8d4;font-size:12px;font-weight:600}
-.pie-wrap{position:relative;height:300px;padding:10px 14px 14px}
-@media (prefers-reduced-motion:reduce){body,.card,.panel,tbody tr,.view.on,.brand h1,.dcard{animation:none!important}}
-@media (max-width:1000px){.charts2,.eg,.xg{grid-template-columns:1fr}}
-@media (max-width:640px){main{padding:12px 10px}.grid2{grid-template-columns:1fr}.dock span{display:none}.dock button{padding:10px 13px}.dc-g{grid-template-columns:1fr 1fr 1fr}}
+:root[data-theme="dark"] input,:root[data-theme="dark"] select,:root[data-theme="dark"] textarea{background:rgba(255,255,255,.05);color-scheme:dark}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,127,255,.18)}
+input.invalid{border-color:var(--red);box-shadow:0 0 0 3px rgba(224,62,85,.15)}
+td input{min-width:76px;text-align:right;padding:6px 8px}
+td:first-child input{text-align:left;min-width:110px}
+.pb{background:linear-gradient(135deg,var(--blue),var(--grn));color:#fff;border:0;padding:10px 18px;border-radius:11px;cursor:pointer;font-weight:700;transition:transform .2s var(--ease),box-shadow .2s;box-shadow:0 4px 14px rgba(26,127,255,.25)}
+.pb:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(26,127,255,.35)}
+.pb:active{transform:translateY(0)}
+.pb:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+.x{background:none;border:0;color:var(--red);cursor:pointer;font-size:15px;padding:4px 6px;border-radius:6px;transition:transform .15s,background .15s}
+.x:hover{transform:scale(1.2);background:rgba(224,62,85,.1)}
+.note{color:var(--mut);font-size:12.5px;margin:8px 0;line-height:1.5}
+.empty{text-align:center;color:var(--mut);padding:24px 8px}
+
+/* ---------- Toast ---------- */
+#toasts{position:fixed;right:18px;bottom:18px;display:flex;flex-direction:column;gap:8px;z-index:100}
+.toast{min-width:220px;max-width:360px;padding:11px 16px;border-radius:12px;background:var(--card);backdrop-filter:blur(14px);border:1px solid var(--line);box-shadow:var(--shadow-hi);font-size:13px;animation:toastIn .35s var(--ease) both;border-left:4px solid var(--blue)}
+.toast.ok{border-left-color:var(--grn)}.toast.err{border-left-color:var(--red)}
+.toast.out{animation:toastOut .3s ease both}
+
+/* ---------- Modal (password / prompts) ---------- */
+.scrim{position:fixed;inset:0;background:rgba(5,15,30,.35);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:90;padding:16px;animation:fadeIn .2s ease both}
+.modal{width:min(380px,100%);background:var(--card);backdrop-filter:blur(18px);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:var(--shadow-hi);animation:cardIn .35s var(--ease) both}
+.modal h3{font-size:16px;margin-bottom:6px}
+.modal p{color:var(--mut);font-size:13px;margin-bottom:14px}
+.modal .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+.modal .err{color:var(--red);font-size:12.5px;min-height:18px;margin-top:6px}
+
+/* ---------- Motion ---------- */
+@keyframes cardIn{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+@keyframes toastIn{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+@keyframes toastOut{to{opacity:0;transform:translateX(24px)}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
-<header class="top">
+<header>
   <div class="brand">
-    <!-- Replace the src below with your original HZL logo data URI if you want it back -->
-    <img class="logo" src="https://tse4.mm.bing.net/th/id/OIP.oQDkEtDnqPvudw2J5V_MfAAAAA?r=0&rs=1&pid=ImgDetMain&o=7&rm=3" alt="HZL" width="66" height="60">
-    <div><h1>HZL RCR</h1><small>Hindustan Zinc · Road cum Rail receipts</small></div>
+    <img src="assets/hzl_logo.png" alt="Hindustan Zinc" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+    <div class="logo" style="display:none">HZL</div>
+    <div style="min-width:0">
+      <h1>HZL RCR dashboard</h1>
+      <small>Gevra / Manikpur mines → IUIK siding → Hindustan Zinc</small>
+    </div>
   </div>
-  <div class="top-r"><span id="status" class="pill">Starting…</span><span id="updated"></span><button id="refresh" class="btn ghost">Refresh</button></div>
+  <div class="daybox" id="day"></div>
+  <div class="spacer"></div>
+  <nav class="nav">
+    <button class="btn on" id="bD" data-v="dash">Dashboard</button>
+    <button class="btn" id="bE" data-v="entry">Data entry</button>
+    <a class="btn" href="hzl_home.html">Back</a>
+  </nav>
 </header>
 
 <main>
-  <!-- DASHBOARD -->
-  <section id="v-dash" class="view on">
-    <div class="toolbar">
-      <input id="f-q" placeholder="Search D.O., colliery, party…" style="width:230px">
-      <select id="f-col"></select>
-      <label class="chk"><input type="checkbox" id="f-hide"> Hide closed</label>
-      <label class="chk">From <input type="date" id="f-from"></label>
-      <label class="chk">To <input type="date" id="f-to"></label>
-      <button id="f-clr" class="btn ghost small">Clear dates</button>
-      <span class="sub" id="scope"></span>
-      <button id="dl-xlsx" class="btn small" style="margin-left:auto">⬇ Excel</button>
-      <button id="dl" class="btn primary small">⬇ Image</button>
+  <section id="dash" class="view">
+    <div class="bar2">
+      <div id="flt"></div>
+      <div class="ins" id="ins"></div>
     </div>
-    <div id="alert" class="alert hidden"></div>
-    <div id="dash">
-      <div class="cap-head" id="cap-head">
-        <div><b>HZL RCR Dashboard</b><br><small>Hindustan Zinc · Road cum Rail receipts</small></div>
-        <div style="text-align:right"><small class="cap-period"></small><br><small class="cap-gen"></small></div>
-      </div>
-      <div class="cards" id="cards"></div>
-      <div class="panel">
-        <div class="panel-h"><h2>D.O. summary</h2></div>
-        <div class="scroll"><table id="t-do"></table></div>
-      </div>
-      <div class="charts2">
-        <div class="panel"><div class="panel-h"><h2>Daily receipts</h2><span class="sub">Bars: MT per day · line: running total</span></div><div class="cbox"><canvas id="cDaily"></canvas></div></div>
-        <div class="panel"><div class="panel-h"><h2>Total qty vs received</h2><span class="sub" id="pie-sub"></span></div><div class="pie-wrap"><canvas id="cPie"></canvas></div></div>
-      </div>
+    <div class="rib" id="rib"></div>
+    <div class="g">
+      <div class="card c8" id="pipe"></div>
+      <div class="card c4" id="tgt"></div>
+    </div>
+    <div class="g">
+      <div class="card c5" id="wt"></div>
+      <div class="card c7" id="pen"></div>
+    </div>
+    <div class="g">
+      <div class="card c6" id="exp"></div>
+      <div class="card c6" id="inc"></div>
+    </div>
+    <div class="g">
+      <div class="card c6"><h2>DO progress <span>DO qty vs lifted vs dispatched (MT)</span></h2><div class="ch"><canvas id="c1"></canvas></div></div>
+      <div class="card c6"><h2>Expense split <span>share of total expense</span></h2><div class="ch"><canvas id="c3"></canvas></div></div>
+      <div class="card c12"><h2>Income vs expense <span>by DO, ₹</span></h2><div class="ch"><canvas id="c4"></canvas></div></div>
     </div>
   </section>
 
-  <!-- DATA ENTRY -->
-  <section id="v-entry" class="view">
-    <div class="eg">
-      <div class="panel">
-        <div class="panel-h"><h2>New entry</h2><span class="sub">Date is saved as today</span></div>
-        <form id="mv-f" class="form3" novalidate>
-          <label class="fld"><span>D.O.</span><select name="do_no" id="mv-do"></select></label>
-          <label class="fld"><span>Vehicle No.</span><input name="vehicle_no" style="text-transform:uppercase" placeholder="CG04 JC 1234"></label>
-          <label class="fld"><span>Qty (MT)</span><input name="net_wt" type="number" step="any"></label>
-          <div class="msg" id="mv-msg"></div>
-          <div class="row"><button type="button" class="btn ghost" id="mv-clr">Clear</button><button class="btn primary">Save entry</button></div>
-        </form>
-      </div>
-      <div class="panel">
-        <div class="panel-h"><h2>Entries</h2><span class="sub" id="e-info"></span></div>
-        <div class="entry-tools">
-          <input id="e-q" placeholder="Search vehicle no. or D.O.…">
-          <select id="e-do"></select>
-        </div>
-        <div class="scroll"><table id="t-ent"></table></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- LOG -->
-  <section id="v-log" class="view">
-    <div class="toolbar">
-      <select id="l-t">
-        <option value="IN">Receipts (IN)</option><option value="ALL">All movements</option>
-        <option value="OUT">Dispatches (OUT)</option><option value="DO">D.O. list</option>
-      </select>
-      <input type="date" id="l-from" title="From"><input type="date" id="l-to" title="To">
-      <select id="l-do"></select>
-      <input id="l-veh" placeholder="Vehicle no." style="width:150px">
-      <button id="l-exp" class="btn small" style="margin-left:auto">⬇ Export Excel</button>
-    </div>
-    <div class="panel">
-      <div class="panel-h"><h2 id="l-title">Receipts</h2>
-        <span class="sub"><span id="l-info"></span> <button id="l-pv" class="btn ghost small">‹ Prev</button> <button id="l-nx" class="btn ghost small">Next ›</button></span></div>
-      <div class="scroll"><table id="t-log"></table></div>
-    </div>
-  </section>
-
-  <!-- EXCEL -->
-  <section id="v-excel" class="view">
-    <div class="xg">
-      <div class="panel"><div class="xs">
-        <div class="drop" id="drop"><b>Drop the RCR Excel here</b><br><small class="muted">or click · .xlsx / .xlsm / .xls</small>
-          <input type="file" id="x-f" accept=".xlsx,.xlsm,.xls" hidden></div>
-        <label class="chk">Sheet <select id="x-s" disabled><option>Choose a file first</option></select></label>
-        <div class="cnt"><div><b id="c-do">0</b>D.O.s found</div><div><b id="c-ok">0</b>Log rows ready</div><div><b id="c-skip">0</b>Rows skipped</div></div>
-        <button id="x-imp" class="btn primary" disabled>Import D.O.s and log</button>
-        <small class="muted">New D.O.s are added automatically; existing ones are updated. Excel rows for the D.O.s in this file are replaced, so uploading the same file again will not duplicate anything. Manual entries and other D.O.s are not changed.</small>
-        <div class="xprog"><i id="x-p"></i></div>
-        <div id="x-msg" class="msg"></div>
-      </div></div>
-      <div class="xr">
-        <div class="panel"><div class="panel-h"><h2>D.O. blocks in this file</h2><span class="sub">Checked against the totals printed in the file</span></div><div class="dcards" id="x-cards"></div></div>
-        <div class="panel"><div class="panel-h"><h2>Log preview</h2><span class="sub" id="x-i"></span></div><div class="scroll"><table id="t-x"></table></div></div>
-      </div>
-    </div>
+  <section id="entry" class="view" hidden>
+    <div class="tabs" id="tabs" role="tablist"></div>
+    <div class="card flat" id="ebody"></div>
   </section>
 </main>
 
-<nav class="dock">
-  <button data-v="dash" class="on">📊 <span>Dashboard</span></button>
-  <button data-v="entry">➕ <span>Data entry</span></button>
-  <button data-v="log">🗂 <span>Log</span></button>
-  <button data-v="excel">📤 <span>Excel upload</span></button>
-</nav>
+<div id="toasts" aria-live="polite"></div>
 
-<dialog id="dlg"><h3 id="dlg-t" style="margin:0 0 12px"></h3><div id="dlg-b"></div>
-  <div style="text-align:right;margin-top:12px"><button class="btn ghost" id="dlg-x">Close</button></div></dialog>
-<div id="toast" class="toast"></div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-/* ===== Config ===== */
+/* ================= CONFIG & STATE ================= */
 const SB='https://gcedsyxvfmlyujhftiyf.supabase.co';
 const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdjZWRzeXh2Zm1seXVqaGZ0aXlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ2Mjg5ODMsImV4cCI6MjExMDIwNDk4M30.QsFXFMT1zS62UIfdbgtpXJHEicCVglvXHqgvik5Q5Rk';
 const db=window.supabase.createClient(SB,KEY);
+const ENTRY_PASSWORD='1234';
 
-/*PARSER_START*/
-const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const $=s=>document.querySelector(s);
+const f=(n,d=0)=>(+n||0).toLocaleString('en-IN',{minimumFractionDigits:d,maximumFractionDigits:d});
+const Rs=n=>'₹ '+f(n);
+const sm=(a,k)=>a.reduce((t,x)=>t+(+x[k]||0),0);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const N=v=>{const n=+v;return Number.isFinite(n)?n:0};
+const pm=(a,q)=>q?a/q:0;
+const LAST={};
+
+let S={dos:[],lift:[],rr:[],cfg:{target:5,month:new Date().toISOString().slice(0,7),basis:'lift',pen:1,cap:64}};
+let sel='all',hide=0,tab='do',ch={},XB=null,entryOpen=false;
+const DO_RATES={t:'rate_transport',l:'rate_loading',s:'rate_shifting',m:'rate_misc',st:'rate_staff',inc:'rate_income'};
+const EX=[['t','Transportation'],['l','Loading charges at mines'],['s','Shifting & rake loading'],['m','Misc. liaisoning exp'],['st','Staff exp']];
+const COL=['#2b8cff','#e89b0c','#12b89a','#e8455a','#6b7f99'];
+
+/* ================= UI FEEDBACK (replaces alert/confirm/prompt) ================= */
+function toast(msg,type='info',ms=3800){
+  const t=document.createElement('div');
+  t.className='toast '+type;t.textContent=msg;
+  $('#toasts').appendChild(t);
+  setTimeout(()=>{t.classList.add('out');setTimeout(()=>t.remove(),300)},ms);
+}
+function askModal({title,text='',fields=[],okLabel='OK',danger=false}){
+  return new Promise(resolve=>{
+    const sc=document.createElement('div');sc.className='scrim';
+    sc.innerHTML=`<form class="modal" role="dialog" aria-modal="true">
+      <h3>${esc(title)}</h3>${text?`<p>${esc(text)}</p>`:''}
+      ${fields.map((x,i)=>`<label class="fl">${esc(x.label)}<input id="mf${i}" type="${x.type||'text'}" ${x.placeholder?`placeholder="${esc(x.placeholder)}"`:''} autocomplete="off"></label>`).join('')}
+      <div class="err" id="merr"></div>
+      <div class="row"><button type="button" class="btn" data-no>Cancel</button><button type="submit" class="pb" ${danger?'style="background:var(--red)"':''}>${esc(okLabel)}</button></div>
+    </form>`;
+    document.body.appendChild(sc);
+    const first=sc.querySelector('input');first&&first.focus();
+    const close=v=>{sc.remove();document.removeEventListener('keydown',esck);resolve(v)};
+    const esck=e=>{if(e.key==='Escape')close(null)};
+    document.addEventListener('keydown',esck);
+    sc.addEventListener('click',e=>{if(e.target===sc)close(null)});
+    sc.querySelector('[data-no]').onclick=()=>close(null);
+    sc.querySelector('form').onsubmit=e=>{
+      e.preventDefault();
+      if(!fields.length)return close(true);
+      const vals=fields.map((x,i)=>sc.querySelector('#mf'+i).value.trim());
+      const err=fields.map((x,i)=>x.validate?x.validate(vals[i]):null).find(Boolean);
+      if(err){sc.querySelector('#merr').textContent=err;return}
+      close(vals.length===1?vals[0]:vals);
+    };
+  });
+}
+const confirmM=(title,text,label='Confirm')=>askModal({title,text,okLabel:label,danger:true}).then(v=>v===true);
+
+/* ================= ERRORS ================= */
+function dbErr(e){
+  const s=(e.message||'')+' '+(e.code||'');
+  if(/42501|row-level|permission/i.test(s))return 'Blocked by database security: run hzl_rake_setup.sql (policies).';
+  if(/42P01|42703|schema cache|does not exist|Could not find/i.test(s))return 'Table or column missing: run hzl_rake_setup.sql, then reload.';
+  if(/23505|duplicate/i.test(s))return 'Duplicate: this record already exists.';
+  return e.message||String(e);
+}
+
+/* ================= DATA ================= */
+async function pageAll(build){
+  let out=[],from=0;
+  for(;;){
+    const {data,error}=await build().range(from,from+999);
+    if(error)throw error;
+    out=out.concat(data||[]);
+    if(!data||data.length<1000)break;
+    from+=1000;
+  }
+  return out;
+}
+async function loadAll(){
+  const [d,m,r]=await Promise.all([
+    pageAll(()=>db.from('hzl_do').select('*').order('do_no')),
+    pageAll(()=>db.from('hzl_movements').select('*').eq('direction','LIFT').order('id')),
+    pageAll(()=>db.from('hzl_rakes').select('*').order('rake_date'))
+  ]);
+  const st=await db.from('hzl_settings').select('value').eq('key','cfg').maybeSingle();
+  if(st.data&&st.data.value)S.cfg={...S.cfg,...st.data.value};
+  S.dos=d.map(x=>({id:Number(x.do_no),name:'DO '+x.do_no,mine:x.colliery||'',q:N(x.do_qty),
+    t:N(x.rate_transport),l:N(x.rate_loading),s:N(x.rate_shifting),m:N(x.rate_misc),st:N(x.rate_staff),inc:N(x.rate_income)}));
+  S.lift=m.map(x=>({id:x.id,d:x.mv_date,do:Number(x.do_no),q:N(x.net_wt),veh:x.vehicle_no||''}));
+  S.rr=r.map(x=>{
+    const q=N(x.rr_qty);
+    return{id:x.id,d:x.rake_date,no:x.rake_no,do:Number(x.do_no),n:N(x.wagons),q,
+      c:x.chargeable_qty==null?q:N(x.chargeable_qty),r:x.received_qty==null?q:N(x.received_qty),
+      ul:N(x.underload_amt),ol:N(x.overload_amt),gcv:N(x.gcv_amt),sh:N(x.shortage_amt)};
+  });
+}
+async function refresh(){
+  try{await loadAll();dash();if(!$('#entry').hidden)de()}
+  catch(e){toast(dbErr(e),'err',6000)}
+}
+async function write(p,okMsg){
+  const {error}=await p;
+  if(error){toast(dbErr(error),'err',6000);return false}
+  await refresh();
+  if(okMsg)toast(okMsg,'ok');
+  return true;
+}
+function saveCfg(msg){
+  return write(db.from('hzl_settings').upsert({key:'cfg',value:S.cfg,updated_at:new Date().toISOString()},{onConflict:'key'}),msg);
+}
+</script>
+<script>
+/* ================= CALCULATIONS (same formulas as original) ================= */
+function calc(s){
+  return S.dos.filter(d=>s==='all'||d.id==s).map(d=>{
+    const L=S.lift.filter(x=>x.do===d.id), Rk=S.rr.filter(x=>x.do===d.id);
+    const o={d,lift:sm(L,'q'),rr:sm(Rk,'q'),chg:sm(Rk,'c'),rec:sm(Rk,'r'),
+      ul:sm(Rk,'ul'),ol:sm(Rk,'ol'),gcv:sm(Rk,'gcv'),sh:sm(Rk,'sh')};
+    o.mb=d.q-o.lift;
+    o.sb=o.lift-o.rr;
+    o.ex={t:d.t*o.lift,l:d.l*o.lift,s:d.s*o.lift,m:d.m*o.lift,st:d.st*o.lift};
+    o.exT=Object.values(o.ex).reduce((a,b)=>a+b,0);
+    const basisKey={lift:'lift',rr:'rr',chg:'chg',rec:'rec'}[S.cfg.basis]||'lift';
+    o.inc=d.inc*o[basisKey];
+    o.pen=o.ul+o.ol+o.sh-o.gcv;
+    return o;
+  });
+}
+function tot(a){
+  const t={d:{q:0},ex:{t:0,l:0,s:0,m:0,st:0}};
+  ['lift','rr','chg','rec','ul','ol','gcv','sh','mb','sb','exT','inc','pen'].forEach(k=>t[k]=sm(a,k));
+  a.forEach(x=>{t.d.q+=x.d.q;for(const k in x.ex)t.ex[k]+=x.ex[k]});
+  return t;
+}
+const barHTML=(v,q)=>`<div class="bar"><i data-w="${q?Math.max(0,Math.min(100,v/q*100)):0}"></i></div>`;
+const cl=n=>n<0?'neg':'pos';
+
+/* ================= CHARTS ================= */
+function mk(id,cfg){
+  if(ch[id])ch[id].destroy();
+  cfg.options=Object.assign({responsive:true,maintainAspectRatio:false,
+    animation:{duration:900,easing:'easeOutQuart'},
+    plugins:{legend:{position:'bottom',labels:{boxWidth:10,usePointStyle:true}}},
+    scales:cfg.type==='bar'?{x:{grid:{display:false}},y:{beginAtZero:true,grid:{color:'rgba(120,140,170,.15)'}}}:undefined
+  },cfg.options||{});
+  ch[id]=new Chart($('#'+id),cfg);
+}
+
+/* ================= NUMBER ANIMATION & BARS ================= */
+function animateNumbers(){
+  const rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.querySelectorAll('[data-n]').forEach(e=>{
+    const to=+e.dataset.n,k=e.dataset.k,from=LAST[k]||0,t0=performance.now();
+    LAST[k]=to;
+    const step=t=>{
+      const p=rm?1:Math.min(1,(t-t0)/800);
+      e.textContent=f(from+(to-from)*(1-Math.pow(1-p,3)));
+      if(p<1)requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  });
+}
+function animateBars(){
+  requestAnimationFrame(()=>document.querySelectorAll('.bar i[data-w]').forEach(i=>i.style.width=i.dataset.w+'%'));
+}
+
+/* ================= DASHBOARD ================= */
+function dash(){
+  const act=S.dos;
+  if(sel!=='all'&&!act.some(d=>d.id==sel))sel='all';
+  const A=calc(sel),T=tot(A),all=calc('all');
+  const now=new Date(),[y,mo]=S.cfg.month.split('-').map(Number);
+  const dim=new Date(y,mo,0).getDate();
+  const cur=now.getFullYear()*12+now.getMonth(),tm=y*12+mo-1;
+  const el=tm<cur?dim:tm>cur?0:now.getDate();
+  const left=tm<cur?0:tm>cur?dim:dim-now.getDate()+1;
+  const monthName=new Date(y,mo-1).toLocaleString('en',{month:'long',year:'numeric'});
+
+  $('#day').innerHTML=`<b>Day ${el} of ${dim}</b>${left} days left in ${monthName}`;
+
+  $('#flt').innerHTML=`<label class="sel">Delivery order
+    <select id="doSel">
+      <option value="all">Overall</option>
+      ${act.map(d=>`<option value="${d.id}" ${sel==d.id?'selected':''}>${esc(d.name)} · ${esc(d.mine)}</option>`).join('')}
+    </select></label>`;
+
+  const row=(n,a,isTot)=>`<tr${isTot?' class="t"':''}>
+    <td>${n}</td><td>${esc(a.mine||'')}</td><td>${f(a.q)}</td>
+    <td>${f(a.lift)}${barHTML(a.lift,a.q)}</td><td>${f(a.mb)}</td>
+    <td>${f(a.rr)}${barHTML(a.rr,a.q)}</td><td>${f(a.sb)}</td></tr>`;
+
+  $('#pipe').innerHTML=`<h2>DO status <span>${sel==='all'?`<button class="chip" id="hideBtn">${hide?'Show DOs':'Hide DOs'}</button>`:esc(A[0]?A[0].d.mine+' mines':'')}</span></h2>
+  <div class="tw"><table>
+    <tr><th>DO</th><th>Mine</th><th>DO qty</th><th>Lifted qty</th><th>Balance at mines</th><th>Dispatch by rake</th><th>Balance at siding</th></tr>
+    ${(sel==='all'&&hide)?'':A.map(a=>row(a.d.name,{mine:a.d.mine,q:a.d.q,lift:a.lift,mb:a.mb,rr:a.rr,sb:a.sb})).join('')}
+    ${sel==='all'?row('Total',{q:T.d.q,lift:T.lift,mb:T.mb,rr:T.rr,sb:T.sb},true):''}
+  </table></div>`;
+
+  const tl=S.rr.filter(r=>r.d&&r.d.startsWith(S.cfg.month)&&all.some(a=>a.d.id==r.do)).length;
+  const tg=+S.cfg.target||0,bal=tg-tl,ask=left>0?bal/left:0;
+  const pc=tg?Math.min(100,tl/tg*100):0;
+
+  $('#tgt').innerHTML=`<h2>Rake target <span>overall · RR in month</span></h2>
+  <div class="ringwrap">
+    <div class="ring" style="background:conic-gradient(var(--grn) ${pc*3.6}deg,rgba(120,140,170,.18) 0)">
+      <div><b>${f(pc)}%</b><small>loaded</small></div>
+    </div>
+    <div class="tg">
+      <div><small>Target</small><b>${f(tg)}</b></div>
+      <div><small>Loaded</small><b>${f(tl)}</b></div>
+      <div><small>Balance</small><b class="${bal>0?'neg':'pos'}">${f(bal)}</b></div>
+      <div><small>Asking / day</small><b>${bal>0&&left?f(ask,2):'0'}</b></div>
+    </div>
+  </div>
+  <p class="note">Asking = balance rakes ÷ ${left} days left${bal>0&&left?` (about 1 rake every ${f(left/bal,1)} days)`:''}.</p>`;
+
+  $('#wt').innerHTML=`<h2>Total weight <span>MT</span></h2>
+  <table>
+    <tr><td>Total RR qty</td><td>${f(T.rr,2)}</td></tr>
+    <tr><td>Total chargeable qty</td><td>${f(T.chg,2)}</td></tr>
+    <tr><td>Total plant received</td><td>${f(T.rec,2)}</td></tr>
+    <tr class="t"><td>RR − received</td><td>${f(T.rr-T.rec,2)}</td></tr>
+  </table>`;
+
+  $('#pen').innerHTML=`<h2>Penalty <span>${S.cfg.pen?'counted in P&amp;L':'not in P&amp;L'}</span></h2>
+  <table>
+    <tr><th>Particular</th><th>Amount</th><th>₹/MT</th></tr>
+    ${[['Underload',T.ul],['Overload',T.ol],['GCV bonus (+) / penalty (−)',T.gcv],['Shortage / excess',T.sh]]
+      .map(p=>`<tr><td>${p[0]}</td><td>${f(p[1])}</td><td>${f(pm(p[1],T.rr),2)}</td></tr>`).join('')}
+    <tr class="t"><td>Net deduction</td><td>${f(T.pen)}</td><td>${f(pm(T.pen,T.rr),2)}</td></tr>
+  </table>`;
+
+  $('#exp').innerHTML=`<h2>Expenses <span>${sel==='all'?'each DO at its own rate per MT':'rate per MT × lifted qty'}</span></h2>
+  <table>
+    <tr><th>Particular</th><th>Amount</th><th>₹/MT</th></tr>
+    ${EX.map(e=>`<tr><td>${e[1]}</td><td>${f(T.ex[e[0]])}</td><td>${f(pm(T.ex[e[0]],T.lift),2)}</td></tr>`).join('')}
+    <tr class="t"><td>Total</td><td>${f(T.exT)}</td><td>${f(pm(T.exT,T.lift),2)}</td></tr>
+  </table>`;
+
+  const bn={lift:'lifted qty',rr:'RR qty',chg:'chargeable qty',rec:'plant received qty'}[S.cfg.basis]||'lifted qty';
+  const bq={lift:T.lift,rr:T.rr,chg:T.chg,rec:T.rec}[S.cfg.basis]||T.lift;
+
+  $('#inc').innerHTML=`<h2>Income <span>rate × ${bn}</span></h2>
+  <table>
+    <tr><th>Particular</th><th>Amount</th><th>₹/MT</th></tr>
+    ${A.map(a=>`<tr><td>${esc(a.d.mine)} · ${esc(a.d.name)}</td><td>${f(a.inc)}</td><td>${f(a.d.inc,2)}</td></tr>`).join('')}
+    <tr class="t"><td>Total</td><td>${f(T.inc)}</td><td>${f(pm(T.inc,bq),2)}</td></tr>
+  </table>`;
+
+  const pn=S.cfg.pen?T.pen:0;
+  const net=T.inc-T.exT-pn;
+  const dq=T.d.q;
+  const sg=n=>n<0?'−':'';
+
+  $('#rib').innerHTML=`
+    <div class="card hero ${net<0?'loss':''}">
+      <small>${net<0?'Net loss':'Net profit'} · ${sel==='all'?'overall':esc(A[0]?A[0].d.name:'')}</small>
+      <div class="big ${cl(net)}">${sg(net)}₹<span data-k="net" data-n="${Math.abs(net)}">0</span></div>
+      <div class="sub">
+        <div>Income<b>${Rs(T.inc)}</b></div>
+        <div>Expense<b>${Rs(T.exT)}</b></div>
+        <div>Penalty<b>${Rs(pn)}</b></div>
+      </div>
+    </div>
+    <div class="card kt">
+      <small>Lifted from mines</small>
+      <b><span data-k="lift" data-n="${T.lift}">0</span> MT</b>
+      ${barHTML(T.lift,dq)}
+      <em>${f(dq?T.lift/dq*100:0)}% of ${f(dq)} MT DO qty</em>
+    </div>
+    <div class="card kt">
+      <small>Dispatched by rake</small>
+      <b><span data-k="rr" data-n="${T.rr}">0</span> MT</b>
+      ${barHTML(T.rr,dq)}
+      <em>${f(dq?T.rr/dq*100:0)}% of DO qty · ${f(T.rec)} MT received</em>
+    </div>
+    <div class="card kt">
+      <small>Stock at siding</small>
+      <b class="${T.sb<0?'neg':''}">${sg(T.sb)}<span data-k="sb" data-n="${Math.abs(T.sb)}">0</span> MT</b>
+      ${barHTML(T.sb,T.lift)}
+      <em>${f(T.mb)} MT still at mines</em>
+    </div>`;
+
+  const I=[];
+  const sp=T.rr?(T.rr-T.rec)/T.rr*100:0;
+  if(T.sb<0)I.push(['r',`Rake dispatch is ${f(-T.sb)} MT more than lifted`]);
+  if(sp>.5)I.push(['a',`Plant received is ${f(sp,2)}% below RR qty`]);
+  if(bal>0)I.push(['b',left?`${f(bal)} more rakes needed · ${f(ask,2)} per day`:`${f(bal)} rakes short of target`]);
+  else if(tg)I.push(['g','Rake target achieved']);
+  I.push([net<0?'r':'g',net<0?'Running at a loss':`Earning ${Rs(pm(net,T.rr))} per MT`]);
+  $('#ins').innerHTML=I.map(i=>`<span class="pill ${i[0]}">${esc(i[1])}</span>`).join('');
+
+  animateNumbers();
+  animateBars();
+  drawCharts(A,T,net);
+}
+
+function drawCharts(A,T,net){
+  Object.assign(Chart.defaults,{color:'#5b6f8a',borderColor:'rgba(120,140,170,.15)'});
+  Chart.defaults.font.family='Manrope';
+  const labels=A.map(a=>a.d.name);
+  mk('c1',{type:'bar',data:{labels,datasets:[
+    {label:'DO qty',data:A.map(a=>a.d.q),backgroundColor:COL[4],borderRadius:6},
+    {label:'Lifted',data:A.map(a=>a.lift),backgroundColor:COL[1],borderRadius:6},
+    {label:'Dispatched by rake',data:A.map(a=>a.rr),backgroundColor:COL[0],borderRadius:6}]}});
+  mk('c3',{type:'doughnut',data:{labels:EX.map(e=>e[1]),datasets:[{data:EX.map(e=>T.ex[e[0]]),backgroundColor:COL,borderWidth:0,hoverOffset:8}]},
+    options:{cutout:'62%',plugins:{legend:{position:'right'}}}});
+  mk('c4',{type:'bar',data:{labels,datasets:[
+    {label:'Income',data:A.map(a=>a.inc),backgroundColor:COL[2],borderRadius:6},
+    {label:'Expense',data:A.map(a=>a.exT),backgroundColor:COL[3],borderRadius:6},
+    {label:'Net',data:A.map(a=>a.inc-a.exT-(S.cfg.pen?a.pen:0)),backgroundColor:COL[0],borderRadius:6}]}});
+}
+</script>
+<script>
+/* ================= DATA ENTRY ================= */
+const TB=[['do','DO master & rates'],['lift','Lifting log (trucks)'],['xl','Excel upload (mine trucks)'],['rr','Rake (RR) log'],['cfg','Target & settings']];
+const DO_COLS=[['name','DO'],['mine','Mine'],['q','DO qty (MT)'],['t','Transport /MT'],['l','Loading at mines /MT'],['s','Shifting & rake loading /MT'],['m','Misc. liaisoning /MT'],['st','Staff /MT'],['inc','Income /MT']];
+const fld=(l,i,t='number',x='')=>`<label class="fl">${l}<input id="${i}" type="${t}" step="any" ${x}></label>`;
+const dsel=(id,label='DO')=>`<label class="fl">${label}<select id="${id}">${S.dos.map(d=>`<option value="${d.id}">${esc(d.name)}</option>`).join('')}</select></label>`;
+const LT=(rows,hd,fn)=>rows.length?`<div class="tw"><table>
+  <tr>${hd.map(x=>`<th>${x}</th>`).join('')}<th></th></tr>
+  ${rows.map(x=>`<tr>${x.slice(1).map(c=>`<td>${c}</td>`).join('')}<td><button class="x" data-del="${fn}" data-id="${x[0]}" aria-label="Delete">✕</button></td></tr>`).join('')}
+</table></div>`:`<div class="empty">No entries yet.</div>`;
+const g=i=>{const el=$('#'+i);return el?el.value:''};
+const numOrNull=i=>{const v=g(i);return v===''?null:+v};
+const todayISO=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+
+function de(){
+  $('#tabs').innerHTML=TB.map(t=>`<button class="tab ${tab===t[0]?'on':''}" data-tab="${t[0]}" role="tab">${t[1]}</button>`).join('');
+  const dn=id=>(S.dos.find(d=>d.id==id)||{}).name||'?';
+  let h='';
+
+  if(tab==='do'){
+    h=`<p class="note">Each DO has its own expense and income rate per MT. Edits save when you leave the field.</p>
+    <div class="tw"><table>
+      <tr>${DO_COLS.map(c=>`<th>${c[1]}</th>`).join('')}<th></th></tr>
+      ${S.dos.map(d=>`<tr>
+        ${DO_COLS.map(c=>c[0]==='name'
+          ?`<td><input value="${esc(d.name)}" readonly></td>`
+          :`<td><input type="${c[0]==='mine'?'text':'number'}" step="any" value="${esc(d[c[0]])}" data-u="${d.id}" data-k="${c[0]}"></td>`).join('')}
+        <td><button class="x" data-del="delDO" data-id="${d.id}" aria-label="Delete">✕</button></td>
+      </tr>`).join('')||`<tr><td colspan="${DO_COLS.length+1}" class="empty">No D.O.s yet.</td></tr>`}
+    </table></div>
+    <p style="margin-top:14px"><button class="pb" id="addDO">+ Add DO</button></p>`;
+  }
+
+  if(tab==='lift'){
+    h=`<div class="frm">
+      ${fld('Date','ld','date',`value="${todayISO()}"`)}
+      ${dsel('lo')}
+      ${fld('Qty lifted (MT)','lq','number','min="0"')}
+      ${fld('Truck no.','lv','text','placeholder="CG10 AB 1234"')}
+      <button class="pb" id="addL">Add lifting</button>
+    </div>`+LT(S.lift.map(x=>[x.id,x.d,dn(x.do),x.veh||'–',f(x.q,2)]).reverse(),['Date','DO','Truck no.','Qty (MT)'],'delL');
+  }
+
+  if(tab==='rr'){
+    h=`<div class="frm">
+      ${fld('Date','rd','date',`value="${todayISO()}"`)}
+      ${fld('Rake no.','rn','text')}
+      ${dsel('ro')}
+      ${fld('Wagons','rw','number','value="40"')}
+      ${fld('RR qty (MT)','rq','number','min="0"')}
+      ${fld('Chargeable qty (MT)','rc')}
+      ${fld('Plant received (MT)','rr_')}
+      ${fld('Underload ₹','ru')}
+      ${fld('Overload ₹','rol')}
+      ${fld('GCV ₹ (+bonus / −penalty)','rg')}
+      ${fld('Shortage / excess ₹','rs')}
+    </div>
+    <label class="fl note">Wagon-wise weights (optional, comma or space separated). If filled, RR qty is the sum of these.
+      <textarea id="rwt" rows="2" style="margin-top:6px"></textarea>
+    </label>
+    <p style="margin-top:12px"><button class="pb" id="addR">Add rake</button></p>`+
+    LT(S.rr.map(x=>[x.id,x.d,esc(x.no)+' · '+dn(x.do),f(x.q,1)+' / '+f(x.c,1)+' / '+f(x.r,1)]).reverse(),
+      ['Date','Rake · DO','RR / chargeable / received (MT)'],'delR');
+  }
+
+  if(tab==='xl'){
+    h=`<p class="note">Upload the mine truck log (Excel, same layout as before). Each D.O. block sets its quantity and dates and replaces its earlier Excel truck rows. Manual lifting entries and rates are kept.</p>
+    <input type="file" id="xlFile" accept=".xlsx,.xls">
+    <div id="xl-out" style="margin-top:14px"></div>`;
+  }
+
+  if(tab==='cfg'){
+    h=`<div class="frm">
+      <label class="fl">Working month<input id="cfgMonth" type="month" value="${S.cfg.month}"></label>
+      <label class="fl">Rake target for the month<input id="cfgTarget" type="number" min="0" value="${S.cfg.target}"></label>
+      <label class="fl">Income is calculated on
+        <select id="cfgBasis">
+          ${[['lift','Lifted qty (DO net qty)'],['rr','RR qty'],['chg','Chargeable qty'],['rec','Plant received qty']].map(o=>
+            `<option value="${o[0]}" ${S.cfg.basis===o[0]?'selected':''}>${o[1]}</option>`).join('')}
+        </select></label>
+      <label class="fl">Penalties in profit &amp; loss
+        <select id="cfgPen">
+          <option value="1" ${S.cfg.pen?'selected':''}>Deduct</option>
+          <option value="0" ${!S.cfg.pen?'selected':''}>Ignore</option>
+        </select></label>
+    </div>
+    <p style="margin-bottom:16px"><button class="pb" id="saveCfg">Save settings</button></p>
+    <p class="note">Settings are saved to the database and shared by everyone who opens this page.</p>
+    <div class="tw" style="margin-top:14px"><table>
+      <tr><th>DO</th><th>Mine</th><th>Transport /MT</th><th>Loading /MT</th><th>Shifting /MT</th><th>Misc /MT</th><th>Staff /MT</th><th>Total expense /MT</th><th>Income /MT</th></tr>
+      ${S.dos.map(d=>`<tr><td>${esc(d.name)}</td><td>${esc(d.mine)}</td>
+        ${['t','l','s','m','st'].map(k=>`<td><input type="number" step="any" value="${d[k]}" data-u="${d.id}" data-k="${k}"></td>`).join('')}
+        <td>${f(d.t+d.l+d.s+d.m+d.st,2)}</td>
+        <td><input type="number" step="any" value="${d.inc}" data-u="${d.id}" data-k="inc"></td></tr>`).join('')||`<tr><td colspan="9" class="empty">No D.O.s yet.</td></tr>`}
+    </table></div>`;
+  }
+
+  $('#ebody').innerHTML=h;
+  if(tab==='xl')xlShow();
+}
+</script>
+<script>
+/* ================= WRITE ACTIONS ================= */
+function U(id,k,v){
+  if(k==='mine')return write(db.from('hzl_do').update({colliery:v.trim()}).eq('do_no',id),'Saved');
+  if(DO_RATES[k])return write(db.from('hzl_do').update({[DO_RATES[k]]:N(v)}).eq('do_no',id),'Saved');
+}
+async function addDO(){
+  const v=await askModal({title:'Add D.O.',text:'Enter the D.O. number exactly as printed.',fields:[{label:'D.O. number',type:'number',validate:x=>(!Number.isInteger(+x)||+x<=0)?'Enter a valid D.O. number.':(S.dos.some(d=>d.id==+x)?'This D.O. already exists.':null)}],okLabel:'Add'});
+  if(!v)return;
+  write(db.from('hzl_do').insert({do_no:+v,colliery:'Mine',do_qty:0,rate_transport:0,rate_loading:0,
+    rate_shifting:0,rate_misc:0,rate_staff:0,rate_income:0}),'D.O. added');
+}
+async function delDO(id){
+  if(await confirmM('Remove D.O.?',`Remove DO ${id} from the list? Its lifting and rake entries stay in the database.`,'Remove'))
+    write(db.from('hzl_do').delete().eq('do_no',id),'D.O. removed');
+}
+function addL(){
+  const lq=+g('lq');
+  if(!g('ld')||!(lq>0)||!S.dos.length)return toast('Enter date, DO and a quantity above zero.','err');
+  write(db.from('hzl_movements').insert({direction:'LIFT',do_no:+g('lo'),mv_date:g('ld'),net_wt:lq,
+    vehicle_no:g('lv').toUpperCase().replace(/\s+/g,' ').trim()||null,source:'MANUAL'}),'Lifting added');
+}
+async function delL(id){
+  if(await confirmM('Delete lifting entry?','This truck entry will be removed.','Delete'))
+    write(db.from('hzl_movements').delete().eq('id',id),'Entry deleted');
+}
+function parseWeights(s){return s.split(/[\s,]+/).map(Number).filter(x=>x>0)}
+function addR(){
+  const w=parseWeights(g('rwt'));
+  const q=w.length?+w.reduce((a,b)=>a+b,0).toFixed(2):+g('rq');
+  if(!g('rd')||!g('rn').trim()||!(q>0)||!S.dos.length)return toast('Enter date, rake no., DO and RR qty or wagon weights.','err');
+  write(db.from('hzl_rakes').insert({
+    rake_no:g('rn').trim(),rake_date:g('rd'),do_no:+g('ro'),
+    wagons:w.length||+g('rw')||0,wagon_weights:w.length?w:null,
+    rr_qty:q,chargeable_qty:numOrNull('rc'),received_qty:numOrNull('rr_'),
+    underload_amt:+g('ru')||0,overload_amt:+g('rol')||0,gcv_amt:+g('rg')||0,shortage_amt:+g('rs')||0
+  }),'Rake added');
+}
+async function delR(id){
+  if(await confirmM('Delete rake entry?','This rake record will be removed.','Delete'))
+    write(db.from('hzl_rakes').delete().eq('id',id),'Rake deleted');
+}
+function saveCfgFromForm(){
+  S.cfg.month=g('cfgMonth')||S.cfg.month;
+  S.cfg.target=+g('cfgTarget')||0;
+  S.cfg.basis=g('cfgBasis')||'lift';
+  S.cfg.pen=+g('cfgPen');
+  saveCfg('Settings saved');
+}
+
+/* ================= EXCEL PARSER (unchanged rules from HZL RCR v3) ================= */
 const num=v=>{if(v==null||v==='')return null;const n=Number(String(v).replace(/,/g,'').trim());return Number.isFinite(n)?n:null};
 const r3=v=>Math.round(v*1000)/1000;
 const p2=n=>String(n).padStart(2,'0');
-const fmt=(y,m,d)=>`${y}-${p2(m)}-${p2(d)}`;
-const iso=d=>fmt(d.getFullYear(),d.getMonth()+1,d.getDate());
+const fmtD=(y,m,d)=>`${y}-${p2(m)}-${p2(d)}`;
+const isoD=d=>fmtD(d.getFullYear(),d.getMonth()+1,d.getDate());
 const vOk=(y,m,d)=>{const t=new Date(Date.UTC(y,m-1,d));return t.getUTCFullYear()===y&&t.getUTCMonth()===m-1&&t.getUTCDate()===d};
 const MON={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
 const txt=x=>x==null||String(x).trim()===''?null:String(x).trim();
@@ -296,22 +756,21 @@ const fQ=v=>num(v)===null?'–':num(v).toLocaleString('en-IN',{minimumFractionDi
 const fI=v=>num(v)===null?'–':num(v).toLocaleString('en-IN',{maximumFractionDigits:0});
 function parseDate(v){
   if(v==null||v==='')return{iso:null};
-  if(v instanceof Date)return isNaN(v)?{iso:null}:{iso:iso(v)};
-  if(typeof v==='number'&&v>20000&&v<80000){const d=new Date(Math.round((v-25569)*864e5));return{iso:fmt(d.getUTCFullYear(),d.getUTCMonth()+1,d.getUTCDate())}}
+  if(v instanceof Date)return isNaN(v)?{iso:null}:{iso:isoD(v)};
+  if(typeof v==='number'&&v>20000&&v<80000){const d=new Date(Math.round((v-25569)*864e5));return{iso:fmtD(d.getUTCFullYear(),d.getUTCMonth()+1,d.getUTCDate())}}
   const s=String(v).trim();
   let m=s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/);
-  if(m)return vOk(+m[1],+m[2],+m[3])?{iso:fmt(+m[1],+m[2],+m[3])}:{iso:null};
+  if(m)return vOk(+m[1],+m[2],+m[3])?{iso:fmtD(+m[1],+m[2],+m[3])}:{iso:null};
   m=s.match(/^(\d{1,2})[-\/. ]([A-Za-z]{3})[a-z]*[-\/., ]+(\d{2,4})$/);
-  if(m&&MON[m[2].toLowerCase()]){let y=+m[3];if(y<100)y+=2000;const mo=MON[m[2].toLowerCase()];return vOk(y,mo,+m[1])?{iso:fmt(y,mo,+m[1])}:{iso:null}}
+  if(m&&MON[m[2].toLowerCase()]){let y=+m[3];if(y<100)y+=2000;const mo=MON[m[2].toLowerCase()];return vOk(y,mo,+m[1])?{iso:fmtD(y,mo,+m[1])}:{iso:null}}
   m=s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})$/);
   if(m){let y=+m[3];if(y<100)y+=2000;const a=+m[1],b=+m[2];const dmy=vOk(y,b,a),mdy=vOk(y,a,b);
-    if(dmy&&mdy&&a!==b)return{iso:fmt(y,b,a),amb:true};
-    if(dmy)return{iso:fmt(y,b,a)};if(mdy)return{iso:fmt(y,a,b)};}
+    if(dmy&&mdy&&a!==b)return{iso:fmtD(y,b,a),amb:true};
+    if(dmy)return{iso:fmtD(y,b,a)};if(mdy)return{iso:fmtD(y,a,b)};}
   return{iso:null};
 }
 const pd=s=>{if(!s)return null;const[y,m,d]=String(s).slice(0,10).split('-').map(Number);return new Date(y,m-1,d)};
 const fD=s=>{const d=pd(s);return d?d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'–'};
-const fShort=s=>{const d=pd(s);return d?d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'}):''};
 
 function parseBlocks(rows){
   const out=[],seen=new Set();
@@ -352,615 +811,105 @@ function parseBlocks(rows){
 function summarize(b){
   const good=b.rows.filter(x=>!x.bad);
   const recv=r3(good.reduce((s,x)=>s+(x.net||0),0)),trips=good.length;
-  return{...b,recv,trips,skipped:b.rows.length-good.length,avg:trips?r3(recv/trips):0,
+  return{...b,recv,trips,skipped:b.rows.length-good.length,
     recvOk:b.recvFile==null||Math.abs(b.recvFile-recv)<0.01,
     tripsOk:b.tripsFile==null||b.tripsFile===trips};
 }
-/*PARSER_END*/
-
-/* ===== Helpers ===== */
-const exErr=e=>{const s=(e?.message||'')+' '+(e?.code||'');
-  if(/42501|row-level|permission/i.test(s))return'Blocked by database security: run the setup SQL (policies).';
-  if(/42P01|42703|schema cache|does not exist|Could not find/i.test(s))return'Table or column missing: run the setup SQL, then reload.';
-  if(/23505|duplicate/i.test(s))return'Duplicate: this record already exists.';
-  return e?.message||String(e)};
-async function fetchAll(q){let o=[];for(let f=0;;f+=1000){const{data,error}=await q().range(f,f+999);if(error)throw error;o=o.concat(data||[]);if(!data||data.length<1000)break}return o}
-function toast(m,err){const t=$('#toast');t.textContent=m;t.className='toast show'+(err?' err':'');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),3600)}
-function setSt(t,c){const s=$('#status');s.innerHTML='<i class="dot"></i>'+esc(t);s.className='pill '+(c||'')}
-function msg(sel,t,err){const m=$(sel);m.textContent=t||'';m.className='msg'+(err?' err':'')}
-const inRangeFn=()=>{const f=$('#f-from').value,t=$('#f-to').value;return d=>{if(!f&&!t)return true;if(!d)return false;return(!f||d>=f)&&(!t||d<=t)}};
-
-/* ===== State ===== */
-const S={dos:[],mv:[],view:'dash',sort:{k:'do_no',d:1},log:{pg:0},editId:null,xl:{wb:null,blocks:[],msg:'',err:false}};
-const CH={};
-const C={teal:'#0f766e',sky:'#0369a1',amber:'#c2410c',sand:'#fbbf24'};
-const STAT={closed:'<span class="st done">Closed</span>',overdue:'<span class="st over">Overdue</span>',ontrack:'<span class="st ok">On track</span>',behind:'<span class="st warn">Behind</span>',open:'<span class="st open">Open</span>'};
-const tick={color:'#64748b',font:{size:11}};
-const grid={color:'rgba(15,23,42,.06)'};
-const base={responsive:true,maintainAspectRatio:false,animation:{duration:900,easing:'easeOutQuart'},
-  plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8,font:{size:11}}},tooltip:{backgroundColor:'#0f172a',padding:10,cornerRadius:10,titleFont:{weight:'700'}}}};
-
-/* ===== Load ===== */
-async function load(){
-  setSt('Loading…');
-  try{
-    const[d,m]=await Promise.all([
-      fetchAll(()=>db.from('hzl_do').select('*').order('do_no')),
-      fetchAll(()=>db.from('hzl_movements').select('*').order('id'))]);
-    S.dos=d;S.mv=m;setSt('Live','live');
-    $('#updated').textContent='Updated '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
-    fillFilters();
-    if(S.view==='dash')renderDash();
-    if(S.view==='entry')renderEntries();
-    if(S.view==='log')renderLog();
-  }catch(e){setSt('Error','err');toast(exErr(e),true)}
-}
-function fillFilters(){
-  const cur=$('#f-col').value;
-  const cols=[...new Set(S.dos.map(d=>(d.colliery||'').trim()).filter(Boolean))].sort();
-  $('#f-col').innerHTML='<option value="">All collieries</option>'+cols.map(c=>`<option value="${esc(c.toLowerCase())}">${esc(c)}</option>`).join('');
-  $('#f-col').value=cur;
-  const opts=S.dos.map(d=>`<option value="${d.do_no}">${d.do_no} · ${esc(d.colliery||'')}</option>`).join('');
-  const lo=$('#l-do').value;
-  $('#l-do').innerHTML='<option value="">All D.O.s</option>'+opts;$('#l-do').value=lo;
-  const ed=$('#e-do').value;
-  $('#e-do').innerHTML='<option value="">All D.O.s</option>'+opts;$('#e-do').value=ed;
-  const md=$('#mv-do').value;
-  $('#mv-do').innerHTML='<option value="">Select D.O.</option>'+opts;$('#mv-do').value=md;
-}
-
-/* ===== Dashboard calculations ===== */
-function rowsFor(){
-  const inR=inRangeFn(),A={};
-  for(const x of S.mv){
-    if(x.direction!=='IN'||!inR(x.mv_date))continue;
-    const k=String(x.do_no),a=A[k]||(A[k]={rec:0,trips:0});
-    a.rec+=num(x.net_wt)||0;a.trips++;
-  }
-  const asOf=pd($('#f-to').value||iso(new Date()));
-  return S.dos.map(d=>{
-    const a=A[String(d.do_no)]||{rec:0,trips:0};
-    const q=num(d.do_qty)||0,rec=r3(a.rec),bal=r3(Math.max(0,q-rec));
-    const L=pd(d.lapsing_date),St=pd(d.issue_date);
-    const dl=L?Math.round((L-asOf)/864e5):null;
-    const elapsed=St?Math.max(1,Math.round((asOf-St)/864e5)+1):null;
-    const pace=elapsed?r3(rec/elapsed):null;
-    const need=dl!=null&&dl>0&&bal>0?r3(bal/dl):null;
-    const closed=bal<=.005;
-    let status;
-    if(closed)status='closed';
-    else if(dl!=null&&dl<0)status='overdue';
-    else if(need==null||pace==null)status='open';
-    else status=pace>=need?'ontrack':'behind';
-    const fr=num(d.file_recv),ft=num(d.file_trips);
-    const reconOk=(fr==null||Math.abs(fr-rec)<0.01)&&(ft==null||ft===a.trips);
-    return{...d,do_no:Number(d.do_no),q,rec,trips:a.trips,bal,dl,pace,need,avg:a.trips?r3(rec/a.trips):0,
-      pct:q?Math.min(100,rec/q*100):0,closed,status,reconOk,file_recv:fr,file_trips:ft};
-  });
-}
-function visibleRows(all){
-  const q=$('#f-q').value.trim().toLowerCase(),c=$('#f-col').value,h=$('#f-hide').checked;
-  const k=S.sort.k,dir=S.sort.d;
-  return all.filter(x=>(!c||(x.colliery||'').trim().toLowerCase()===c)&&(!h||!x.closed)&&(!q||[x.do_no,x.colliery,x.party_name].join(' ').toLowerCase().includes(q)))
-    .sort((a,b)=>{const x=a[k],y=b[k];if(x==null)return 1;if(y==null)return -1;return(typeof x==='number'?x-y:String(x).localeCompare(String(y),'en-IN',{numeric:true}))*dir});
-}
-
-/* ===== Dashboard render ===== */
-const COLS=[['do_no','D.O. No.',''],['colliery','Colliery',''],['issue_date','Start',''],['lapsing_date','End',''],
-  ['q','Total qty',' num'],['rec','Recv qty',' num'],['bal','Balance',' num'],['trips','Trips',' num'],['avg','Avg / trip',' num'],
-  ['pct','Recovery',''],['pace','Pace / day',' num'],['need','Need / day',' num'],['dl','Days left',' num'],['status','Status','']];
-function fmtBy(f,v){
-  if(f==='p')return (Number(v)||0).toFixed(1)+'%';
-  if(f==='i')return fI(v);
-  return fQ(v);
-}
-function renderDash(){
-  const all=rowsFor(),R=visibleRows(all);
-  const sum=(a,k)=>a.reduce((s,x)=>s+(x[k]||0),0);
-  const Q=sum(R,'q'),REC=sum(R,'rec'),BAL=sum(R,'bal'),TR=sum(R,'trips');
-  const openN=R.filter(x=>!x.closed).length;
-  const nextL=R.filter(x=>!x.closed&&x.dl!=null&&x.dl>=0).sort((a,b)=>a.dl-b.dl)[0];
-  const attn=R.filter(x=>x.status==='overdue'||x.status==='behind').length;
-  const pct=Q?REC/Q*100:0,avg=TR?REC/TR:0;
-  $('#scope').textContent=`${R.length} of ${all.length} D.O.s`;
-
-  const cards=[
-    ['Total D.O. qty',Q,'teal',`${R.length} D.O.s · ${openN} open`,'q'],
-    ['Received',REC,'sky',`${fI(TR)} trips`,'q'],
-    ['Balance',BAL,'amber',nextL?`Next lapse: D.O. ${nextL.do_no} in ${nextL.dl} d`:'No open lapse dates','q'],
-    ['Recovery',pct,'green','Received ÷ total qty','p'],
-    ['Avg load / trip',avg,'violet','MT per trip','q'],
-    ['Need attention',attn,'rose','Overdue or behind pace','i']];
-  $('#cards').innerHTML=cards.map((c,i)=>`<div class="card ${c[2]}" style="--i:${i}"><span>${c[0]}</span><b data-v="${c[1]}" data-f="${c[4]}">${fmtBy(c[4],c[1])}</b><small>${c[3]}</small></div>`).join('');
-  $$('#cards b').forEach(el=>{const to=num(el.dataset.v)||0,f=el.dataset.f,t0=performance.now();
-    const step=t=>{const p=Math.min(1,(t-t0)/900),v=to*(1-Math.pow(1-p,3));el.textContent=fmtBy(f,v);if(p<1)requestAnimationFrame(step)};requestAnimationFrame(step)});
-
-  const head=COLS.map(([k,l,c])=>`<th data-k="${k}" class="so${c}">${l}${S.sort.k===k?(S.sort.d>0?' ▲':' ▼'):''}</th>`).join('');
-  const body=R.map((x,i)=>`<tr class="clickable ${x.closed?'done':''}" data-do="${x.do_no}" style="--d:${Math.min(i,40)*18}ms">
-    <td class="id">${x.do_no}</td><td>${esc(x.colliery||'–')}</td><td>${fD(x.issue_date)}</td><td>${fD(x.lapsing_date)}</td>
-    <td class="num">${fQ(x.q)}</td>
-    <td class="num">${fQ(x.rec)}${x.reconOk?'':`<span class="warnmark" title="Excel says recv ${fQ(x.file_recv)} MT and ${fI(x.file_trips)} trips">⚠</span>`}</td>
-    <td class="num ${x.bal>0?'':'muted'}">${fQ(x.bal)}</td><td class="num">${fI(x.trips)}</td><td class="num">${fQ(x.avg)}</td>
-    <td><div class="prog"><i style="--w:${x.pct.toFixed(1)}%"></i></div><small class="muted">${x.pct.toFixed(1)}%</small></td>
-    <td class="num">${fQ(x.pace)}</td><td class="num">${fQ(x.need)}</td>
-    <td class="num ${x.dl!=null&&x.dl<0?'neg':''}">${x.dl==null?'–':x.dl}</td>
-    <td>${STAT[x.status]}</td></tr>`).join('');
-  $('#t-do').innerHTML=`<thead><tr>${head}</tr></thead>`+
-    (R.length?`<tbody>${body}</tbody><tfoot><tr><td>Total · ${R.length}</td><td></td><td></td><td></td>
-      <td class="num">${fQ(Q)}</td><td class="num">${fQ(REC)}</td><td class="num">${fQ(BAL)}</td><td class="num">${fI(TR)}</td><td class="num">${fQ(avg)}</td>
-      <td>${pct.toFixed(1)}%</td><td></td><td></td><td></td><td></td></tr></tfoot>`
-      :'<tbody><tr><td colspan="14" class="muted" style="text-align:center;padding:30px">No D.O.s match. Upload the Excel to add D.O.s.</td></tr></tbody>');
-
-  const unk=[...new Set(S.mv.map(x=>String(x.do_no)).filter(k=>!S.dos.some(d=>String(d.do_no)===k)))];
-  const mism=all.filter(x=>!x.reconOk).map(x=>x.do_no);
-  let ah='';
-  if(unk.length)ah+=`<div>⚠ D.O. ${esc(unk.join(', '))} is in the log but not in the D.O. list. Upload the Excel to add it.</div>`;
-  if(mism.length)ah+=`<div>⚠ The log differs from the Excel totals for D.O. ${mism.join(', ')}. Hover the ⚠ in the summary for the file's figures.</div>`;
-  $('#alert').innerHTML=ah;$('#alert').classList.toggle('hidden',!ah);
-
-  try{drawCharts(R)}catch(e){toast('Charts could not load: '+e.message,true)}
-}
-function put(id,cfg){
-  if(!window.Chart)throw new Error('chart library not loaded');
-  if(CH[id]){CH[id].data=cfg.data;CH[id].options=cfg.options;CH[id].update()}
-  else CH[id]=new Chart($('#'+id),cfg);
-}
-function drawCharts(R){
-  const inR=inRangeFn();
-  const ids=new Set(R.map(x=>x.do_no));
-  const mv=S.mv.filter(x=>x.direction==='IN'&&inR(x.mv_date)&&ids.has(Number(x.do_no)));
-  const tipBase={...base.plugins.tooltip};
-
-  /* Daily receipts: bars + cumulative line */
-  const dm={};mv.forEach(x=>{const a=dm[x.mv_date]||(dm[x.mv_date]={net:0,trips:0});a.net+=num(x.net_wt)||0;a.trips++});
-  const dk=Object.keys(dm).sort();let cum=0;
-  const dCum=dk.map(k=>{cum+=dm[k].net;return r3(cum)});
-  put('cDaily',{type:'bar',data:{labels:dk.map(fShort),datasets:[
-      {type:'bar',label:'MT per day',data:dk.map(k=>r3(dm[k].net)),backgroundColor:'rgba(15,118,110,.82)',borderRadius:6,yAxisID:'y',order:2},
-      {type:'line',label:'Cumulative MT',data:dCum,borderColor:'#6d28d9',backgroundColor:'rgba(109,40,217,.1)',fill:true,tension:.35,pointRadius:2,yAxisID:'y1',order:1}]},
-    options:{...base,interaction:{mode:'index',intersect:false},
-      plugins:{...base.plugins,tooltip:{...tipBase,callbacks:{afterBody:it=>{const k=dk[it[0].dataIndex];return k?`${dm[k].trips} trips`:''}}}},
-      scales:{x:{grid:{display:false},ticks:tick},y:{position:'left',grid,ticks:tick,beginAtZero:true,title:{display:true,text:'MT per day',color:'#64748b'}},
-        y1:{position:'right',grid:{display:false},ticks:tick,beginAtZero:true,title:{display:true,text:'Cumulative MT',color:'#64748b'}}}}});
-
-  /* Pie: total qty split into received and balance across the visible D.O.s */
-  const TQ=R.reduce((s,x)=>s+(x.q||0),0),TREC=R.reduce((s,x)=>s+(x.rec||0),0),TBAL=Math.max(0,TQ-TREC);
-  const sum=TREC+TBAL;
-  $('#pie-sub').textContent=`Total ${fQ(TQ)} MT · ${R.length} D.O.(s)`;
-  put('cPie',{type:'pie',data:{labels:['Received','Balance'],datasets:[{data:[r3(TREC),r3(TBAL)],backgroundColor:[C.teal,C.sand],borderColor:'#ffffff',borderWidth:2}]},
-    options:{...base,plugins:{...base.plugins,legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8,font:{size:12}}},
-      tooltip:{...tipBase,callbacks:{label:c=>`${c.label}: ${fQ(c.raw)} MT (${sum?(c.raw/sum*100).toFixed(1):'0.0'}%)`}}}}});
-}
-
-function drill(doNo){
-  const rows=S.mv.filter(x=>String(x.do_no)===String(doNo)).sort((a,b)=>(b.mv_date||'').localeCompare(a.mv_date||'')||b.id-a.id);
-  const d=S.dos.find(x=>String(x.do_no)===String(doNo));
-  $('#dlg-t').textContent=`D.O. ${doNo}${d?' · '+(d.colliery||''):''}`;
-  $('#dlg-b').innerHTML=`<div class="scroll" style="max-height:60vh"><table><thead><tr><th>Date</th><th>Vehicle No</th><th class="num">Net Wt (MT)</th><th>Type</th><th>RR No.</th><th>Source</th></tr></thead><tbody>`+
-    (rows.length?rows.map(r=>`<tr><td>${fD(r.mv_date)}</td><td class="id">${esc(r.vehicle_no||'–')}</td><td class="num">${fQ(r.net_wt)}</td><td><span class="badge ${r.direction}">${r.direction}</span></td><td>${esc(r.rr_no||'–')}</td><td class="src ${r.source==='EXCEL'?'xl':''}">${esc(r.source||'')}</td></tr>`).join('')
-      :'<tr><td colspan="6" class="muted" style="text-align:center">No movements yet.</td></tr>')+'</tbody></table></div>';
-  $('#dlg').showModal();
-}
-
-/* Image download: captures the dashboard at 2x, then saves via a data URL.
-   Scroll containers are expanded first so the whole summary table is included. */
-async function capture(){
-  try{
-    const all=rowsFor(),R=visibleRows(all);
-    if(!R.length)return toast('No D.O.s match the current filters',true);
-    const from=$('#f-from').value,to=$('#f-to').value;
-    const sumK=k=>R.reduce((s,x)=>s+(x[k]||0),0);
-    const Q=sumK('q'),REC=sumK('rec'),BAL=sumK('bal'),TR=sumK('trips');
-    const pct=Q?REC/Q*100:0,avg=TR?REC/TR:0;
-    const openN=R.filter(x=>!x.closed).length;
-    const attn=R.filter(x=>x.status==='overdue'||x.status==='behind').length;
-    const nextL=R.filter(x=>!x.closed&&x.dl!=null&&x.dl>=0).sort((a,b)=>a.dl-b.dl)[0];
-
-    const W=1400,P=20,SC=2;
-    const CARD_H=84,ROW_H=24,HEAD_H=30,TITLE_H=40,FOOT_H=28,CHART_H=300;
-    const tableH=TITLE_H+HEAD_H+R.length*ROW_H+FOOT_H;
-    const chartPanelH=TITLE_H+CHART_H+16;
-    const H=96+16+CARD_H+18+tableH+18+chartPanelH+P+24;
-
-    const c=document.createElement('canvas');
-    c.width=W*SC;c.height=H*SC;
-    const ctx=c.getContext('2d');
-    ctx.scale(SC,SC);
-    const FONT='"Instrument Sans",system-ui,sans-serif';
-    const HFONT='"Bricolage Grotesque",system-ui,sans-serif';
-    const rr=(x,y,w,h,r)=>{ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()};
-    const txt2=(t,x,y,o={})=>{ctx.font=o.font||`13px ${FONT}`;ctx.fillStyle=o.color||'#0c1222';ctx.textAlign=o.align||'left';ctx.textBaseline='middle';ctx.fillText(String(t??''),x,y)};
-    const fit=(t,max)=>{t=String(t??'');if(ctx.measureText(t).width<=max)return t;while(t.length>1&&ctx.measureText(t+'…').width>max)t=t.slice(0,-1);return t+'…'};
-
-    /* Background */
-    ctx.fillStyle='#f1f5f9';ctx.fillRect(0,0,W,H);
-
-    /* Header band */
-    let y=P;
-    const g=ctx.createLinearGradient(P,y,W-P,y+96);
-    g.addColorStop(0,'#0a2e2c');g.addColorStop(.5,'#0f4a47');g.addColorStop(1,'#155e63');
-    rr(P,y,W-2*P,96,18);ctx.fillStyle=g;ctx.fill();
-    // Logo: loaded with CORS so it can be drawn without tainting the canvas.
-    // If the host does not allow cross-origin use, the logo is left out and the export still works.
-    const logo=await new Promise(res=>{
-      const src=$('.logo')?.getAttribute('src');
-      if(!src)return res(null);
-      const i=new Image();
-      i.crossOrigin='anonymous';
-      i.onload=()=>res(i);
-      i.onerror=()=>res(null);
-      setTimeout(()=>res(null),4000);
-      i.src=src;
-    });
-    const hasLogo=!!(logo&&logo.naturalWidth);
-    const LX=P+22,LY=y+18,LS=60;
-    const TX=hasLogo?LX+LS+16:P+26;
-    if(hasLogo){
-      rr(LX,LY,LS,LS,10);ctx.fillStyle='#ffffff';ctx.fill();
-      const k=Math.min((LS-8)/logo.naturalWidth,(LS-8)/logo.naturalHeight);
-      const lw=logo.naturalWidth*k,lh=logo.naturalHeight*k;
-      ctx.drawImage(logo,LX+(LS-lw)/2,LY+(LS-lh)/2,lw,lh);
-    }
-    txt2('HZL RCR Dashboard',TX,y+38,{font:`800 26px ${HFONT}`,color:'#ffffff'});
-    txt2('Hindustan Zinc · Road cum Rail receipts',TX,y+66,{font:`600 13px ${FONT}`,color:'#a5d8d4'});
-    y+=96+16;
-
-    /* KPI cards */
-    const cards=[
-      ['TOTAL D.O. QTY',fQ(Q),'#0f766e',`${R.length} D.O.s · ${openN} open`],
-      ['RECEIVED',fQ(REC),'#0369a1',`${fI(TR)} trips`],
-      ['BALANCE',fQ(BAL),'#c2410c',nextL?`Next lapse: D.O. ${nextL.do_no} in ${nextL.dl} d`:'No open lapse dates'],
-      ['RECOVERY',pct.toFixed(1)+'%','#047857','Received ÷ total qty'],
-      ['AVG LOAD / TRIP',fQ(avg),'#6d28d9','MT per trip'],
-      ['NEED ATTENTION',fI(attn),'#be123c','Overdue or behind pace']];
-    const cw=(W-2*P-5*12)/6;
-    cards.forEach((cd,i)=>{
-      const x=P+i*(cw+12);
-      rr(x,y,cw,CARD_H,14);ctx.fillStyle='#ffffff';ctx.fill();
-      ctx.strokeStyle='rgba(12,18,34,.09)';ctx.lineWidth=1;ctx.stroke();
-      rr(x,y,cw,4,2);ctx.fillStyle=cd[2];ctx.fill();
-      txt2(cd[0],x+14,y+22,{font:`700 10px ${FONT}`,color:'#5b6b7c'});
-      txt2(cd[1],x+14,y+46,{font:`800 21px ${HFONT}`,color:'#0c1222'});
-      txt2(fit(cd[3],cw-28),x+14,y+67,{font:`500 11px ${FONT}`,color:'#5b6b7c'});
-    });
-    y+=CARD_H+18;
-
-    /* D.O. summary table */
-    rr(P,y,W-2*P,tableH,16);ctx.fillStyle='#ffffff';ctx.fill();
-    ctx.strokeStyle='rgba(12,18,34,.09)';ctx.stroke();
-    txt2('D.O. summary',P+16,y+TITLE_H/2,{font:`700 15px ${HFONT}`});
-    const cols=[
-      {h:'D.O. No.',w:90,f:x=>x.do_no},
-      {h:'Colliery',w:230,f:x=>x.colliery||'–'},
-      {h:'Start',w:90,f:x=>fD(x.issue_date)},
-      {h:'End',w:90,f:x=>fD(x.lapsing_date)},
-      {h:'Total qty',w:100,r:1,f:x=>fQ(x.q)},
-      {h:'Recv qty',w:100,r:1,f:x=>fQ(x.rec)},
-      {h:'Balance',w:100,r:1,f:x=>fQ(x.bal)},
-      {h:'Trips',w:60,r:1,f:x=>fI(x.trips)},
-      {h:'Avg / trip',w:80,r:1,f:x=>fQ(x.avg)},
-      {h:'Recovery',w:80,r:1,f:x=>x.pct.toFixed(1)+'%'},
-      {h:'Pace / day',w:90,r:1,f:x=>fQ(x.pace)},
-      {h:'Need / day',w:90,r:1,f:x=>fQ(x.need)},
-      {h:'Days left',w:70,r:1,f:x=>x.dl==null?'–':x.dl},
-      {h:'Status',w:90,f:()=>''}];
-    const STXT={closed:['Closed','#64748b'],overdue:['Overdue','#be123c'],ontrack:['On track','#047857'],behind:['Behind','#c2410c'],open:['Open','#0369a1']};
-    const tx0=P+16,tw=W-2*P-32;
-    let ty=y+TITLE_H;
-    rr(tx0,ty,tw,HEAD_H,8);ctx.fillStyle='#e6f2f0';ctx.fill();
-    const colX=[];let cx=tx0;
-    cols.forEach((col,i)=>{colX.push(cx);col.w=col.w;cx+=col.w});
-    const drawCells=(row,yy,opt)=>cols.forEach((col,i)=>{
-      const x0=colX[i],inner=col.w-12;
-      let val=row(col,i);
-      let color=opt.color||'#0c1222',font=opt.font||`12px ${FONT}`;
-      if(col.h==='Status'&&opt.status){[val,color]=STXT[opt.status]||[val,color];font=`700 11px ${FONT}`}
-      const tx=col.r?x0+col.w-6:x0+6;
-      txt2(fit(val,inner),tx,yy+ROW_H/2,{font,color,align:col.r?'right':'left'});
-    });
-    ctx.save();
-    ctx.beginPath();ctx.rect(tx0,ty,tw,HEAD_H);ctx.clip();
-    drawCells((col)=>col.h,ty,{font:`700 10px ${FONT}`,color:'#1e3a3a'});
-    ctx.restore();
-    ty+=HEAD_H;
-    R.forEach((x,ri)=>{
-      if(ri%2){ctx.fillStyle='#f8fafc';ctx.fillRect(tx0,ty,tw,ROW_H)}
-      ctx.fillStyle=x.closed?'#64748b':'#0c1222';
-      drawCells(col=>col.f(x),ty,{color:x.closed?'#64748b':'#0c1222',status:null});
-      // status cell drawn coloured
-      const sc=cols.length-1;
-      const [stLabel,stColor]=STXT[x.status]||[x.status,'#0c1222'];
-      txt2(stLabel,colX[sc]+6,ty+ROW_H/2,{font:`700 11px ${FONT}`,color:stColor});
-      ty+=ROW_H;
-    });
-    rr(tx0,ty,tw,FOOT_H,6);ctx.fillStyle='#e6f2f0';ctx.fill();
-    const foot=['Total · '+R.length,'','','',fQ(Q),fQ(REC),fQ(BAL),fI(TR),fQ(avg),pct.toFixed(1)+'%','','','',''];
-    cols.forEach((col,i)=>{const x0=colX[i];const tx=col.r?x0+col.w-6:x0+6;
-      txt2(fit(foot[i],col.w-12),tx,ty+FOOT_H/2,{font:`800 12px ${FONT}`,align:col.r?'right':'left'})});
-    y+=tableH+18;
-
-    /* Charts */
-    const half=(W-2*P-14)/2;
-    const chartBox=(x,title,sub,cv)=>{
-      rr(x,y,half,chartPanelH,16);ctx.fillStyle='#ffffff';ctx.fill();
-      ctx.strokeStyle='rgba(12,18,34,.09)';ctx.stroke();
-      txt2(title,x+16,y+TITLE_H/2,{font:`700 15px ${HFONT}`});
-      txt2(sub,x+half-16,y+TITLE_H/2,{font:`500 12px ${FONT}`,color:'#5b6b7c',align:'right'});
-      if(cv&&cv.width&&cv.height){
-        const bw=half-28,bh=CHART_H;
-        const k=Math.min(bw/cv.clientWidth,bh/cv.clientHeight);
-        const dw=cv.clientWidth*k,dh=cv.clientHeight*k;
-        ctx.drawImage(cv,x+14+(bw-dw)/2,y+TITLE_H+(bh-dh)/2,dw,dh);
-      }
-    };
-    chartBox(P,'Daily receipts','Bars: MT per day · line: running total',$('#cDaily'));
-    chartBox(P+half+14,'Total qty vs received',`Total ${fQ(Q)} MT`,$('#cPie'));
-
-    const a=document.createElement('a');
-    a.href=c.toDataURL('image/png');
-    const per=(from||to)?`_${from||'start'}_to_${to||'end'}`:'';
-    a.download=`hzl-rcr-dashboard${per}_${iso(new Date())}.png`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    toast('Image downloaded');
-  }catch(e){
-    console.error(e);
-    toast('Image failed: '+(e.message||e),true);
-  }
-}
-
-function exportDashExcel(){
-  if(!window.XLSX)return toast('Excel library did not load',true);
-  const all=rowsFor();
-  const R=visibleRows(all);
-  if(!R.length)return toast('No D.O.s match the current filters',true);
-
-  const from=$('#f-from').value,to=$('#f-to').value;
-  const periodLabel=(from||to)?`${from||'…'} → ${to||'…'}`:'All dates';
-
-  const summary=R.map(x=>({
-    'D.O. No.':x.do_no,'Colliery':x.colliery||'','Party':x.party_name||'','Start':x.issue_date||'','End':x.lapsing_date||'',
-    'Total qty (MT)':x.q,'Received (MT)':x.rec,'Balance (MT)':x.bal,'Trips':x.trips,'Avg / trip (MT)':x.avg,
-    'Recovery %':+x.pct.toFixed(1),'Pace / day (MT)':x.pace,'Need / day (MT)':x.need,'Days left':x.dl,'Status':x.status,
-    'Excel recv (file)':x.file_recv,'Excel trips (file)':x.file_trips,'Recon OK':x.reconOk?'Yes':'No'
-  }));
-
-  const doSet=new Set(R.map(x=>Number(x.do_no)));
-  const inR=inRangeFn();
-  const moves=S.mv
-    .filter(x=>x.direction==='IN'&&doSet.has(Number(x.do_no))&&inR(x.mv_date))
-    .sort((a,b)=>(a.mv_date||'').localeCompare(b.mv_date||'')||a.id-b.id)
-    .map(r=>({'Date':r.mv_date,'D.O. No.':r.do_no,'Vehicle No.':r.vehicle_no||'','Net Wt (MT)':r.net_wt,'Gross (MT)':r.gross_wt,'Tare (MT)':r.tare_wt,'RR No.':r.rr_no||'','Source':r.source||'','Type':r.direction}));
-
-  const wb=XLSX.utils.book_new();
-  const ws1=XLSX.utils.json_to_sheet(summary);
-  const ws2=XLSX.utils.json_to_sheet(moves.length?moves:[{'Note':'No movements in selected period'}]);
-  const meta=[
-    {'Field':'Generated','Value':new Date().toLocaleString('en-IN')},
-    {'Field':'Period','Value':periodLabel},
-    {'Field':'D.O.s shown','Value':R.length},
-    {'Field':'Movements rows','Value':moves.length},
-    {'Field':'Total received (MT)','Value':R.reduce((s,x)=>s+(x.rec||0),0)},
-    {'Field':'Total balance (MT)','Value':R.reduce((s,x)=>s+(x.bal||0),0)}
-  ];
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(meta),'Report info');
-  XLSX.utils.book_append_sheet(wb,ws1,'D.O. summary');
-  XLSX.utils.book_append_sheet(wb,ws2,'Movements');
-
-  const period=(from||to)?`_${from||'start'}_to_${to||'end'}`:'';
-  XLSX.writeFile(wb,`hzl-rcr-dashboard${period}_${iso(new Date())}.xlsx`);
-  toast(`Excel downloaded · ${R.length} D.O.s · ${moves.length} movements`);
-}
-
-/* ===== Data entry ===== */
-const doOpts=sel=>'<option value="">Select D.O.</option>'+S.dos.map(d=>`<option value="${d.do_no}" ${String(d.do_no)===String(sel)?'selected':''}>${d.do_no} · ${esc(d.colliery||'')}</option>`).join('');
-function renderEntries(){
-  const q=$('#e-q').value.trim().toUpperCase(),dn=$('#e-do').value;
-  const rows=S.mv.filter(x=>x.direction==='IN'&&x.source==='MANUAL'&&(!dn||String(x.do_no)===dn)&&(!q||(x.vehicle_no||'').includes(q)||String(x.do_no).includes(q)))
-    .sort((a,b)=>(b.mv_date||'').localeCompare(a.mv_date||'')||b.id-a.id);
-  const manualN=S.mv.filter(x=>x.direction==='IN'&&x.source==='MANUAL').length;
-  $('#e-info').textContent=`${rows.length} shown · ${manualN} manual entries in total`;
-  $('#t-ent').innerHTML='<thead><tr><th>Date</th><th>D.O.</th><th>Vehicle No</th><th class="num">Qty (MT)</th><th></th></tr></thead><tbody>'+
-    (rows.length?rows.map(r=>S.editId===String(r.id)
-        ?`<tr><td>${fD(r.mv_date)}</td><td><select id="ed-do">${doOpts(r.do_no)}</select></td><td><input id="ed-veh" value="${esc(r.vehicle_no||'')}" style="width:140px;text-transform:uppercase"></td><td><input id="ed-qty" type="number" step="any" value="${r.net_wt??''}" style="width:100px"></td><td><button class="btn small primary" data-e="save" data-id="${r.id}">Save</button> <button class="btn small" data-e="cancel">Cancel</button></td></tr>`
-        :`<tr><td>${fD(r.mv_date)}</td><td class="id">${r.do_no}</td><td class="id">${esc(r.vehicle_no||'–')}</td><td class="num">${fQ(r.net_wt)}</td><td><button class="btn small" data-e="edit" data-id="${r.id}">Edit</button> <button class="btn small red" data-e="del" data-id="${r.id}">Delete</button></td></tr>`).join('')
-      :'<tr><td colspan="5" class="muted" style="text-align:center;padding:24px">No entries match.</td></tr>')+'</tbody>';
-}
-function setupEntry(){
-  $('#mv-f').addEventListener('submit',async e=>{e.preventDefault();
-    const f=e.target,dn=num(f.elements.do_no.value),veh=txt(f.elements.vehicle_no.value),qty=num(f.elements.net_wt.value);
-    if(!Number.isInteger(dn))return msg('#mv-msg','Select a D.O.',true);
-    if(!veh)return msg('#mv-msg','Enter the vehicle number',true);
-    if(qty==null||qty<=0)return msg('#mv-msg','Enter the quantity in MT',true);
-    const{error}=await db.from('hzl_movements').insert({direction:'IN',do_no:dn,mv_date:iso(new Date()),vehicle_no:veh.toUpperCase().replace(/\s+/g,' '),net_wt:qty,source:'MANUAL'});
-    if(error)return msg('#mv-msg',exErr(error),true);
-    toast('Entry saved');msg('#mv-msg','');
-    f.elements.vehicle_no.value='';f.elements.net_wt.value='';f.elements.vehicle_no.focus();
-    await load();});
-  $('#mv-clr').onclick=()=>{$('#mv-f').reset();msg('#mv-msg','')};
-  ['#e-q','#e-do'].forEach(s=>$(s).addEventListener('input',renderEntries));
-  $('#t-ent').addEventListener('click',async e=>{const b=e.target.closest('button[data-e]');if(!b)return;const a=b.dataset.e,id=b.dataset.id;
-    if(a==='edit'){S.editId=id;renderEntries();return}
-    if(a==='cancel'){S.editId=null;renderEntries();return}
-    if(a==='save'){
-      const dn=num($('#ed-do').value),veh=txt($('#ed-veh').value),qty=num($('#ed-qty').value);
-      if(!Number.isInteger(dn))return toast('Select a D.O.',true);
-      if(!veh)return toast('Vehicle number is required',true);
-      if(qty==null||qty<=0)return toast('Qty must be above 0',true);
-      const{error}=await db.from('hzl_movements').update({do_no:dn,vehicle_no:veh.toUpperCase().replace(/\s+/g,' '),net_wt:qty}).eq('id',id);
-      if(error)return toast(exErr(error),true);
-      toast('Entry updated');S.editId=null;await load();return}
-    if(a==='del'){if(!confirm('Delete this entry?'))return;
-      const{error}=await db.from('hzl_movements').delete().eq('id',id);
-      if(error)return toast(exErr(error),true);toast('Entry deleted');await load()}
-  });
-}
-
-/* ===== Log ===== */
-function logRows(){
-  const t=$('#l-t').value,from=$('#l-from').value,to=$('#l-to').value,dn=$('#l-do').value,veh=$('#l-veh').value.trim().toUpperCase();
-  if(t==='DO')return S.dos.filter(d=>!dn||String(d.do_no)===dn);
-  return S.mv.filter(x=>(t==='ALL'||x.direction===t)&&(!from||x.mv_date>=from)&&(!to||x.mv_date<=to)&&(!dn||String(x.do_no)===dn)
-    &&(!veh||(x.vehicle_no||'').includes(veh)))
-    .sort((a,b)=>(b.mv_date||'').localeCompare(a.mv_date||'')||b.id-a.id);
-}
-function renderLog(){
-  const t=$('#l-t').value,PS=200,all=logRows(),pg=S.log.pg,slice=all.slice(pg*PS,pg*PS+PS);
-  $('#l-pv').disabled=pg===0;$('#l-nx').disabled=(pg+1)*PS>=all.length;
-  if(t==='DO'){
-    $('#l-title').textContent='D.O. list';
-    $('#l-info').textContent=`${all.length} D.O.(s)`;
-    $('#t-log').innerHTML='<thead><tr><th>D.O. No.</th><th>Colliery</th><th>Start</th><th>End</th><th class="num">Total qty</th><th class="num">Excel recv</th><th class="num">Excel trips</th><th>Party</th></tr></thead><tbody>'+
-      (all.length?all.slice(pg*PS,pg*PS+PS).map(d=>`<tr><td class="id">${d.do_no}</td><td>${esc(d.colliery||'–')}</td><td>${fD(d.issue_date)}</td><td>${fD(d.lapsing_date)}</td><td class="num">${fQ(d.do_qty)}</td><td class="num">${fQ(d.file_recv)}</td><td class="num">${fI(d.file_trips)}</td><td>${esc(d.party_name||'–')}</td></tr>`).join('')
-        :'<tr><td colspan="8" class="muted" style="text-align:center;padding:24px">No D.O.s yet. Upload the Excel.</td></tr>')+'</tbody>';
-    return;
-  }
-  const net=all.reduce((s,r)=>s+(num(r.net_wt)||0),0);
-  $('#l-title').textContent=t==='IN'?'Receipts (IN)':t==='OUT'?'Dispatches (OUT)':'All movements';
-  $('#l-info').textContent=`${fI(all.length)} row(s) · ${fQ(net)} MT · showing ${all.length?pg*PS+1:0}–${pg*PS+slice.length}   `;
-  $('#t-log').innerHTML='<thead><tr><th>Date</th><th>Vehicle No</th><th class="num">Net Wt (MT)</th><th>D.O. No.</th><th>Type</th><th>RR No.</th><th class="num">Gross</th><th class="num">Tare</th><th>Source</th><th></th></tr></thead><tbody>'+
-    (slice.length?slice.map(r=>`<tr><td>${fD(r.mv_date)}</td><td class="id">${esc(r.vehicle_no||'–')}</td><td class="num">${fQ(r.net_wt)}</td><td>${r.do_no}</td><td><span class="badge ${r.direction}">${r.direction}</span></td><td>${esc(r.rr_no||'–')}</td><td class="num">${fQ(r.gross_wt)}</td><td class="num">${fQ(r.tare_wt)}</td><td class="src ${r.source==='EXCEL'?'xl':''}">${esc(r.source||'')}</td>
-      <td><button class="btn small" data-a="edit" data-id="${r.id}">Edit</button> <button class="btn small red" data-a="del" data-id="${r.id}">Delete</button></td></tr>`).join('')
-      :'<tr><td colspan="10" class="muted" style="text-align:center;padding:24px">No records match.</td></tr>')+'</tbody>';
-}
-function mvFields(r){
-  const v=k=>esc(r[k]??'');
-  return `<label class="fld"><span>Type</span><select name="direction"><option value="IN" ${r.direction!=='OUT'?'selected':''}>IN · Receipt</option><option value="OUT" ${r.direction==='OUT'?'selected':''}>OUT · Dispatch</option></select></label>
-  <label class="fld"><span>Date</span><input name="mv_date" value="${v('mv_date')}" placeholder="dd-mm-yyyy"></label>
-  <label class="fld"><span>D.O. No.</span><input name="do_no" value="${v('do_no')}"></label>
-  <label class="fld"><span>Vehicle No.</span><input name="vehicle_no" value="${v('vehicle_no')}"></label>
-  <label class="fld"><span>RR No.</span><input name="rr_no" value="${v('rr_no')}"></label>
-  <label class="fld"><span>Unique No.</span><input name="unique_no" value="${v('unique_no')}"></label>
-  <label class="fld"><span>Gross (MT)</span><input name="gross_wt" type="number" step="any" value="${v('gross_wt')}"></label>
-  <label class="fld"><span>Tare (MT)</span><input name="tare_wt" type="number" step="any" value="${v('tare_wt')}"></label>
-  <label class="fld" style="grid-column:1/-1"><span>Net (MT)</span><input name="net_wt" type="number" step="any" value="${v('net_wt')}"></label>`;
-}
-function readMv(f){
-  const g=k=>(f.elements[k]?.value||'').trim();
-  const dn=num(g('do_no'));if(!Number.isInteger(dn))return{err:'D.O. No is required (whole number)'};
-  const d=parseDate(g('mv_date'));if(!d.iso)return{err:'Enter a valid date (dd-mm-yyyy)'};
-  const gross=num(g('gross_wt')),tare=num(g('tare_wt'));let net=num(g('net_wt'));
-  if(net===null&&gross!==null&&tare!==null)net=r3(gross-tare);
-  if(net===null)return{err:'Enter net weight, or gross and tare'};
-  return{p:{direction:g('direction')==='OUT'?'OUT':'IN',do_no:dn,mv_date:d.iso,vehicle_no:txt(g('vehicle_no'))?.toUpperCase()||null,rr_no:txt(g('rr_no')),unique_no:txt(g('unique_no')),gross_wt:gross,tare_wt:tare,net_wt:net}};
-}
-function setupLog(){
-  ['#l-t','#l-from','#l-to','#l-do','#l-veh'].forEach(s=>$(s).addEventListener('input',()=>{S.log.pg=0;renderLog()}));
-  $('#l-pv').onclick=()=>{S.log.pg--;renderLog()};$('#l-nx').onclick=()=>{S.log.pg++;renderLog()};
-  $('#l-exp').onclick=()=>{const t=$('#l-t').value,rows=logRows();
-    const data=t==='DO'?rows.map(d=>({'D.O. No.':d.do_no,Colliery:d.colliery,Party:d.party_name,Start:d.issue_date,End:d.lapsing_date,'Total qty':d.do_qty,'Excel recv':d.file_recv,'Excel trips':d.file_trips}))
-      :rows.map(r=>({Date:r.mv_date,'Vehicle No':r.vehicle_no,'Net Wt (MT)':r.net_wt,'D.O. No.':r.do_no,Type:r.direction,'RR No.':r.rr_no,Gross:r.gross_wt,Tare:r.tare_wt,Source:r.source}));
-    const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(data),'Log');
-    XLSX.writeFile(wb,`hzl-rcr-${t.toLowerCase()}-${iso(new Date())}.xlsx`)};
-  $('#t-log').addEventListener('click',async e=>{const b=e.target.closest('button[data-a]');if(!b)return;const a=b.dataset.a,id=b.dataset.id;
-    if(a==='del'){if(!confirm('Delete this entry permanently?'))return;const{error}=await db.from('hzl_movements').delete().eq('id',id);
-      if(error)return toast(exErr(error),true);toast('Deleted');await load();return}
-    const r=S.mv.find(x=>String(x.id)===id);if(!r)return;
-    $('#dlg-t').textContent=`Edit · ${r.vehicle_no||'entry'} · ${fD(r.mv_date)}`;
-    $('#dlg-b').innerHTML=`<form id="dlg-f" class="grid2">${mvFields(r)}<div class="msg" style="grid-column:1/-1" id="dlg-msg"></div><div class="row" style="grid-column:1/-1"><button class="btn primary">Save changes</button></div></form>`;
-    $('#dlg').showModal();
-    $('#dlg-f').onsubmit=async ev=>{ev.preventDefault();const rr=readMv(ev.target);if(rr.err)return msg('#dlg-msg',rr.err,true);
-      const{error}=await db.from('hzl_movements').update(rr.p).eq('id',id);
-      if(error)return msg('#dlg-msg',exErr(error),true);toast('Changes saved');$('#dlg').close();await load()};
-  });
-}
-
-/* ===== Excel upload ===== */
-function readXl(file){
+function xlPick(file){
+  if(!file)return;
   const rd=new FileReader();
   rd.onload=e=>{
-    try{S.xl.wb=XLSX.read(e.target.result,{type:'array'})}
-    catch(x){return toast('Cannot read file: '+x.message,true)}
-    const s=$('#x-s');s.disabled=false;s.innerHTML=S.xl.wb.SheetNames.map(n=>`<option>${esc(n)}</option>`).join('');
-    parseXl();
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array'});
+      const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:true,defval:null,blankrows:true});
+      XB=parseBlocks(rows).map(summarize);
+      xlShow();
+    }catch(x){toast('Cannot read file: '+x.message,'err',6000)}
   };
   rd.readAsArrayBuffer(file);
 }
-function parseXl(){
-  const name=$('#x-s').value||S.xl.wb.SheetNames[0];
-  const rows=XLSX.utils.sheet_to_json(S.xl.wb.Sheets[name],{header:1,raw:true,defval:null,blankrows:true});
-  S.xl.blocks=parseBlocks(rows).map(summarize);
-  S.xl.err=!S.xl.blocks.length;
-  S.xl.msg=S.xl.blocks.length?'':'No "D.O" blocks found in this sheet. Pick another sheet, or check the file layout.';
-  drawXl();
-}
-function drawXl(){
-  const B=S.xl.blocks.filter(b=>!b.dup);
-  const flat=B.flatMap(b=>b.rows.map(x=>({...x,doNo:b.doNo})));
-  const ok=flat.filter(x=>!x.bad).length,skip=flat.length-ok;
-  $('#c-do').textContent=fI(B.length);$('#c-ok').textContent=fI(ok);$('#c-skip').textContent=fI(skip);
-  $('#x-imp').disabled=!B.length||!ok;
-  msg('#x-msg',S.xl.msg,S.xl.err);
-  $('#x-cards').innerHTML=B.length?B.map(b=>{
-    const badN=b.rows.filter(x=>x.bad).length;
-    const warn=!b.recvOk||!b.tripsOk||b.issues.length||badN>0;
-    const note=b.recvOk&&b.tripsOk?"Matches the file's totals":`File says ${fQ(b.recvFile)} MT and ${fI(b.tripsFile)} trips`;
-    return `<div class="dcard ${warn?'warn':''}">
-      <div class="dc-h"><b>D.O. ${b.doNo}</b><span>${esc(b.colliery||'')}</span></div>
-      <div class="dc-d">${fD(b.start)} → ${fD(b.end)}</div>
-      <div class="dc-g"><div><small>Total qty</small><b>${fQ(b.total)}</b></div><div><small>Recv (sum)</small><b>${fQ(b.recv)}</b></div><div><small>Trips</small><b>${fI(b.trips)}</b></div></div>
-      <div class="dc-f">${warn?'⚠ ':'✓ '}${note}${badN?` · ${badN} row(s) skipped`:''}${b.issues.length?` · ${esc(b.issues.join('; '))}`:''}</div></div>`;
-  }).join(''):'<p class="muted" style="padding:6px">Upload a file to see its D.O. blocks.</p>';
-  const show=flat.slice(0,200);
-  $('#x-i').textContent=`${fI(flat.length)} rows · showing ${fI(show.length)}`;
-  $('#t-x').innerHTML='<thead><tr><th>D.O.</th><th>Date</th><th>Vehicle No</th><th class="num">Net Wt (MT)</th><th>Check</th></tr></thead><tbody>'+
-    (show.length?show.map(x=>`<tr class="${x.bad?'badrow':''}"><td class="id">${x.doNo}</td><td>${fD(x.date)}</td><td class="id">${esc(x.vehicle||'–')}</td><td class="num">${fQ(x.net)}</td><td>${x.bad?`<span class="st warn">${esc(x.bad)}</span>`:'<span class="st ok">OK</span>'}</td></tr>`).join('')
-      :'<tr><td colspan="5" class="muted" style="text-align:center;padding:24px">Nothing to preview.</td></tr>')+'</tbody>';
+function xlShow(){
+  const out=$('#xl-out');
+  if(!out)return;
+  const B=(XB||[]).filter(b=>!b.dup);
+  if(!B.length){out.innerHTML=XB?'<p class="note">No D.O. blocks found in this sheet.</p>':'';return}
+  const ok=B.some(b=>b.rows.some(x=>!x.bad));
+  out.innerHTML=`<div class="tw"><table>
+    <tr><th>D.O.</th><th>Colliery</th><th>Valid from</th><th>Valid to</th><th>Total qty</th><th>Trucks</th><th>Net (sum)</th><th>Check</th></tr>
+    ${B.map(b=>{
+      const notes=[...b.issues,...(b.recvOk?[]:['net differs from file']),...(b.tripsOk?[]:['trips differ from file']),
+        ...(b.rows.some(x=>x.bad)?[b.rows.filter(x=>x.bad).length+' row(s) skipped']:[])];
+      return `<tr><td>${b.doNo}</td><td>${esc(b.colliery||'')}</td><td>${fD(b.start)}</td><td>${fD(b.end)}</td>
+        <td>${fQ(b.total)}</td><td>${fI(b.trips)}</td><td>${fQ(b.recv)}</td>
+        <td>${notes.length?'<span class="neg">⚠ '+esc(notes.join('; '))+'</span>':'<span class="pos">✓ matches file</span>'}</td></tr>`;
+    }).join('')}</table></div>
+    <p style="margin-top:12px"><button class="pb" id="impXl" ${ok?'':'disabled'}>Import ${B.length} D.O.(s)</button></p>`;
 }
 async function impXl(){
-  const B=S.xl.blocks.filter(b=>!b.dup);
-  const ins=B.flatMap(b=>b.rows.filter(x=>!x.bad).map(x=>({direction:'IN',do_no:b.doNo,mv_date:x.date,vehicle_no:x.vehicle,net_wt:x.net,source:'EXCEL'})));
+  const B=(XB||[]).filter(b=>!b.dup);
+  const ins=B.flatMap(b=>b.rows.filter(x=>!x.bad).map(x=>({direction:'LIFT',do_no:b.doNo,mv_date:x.date,
+    vehicle_no:x.vehicle,net_wt:x.net,source:'EXCEL'})));
   if(!B.length||!ins.length)return;
-  if(!confirm(`Import ${B.length} D.O.(s) and ${fI(ins.length)} log rows?\n\nExcel rows for these D.O.s are replaced. Manual entries and other D.O.s are not changed.`))return;
-  $('#x-imp').disabled=true;let n=0;
-  $('#x-p').style.width='0';
+  if(!await confirmM('Import Excel log?',`Import ${B.length} D.O.(s) and ${ins.length} truck rows. Earlier Excel rows for these D.O.s are replaced. Manual entries and rates are kept.`,'Import'))return;
   try{
-    const dos=B.map(b=>({do_no:b.doNo,colliery:b.colliery,issue_date:b.start,lapsing_date:b.end,do_qty:b.total,file_recv:b.recvFile,file_trips:b.tripsFile,updated_at:new Date().toISOString()}));
-    const{error:e1}=await db.from('hzl_do').upsert(dos,{onConflict:'do_no'});if(e1)throw e1;
-    const{error:e2}=await db.from('hzl_movements').delete().in('do_no',B.map(b=>b.doNo)).eq('source','EXCEL');if(e2)throw e2;
+    const {error:e1}=await db.from('hzl_do').upsert(B.map(b=>({do_no:b.doNo,colliery:b.colliery,issue_date:b.start,
+      lapsing_date:b.end,do_qty:b.total,file_recv:b.recvFile,file_trips:b.tripsFile})),{onConflict:'do_no'});
+    if(e1)throw e1;
+    const {error:e2}=await db.from('hzl_movements').delete().in('do_no',B.map(b=>b.doNo)).eq('source','EXCEL').eq('direction','LIFT');
+    if(e2)throw e2;
     for(let i=0;i<ins.length;i+=500){
-      const ch=ins.slice(i,i+500);
-      const{error}=await db.from('hzl_movements').insert(ch);if(error)throw error;
-      n+=ch.length;$('#x-p').style.width=(n/ins.length*100)+'%';
+      const {error}=await db.from('hzl_movements').insert(ins.slice(i,i+500));
+      if(error)throw error;
     }
-    S.xl.blocks=[];S.xl.err=false;S.xl.msg=`Imported ${fI(B.length)} D.O.(s) and ${fI(n)} log rows.`;
-    toast(`Excel imported: ${fI(n)} rows`);
-  }catch(e){S.xl.err=true;S.xl.msg=`Stopped after ${fI(n)} rows: ${exErr(e)}`;toast(S.xl.msg,true)}
-  finally{await load();setTimeout(()=>$('#x-p').style.width='0',1500);drawXl()}
-}
-function setupExcel(){
-  const dp=$('#drop');dp.onclick=()=>$('#x-f').click();
-  $('#x-f').onchange=e=>{const f=e.target.files[0];e.target.value='';f&&readXl(f)};
-  ['dragover','drop'].forEach(v=>dp.addEventListener(v,e=>e.preventDefault()));
-  dp.addEventListener('drop',e=>e.dataTransfer.files[0]&&readXl(e.dataTransfer.files[0]));
-  $('#x-s').onchange=parseXl;$('#x-imp').onclick=impXl;
+    XB=null;
+    await refresh();
+    toast(`Imported ${B.length} D.O.(s) and ${ins.length} truck rows.`,'ok');
+  }catch(e){toast(dbErr(e),'err',6000)}
 }
 
-/* ===== Navigation and init ===== */
-const VIEWS=['dash','entry','log','excel'];
-function show(v){
-  S.view=v;
-  $$('.dock button').forEach((b,i)=>b.classList.toggle('on',VIEWS[i]===v));
-  VIEWS.forEach(n=>$('#v-'+n).classList.toggle('on',n===v));
-  if(v==='log')renderLog();
-  if(v==='dash')renderDash();
-  if(v==='entry')renderEntries();
+/* ================= NAVIGATION & EVENTS ================= */
+async function showView(v){
+  if(v==='entry'&&!entryOpen){
+    const pass=await askModal({title:'Data entry',text:'Enter the password to open data entry.',fields:[{label:'Password',type:'password',validate:x=>x===ENTRY_PASSWORD?null:'Incorrect password'}],okLabel:'Open'});
+    if(pass===null)return;
+    entryOpen=true;
+  }
+  $('#dash').hidden=v!=='dash';
+  $('#entry').hidden=v==='dash';
+  $('#bD').className='btn'+(v==='dash'?' on':'');
+  $('#bE').className='btn'+(v==='dash'?'':' on');
+  if(v==='dash')dash();else de();
 }
-function init(){
-  $$('.dock button').forEach((b,i)=>b.onclick=()=>show(VIEWS[i]));
-  $('#t-do').addEventListener('click',e=>{const th=e.target.closest('th.so');if(th){const k=th.dataset.k;S.sort.k===k?S.sort.d*=-1:(S.sort={k,d:1});renderDash();return}
-    const tr=e.target.closest('tr[data-do]');if(tr)drill(tr.dataset.do)});
-  ['#f-q','#f-col','#f-hide','#f-from','#f-to'].forEach(s=>$(s).addEventListener('input',()=>renderDash()));
-  $('#f-clr').onclick=()=>{$('#f-from').value='';$('#f-to').value='';renderDash()};
-  $('#dl').onclick=capture;
-  $('#dl-xlsx').onclick=exportDashExcel;
-  $('#refresh').onclick=load;$('#dlg-x').onclick=()=>$('#dlg').close();
-  $('#dlg').addEventListener('click',e=>{if(e.target.id==='dlg')$('#dlg').close()});
-  setupEntry();setupLog();setupExcel();
-  drawXl();
-  load(); // data reloads on page open, the Refresh button, after a data entry save, or after an Excel import
-}
-init();
+document.addEventListener('click',e=>{
+  const t=e.target.closest('button,a');
+  if(!t)return;
+  if(t.dataset.v)return showView(t.dataset.v);
+  if(t.dataset.tab){tab=t.dataset.tab;return de()}
+  if(t.dataset.del){
+    const id=t.dataset.id;
+    if(t.dataset.del==='delDO')return delDO(id);
+    if(t.dataset.del==='delL')return delL(+id);
+    if(t.dataset.del==='delR')return delR(+id);
+  }
+  if(t.id==='hideBtn'){hide=!hide;return dash()}
+  if(t.id==='addDO')return addDO();
+  if(t.id==='addL')return addL();
+  if(t.id==='addR')return addR();
+  if(t.id==='saveCfg')return saveCfgFromForm();
+  if(t.id==='impXl')return impXl();
+});
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.id==='doSel'){sel=t.value==='all'?'all':+t.value;return dash()}
+  if(t.id==='xlFile')return xlPick(t.files[0]);
+  if(t.dataset.u)return U(+t.dataset.u,t.dataset.k,t.value);
+});
+
+/* ================= START ================= */
+(async()=>{
+  try{await loadAll()}catch(e){toast(dbErr(e),'err',7000)}
+  dash();
+})();
 </script>
-</body></html>
+</body>
+</html>
