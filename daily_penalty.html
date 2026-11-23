@@ -241,6 +241,12 @@ td.party{border-left-width:10px}
 .logview .track,.logview .kpis,.logview .mainsheet,.logview .insights,.logview .mainonly{display:none!important}
 .logview .logsheet{margin-top:22px}
 
+.alertcfg{padding:12px 16px;border-bottom:1px solid var(--line);background:var(--surface2);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.alertcfg[hidden]{display:none}
+.alertcfg b{font-size:13px}
+.alertcfg input{border:1.5px solid var(--line);background:var(--surface);border-radius:8px;padding:6px 10px;width:130px}
+.alertcfg .chip[aria-pressed="true"]{background:var(--danger);border-color:var(--danger);color:#fff}
+
 /* ============ INSIGHTS ============ */
 .insights{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:22px 0 40px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 18px;box-shadow:var(--shadow);min-width:0}
@@ -456,10 +462,18 @@ td.party{border-left-width:10px}
         <input type="search" id="logSearch" placeholder="Area or siding" aria-label="Search area or siding">
       </label>
       <button class="chip warn" id="logAlertOnly" type="button" aria-pressed="false">&#9888; Freight alerts only</button>
+      <button class="chip" id="alertCfgBtn" type="button" aria-expanded="false">&#9881; Alert boxes</button>
     </div>
     <div class="alertbar" id="alertBar" hidden>
       <span id="alertMsg"></span>
       <button type="button" id="alertShow">Show only these</button>
+    </div>
+    <div class="alertcfg" id="alertCfg" hidden>
+      <b>Box types that need no freight (click to turn alert on/off):</b>
+      <div class="quick" id="alertBoxes"></div>
+      <input id="alertBoxNew" type="text" placeholder="Add box type" autocomplete="off">
+      <button class="chip" id="alertBoxAdd" type="button">Add</button>
+      <button class="textbtn" id="alertBoxReset" type="button">Reset to default</button>
     </div>
     <div class="scroll">
       <table>
@@ -962,8 +976,14 @@ function rateFor(box){var b=firstBox(box);return b&&boxRates[b]!==undefined?boxR
 
 /* ============ RAKE LOG VIEW (this file opened with ?view=log, in the same tab) ============
    A full view with a date range, party / box filters and a freight alert. It only reads data. */
-/* box types that do not need freight: BOXN, BOXNHL and BOXN+NHL */
-var NO_FREIGHT={BOXN:1,BOXNHL:1,NHL:1};
+/* box types that do not need freight: configurable list (default BOXN, BOXNHL, NHL) */
+var AB_KEY='amm_penalty_alert_boxes',AB_DEFAULT=['BOXN','BOXNHL','NHL'];
+function loadAB(){
+  try{var a=JSON.parse(localStorage.getItem(AB_KEY));if(Array.isArray(a)){var m={};a.forEach(function(x){x=String(x).trim().toUpperCase();if(x)m[x]=1});return m}}catch(e){}
+  var d={};AB_DEFAULT.forEach(function(x){d[x]=1});return d;
+}
+function saveAB(){try{localStorage.setItem(AB_KEY,JSON.stringify(Object.keys(NO_FREIGHT)))}catch(e){}}
+var NO_FREIGHT=loadAB();
 function boxTokens(b){return String(b==null?'':b).toUpperCase().split(/[,+\/;&\s]+/).filter(Boolean)}
 function isNoFreightBox(b){var t=boxTokens(b);return t.length>0&&t.every(function(x){return NO_FREIGHT[x]===1})}
 function freightOf(e){return e.live?liveFreight(e):num(e.freight)}
@@ -994,17 +1014,27 @@ function fillLogFilters(){
   bs.innerHTML=bl.map(function(x){return '<option value="'+esc(x)+'">'+(x==='ALL'?'All box types':esc(x))+'</option>'}).join('');
   ps.value=pl.indexOf(pv)>=0?pv:'ALL';bs.value=bl.indexOf(bv)>=0?bv:'ALL';
 }
+function renderAlertCfg(){
+  var all={};
+  DEFAULT_BOXES.concat(AB_DEFAULT,Object.keys(NO_FREIGHT)).forEach(function(x){all[x]=1});
+  LR.forEach(function(e){boxTokens(e.box).forEach(function(x){all[x]=1})});
+  $('#alertBoxes').innerHTML=Object.keys(all).sort().map(function(x){
+    return '<button class="chip" type="button" data-b="'+esc(x)+'" aria-pressed="'+(NO_FREIGHT[x]===1)+'">'+esc(x)+'</button>';
+  }).join('');
+}
+function alertList(){var k=Object.keys(NO_FREIGHT).sort();return k.length?k.join(' / '):'(none selected)'}
 function logVisible(){
   var base=logFiltered();
   return {base:base,alerts:base.filter(function(e){return alertOf(e)})};
 }
 function renderLog(){
   if(!LOGVIEW)return;
+  renderAlertCfg();
   var v=logVisible(),list=logAlertOnly?v.alerts:v.base;
   var bar=$('#alertBar');
   if(v.alerts.length){
     bar.hidden=false;
-    $('#alertMsg').textContent='⚠ '+v.alerts.length+(v.alerts.length===1?' row has':' rows have')+' freight on BOXN / BOXNHL / BOXN+NHL, where freight is not required.';
+    $('#alertMsg').textContent='⚠ '+v.alerts.length+(v.alerts.length===1?' row has':' rows have')+' freight on '+alertList()+', where freight is not required.';
     $('#alertShow').textContent=logAlertOnly?'Show all rows':'Show only these';
   }else bar.hidden=true;
   $('#logAlertOnly').setAttribute('aria-pressed',logAlertOnly);
@@ -1489,6 +1519,25 @@ $('#logParty').addEventListener('change',renderLog);
 $('#logBox').addEventListener('change',renderLog);
 $('#logSearch').addEventListener('input',renderLog);
 $('#logAlertOnly').addEventListener('click',function(){logAlertOnly=!logAlertOnly;renderLog()});
+$('#alertCfgBtn').addEventListener('click',function(){
+  var p=$('#alertCfg'),open=p.hidden;p.hidden=!open;this.setAttribute('aria-expanded',open);
+});
+$('#alertBoxes').addEventListener('click',function(ev){
+  var b=ev.target.closest('button[data-b]');if(!b)return;
+  var k=b.dataset.b;if(NO_FREIGHT[k])delete NO_FREIGHT[k];else NO_FREIGHT[k]=1;
+  saveAB();renderLog();
+});
+function addAlertBox(){
+  var i=$('#alertBoxNew'),v=i.value.trim().toUpperCase();
+  if(!v)return;
+  v.split(/[,+\/;&\s]+/).filter(Boolean).forEach(function(x){NO_FREIGHT[x]=1});
+  i.value='';saveAB();renderLog();
+}
+$('#alertBoxAdd').addEventListener('click',addAlertBox);
+$('#alertBoxNew').addEventListener('keydown',function(ev){if(ev.key==='Enter'){ev.preventDefault();addAlertBox()}});
+$('#alertBoxReset').addEventListener('click',function(){
+  NO_FREIGHT={};AB_DEFAULT.forEach(function(x){NO_FREIGHT[x]=1});saveAB();renderLog();
+});
 $('#alertShow').addEventListener('click',function(){logAlertOnly=!logAlertOnly;renderLog()});
 $('#logCsv').addEventListener('click',logCsv);
 /* click a log row: open that date in the check sheet (same tab) to correct it */
