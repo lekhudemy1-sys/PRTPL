@@ -298,6 +298,8 @@ let S={dos:[],lift:[],rr:[],cfg:{target:5,month:new Date().toISOString().slice(0
 let sel='all',hide=0,tab='do',ch={},XB=null,entryOpen=false;
 const DO_RATES={t:'rate_transport',l:'rate_loading',s:'rate_shifting',m:'rate_misc',st:'rate_staff',inc:'rate_income'};
 const EX=[['t','Transportation'],['l','Loading charges at mines'],['s','Shifting & rake loading'],['m','Misc. liaisoning exp'],['st','Staff exp']];
+// Which quantity each expense line is calculated on: transport & loading on lifted qty, the rest on RR qty
+const EXQ={t:'lift',l:'lift',s:'rr',m:'rr',st:'rr'};
 const COL=['#2b8cff','#e89b0c','#12b89a','#e8455a','#6b7f99'];
 
 /* ================= UI FEEDBACK (replaces alert/confirm/prompt) ================= */
@@ -390,7 +392,7 @@ function saveCfg(msg){
 }
 </script>
 <script>
-/* ================= CALCULATIONS (same formulas as original) ================= */
+/* ================= CALCULATIONS ================= */
 function calc(s){
   return S.dos.filter(d=>s==='all'||d.id==s).map(d=>{
     const L=S.lift.filter(x=>x.do===d.id), Rk=S.rr.filter(x=>x.do===d.id);
@@ -398,7 +400,8 @@ function calc(s){
       ul:sm(Rk,'ul'),ol:sm(Rk,'ol'),gcv:sm(Rk,'gcv'),sh:sm(Rk,'sh')};
     o.mb=d.q-o.lift;
     o.sb=o.lift-o.rr;
-    o.ex={t:d.t*o.lift,l:d.l*o.lift,s:d.s*o.lift,m:d.m*o.lift,st:d.st*o.lift};
+    // transport & loading on lifted qty; shifting, misc & staff on RR qty
+    o.ex={t:d.t*o.lift,l:d.l*o.lift,s:d.s*o.rr,m:d.m*o.rr,st:d.st*o.rr};
     o.exT=Object.values(o.ex).reduce((a,b)=>a+b,0);
     const basisKey={lift:'lift',rr:'rr',chg:'chg',rec:'rec'}[S.cfg.basis]||'lift';
     o.inc=d.inc*o[basisKey];
@@ -510,10 +513,10 @@ function dash(){
     <tr class="t"><td>Net deduction</td><td>${f(T.pen)}</td><td>${f(pm(T.pen,T.rr),2)}</td></tr>
   </table>`;
 
-  $('#exp').innerHTML=`<h2>Expenses <span>${sel==='all'?'each DO at its own rate per MT':'rate per MT × lifted qty'}</span></h2>
+  $('#exp').innerHTML=`<h2>Expenses <span>transport &amp; loading on lifted qty · shifting, misc &amp; staff on RR qty</span></h2>
   <table>
     <tr><th>Particular</th><th>Amount</th><th>₹/MT</th></tr>
-    ${EX.map(e=>`<tr><td>${e[1]}</td><td>${f(T.ex[e[0]])}</td><td>${f(pm(T.ex[e[0]],T.lift),2)}</td></tr>`).join('')}
+    ${EX.map(e=>`<tr><td>${e[1]}</td><td>${f(T.ex[e[0]])}</td><td>${f(pm(T.ex[e[0]],T[EXQ[e[0]]]),2)}</td></tr>`).join('')}
     <tr class="t"><td>Total</td><td>${f(T.exT)}</td><td>${f(pm(T.exT,T.lift),2)}</td></tr>
   </table>`;
 
@@ -611,7 +614,7 @@ function de(){
   let h='';
 
   if(tab==='do'){
-    h=`<p class="note">Each DO has its own expense and income rate per MT. Edits save when you leave the field.</p>
+    h=`<p class="note">Make your changes, then press Save changes. Nothing is saved until you press the button.</p>
     <div class="tw"><table>
       <tr>${DO_COLS.map(c=>`<th>${c[1]}</th>`).join('')}<th></th></tr>
       ${S.dos.map(d=>`<tr>
@@ -621,7 +624,7 @@ function de(){
         <td><button class="x" data-del="delDO" data-id="${d.id}" aria-label="Delete">✕</button></td>
       </tr>`).join('')||`<tr><td colspan="${DO_COLS.length+1}" class="empty">No D.O.s yet.</td></tr>`}
     </table></div>
-    <p style="margin-top:14px"><button class="pb" id="addDO">+ Add DO</button></p>`;
+    <p style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap"><button class="pb" id="addDO">+ Add DO</button><button class="pb" id="saveDOs">Save changes</button></p>`;
   }
 
   if(tab==='lift'){
@@ -678,7 +681,7 @@ function de(){
         </select></label>
     </div>
     <p style="margin-bottom:16px"><button class="pb" id="saveCfg">Save settings</button></p>
-    <p class="note">Settings are saved to the database and shared by everyone who opens this page.</p>
+    <p class="note">Press Save settings to save these settings and the rates in the table below.</p>
     <div class="tw" style="margin-top:14px"><table>
       <tr><th>DO</th><th>Mine</th><th>Transport /MT</th><th>Loading /MT</th><th>Shifting /MT</th><th>Misc /MT</th><th>Staff /MT</th><th>Total expense /MT</th><th>Income /MT</th></tr>
       ${S.dos.map(d=>`<tr><td>${esc(d.name)}</td><td>${esc(d.mine)}</td>
@@ -694,9 +697,30 @@ function de(){
 </script>
 <script>
 /* ================= WRITE ACTIONS ================= */
-function U(id,k,v){
-  if(k==='mine')return write(db.from('hzl_do').update({colliery:v.trim()}).eq('do_no',id),'Saved');
-  if(DO_RATES[k])return write(db.from('hzl_do').update({[DO_RATES[k]]:N(v)}).eq('do_no',id),'Saved');
+// Maps an edited field to the database column it updates (null = not editable here)
+const doPatch=(k,v)=>{
+  if(k==='mine')return {colliery:String(v).trim()};
+  if(k==='q')return {do_qty:N(v)};
+  if(DO_RATES[k])return {[DO_RATES[k]]:N(v)};
+  return null;
+};
+// Sends every DO field currently shown in the entry area. Returns an error or null.
+async function pushDOEdits(){
+  const byDo={};
+  document.querySelectorAll('#ebody [data-u]').forEach(i=>{
+    const p=doPatch(i.dataset.k,i.value);
+    if(p)byDo[i.dataset.u]=Object.assign(byDo[i.dataset.u]||{},p);
+  });
+  const ids=Object.keys(byDo);
+  if(!ids.length)return null;
+  const res=await Promise.all(ids.map(id=>db.from('hzl_do').update(byDo[id]).eq('do_no',id)));
+  return res.find(r=>r.error)?.error||null;
+}
+async function saveDOTab(btn){
+  btn.disabled=true;
+  const err=await pushDOEdits();
+  await refresh();
+  toast(err?dbErr(err):'Saved', err?'err':'ok', 6000);
 }
 async function addDO(){
   const v=await askModal({title:'Add D.O.',text:'Enter the D.O. number exactly as printed.',fields:[{label:'D.O. number',type:'number',validate:x=>(!Number.isInteger(+x)||+x<=0)?'Enter a valid D.O. number.':(S.dos.some(d=>d.id==+x)?'This D.O. already exists.':null)}],okLabel:'Add'});
@@ -734,12 +758,17 @@ async function delR(id){
   if(await confirmM('Delete rake entry?','This rake record will be removed.','Delete'))
     write(db.from('hzl_rakes').delete().eq('id',id),'Rake deleted');
 }
-function saveCfgFromForm(){
+async function saveCfgFromForm(btn){
   S.cfg.month=g('cfgMonth')||S.cfg.month;
   S.cfg.target=+g('cfgTarget')||0;
   S.cfg.basis=g('cfgBasis')||'lift';
   S.cfg.pen=+g('cfgPen');
-  saveCfg('Settings saved');
+  btn.disabled=true;
+  const e1=(await db.from('hzl_settings').upsert({key:'cfg',value:S.cfg,updated_at:new Date().toISOString()},{onConflict:'key'})).error;
+  const e2=await pushDOEdits();
+  await refresh();
+  const err=e1||e2;
+  toast(err?dbErr(err):'Settings saved', err?'err':'ok', 6000);
 }
 
 /* ================= EXCEL PARSER (unchanged rules from HZL RCR v3) ================= */
@@ -893,16 +922,16 @@ document.addEventListener('click',e=>{
   }
   if(t.id==='hideBtn'){hide=!hide;return dash()}
   if(t.id==='addDO')return addDO();
+  if(t.id==='saveDOs')return saveDOTab(t);
   if(t.id==='addL')return addL();
   if(t.id==='addR')return addR();
-  if(t.id==='saveCfg')return saveCfgFromForm();
+  if(t.id==='saveCfg')return saveCfgFromForm(t);
   if(t.id==='impXl')return impXl();
 });
 document.addEventListener('change',e=>{
   const t=e.target;
   if(t.id==='doSel'){sel=t.value==='all'?'all':+t.value;return dash()}
   if(t.id==='xlFile')return xlPick(t.files[0]);
-  if(t.dataset.u)return U(+t.dataset.u,t.dataset.k,t.value);
 });
 
 /* ================= START ================= */
