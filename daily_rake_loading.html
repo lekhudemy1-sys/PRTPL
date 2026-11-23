@@ -1451,10 +1451,10 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
   }).join('');
 
   document.querySelectorAll('input.in').forEach(function (el) {
-    inp[el.id] = el;
-    el.addEventListener('input', function () { dirty = true; recalc(); status('Unsaved changes', 'warn'); });
-    el.addEventListener('focus', function () { el.select(); });
-  });
+  el.addEventListener('wheel', function () {
+    if (document.activeElement === el) el.blur();
+  }, { passive: true });
+});
   document.addEventListener('keydown', function (e) {
     var t = e.target; if (!t || !t.classList || !t.classList.contains('in')) return;
     var d = (e.key === 'Enter' || e.key === 'ArrowDown') ? 1 : (e.key === 'ArrowUp' ? -1 : 0); if (!d) return;
