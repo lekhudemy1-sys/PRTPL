@@ -139,7 +139,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(31,111,209,.28
 <div class="panel hidden" id="prev"><h2><i class="fas fa-eye"></i> Preview (<span id="pc">0</span> rows)</h2><div class="tw"><table class="tbl" id="pt"></table></div>
 <div class="tb" style="margin-top:.8rem"><button class="btn" id="imp"><i class="fas fa-database"></i> Save to database</button><span class="muted">Existing rows with the same Date + Sr No are updated, not duplicated.</span></div></div></section>
 <section class="view" id="view-log"><div class="topbar"><div><h1>Records Log</h1><div class="period">Edit or delete saved rake records</div></div></div>
-<div class="panel"><div class="tb"><input class="field" id="ls" placeholder="Search RR no, siding, area..."><select class="field" id="lm"></select><button class="soft" id="lr"><i class="fas fa-rotate"></i> Reload</button><button class="btn" id="lsave"><i class="fas fa-floppy-disk"></i> Save All</button><span class="muted" id="lc2"></span></div>
+<div class="panel"><div class="tb"><input class="field" id="ls" placeholder="Search RR no, siding, area..."><select class="field" id="lm"></select><select class="field" id="lmon" aria-label="Month"></select><button class="soft" id="lr"><i class="fas fa-rotate"></i> Reload</button><button class="btn" id="lsave"><i class="fas fa-floppy-disk"></i> Save All</button><span class="muted" id="lc2"></span></div>
 <div class="tw"><table class="tbl" id="lt2"></table></div><div class="status" id="lstat"></div></div></section>
 
 <section class="view" id="view-entry"><div class="topbar"><div><h1>Data Entry</h1><div class="period">New rake, contract targets and rates. Everything else is calculated.</div></div></div>
@@ -150,7 +150,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(31,111,209,.28
 </div>
 <h2><i class="fas fa-plus-circle"></i> Rake Record</h2>
 <div class="tb"><select id="sb" class="field" style="max-width:130px" aria-label="Search by"><option value="sr_no">Sr No</option><option value="rr_no">RR No</option></select>
-<input class="field" id="sq" placeholder="Enter Sr No (of the contract chosen below)" style="max-width:300px"><button type="button" class="soft" id="sbtn"><i class="fas fa-search"></i> Search</button><span class="muted" id="editBadge"></span></div>
+<input class="field" id="sq" placeholder="Enter Sr No (of the contract chosen below)" style="max-width:300px"><select class="field" id="smon" style="max-width:170px" aria-label="Month"></select><button type="button" class="soft" id="sbtn"><i class="fas fa-search"></i> Search</button><span class="muted" id="editBadge"></span></div>
 <form id="nf"><div id="nfg"></div><div id="customEntry"></div>
 <h4><i class="fas fa-wand-magic-sparkles"></i> Auto Calculated <span class="tag">auto</span></h4><p class="muted" style="margin-bottom:.6rem">Filled automatically from the values typed above. You cannot type here. The dashboard calculates these from the same raw values.</p><div class="fg" id="autoBox"></div>
 <div class="tb" style="margin-top:1rem"><button class="btn" type="submit" id="submitBtn"><i class="fas fa-paper-plane"></i> Submit</button><button class="btn" type="button" id="updateBtn" disabled><i class="fas fa-pen"></i> Update</button><button class="soft" type="button" id="clearBtn">Clear Form</button></div></form></div>
@@ -431,14 +431,17 @@ function recalcRow(tr){const val=k=>{const i=tr.querySelector(`input[data-col="$
  let changed=false;for(const[t,ks]of Object.entries(GRP)){const v=ks.map(val).filter(x=>x!=null),i=tr.querySelector(`input[data-col="${t}"]`);
   if(i){const n=v.length?String(+v.reduce((a,b)=>a+b,0).toFixed(2)):'';if(String(i.value)!==n){i.value=n;changed=true}}}return changed}
 let LOG=[];
-async function loadLog(){try{LOG=await fetchAll(q=>q);LOG.sort((a,b)=>(a.date||'').localeCompare(b.date||'')||num(a.sr_no)-num(b.sr_no));renderLog()}catch(e){toast('Could not load records: '+e.message,true)}}
-function renderLog(){const q=$('ls').value.toLowerCase(),m=$('lm').value;
- const f=LOG.filter(r=>(!q||JSON.stringify(r).toLowerCase().includes(q))&&(!m||(r.date&&ctOf(r.date)===m))),sh=f.slice(-150);
+const monLabel=m=>{const p=m.split('-');return MON[Number(p[1])-1]+' '+p[0]};
+function fillLogMonths(){const keep=$('lmon').value,ms=[...new Set(LOG.map(r=>String(r.date||'').slice(0,7)).filter(Boolean))].sort().reverse();
+ $('lmon').innerHTML='<option value="">All months</option>'+ms.map(m=>`<option value="${m}">${monLabel(m)}</option>`).join('');$('lmon').value=ms.includes(keep)?keep:''}
+async function loadLog(){try{LOG=await fetchAll(q=>q);LOG.sort((a,b)=>(a.date||'').localeCompare(b.date||'')||num(a.sr_no)-num(b.sr_no));fillLogMonths();renderLog()}catch(e){toast('Could not load records: '+e.message,true)}}
+function renderLog(){const q=$('ls').value.toLowerCase(),m=$('lm').value,mo=$('lmon').value;
+ const f=LOG.filter(r=>(!q||JSON.stringify(r).toLowerCase().includes(q))&&(!m||(r.date&&ctOf(r.date)===m))&&(!mo||String(r.date||'').slice(0,7)===mo)),sh=f.slice(-150);
  $('lc2').textContent=`${f.length} of ${LOG.length} records`+(f.length>150?' (showing latest 150; totals cover all)':'');
  const fT=n=>n.toLocaleString('en-IN',{maximumFractionDigits:2}),ex=r=>r.extra||{};
  $('lt2').innerHTML=`<thead><tr><th>Actions</th>${LC.map(c=>`<th>${LBL[c]}</th>`).join('')}${CUSTOM_COLS.map(c=>`<th>${esc(c.label)}</th>`).join('')}</tr></thead><tbody>`+sh.map(r=>`<tr data-id="${r.id}"><td><button class="soft del" data-del="${r.id}"><i class="fas fa-trash"></i></button></td>${LC.map(c=>`<td><input data-col="${c}" value="${esc(r[c]??'')}"${GRP[c]?' readonly tabindex="-1"':''}></td>`).join('')}${CUSTOM_COLS.map(c=>`<td><input data-col="x:${c.key}" value="${esc(ex(r)[c.key]??'')}"></td>`).join('')}</tr>`).join('')+'</tbody>'+(f.length?`<tfoot><tr><td>Total (${f.length})</td>${LC.map(c=>`<td>${NUMC.has(c)&&c!=='sr_no'?fT(sum(f,c)):''}</td>`).join('')}${CUSTOM_COLS.map(c=>`<td>${c.type==='number'?fT(f.reduce((s,r)=>s+num(ex(r)[c.key]),0)):''}</td>`).join('')}</tr></tfoot>`:'');
  $('lt2').querySelectorAll('tr[data-id]').forEach(tr=>{if(recalcRow(tr))tr.classList.add('dirty')})}
-$('ls').oninput=renderLog;$('lm').onchange=renderLog;$('lr').onclick=loadLog;
+$('ls').oninput=renderLog;$('lm').onchange=renderLog;$('lmon').onchange=renderLog;$('lr').onclick=loadLog;
 $('lt2').oninput=e=>{const tr=e.target.closest('tr[data-id]');if(tr){tr.classList.add('dirty');recalcRow(tr)}};
 function rowPatch(tr){recalcRow(tr);const p={},extra={...((LOG.find(x=>String(x.id)===tr.dataset.id)||{}).extra||{})};
  tr.querySelectorAll('input[data-col]').forEach(i=>{const c=i.dataset.col;if(c.startsWith('x:')){const d=CUSTOM_COLS.find(z=>z.key===c.slice(2));if(d)extra[d.key]=customValue(d,i.value)}else p[c]=toDb(c,i.value)});
@@ -484,6 +487,7 @@ function loadIntoForm(rec){$('nf').reset();
  fillCustomEntry(rec);setEdit(rec.id);recalc();toast('Record loaded');window.scrollTo({top:0,behavior:'smooth'})}
 async function findRec(){const by=$('sb').value,q=$('sq').value.trim();if(!q)return toast('Enter '+(by==='rr_no'?'RR No':'Sr No'),true);
  let qy=db.from(RECS).select('*');
+ const sm=$('smon').value;if(sm){const[Y,M]=sm.split('-').map(Number);qy=qy.gte('date',sm+'-01').lte('date',sm+'-'+pad(new Date(Date.UTC(Y,M,0)).getUTCDate()))}
  if(by==='sr_no'){if(!isNum(q))return toast('Sr No must be a number',true);const mi=monthInfo(EP);qy=qy.eq('sr_no',Number(q)).gte('date',mi.start).lte('date',mi.end)}
  else qy=qy.ilike('rr_no',q.replace(/[\\%_]/g,'\\$&'));   // case-insensitive exact match
  const{data,error}=await qy.limit(1);if(error)return toast('Search failed: '+error.message,true);
@@ -504,7 +508,10 @@ async function initEntry(){if(!ready){ready=true;$('em').innerHTML=CONTRACTS.map
  $('ovrValue').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();saveOvr()}};$('ovrTbl').onclick=e=>{const b=e.target.closest('[data-ovr-reset]');if(b)resetOvr(b.dataset.ovrReset)};}
  await resetForm();await loadEntry();
  if(PENDING_FILL!=null){const id=PENDING_FILL;PENDING_FILL=null;const{data}=await db.from(RECS).select('*').eq('id',id).limit(1);if(data&&data.length)loadIntoForm(data[0])}}
-async function loadEntry(){try{const mi=monthInfo(EP);[EREC,ETG]=await Promise.all([fetchAll(q=>q.gte('date',mi.start).lte('date',mi.end)),db.from(TGT).select('*').eq('period',EP).then(unwrap)]);
+function fillSearchMonths(){const mi=monthInfo(EP),keep=$('smon').value,ms=[];let[Y,M]=mi.start.split('-').map(Number);const[Y2,M2]=mi.end.split('-').map(Number);
+ while(Y<Y2||(Y===Y2&&M<=M2)){ms.push(Y+'-'+pad(M));M++;if(M>12){M=1;Y++}}
+ $('smon').innerHTML='<option value="">All months</option>'+ms.map(m=>`<option value="${m}">${monLabel(m)}</option>`).join('');$('smon').value=ms.includes(keep)?keep:''}
+async function loadEntry(){try{const mi=monthInfo(EP);fillSearchMonths();[EREC,ETG]=await Promise.all([fetchAll(q=>q.gte('date',mi.start).lte('date',mi.end)),db.from(TGT).select('*').eq('period',EP).then(unwrap)]);
  await loadVals([EP]);const s=settings(EP);RATES.forEach(([k])=>$('r_'+k).value=s[k]);$('rd').value=(SET[EP]||{}).reportDate||today();renderTg();recalc()}catch(e){toast('Could not load contract: '+e.message,true)}}
 function renderTg(){const o=C(EP,EREC,ETG);$('tg').innerHTML=AREAS.map(a=>`<tr><td>${a}</td><td><input type="number" min="0" data-area="${a}" value="${o.A[a].tg}"></td><td>${o.A[a].ld}</td><td>${o.A[a].bal}</td><td>${f2(o.A[a].ask)}</td></tr>`).join('');renderOvr()}
 async function saveTargets(){const{error}=await db.from(TGT).upsert(AREAS.map(x=>({period:EP,area:x,target:num((ETG.find(y=>up(y.area)===x)||{}).target)})),{onConflict:'period,area'});setSt('es',error?'Target save failed: '+error.message:'Targets saved',error?'err':'ok')}
