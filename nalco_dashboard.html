@@ -53,9 +53,10 @@ body:not(.unlocked) .pro{display:none}
 .mt th{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;font-size:.72rem;text-transform:uppercase;padding:.6rem .5rem}
 .mt td{border-bottom:1px solid var(--line);text-align:center;font-weight:700;font-size:.85rem;padding:.5rem;font-variant-numeric:tabular-nums}.mt td.neg{color:var(--neg)}.mt td:first-child{text-align:left;padding-left:.8rem}
 .mt tbody tr:nth-child(even) td{background:var(--zebra)}
-/* Area Wise + Notice: small, centred, side by side when a notice is showing */
+/* Area Wise + Tracker + Notice: small, centred, side by side */
 .aw-row{display:flex;justify-content:center;align-items:flex-start;gap:1.2rem;flex-wrap:wrap;margin-bottom:1.2rem}
 .aw-card{flex:0 1 620px;min-width:280px}.aw-card .mt{min-width:0}.aw-card .mt th{padding:.4rem .4rem;font-size:.66rem}.aw-card .mt td{padding:.3rem .4rem;font-size:.78rem}
+.c-tracker{flex:0 1 500px;min-width:300px}.c-tracker .mt td.ctr{text-align:center;padding-left:.4rem}.c-tracker .wrap+.wrap{margin-top:.8rem}
 .c-notice{flex:0 1 420px;min-width:260px}.c-notice::before{background:linear-gradient(90deg,#d9a21a,#f1d98f)}
 .nbox{white-space:pre-wrap;word-break:break-word;font-size:.9rem;font-weight:600;line-height:1.55;background:#fff8e4;border:1px solid #f1d98f;border-radius:14px;padding:.8rem 1rem}
 .panel{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:1.2rem 1.3rem;box-shadow:var(--sh);margin-bottom:1.2rem}
@@ -72,6 +73,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(31,111,209,.28
 .tbl th{position:sticky;top:0;background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;padding:.5rem .6rem;font-size:.7rem;text-transform:uppercase;white-space:nowrap}
 .tbl td{padding:.35rem .45rem;border-bottom:1px solid var(--line);text-align:center;font-weight:600;white-space:nowrap}.tbl tr:nth-child(even) td{background:var(--zebra)}
 .tbl td input{width:100%;min-width:6rem;border:1px solid var(--line);border-radius:8px;padding:.3rem .4rem;font:600 .8rem var(--body);text-align:center;background:#fff}
+.tbl td input[readonly]{background:#e6eef8}
 .tbl tr.dirty td{background:#fff6d6!important}.tbl tfoot td{background:var(--t);font-weight:800;position:sticky;bottom:0}
 .status{font-size:.85rem;font-weight:600;margin-top:.7rem;min-height:1.2em}.err{color:var(--neg)}.ok{color:#0c6b4a}
 .drop{border:2px dashed #9dc1ee;border-radius:16px;padding:1.6rem;text-align:center;background:#f4f9ff;cursor:pointer}.drop i{font-size:1.8rem;color:var(--navy2)}
@@ -125,6 +127,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(31,111,209,.28
 <div class="dash" id="dashBody"></div>
 <div class="aw-row">
  <div class="card aw-card"><h3><i class="fas fa-industry"></i> Area Wise Performance</h3><div class="wrap"><table class="mt"><thead><tr><th>AREA</th><th>TALCHER</th><th>IB</th><th>CKP</th></tr></thead><tbody id="minesBody"></tbody></table></div></div>
+ <div class="card aw-card c-tracker"><h3><i class="fas fa-bullseye"></i> Tracker</h3><div id="trackerBody"></div></div>
  <div class="card c-notice hidden" id="noticeCard"><h3><i class="fas fa-bullhorn"></i> Notice</h3><div class="nbox" id="noticeText"></div></div>
 </div>
 <div class="card"><h3><i class="fas fa-calendar-alt"></i> Contract Performance</h3><div class="wrap"><table class="mt"><thead><tr><th>Contract</th><th>Total Rakes</th><th>Total Qty</th><th>Billing</th><th>Deduction</th><th>Amount</th></tr></thead><tbody id="trendBody"></tbody></table></div></div>
@@ -192,13 +195,15 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(31,111,209,.28
 <div class="tw" style="max-height:none;margin-top:.8rem"><table class="tbl" id="slipTbl"></table></div>
 <div class="fg" style="margin-top:1rem"><div><label for="fSlipAbove">Rate for slippage above 3 grades (%)</label><input type="number" step="0.01" id="fSlipAbove"></div></div></div>
 <div class="panel"><h2><i class="fas fa-info-circle"></i> How every dashboard value is calculated</h2>
-<p class="muted">Contract period is 10 Oct to 16 Nov 2026 (38 days). RR = RR weight, Recv = received weight.</p>
+<p class="muted">Contract period is 10 Oct to 08 Dec 2026 (60 days). RR = RR weight, Recv = received weight.</p>
 <ul class="formula-list">
 <li>Target of Contract, Rake Loaded Till, Balance Rake, Asking Per Day = per area (TALCHER, IB, CKP). Loaded counts rakes up to the report date. Asking per day = balance ÷ days from today to the end of the contract.</li>
-<li>Materialisation % = total RR Qty ÷ 97,000 × 100. Rake Performance shows achieved RR Qty against the 97,000 quantity target. Quantity Reco = total RR weight × Quantity base rate × tier % (tiers above).</li>
+<li>Materialisation % = total RR Qty ÷ 194,000 × 100. Rake Performance shows achieved RR Qty against the 194,000 quantity target. Quantity Reco = total RR weight × Quantity base rate × tier % (tiers above).</li>
+<li>Tracker = Target 194,000 MT and 57 rakes. Achieve = RR Qty and rakes loaded. Balance = Target − Achieve. Asking = Balance ÷ days from today to the end of the contract. RR Qty = total RR weight, Chargeable Qty = total chargeable weight, Plant Recv = total received weight.</li>
 <li>Grade of a rake comes from its GCV: above 7000 = G-01, above 6700 = G-02, then every 300 lower (G-17 above 2200). Grade Slippage = Unloading Grade − Loading Grade. GCV Bonus/Penalty (₹/MT) = GCV base rate × slippage % ÷ 100. Bonus/Penalty (₹) = RR weight × that ₹/MT.</li>
 <li>Performance on GCV Reco = sum of Bonus/Penalty (₹) of the month's rakes. Rakes with a missing GCV or negative slippage are left out.</li>
 <li>Service Charge (each area) = RR weight of that area × service rate (Data Entry).</li>
+<li>POL1/PO2/POLA/PCLA/DCLA = POL1 + POL2 + POLA + PCLA + DCLA. EHBC/FAUC/TC/ST = EHBC + FAUC + TC + ST. Both are filled automatically in Data Entry and Records Log.</li>
 <li>Total Railway Penalty = Underload + Overload + Punitive (POL) + EHBC/FAUC/TC + ENHC + Dead Freight (typed per contract).</li>
 <li>TOTAL BILLING = Quantity Reco + GCV Reco + Service Charges − Total Railway Penalty. Per MT = amount ÷ total RR weight (GCV Reco ÷ RR weight of rakes counted). Expected Billing = TOTAL BILLING (contract is closed, so expected billing equals achieved billing).</li>
 <li>Shortage % = (RR − Recv) × 100 ÷ RR over rakes with received weight. Shortage MT per rake = (RR − Recv) ÷ number of those rakes.</li>
@@ -234,6 +239,8 @@ const $=id=>document.getElementById(id),AREAS=['TALCHER','IB','CKP'],MON=['Jan',
 const DEF={svcTALCHER:92.8,svcIB:92.8,svcCKP:92.8,dead:0,qtyRate:30,gcvBase:30};
 const DF={matTop:2,matTiers:[[85,0],[80,-5],[75,-7.5],[70,-10],[65,-20]],matBelow:-40,gcvSlip:[2,-5,-40,-60],gcvSlipAbove:-100};
 const BANDS=[[7000,1],[6700,2],[6400,3],[6100,4],[5800,5],[5500,6],[5200,7],[4900,8],[4600,9],[4300,10],[4000,11],[3700,12],[3400,13],[3100,14],[2800,15],[2500,16],[2200,17]];
+// Contract targets used by Rake Performance and the Tracker card. Change here if the contract changes.
+const TARGET_QTY=194000,TARGET_RAKES=57;
 const isNum=v=>v!==null&&v!==undefined&&v!==''&&!isNaN(Number(v)),num=v=>isNum(v)?Number(v):0,pad=n=>String(n).padStart(2,'0'),up=v=>String(v??'').trim().toUpperCase();
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const sum=(a,k)=>a.reduce((s,r)=>s+num(r[k]),0);
@@ -246,8 +253,8 @@ const unwrap=r=>{if(r.error)throw r.error;return r.data||[]};
 const today=()=>new Date().toLocaleDateString('en-CA');
 const shiftMonth=(p,k)=>{const[Y,M]=p.split('-').map(Number),d=new Date(Date.UTC(Y,M-1+k,1));return d.getUTCFullYear()+'-'+pad(d.getUTCMonth()+1)};
 const daysBetween=(a,b)=>{const d=Math.round((new Date(b+'T00:00:00Z')-new Date(a+'T00:00:00Z'))/864e5);return d>0?d:0};
-// Contract end date. Change this when the NALCO extension is approved.
-const CONTRACT_END='2026-12-16';
+// Contract: 60 days from 10 Oct 2026 (10 Oct to 08 Dec 2026). Change this when the NALCO extension is approved.
+const CONTRACT_END='2026-12-08';
 const CONTRACTS=[{key:'C-2026-10-10',start:'2026-10-10',end:CONTRACT_END}];   // add future contracts here
 const ctOf=d=>(CONTRACTS.find(c=>d>=c.start&&d<=c.end)||{}).key||null;
 const cycleKey=d=>ctOf(d)||CONTRACTS[CONTRACTS.length-1].key;
@@ -286,7 +293,7 @@ function compute(p,recs,tg,ovr=()=>undefined,repForce){
   A[a]={tg:T,ld,bal:T-ld,ask:dr?(T-ld)/dr:0,rr,n:rs.length,lg:wAvg(rs,'loading_gcv','rr_wt'),ug:wAvg(rs,'unloading_gcv','rr_wt'),
    pun:sum(rs,'pol_group'),eh:sum(rs,'ehbc_group'),en:sum(rs,'enhc_charge'),sh:wr.length?(sum(wr,'rr_wt')-sum(wr,'recv_wt'))/wr.length:0,svc:pk('b-svc-'+a,rr*S['svc'+a])}});
  const L=Object.values(A),tgAll=sum(L,'tg'),ldAll=sum(L,'ld'),rrAll=sum(m,'rr_wt'),rrQty=m.reduce((v,r)=>v+num(r.rr_qty!==undefined&&r.rr_qty!==null?r.rr_qty:r.rr_wt),0),wr=m.filter(r=>num(r.recv_wt)>0),rrR=sum(wr,'rr_wt'),recv=sum(wr,'recv_wt');
- const LQTY_TARGET=97000,mat=LQTY_TARGET?rrQty*100/LQTY_TARGET:0,tier=matPct(mat);
+ const LQTY_TARGET=TARGET_QTY,mat=LQTY_TARGET?rrQty*100/LQTY_TARGET:0,tier=matPct(mat);
  const qty=pk('b-qty',rrAll*S.qtyRate*tier/100);
  const gk=m.map(r=>gcvOf(r,S)).map((x,i)=>({...x,rr:num(m[i].rr_wt)})).filter(x=>x.ok),gcvRR=gk.reduce((s,x)=>s+x.rr,0),gcv=pk('b-gcv',gk.reduce((s,x)=>s+x.amt,0));
  const pen={ul:pk('p-ul',sum(m,'ul_ch')),ol:pk('p-ol',sum(m,'ol_ch')),pun:pk('p-pun',sum(m,'pol_group')),ehbc:pk('p-ehbc',sum(m,'ehbc_group')),enhc:pk('p-enhc',sum(m,'enhc_charge')),dead:pk('p-dead',S.dead)};
@@ -296,7 +303,7 @@ function compute(p,recs,tg,ovr=()=>undefined,repForce){
  const pm={qty:mt('b-qty',qty),gcv:pk('b-gcv-mt',gcvRR?gcv/gcvRR:0),pen:pk('b-pen-mt',rrAll?-penT/rrAll:0),tot:mt('b-total',tot)};
  const pmp={};Object.keys(pen).forEach(k=>pmp[k]=mt('p-'+k,pen[k]));pmp.total=mt('p-total',penT);
  const avgCh=m.length?sum(m,'ch_wt')/m.length:0;
- return{p,S,A,L,m,rep,dp,dr,dim:mi.dim,n:m.length,rrAll,rrQty,rrR,recv,pen,penT,pm,pmp,qty,gcv,gross,tot,exp,tgAll,ldAll,tier,
+ return{p,S,A,L,m,rep,dp,dr,dim:mi.dim,n:m.length,rrAll,rrQty,rrR,recv,chAll:sum(m,'ch_wt'),recvAll:sum(m,'recv_wt'),pen,penT,pm,pmp,qty,gcv,gross,tot,exp,tgAll,ldAll,tier,
   mat,perDay:dp?ldAll/dp:0,askDay:sum(L,'ask'),reqDay:tgAll/mi.dim,
   shPct:pk('s-pct',rrR?(rrR-recv)*100/rrR:0),shMt:pk('s-mt',wr.length?(rrR-recv)/wr.length:0),
   w:{ch:pk('w-ch',avgCh),rr:pk('w-rr',m.length?rrAll/m.length:0),recv:pk('w-recv',wr.length?recv/wr.length:0),totrr:pk('w-totrr',rrAll),totrecv:pk('w-totrecv',recv)}}}
@@ -336,7 +343,7 @@ function render(o,trend){
   row('Performance on Quantity Reco',o.qty,o.pm.qty,'','b-qty')+row('Performance on GCV Reco',o.gcv,o.pm.gcv,'','b-gcv')+
   AREAS.map(a=>row('Performance on Service Charge '+a,A[a].svc,o.S['svc'+a],'','b-svc-'+a)).join('')+
   row('Total Railway Penalty',-o.penT,o.pm.pen,'','b-pen')+row('TOTAL BILLING',o.tot,o.pm.tot,'tot','b-total')+row1('Expected Billing of the Contract',o.exp,fInt,'','b-exp'));
- const rake=card('fa-train','Rake Performance',gtab(['Achieve','Target'],[['Quantity (RR Qty)',[o.rrQty,97000],fInt],['Materialisation',[o.mat,100],fPct],['Rakes per day',[o.perDay,o.reqDay],f2],['Asking per day',[o.askDay,o.reqDay],f2]]));
+ const rake=card('fa-train','Rake Performance',gtab(['Achieve','Target'],[['Quantity (RR Qty)',[o.rrQty,TARGET_QTY],fInt],['Materialisation',[o.mat,100],fPct],['Rakes per day',[o.perDay,o.reqDay],f2],['Asking per day',[o.askDay,o.reqDay],f2]]));
  const plants=card('fa-map-marker-alt','Areas',gtab(AREAS,[['Target of Contract',AREAS.map(a=>A[a].tg),fInt],['Rake Loaded Till',AREAS.map(a=>A[a].ld),fInt],['Balance Rake',AREAS.map(a=>A[a].bal),fInt],['Asking Per Day',AREAS.map(a=>A[a].ask),f2]]));
  const wt=card('fa-weight-scale','Weights',row1('Avg. CH.Wt.',W.ch,f2,'','w-ch')+row1('Avg. RR.Wt.',W.rr,f2,'','w-rr')+row1('Avg. Plant Rec. Wt.',W.recv,f2,'','w-recv')+row1('TOTAL RR WEIGHT',W.totrr,f2,'tot','w-totrr')+row1('PLANT RECEIVE',W.totrecv,f2,'tot','w-totrecv'));
  const sh=card('fa-balance-scale','Shortage / Excess Coal',row1('Avg Shrt / Excess (%)',o.shPct,f2,'','s-pct')+row1('Shortage / Excess MT per rake',o.shMt,f2,'','s-mt')+gtab(AREAS,[['Loading GCV',AREAS.map(a=>A[a].lg),f2],['Unloading GCV',AREAS.map(a=>A[a].ug),f2],['GCV Difference',AREAS.map(a=>A[a].lg&&A[a].ug?A[a].lg-A[a].ug:0),f2]])+row1('Avg Unloading GCV',wAvgArr(o.L),f2,'tot'));
@@ -344,6 +351,13 @@ function render(o,trend){
  $('dashBody').innerHTML=`<div class="col">${bill}${rake}</div><div class="col">${plants}${wt}</div><div class="col">${sh}${pn}</div>`;
  const mr=(l,f,fm)=>`<tr><td>${l}</td>${AREAS.map(a=>{const x=f(A[a]);return`<td class="${x<0?'neg':''}">${fm(x)}</td>`}).join('')}</tr>`;
  $('minesBody').innerHTML=mr('Total Rakes',x=>x.n,fInt)+mr('Loading GCV',x=>x.lg,f2)+mr('GCV (ARB / Unloading)',x=>x.ug,f2)+mr('Quality Diff. (Loading − Unloading)',x=>x.lg&&x.ug?x.lg-x.ug:0,f2)+mr('RR Qty',x=>x.rr,fInt)+mr('Shortage (Avg)',x=>x.sh,f2)+mr('Punitive Sum (POL)',x=>x.pun,fInt)+mr('EHBC / FAUC / SD / TC',x=>x.eh,fInt)+mr('ENHC Charges',x=>x.en,fInt)+mr('Per Ton Cost',x=>x.rr?(x.pun+x.eh+x.en)/x.rr:0,f2);
+ // Tracker: target / achieve / balance / asking per day for quantity and rakes, plus RR, chargeable and plant received totals
+ const qAch=o.rrQty,qBal=TARGET_QTY-qAch,qAsk=o.dr?qBal/o.dr:0,rAch=o.ldAll,rBal=TARGET_RAKES-rAch,rAsk=o.dr?rBal/o.dr:0;
+ const tc=(x,fm)=>`<td class="ctr ${x<0?'neg':''}">${fm(x)}</td>`;
+ $('trackerBody').innerHTML=`<div class="wrap"><table class="mt"><thead><tr><th></th><th>Target</th><th>Achieve</th><th>Balance</th><th>Asking / Day</th></tr></thead><tbody>`+
+  `<tr><td>Quantity (MT)</td>${tc(TARGET_QTY,fInt)}${tc(qAch,fInt)}${tc(qBal,fInt)}${tc(qAsk,f2)}</tr>`+
+  `<tr><td>Rakes</td>${tc(TARGET_RAKES,fInt)}${tc(rAch,fInt)}${tc(rBal,fInt)}${tc(rAsk,f2)}</tr></tbody></table></div>`+
+  `<div class="wrap"><table class="mt"><thead><tr><th>RR Qty</th><th>Chargeable Qty</th><th>Plant Recv</th></tr></thead><tbody><tr>${tc(o.rrAll,fInt)}${tc(o.chAll,fInt)}${tc(o.recvAll,fInt)}</tr></tbody></table></div>`;
  $('trendBody').innerHTML=trend.map(t=>`<tr><td>${plabel(t.p)}</td><td>${fInt(t.n)}</td><td>${fInt(t.rrAll)}</td><td>${fInt(t.gross)}</td><td class="${t.penT?'neg':''}">${fInt(-t.penT)}</td><td>${fInt(t.tot)}</td></tr>`).join('');
  const y=new Date();y.setDate(y.getDate()-1);$('upto').textContent=y.toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});
  const nov=Object.keys(OVR['ovr-m:'+o.p]||{}).length;
@@ -411,16 +425,22 @@ $('imp').onclick=async()=>{if(!rows.length||!confirm(`Save ${rows.length} rows t
 
 /* ---------- records log ---------- */
 const LC=COLS.map(c=>c[0]);
+// auto columns: sum of their component columns (same rule as Data Entry)
+const GRP={pol_group:['pol1','pol2','pola','pcla','dcla'],ehbc_group:['ehbc2','fauc','tc','st']};
+function recalcRow(tr){const val=k=>{const i=tr.querySelector(`input[data-col="${k}"]`);return i&&i.value!==''&&!isNaN(Number(i.value))?Number(i.value):null};
+ let changed=false;for(const[t,ks]of Object.entries(GRP)){const v=ks.map(val).filter(x=>x!=null),i=tr.querySelector(`input[data-col="${t}"]`);
+  if(i){const n=v.length?String(+v.reduce((a,b)=>a+b,0).toFixed(2)):'';if(String(i.value)!==n){i.value=n;changed=true}}}return changed}
 let LOG=[];
 async function loadLog(){try{LOG=await fetchAll(q=>q);LOG.sort((a,b)=>(a.date||'').localeCompare(b.date||'')||num(a.sr_no)-num(b.sr_no));renderLog()}catch(e){toast('Could not load records: '+e.message,true)}}
 function renderLog(){const q=$('ls').value.toLowerCase(),m=$('lm').value;
  const f=LOG.filter(r=>(!q||JSON.stringify(r).toLowerCase().includes(q))&&(!m||(r.date&&ctOf(r.date)===m))),sh=f.slice(-150);
  $('lc2').textContent=`${f.length} of ${LOG.length} records`+(f.length>150?' (showing latest 150; totals cover all)':'');
  const fT=n=>n.toLocaleString('en-IN',{maximumFractionDigits:2}),ex=r=>r.extra||{};
- $('lt2').innerHTML=`<thead><tr><th>Actions</th>${LC.map(c=>`<th>${LBL[c]}</th>`).join('')}${CUSTOM_COLS.map(c=>`<th>${esc(c.label)}</th>`).join('')}</tr></thead><tbody>`+sh.map(r=>`<tr data-id="${r.id}"><td><button class="soft del" data-del="${r.id}"><i class="fas fa-trash"></i></button></td>${LC.map(c=>`<td><input data-col="${c}" value="${esc(r[c]??'')}"></td>`).join('')}${CUSTOM_COLS.map(c=>`<td><input data-col="x:${c.key}" value="${esc(ex(r)[c.key]??'')}"></td>`).join('')}</tr>`).join('')+'</tbody>'+(f.length?`<tfoot><tr><td>Total (${f.length})</td>${LC.map(c=>`<td>${NUMC.has(c)&&c!=='sr_no'?fT(sum(f,c)):''}</td>`).join('')}${CUSTOM_COLS.map(c=>`<td>${c.type==='number'?fT(f.reduce((s,r)=>s+num(ex(r)[c.key]),0)):''}</td>`).join('')}</tr></tfoot>`:'')}
+ $('lt2').innerHTML=`<thead><tr><th>Actions</th>${LC.map(c=>`<th>${LBL[c]}</th>`).join('')}${CUSTOM_COLS.map(c=>`<th>${esc(c.label)}</th>`).join('')}</tr></thead><tbody>`+sh.map(r=>`<tr data-id="${r.id}"><td><button class="soft del" data-del="${r.id}"><i class="fas fa-trash"></i></button></td>${LC.map(c=>`<td><input data-col="${c}" value="${esc(r[c]??'')}"${GRP[c]?' readonly tabindex="-1"':''}></td>`).join('')}${CUSTOM_COLS.map(c=>`<td><input data-col="x:${c.key}" value="${esc(ex(r)[c.key]??'')}"></td>`).join('')}</tr>`).join('')+'</tbody>'+(f.length?`<tfoot><tr><td>Total (${f.length})</td>${LC.map(c=>`<td>${NUMC.has(c)&&c!=='sr_no'?fT(sum(f,c)):''}</td>`).join('')}${CUSTOM_COLS.map(c=>`<td>${c.type==='number'?fT(f.reduce((s,r)=>s+num(ex(r)[c.key]),0)):''}</td>`).join('')}</tr></tfoot>`:'');
+ $('lt2').querySelectorAll('tr[data-id]').forEach(tr=>{if(recalcRow(tr))tr.classList.add('dirty')})}
 $('ls').oninput=renderLog;$('lm').onchange=renderLog;$('lr').onclick=loadLog;
-$('lt2').oninput=e=>{const tr=e.target.closest('tr[data-id]');if(tr)tr.classList.add('dirty')};
-function rowPatch(tr){const p={},extra={...((LOG.find(x=>String(x.id)===tr.dataset.id)||{}).extra||{})};
+$('lt2').oninput=e=>{const tr=e.target.closest('tr[data-id]');if(tr){tr.classList.add('dirty');recalcRow(tr)}};
+function rowPatch(tr){recalcRow(tr);const p={},extra={...((LOG.find(x=>String(x.id)===tr.dataset.id)||{}).extra||{})};
  tr.querySelectorAll('input[data-col]').forEach(i=>{const c=i.dataset.col;if(c.startsWith('x:')){const d=CUSTOM_COLS.find(z=>z.key===c.slice(2));if(d)extra[d.key]=customValue(d,i.value)}else p[c]=toDb(c,i.value)});
  if(CUSTOM_COLS.length)p.extra=extra;return p}
 $('lsave').onclick=async()=>{const trs=[...$('lt2').querySelectorAll('tr.dirty')];if(!trs.length)return toast('No edited rows to save');let ok=0,bad=[];
@@ -430,7 +450,7 @@ $('lt2').onclick=async e=>{const d=e.target.closest('[data-del]');if(!d||!confir
 
 /* ---------- data entry: rake record form ---------- */
 const SEC=[['Basic Details',['sr_no','date','area','siding','box_type','box_type2','allotment_date','sr_seq_no','reprogram_month','loading_gcv']],['Mines Loading',['time_pt','time_ct','time_dot']],['Wagons',['supply_box','load_box','sick_box']],['Weights & GCV',['ch_wt','rr_wt','recv_wt','unloading_gcv']],['Railway Receipt',['rr_no','rr_date','fnot_no','invoice_no']],['Underload & Overload',['ul_ch','ol_ch']],['Freight & Charges',['chbl_pun_rate','pol1','pol2','pola','krba','ladc','pcla','dcla','pol_group','sd','sdcc','st','tc','fauc','ehbc_group','gst','enhc_charge','ehbc2','rr_freight_base','total_fright']]];
-const REQ=['date','area','siding'],AUTOK=['sr_no','sick_box'],INP={d:'date',h:'time',n:'number',t:'text'};
+const REQ=['date','area','siding'],AUTOK=['sr_no','sick_box','pol_group','ehbc_group'],INP={d:'date',h:'time',n:'number',t:'text'};
 $('nfg').innerHTML=SEC.map(([t,ks])=>`<h4>${t}</h4><div class="fg">${ks.map(k=>{const r=REQ.includes(k),au=AUTOK.includes(k);return`<div><label for="n_${k}">${LBL[k]}${r?' *':''}${au?'<span class="tag">auto</span>':''}</label>${k==='area'?`<select id="n_area" required><option value="">Select</option>${AREAS.map(a=>`<option>${a}</option>`).join('')}</select>`:`<input id="n_${k}" type="${INP[TYPE[k]]}" ${TYPE[k]==='n'?'step="any"':''} ${au?'readonly placeholder="Auto"':''} ${r?'required':''}>`}</div>`}).join('')}</div>`).join('');
 const AUTO=[['duration','Mines Loading Duration (C/T − P/T)'],['uo','Chargeable − RR Weight (MT)'],['short','Shortage Qty (RR − Received, MT)'],['shortpct','Shortage %'],['gd','GCV Difference (Loading − Unloading)'],['lg','Loading Grade (from Loading GCV)'],['ug','Unloading Grade (from Unloading GCV)'],['slip','Grade Slippage (Unloading − Loading)'],['gpm','GCV Bonus/Penalty (₹ / MT)'],['gamt','Bonus/Penalty (₹ = RR Wt × ₹/MT)']];
 $('autoBox').innerHTML=AUTO.map(([k,l])=>`<div><label for="a_${k}">${l}<span class="tag">auto</span></label><input id="a_${k}" readonly placeholder="Auto"></div>`).join('');
@@ -438,6 +458,9 @@ function recalc(){
  const g=k=>{const v=$('n_'+k).value;return v===''?null:Number(v)},set=(k,v)=>$('a_'+k).value=v==null||!Number.isFinite(v)?'':+v.toFixed(2);
  const hm=t=>{if(!t)return null;const[h,m]=t.split(':').map(Number);return h*60+m},p=hm($('n_time_pt').value),c=hm($('n_time_ct').value);
  $('a_duration').value=p!=null&&c!=null?(d=>pad(Math.floor(d/60))+':'+pad(d%60)+' hrs')((c-p+1440)%1440):'';
+ // auto sums: POL1/PO2/POLA/PCLA/DCLA and EHBC/FAUC/TC/ST
+ const grp=(t,ks)=>{const v=ks.map(g).filter(x=>x!=null);$('n_'+t).value=v.length?+v.reduce((a,b)=>a+b,0).toFixed(2):''};
+ grp('pol_group',['pol1','pol2','pola','pcla','dcla']);grp('ehbc_group',['ehbc2','fauc','tc','st']);
  const s=g('supply_box'),l=g('load_box');$('n_sick_box').value=s!=null&&l!=null?s-l:'';
  const ch=g('ch_wt'),rr=g('rr_wt'),rc=g('recv_wt'),lg=g('loading_gcv'),ug=g('unloading_gcv');
  set('uo',ch!=null&&rr!=null?ch-rr:null);set('short',rr!=null&&rc!=null?rr-rc:null);set('shortpct',rr&&rc!=null?(rr-rc)*100/rr:null);set('gd',lg!=null&&ug!=null?lg-ug:null);
