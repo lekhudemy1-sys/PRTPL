@@ -111,9 +111,37 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(31,111,209,.28
 .alert-tbl tbody td:first-child{background:var(--t);font-weight:800;border-right:1px solid var(--line)}
 .alert-pill{display:inline-block;padding:.15rem .6rem;border-radius:999px;background:var(--negbg);color:var(--neg);font-weight:700;font-size:.72rem}
 .alert-ok{color:#0c6b4a;font-weight:700}
+
+/* Report view */
+#view-report .rp-hero{display:flex;flex-wrap:wrap;align-items:center;gap:.8rem;margin-bottom:1.2rem;padding:1.1rem 1.5rem;border-radius:22px;color:#fff;background:linear-gradient(120deg,var(--navy),var(--navy2))}
+#view-report .rp-hero h1{font-size:clamp(1.3rem,1.4vw + .8rem,2rem)}
+#view-report .rp-s0{font-size:.85rem;opacity:.85}
+#view-report .rp-acts{margin-left:auto;display:flex;gap:.5rem;flex-wrap:wrap}
+#view-report .rp-btn{display:inline-flex;align-items:center;gap:.4rem;border:0;border-radius:12px;padding:.55rem 1.1rem;font:700 .85rem inherit;font-family:inherit;cursor:pointer;background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;text-decoration:none}
+#view-report .rp-ghost{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3)}
+#view-report .rp-hi{background:var(--acc,#8fd19e);color:#10211a}
+#view-report .rp-soft{background:#fff;color:var(--navy);border:1px solid var(--line);border-radius:12px;padding:.4rem .8rem;font:600 .8rem inherit;font-family:inherit;cursor:pointer}
+#view-report .rp-panel{background:#fff;border:1px solid var(--line);border-radius:20px;padding:1.2rem 1.3rem;margin-bottom:1.2rem}
+#view-report .rp-panel h2{font-size:1.05rem;margin-bottom:.7rem}
+#view-report .rp-row{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-bottom:.6rem}
+#view-report .rp-in{padding:.5rem .8rem;border:1px solid var(--line);border-radius:11px;background:#f6f8fb;color:var(--ink);font:inherit;font-size:.88rem;max-width:230px}
+#view-report .rp-cols{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem}
+#view-report .rp-cols label{display:inline-flex;align-items:center;gap:.35rem;font-size:.76rem;font-weight:700;padding:.3rem .7rem;border-radius:999px;background:#e8eef6;color:var(--navy);cursor:pointer;user-select:none}
+#view-report .rp-cols label:has(input:checked){background:var(--navy2);color:#fff}
+#view-report #rpCapture{background:#fff;padding:.4rem}
+#view-report .rp-title{font-size:1.2rem;font-weight:700;color:var(--navy)}
+#view-report .rp-sub{font-size:.82rem;font-weight:600;margin:.2rem 0 .8rem;color:var(--ink)}
+#view-report .rp-wrap{overflow:auto;max-height:70vh;border:1px solid var(--line);border-radius:14px}
+#view-report table{width:100%;border-collapse:collapse;font-size:.82rem}
+#view-report th{position:sticky;top:0;background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;padding:.5rem .6rem;font-size:.7rem;text-transform:uppercase;white-space:nowrap}
+#view-report td{padding:.4rem .6rem;border-bottom:1px solid var(--line);text-align:center;font-weight:600;white-space:nowrap;color:var(--ink)}
+#view-report tbody tr:nth-child(even) td{background:#f4f7fb}
+#view-report tfoot td{position:sticky;bottom:0;background:#e3ecf5;font-weight:800;border-top:2px solid var(--navy2)}
+
 </style></head><body>
 <aside class="sidebar"><div class="pn"><i></i> NALCO</div>
 <nav class="nav"><button class="ni active" data-view="dash"><i class="fas fa-tachometer-alt"></i> Dashboard</button>
+<button class="ni" data-view="report"><i class="fas fa-file-lines"></i> Report</button>
 <button class="ni pro" data-view="upload"><i class="fas fa-file-excel"></i> Upload Excel</button>
 <button class="ni pro" data-view="log"><i class="fas fa-list"></i> Records Log</button>
 <button class="ni pro" data-view="entry"><i class="fas fa-keyboard"></i> Data Entry</button>
@@ -209,6 +237,38 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(31,111,209,.28
 <li>Shortage % = (RR − Recv) × 100 ÷ RR over rakes with received weight. Shortage MT per rake = (RR − Recv) ÷ number of those rakes.</li>
 <li>Area Wise: GCV = RR-weighted GCV; Quality Diff. = Loading GCV − Unloading GCV; Per Ton Cost = (POL + EHBC + ENHC) ÷ RR of that area.</li>
 </ul></div></section>
+
+<section class="view" id="view-report">
+  <div class="rp-row"><a class="rp-btn" href="amm_home.html"><i class="fas fa-arrow-left"></i> Back</a></div>
+  <div class="rp-hero">
+    <div><h1 id="rpH1">Report</h1><div class="rp-s0">Pick columns, filters and date order, then download as PNG. View only.</div></div>
+    <div class="rp-acts"><button class="rp-btn rp-ghost" id="rpReload"><i class="fas fa-rotate"></i> Reload</button><button class="rp-btn rp-hi" id="rpPng"><i class="fas fa-image"></i> Download PNG</button></div>
+  </div>
+  <div class="rp-panel">
+    <h2><i class="fas fa-filter"></i> Filters</h2>
+    <div class="rp-row">
+      <input class="rp-in" id="rpSearch" placeholder="Search RR no, siding...">
+      <select class="rp-in" id="rpPer"></select>
+      <span id="rpDyn" class="rp-row" style="margin:0"></span>
+      <select class="rp-in" id="rpRR"><option value="">All rakes</option><option value="rr">RR received</option><option value="pending">Pending (no RR)</option></select>
+      <input type="date" class="rp-in" id="rpFrom" title="From date">
+      <input type="date" class="rp-in" id="rpTo" title="To date">
+      <select class="rp-in" id="rpSort" title="Date order"><option value="asc">Date: Oldest first ↑</option><option value="desc">Date: Newest first ↓</option></select>
+      <button class="rp-soft" id="rpClear">Clear</button>
+    </div>
+    <h2 style="margin-top:.8rem"><i class="fas fa-table-columns"></i> Columns to show</h2>
+    <div class="rp-row"><button class="rp-soft" id="rpAll">Select all</button><button class="rp-soft" id="rpNone">Clear</button><button class="rp-soft" id="rpDef">Default</button><span style="font-size:.8rem">Your choice is remembered on this device.</span></div>
+    <div class="rp-cols" id="rpCols"></div>
+  </div>
+  <div class="rp-panel">
+    <div id="rpCapture">
+      <div class="rp-title" id="rpTitle"></div>
+      <div class="rp-sub" id="rpSub"></div>
+      <div class="rp-wrap" id="rpWrap"><table id="rpTbl"></table></div>
+    </div>
+  </div>
+</section>
+
 </main>
 
 <div class="mb hidden" id="alertModal">
@@ -386,7 +446,7 @@ function showView(n){
  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id==='view-'+n));
  const nk=n==='lock'?pending:n;document.querySelectorAll('.ni').forEach(b=>b.classList.toggle('active',b.dataset.view===nk));
  if(n==='lock'){setTimeout(()=>{$('pwd').focus();$('pwd').select()},30)}
- if(n==='dash')loadDash();if(n==='log')loadLog();if(n==='entry')initEntry();if(n==='formulas')renderFormulas()}
+ if(n==='dash')loadDash();if(n==='log')loadLog();if(n==='entry')initEntry();if(n==='formulas')renderFormulas();if(n==='report')loadReport()}
 const tryUnlock=()=>{if($('pwd').value===PASS){unlocked=true;document.body.classList.add('unlocked');$('ul').textContent='Unlocked';showView(pending)}else{$('pe').textContent='Wrong password';$('pwd').focus();$('pwd').select()}};
 $('unlock').onclick=tryUnlock;$('pwd').onkeydown=e=>{if(e.key==='Enter')tryUnlock()};$('lback').onclick=()=>{PENDING_FILL=null;showView('dash')};
 $('lockBtn').onclick=()=>{if(unlocked){unlocked=false;document.body.classList.remove('unlocked');$('ul').textContent='Locked';showView('dash')}else{pending='dash';$('lt').textContent='Enter password';$('pwd').value='';$('pe').textContent='';showView('lock')}};
@@ -799,4 +859,100 @@ $('lm').innerHTML='<option value="">All contracts</option>'+CONTRACTS.map(c=>`<o
 fillPick();loadDash();
 $('dailySyncBtn').onclick=runDailySync;
 setInterval(()=>{if(!document.hidden&&$('view-dash').classList.contains('active'))loadDash()},30000);
-</script></body></html>
+</script>
+
+<script>
+const REP_CFG = {
+  key: 'nalco',
+  title: 'NALCO AMM – Rake Report',
+  table: RECS,
+  allLabel: 'All contracts',
+  defaults: ['sr_no', 'date', 'area', 'siding', 'rr_no', 'rr_wt', 'recv_wt', 'loading_gcv', 'unloading_gcv'],
+  filters: [['area', 'Area'], ['siding', 'Source']],
+  noSum: ['sr_no'],
+  groupOf: r => ctOf(String(r.date).slice(0, 10)) || '',
+  groupLabel: plabel,
+  pending: isPending,
+  val: valOf,
+  defs: () => [
+    ...COLS.map(([k, l, t]) => ({
+      key: k,
+      label: l,
+      num: t === 'n',
+      kind: t === 'd' ? 'date' : t === 'h' ? 'time' : ''
+    })),
+    ...CUSTOM_COLS.map(c => ({
+      key: c.key,
+      label: c.label,
+      num: c.type === 'number',
+      kind: c.type === 'date' ? 'date' : ''
+    }))
+  ]
+};
+</script>
+
+<script>
+(function(){
+const C=REP_CFG,g=id=>document.getElementById(id);
+const E=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const blank=v=>v===null||v===undefined||String(v).trim()==='',isN=v=>!blank(v)&&!isNaN(Number(v));
+const LS='rp_cols_'+C.key,NOSUM=new Set(C.noSum||[]);
+let ROWS=[],SEL=null;
+g('rpH1').textContent='Report';g('rpTitle').textContent=C.title;
+async function pull(){const out=[];for(let f=0;;f+=1000){const{data,error}=await db.from(C.table).select('*').order('id',{ascending:true}).range(f,f+999);if(error)throw error;out.push(...data);if(data.length<1000)break}return out}
+const sel=()=>{if(!SEL){try{SEL=JSON.parse(localStorage.getItem(LS))}catch(e){}if(!Array.isArray(SEL))SEL=[...C.defaults]}return SEL};
+const store=()=>{try{localStorage.setItem(LS,JSON.stringify(SEL))}catch(e){}};
+const dmy=s=>{const m=String(s).match(/^(\d{4})-(\d{2})-(\d{2})/);return m?`${m[3]}-${m[2]}-${m[1]}`:s};
+function fmt(d,v){if(blank(v))return'';if(d.kind==='date')return E(dmy(v));if(d.kind==='time')return E(String(v).slice(0,5));if(d.num&&isN(v))return Number(v).toLocaleString('en-IN',{maximumFractionDigits:2});return E(v)}
+function picker(){const s=sel();g('rpCols').innerHTML=C.defs().map(d=>`<label><input type="checkbox" data-k="${E(d.key)}" ${s.includes(d.key)?'checked':''}>${E(d.label)}</label>`).join('')}
+function fillFilters(){
+ const keep={};C.filters.forEach(([k])=>{const el=g('rpf_'+k);keep[k]=el?el.value:''});
+ g('rpDyn').innerHTML=C.filters.map(([k,l])=>`<select class="rp-in" id="rpf_${k}"><option value="">All ${E(l)}</option>${[...new Set(ROWS.map(r=>String(r[k]??'').trim()).filter(Boolean))].sort().map(v=>`<option value="${E(v)}">${E(v)}</option>`).join('')}</select>`).join('');
+ C.filters.forEach(([k])=>{const el=g('rpf_'+k);el.value=[...el.options].some(o=>o.value===keep[k])?keep[k]:'';el.onchange=render});
+ const per=g('rpPer'),cur=per.value,gs=[...new Set(ROWS.filter(r=>r.date).map(r=>C.groupOf(r)).filter(Boolean))].sort().reverse();
+ per.innerHTML=`<option value="">${E(C.allLabel)}</option>`+gs.map(k=>`<option value="${E(k)}">${E(C.groupLabel(k))}</option>`).join('');per.value=gs.includes(cur)?cur:'';
+}
+function filtered(){
+ const q=g('rpSearch').value.toLowerCase(),per=g('rpPer').value,rr=g('rpRR').value,F=g('rpFrom').value,T=g('rpTo').value,dir=g('rpSort').value==='desc'?-1:1;
+ return ROWS.filter(r=>{
+  if(q&&!JSON.stringify(r).toLowerCase().includes(q))return false;
+  if(per&&!(r.date&&C.groupOf(r)===per))return false;
+  if(rr&&(rr==='pending')!==!!C.pending(r))return false;
+  const d=String(r.date||'').slice(0,10);if(F&&!(d&&d>=F))return false;if(T&&!(d&&d<=T))return false;
+  return C.filters.every(([k])=>{const v=g('rpf_'+k).value;return !v||String(r[k]??'').trim().toUpperCase()===v.toUpperCase()});
+ }).sort((a,b)=>dir*(String(a.date||'').localeCompare(String(b.date||''))||(Number(a.sr_no)||0)-(Number(b.sr_no)||0)));
+}
+function render(){
+ const ds=C.defs().filter(d=>sel().includes(d.key)),rows=filtered(),parts=[];
+ if(g('rpPer').value)parts.push(C.groupLabel(g('rpPer').value));
+ C.filters.forEach(([k])=>{const v=g('rpf_'+k).value;if(v)parts.push(v)});
+ if(g('rpRR').value)parts.push(g('rpRR').selectedOptions[0].text);
+ if(g('rpFrom').value||g('rpTo').value)parts.push((g('rpFrom').value?dmy(g('rpFrom').value):'…')+' to '+(g('rpTo').value?dmy(g('rpTo').value):'…'));
+ if(g('rpSearch').value)parts.push('Search: '+g('rpSearch').value);
+ parts.push(g('rpSort').value==='desc'?'Newest first':'Oldest first');
+ g('rpSub').textContent=parts.join(' • ') + ` • ${rows.length} rakes • Generated ${new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})}`;
+ if(!ds.length){g('rpTbl').innerHTML='<tbody><tr><td>Select at least one column.</td></tr></tbody>';return}
+ const tot=d=>d.num&&!NOSUM.has(d.key)?rows.reduce((s,r)=>s+(isN(C.val(r,d.key))?Number(C.val(r,d.key)):0),0).toLocaleString('en-IN',{maximumFractionDigits:2}):'';
+ g('rpTbl').innerHTML=`<thead><tr>${ds.map(d=>`<th>${E(d.label)}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${ds.map(d=>`<td>${fmt(d,C.val(r,d.key))}</td>`).join('')}</tr>`).join('')||`<tr><td colspan="${ds.length}">No records match.</td></tr>`}</tbody>`+
+  (rows.length?`<tfoot><tr>${ds.map((d,i)=>`<td>${d.num&&!NOSUM.has(d.key)?tot(d):(i===0?'Total ('+rows.length+')':'')}</td>`).join('')}</tr></tfoot>`:'');
+}
+window.loadReport=async function(){try{ROWS=await pull();picker();fillFilters();render()}catch(e){alert('Could not load report: '+(e.message||e))}};
+g('rpCols').addEventListener('change',e=>{const k=e.target.dataset.k;if(!k)return;SEL=e.target.checked?[...new Set([...sel(),k])]:sel().filter(x=>x!==k);store();render()});
+g('rpAll').onclick=()=>{SEL=C.defs().map(d=>d.key);store();picker();render()};
+g('rpNone').onclick=()=>{SEL=[];store();picker();render()};
+g('rpDef').onclick=()=>{SEL=[...C.defaults];store();picker();render()};
+['rpPer','rpRR','rpFrom','rpTo','rpSort'].forEach(id=>g(id).addEventListener('change',render));
+g('rpSearch').addEventListener('input',render);
+g('rpClear').onclick=()=>{['rpSearch','rpPer','rpRR','rpFrom','rpTo'].forEach(id=>g(id).value='');C.filters.forEach(([k])=>g('rpf_'+k).value='');g('rpSort').value='asc';render()};
+g('rpReload').onclick=window.loadReport;
+g('rpPng').onclick=async()=>{const b=g('rpPng'),el=g('rpCapture');b.disabled=true;
+ try{const canvas=await html2canvas(el,{scale:2,backgroundColor:'#ffffff',useCORS:true,logging:false,windowWidth:Math.max(1200,el.scrollWidth+60),
+   onclone:doc=>{const w=doc.getElementById('rpWrap');w.style.maxHeight='none';w.style.overflow='visible';doc.getElementById('rpCapture').style.width='max-content';
+    doc.querySelectorAll('#rpTbl th,#rpTbl tfoot td').forEach(x=>x.style.position='static')}});
+  const blob=await new Promise(r=>canvas.toBlob(r,'image/png'));const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`${C.key}-rake-report-${new Date().toLocaleDateString('en-CA')}.png`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),5000)}
+ catch(e){alert('PNG export failed: '+(e.message||e))}finally{b.disabled=false}};
+})();
+</script>
+
+</body></html>
