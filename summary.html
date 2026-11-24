@@ -496,7 +496,8 @@ function buildGroups(sheet,gj,hz,nalcoRows,ovMap,jhRows,balRows){
     var x=rakeOf(r,r._p);x.area=area;x.siding=sid;
     g.rakes++;g.rr+=x.rrw;g.ch+=x.chw;
     if(hasN(r.rr_wt)&&hasN(r.ch_wt)){if(x.chw>x.rrw)g.uQty+=x.chw-x.rrw;else if(x.rrw>x.chw)g.oQty+=x.rrw-x.chw}
-    g.up+=num(r.ul_ch);g.op+=num(r.pol_group)+num(r.ehbc_group);g.en+=num(r.enhc_charge);
+    /* GUJRAT POWER: underload is the final charge ul_on_us, the same as the daily penalty sheet */
+    g.up+=(r._p==='GUJRAT POWER')?num(r.ul_on_us):num(r.ul_ch);g.op+=num(r.pol_group)+num(r.ehbc_group);g.en+=num(r.enhc_charge);
     /* NALCO receive data is taken from its receive-only groups below, so its live groups hold no records */
     if(r._p!=='NALCO')g.recs.push(x);
   });
@@ -510,7 +511,8 @@ function buildGroups(sheet,gj,hz,nalcoRows,ovMap,jhRows,balRows){
       var kOp=g.op,kEn=g.en;
       g.rakes=Math.max(1,+o.rakes||1);g.rr=num(o.rr);g.ch=num(o.ch);
       g.uQty=num(o.u_qty);g.oQty=num(o.o_qty);
-      g.up=hasN(o.freight)?r2(g.uQty*num(o.freight)):num(o.u_pen);
+      /* GUJRAT POWER: the stored underload penalty is used as it is (never recalculated from freight) */
+      g.up=(g.party!=='GUJRAT POWER'&&hasN(o.freight))?r2(g.uQty*num(o.freight)):num(o.u_pen);
       g.op=num(o.o_pen);g.en=num(o.ench);g.edited=true;
       if(xp){g.op=kOp;g.en=kEn}   /* HZL: Overload and ENCH stay at the live 5% */
     }
@@ -880,7 +882,7 @@ function renderDate(p,d){
       '<th>#</th><th>RR no.</th><th>Area</th><th>Siding</th><th>Box type</th><th>RR qty (MT)</th><th>Recv qty (MT)</th><th>Chargeable (MT)</th><th>Under qty</th><th>Over qty</th><th>Freight ₹/MT</th><th>Overload ₹</th><th>ENCH ₹</th><th>Status</th></tr></thead><tbody>';
     rakes.forEach(function(x,i){
       var r=x.rec,uq=x.chw>x.rrw?x.chw-x.rrw:0,oq=x.rrw>x.chw?x.rrw-x.chw:0;
-      var ul=num(r.ul_ch);
+      var ul=num(p==='GUJRAT POWER'?r.ul_on_us:r.ul_ch);
       var fr=hasN(r.freight)?num(r.freight):(uq>0&&ul>0?ul/uq:null);
       var bt=(r.box_type==null||String(r.box_type).trim()==='')?'—':String(r.box_type).trim();
       h+='<tr><td>'+(i+1)+'</td><td>'+esc(x.rrNo)+'</td><td>'+esc(x.area||'—')+'</td><td>'+esc(x.siding||'—')+'</td><td>'+esc(bt)+'</td>'+
@@ -970,7 +972,7 @@ function savePng(canvas){
   var a=document.createElement('a');
   a.href=url;a.download=name;a.rel='noopener';
   document.body.appendChild(a);
-  if('download' in a){a.click();setStatus('PNG as '+name,'ok')}
+  if('download' in a){a.click();setStatus('PNG saved as '+name,'ok')}
   else{window.open(url,'_blank');setStatus('PNG opened in a new tab – save it from there','ok')}
   setTimeout(function(){a.remove()},300);
 }
