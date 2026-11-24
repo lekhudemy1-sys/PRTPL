@@ -307,6 +307,18 @@ td.party{border-left-width:10px}
 .pbtn.ghost{border-color:var(--line);color:var(--muted)}
 .pbtn[disabled]{opacity:.65;cursor:progress}
 
+/* ============ THEMED DIALOGS (replace the browser's alert / confirm / prompt) ============ */
+.uimodal{position:fixed;inset:0;background:rgba(8,12,18,.55);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px}
+.uimodal[hidden]{display:none}
+.uibox{background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:12px;box-shadow:0 18px 50px rgba(0,0,0,.35);width:min(440px,100%);overflow:hidden}
+.uihead{background:var(--yellow);color:var(--yellow-ink);padding:14px 18px;border-bottom:5px solid var(--blue)}
+.uihead h2{margin:0;font-family:var(--font-c);font-size:24px;font-weight:700;line-height:1}
+.uibody{padding:16px 18px}
+.uibody p{margin:0 0 10px;font-size:14px;white-space:pre-line}
+.uibody input{width:100%;border:1.5px solid var(--line);background:var(--surface2);color:var(--ink);border-radius:8px;padding:9px 10px}
+.uibody input:focus{border-color:var(--focus);outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--focus) 30%,transparent)}
+.uifoot{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end;background:var(--surface)}
+
 /* ============ TOAST ============ */
 #toasts{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:90;display:flex;flex-direction:column;gap:8px;align-items:center}
 .toast{background:var(--ink);color:var(--surface);padding:11px 16px;border-radius:10px;display:flex;gap:14px;align-items:center;box-shadow:var(--shadow);font-weight:500;animation:pop .2s ease;max-width:92vw}
@@ -463,6 +475,7 @@ td.party{border-left-width:10px}
       </label>
       <button class="chip warn" id="logAlertOnly" type="button" aria-pressed="false">&#9888; Freight alerts only</button>
       <button class="chip" id="alertCfgBtn" type="button" aria-expanded="false">&#9881; Alert boxes</button>
+      <button class="chip" id="logResetEdited" type="button" hidden title="Turn every hand-edited row of the selected party in this date range back to its live values">&#8634; Reset edited to live</button>
     </div>
     <div class="alertbar" id="alertBar" hidden>
       <span id="alertMsg"></span>
@@ -541,7 +554,7 @@ td.party{border-left-width:10px}
         <tfoot id="tfoot"></tfoot>
       </table>
     </div>
-    <div class="hint">Rows marked LIVE are the GUJRAT POWER (Gujarat dashboard), HZL (HZL dashboard), NALCO (NALCO dashboard) and JHABUA (PJPB MIS sheet) rakes read live, grouped by area, siding and party (for example SECL · BGCK TO GETS and SECL · BGCK TO TPHS are separate rows) for the date, and refreshed every 30 seconds. For each live rake: Underload qty = CH weight − RR weight (when CH is more), Overload qty = RR weight − CH weight (when RR is more). <b>JHABUA</b> rows come from the PJPB MIS records of the loading date that have an RR Number: area, siding (source), box type, RR weight and chargeable weight are fetched, and the <b>Overload Penalty is the Final Charges column</b>. JHABUA has no other charge, so its Underload Penalty and ENCH stay 0 unless you type a value. <b>Live rows can be edited here too</b> (pencil button, or click RR QTY, CHARBALE QTY, Freight, Overload Penalty or ENCH). Underload Penalty = Underload qty × Freight on every row. Where a live row (other than JHABUA) has no underload charge from the dashboard, its Freight may use a saved box-type rate when one exists. A hand-edited row is marked EDITED, is saved for that date only, is never overwritten by the live refresh, and does <b>not</b> change the Gujarat, HZL, NALCO or PJPB records. The arrow button on an EDITED row goes back to the live values. All other rows come from the database: click RR QTY, CHARBALE QTY, Freight or ENCH to change them in place. Per M/T = TOTAL ÷ RR QTY.</div>
+    <div class="hint">Rows marked LIVE are the GUJRAT POWER (Gujarat dashboard), HZL (HZL dashboard), NALCO (NALCO dashboard) and JHABUA (PJPB MIS sheet) rakes read live, grouped by area, siding and party (for example SECL · BGCK TO GETS and SECL · BGCK TO TPHS are separate rows) for the date, and refreshed every 30 seconds. For each live rake: Underload qty = CH weight − RR weight (when CH is more), Overload qty = RR weight − CH weight (when RR is more). <b>GUJRAT POWER</b> rows take the Underload Penalty straight from the <b>ul_on_us</b> column of the Gujarat records (the final underload charge). It is never recalculated: where ul_on_us is empty the penalty is 0, and no box-type rate is applied. <b>JHABUA</b> rows come from the PJPB MIS records of the loading date that have an RR Number: area, siding (source), box type, RR weight and chargeable weight are fetched, and the <b>Overload Penalty is the Final Charges column</b>. JHABUA has no other charge, so its Underload Penalty and ENCH stay 0 unless you type a value. <b>Live rows can be edited here too</b> (pencil button, or click RR QTY, CHARBALE QTY, Freight, Overload Penalty or ENCH). For HZL, NALCO and JHABUA, Underload Penalty = Underload qty × Freight where a freight rate is set; otherwise the dashboard charge is used. Where a live row (other than GUJRAT POWER and JHABUA) has no underload charge from the dashboard, its Freight may use a saved box-type rate when one exists. A hand-edited row is marked EDITED, is saved for that date only, is never overwritten by the live refresh, and does <b>not</b> change the Gujarat, HZL, NALCO or PJPB records. The arrow button on an EDITED row goes back to the live values. All other rows come from the database: click RR QTY, CHARBALE QTY, Freight or ENCH to change them in place. Per M/T = TOTAL ÷ RR QTY.</div>
   </section>
 
   <!-- ================= INSIGHTS ================= -->
@@ -648,6 +661,17 @@ td.party{border-left-width:10px}
 
 <div id="toasts" aria-live="polite"></div>
 
+<div class="uimodal" id="uiModal" hidden role="dialog" aria-modal="true" aria-labelledby="uiTitle">
+  <div class="uibox">
+    <div class="uihead"><h2 id="uiTitle">Notice</h2></div>
+    <div class="uibody"><p id="uiMsg"></p><input id="uiInput" type="text" autocomplete="off" hidden></div>
+    <div class="uifoot">
+      <button type="button" class="pbtn ghost" id="uiCancel">Cancel</button>
+      <button type="button" class="pbtn main" id="uiOk">OK</button>
+    </div>
+  </div>
+</div>
+
 <script>
 (function(){
 'use strict';
@@ -673,7 +697,8 @@ var NALCO_CFG={url:NALCO_URL,key:NALCO_KEY};
 var GUJP='GUJRAT POWER';
 /* parties fed live from their dashboards / MIS sheets.
    JHABUA is read from the PJPB MIS table (pjpb_mis_rows, same Supabase project): only rows that have an RR Number,
-   by loading date. Its one charge is the Final Charges column, shown as the Overload Penalty. */
+   by loading date. Its one charge is the Final Charges column, shown as the Overload Penalty.
+   GUJRAT POWER is read from gujarat_rake_records; its Underload Penalty is the ul_on_us column (final charge, never recalculated). */
 var LIVE_SRC=[
   {party:'GUJRAT POWER',table:'gujarat_rake_records'},
   {party:'HZL',table:'hzl_rake_records'},
@@ -683,8 +708,9 @@ var LIVE_SRC=[
     extra:'&rr_number=not.is.null',
     map:function(r){return {date:r.loading_date,area:r.area,siding:r.source,box_type:r.box_type,rr_wt:r.rr_weight,ch_wt:r.chargeable_wt,pol_group:r.final_charges,rr_no:r.rr_number}}}
 ];
-/* parties whose underload penalty must never be filled from a box-type rate */
-var NO_BOX_RATE={JHABUA:1};
+/* parties whose underload penalty must never be filled from a box-type rate, or recalculated from freight.
+   GUJRAT POWER: its underload penalty is the ul_on_us final charge as stored. JHABUA: only Final Charges is charged. */
+var NO_BOX_RATE={JHABUA:1,'GUJRAT POWER':1};
 var EXTRA_PCT={HZL:5};
 function liveSel(s){return s.table+'?select='+(s.select||'*')+(s.extra||'')}
 function liveFix(s,rows){return (rows||[]).map(function(r){if(s.map)r=s.map(r);r._p=s.party;return r})}
@@ -718,14 +744,18 @@ var DAY=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
    LIVE rows (per area and siding, per date, read from gujarat_rake_records / hzl_rake_records / nalco_rake_records / pjpb_mis_rows):
    Underload qty = sum of (CH wt - RR wt) of rakes where CH wt is more
    Overload qty  = sum of (RR wt - CH wt) of rakes where RR wt is more
-   Underload penalty = sum of underload charge, or underload qty x box-type rate when the dashboard has no charge
+   GUJRAT POWER: Underload penalty = sum of ul_on_us (the final underload charge). It is taken as stored and never
+                 recalculated from quantity x freight. Where ul_on_us is empty it counts as 0.
+   Other parties: Underload penalty = sum of underload charge, or underload qty x freight where a freight rate is set,
+                 or underload qty x box-type rate when the dashboard has no charge (not for JHABUA)
    Overload penalty = POL group + EHBC charge   (JHABUA: the Final Charges column only)
    ENCH = ENHC charge. Dead freight is not shown here.
    A live row that was edited by hand (edited=true) keeps exactly the values typed in. */
 function calc(e){
   if(e.live){
     var net=e.gU-e.gO;
-    var lup=hasN(e.freight)?e.gU*e.freight:e.gUp;
+    /* GUJRAT POWER: ul_on_us is the final charge, so the stored penalty is used as it is */
+    var lup=(e.party===GUJP)?e.gUp:(hasN(e.freight)?e.gU*e.freight:e.gUp);
     return {uq:net,uU:e.gU,uO:e.gO,up:lup,op:e.gOp,en:e.gEn,total:lup+e.gOp+e.gEn,status:e.gU>e.gO?'under':(e.gO>e.gU?'over':'exact')};
   }
   var uq=num(e.ch)-num(e.rr);
@@ -734,7 +764,11 @@ function calc(e){
   var en=num(e.ench);
   return {uq:uq,uU:uq>0?uq:0,uO:uq<0?-uq:0,up:up,op:op,en:en,total:up+op+en,status:uq>0?'under':(uq<0?'over':'exact')};
 }
-function liveFreight(e){return hasN(e.freight)?+e.freight:(e.gU>0?Math.round(e.gUp/e.gU*10000)/10000:0)}
+/* the freight shown for a live row. For GUJRAT POWER it is the freight column of gujarat_rake_records, as stored (display only, not used for the penalty) */
+function liveFreight(e){
+  if(e.party===GUJP&&!e.edited)return hasN(e.freight)?+e.freight:0;
+  return hasN(e.freight)?+e.freight:(e.gU>0?Math.round(e.gUp/e.gU*10000)/10000:0);
+}
 function num(v){v=parseFloat(v);return isNaN(v)?0:v}
 function perMT(t,rr){rr=num(rr);return rr>0?fmt(t/rr):'—'}
 function perMTcsv(t,rr){rr=num(rr);return rr>0?Math.round(t/rr*100)/100:''}
@@ -1038,6 +1072,7 @@ function renderLog(){
     $('#alertShow').textContent=logAlertOnly?'Show all rows':'Show only these';
   }else bar.hidden=true;
   $('#logAlertOnly').setAttribute('aria-pressed',logAlertOnly);
+  $('#logResetEdited').hidden=$('#logParty').value==='ALL';
   var h='',prev='',t={rr:0,ch:0,uU:0,uO:0,up:0,op:0,en:0,total:0,rakes:0};
   list.forEach(function(e,i){
     var c=calc(e),a=alertOf(e),f=freightOf(e);
@@ -1144,6 +1179,30 @@ function logCsv(){
   toast('CSV exported');
 }
 
+/* log view: turn every hand-edited row of the selected party, in the From–To range, back to its live values */
+function resetPartyEdits(){
+  var p=$('#logParty').value,from=$('#logFrom').value,to=$('#logTo').value;
+  if(p==='ALL'||!from||!to)return;
+  var n=LR.filter(function(e){return e.live&&e.edited&&e.party===p}).length;
+  if(!n){toast(p+': no edited rows in this date range');return}
+  uiConfirm('Reset '+n+' edited '+p+' row'+(n===1?'':'s')+' from '+from+' to '+to+' back to the LIVE values? Their hand edits will be removed.','Reset edited to live','Reset').then(function(ok){
+    if(!ok)return;
+    var c=cfg();
+    if(!c){toast('Supabase is not connected');return}
+    setPill('','Saving…');
+    api(c,OV_TABLE+'?'+'sheet_date=gte.'+from+'&sheet_date=lte.'+to+'&party=eq.'+encodeURIComponent(p),{method:'DELETE'}).then(function(){
+      Object.keys(ovr).forEach(function(d){
+        if(d>=from&&d<=to&&ovr[d])Object.keys(ovr[d]).forEach(function(id){if(ovr[d][id].party===p)delete ovr[d][id]});
+      });
+      toast(p+' rows reset to LIVE');
+      loadLog();
+    },function(err){
+      setPill('err','Save failed');
+      toast('Reset failed: '+String(err.message||err).slice(0,120));
+    });
+  });
+}
+
 /* ============ TOASTS ============ */
 function toast(msg,undoFn){
   var t=document.createElement('div');t.className='toast';
@@ -1165,11 +1224,50 @@ function cfg(){
   if(!u||!k||/^YOUR_/.test(u)||/^YOUR_/.test(k))return null;
   return {url:u.replace(/\/+$/,''),key:k};
 }
+/* themed replacements for alert / confirm / prompt. Each returns a Promise. */
+function uiShow(opts){
+  return new Promise(function(res){
+    var m=$('#uiModal'),inp=$('#uiInput'),okB=$('#uiOk'),caB=$('#uiCancel');
+    var prev=document.activeElement;
+    $('#uiTitle').textContent=opts.title||'Notice';
+    $('#uiMsg').textContent=opts.msg||'';
+    inp.hidden=!opts.input;inp.value=opts.value||'';
+    caB.hidden=!opts.cancel;
+    okB.textContent=opts.okText||'OK';
+    var cancelVal=opts.input?null:false;
+    function done(v){
+      m.hidden=true;
+      document.removeEventListener('keydown',onKey,true);
+      okB.onclick=null;caB.onclick=null;m.onclick=null;
+      if(prev&&prev.focus)try{prev.focus()}catch(e){}
+      res(v);
+    }
+    function ok(){done(opts.input?inp.value.trim():true)}
+    function cancel(){done(opts.cancel?cancelVal:(opts.input?null:true))}
+    function onKey(e){
+      if(e.key==='Escape'){e.preventDefault();cancel()}
+      else if(e.key==='Enter'&&e.target!==caB&&e.target!==okB){e.preventDefault();ok()}
+    }
+    okB.onclick=ok;caB.onclick=cancel;
+    m.onclick=function(e){if(e.target===m&&opts.cancel)cancel()};
+    document.addEventListener('keydown',onKey,true);
+    m.hidden=false;
+    setTimeout(function(){(opts.input?inp:okB).focus()},30);
+  });
+}
+function uiAlert(msg,title){return uiShow({msg:msg,title:title||'Notice'})}
+function uiConfirm(msg,title,okText){return uiShow({msg:msg,title:title||'Please confirm',cancel:true,okText:okText||'OK'}).then(function(v){return v===true})}
+function uiPrompt(msg,value,title){return uiShow({msg:msg,title:title||'Enter a value',cancel:true,input:true,value:value||'',okText:'Save'})}
+
 function askCfg(){
-  var u=prompt('Supabase Project URL (https://xxxx.supabase.co):');if(!u)return null;
-  var k=prompt('Supabase anon public key:');if(!k)return null;
-  try{localStorage.setItem(CFG_KEY,JSON.stringify({url:u.trim(),key:k.trim()}))}catch(e){}
-  return cfg();
+  return uiPrompt('Enter your Supabase Project URL (https://xxxx.supabase.co).','','Supabase URL').then(function(u){
+    if(!u)return null;
+    return uiPrompt('Enter your Supabase anon public key.','','Supabase key').then(function(k){
+      if(!k)return null;
+      try{localStorage.setItem(CFG_KEY,JSON.stringify({url:u,key:k}))}catch(e){}
+      return cfg();
+    });
+  });
 }
 function api(c,path,opt){
   opt=opt||{};
@@ -1271,15 +1369,19 @@ function buildLive(g,d){
       var rr=num(r.rr_wt),ch=num(r.ch_wt);
       if(ch>rr)x.gU+=ch-rr;else if(rr>ch)x.gO+=rr-ch;
     }
-    x.gUp+=num(r.ul_ch);x.gOp+=num(r.pol_group)+num(r.ehbc_group);x.gEn+=num(r.enhc_charge);
+    /* GUJRAT POWER: ul_on_us is the final underload charge, taken as it is. Other parties: the dashboard underload charge */
+    x.gUp+=(r._p===GUJP)?num(r.ul_on_us):num(r.ul_ch);
+    /* GUJRAT POWER: freight is the freight column of the record, shown as stored (first record of the group that has one) */
+    if(r._p===GUJP&&x.freight===null&&hasN(r.freight))x.freight=num(r.freight);
+    x.gOp+=num(r.pol_group)+num(r.ehbc_group);x.gEn+=num(r.enhc_charge);
   });
   Object.keys(m).forEach(function(k){
-       var x=m[k];
+    var x=m[k];
     var xp=EXTRA_PCT[x.party]||0;
     if(xp){x.gOp=x.gOp*(xp/100);x.gEn=x.gEn*(xp/100)}
     ['rr','ch','gU','gO','gUp','gOp','gEn'].forEach(function(f){x[f]=r2(x[f])});
     seen[x.id]=1;x.rakes=x.keys.length;
-    /* no underload charge on the dashboard for this row: use the box type rate, if one is set (never for JHABUA, whose only charge is Final Charges) */
+    /* no underload charge on the dashboard for this row: use the box type rate, if one is set (never for GUJRAT POWER or JHABUA) */
     if(!x.gUp&&x.gU>0&&!NO_BOX_RATE[x.party]){var br=rateFor(x.box);if(br!==null)x.freight=br}
     if(ov[x.id])applyOv(x,ov[x.id]);
   });
@@ -1314,7 +1416,7 @@ var pill=document.createElement('span');pill.className='sbpill';pill.innerHTML='
 pill.title='Click to change the Supabase URL / key';
 $('.tools').insertBefore(pill,$('.tools').firstChild);
 function setPill(cls,txt){pill.className='sbpill '+cls;pill.lastChild.textContent=txt}
-pill.onclick=function(){if(askCfg()){if(LOGVIEW)loadLog();else loadDay()}};
+pill.onclick=function(){askCfg().then(function(c){if(c){if(LOGVIEW)loadLog();else loadDay()}})};
 
 /* every change is written to the database straight away, in order */
 var queue=Promise.resolve(), pending=0, loadTok=0;
@@ -1445,7 +1547,7 @@ $('#tbody').addEventListener('click',function(ev){
     if(act==='edit')openDrawer(id);
     if(act==='reset'){
       var le=findLive(id);
-      if(le&&confirm('Go back to the live dashboard values for this row? Your hand-edited values for this date will be removed.'))resetOverride(le);
+      if(le)uiConfirm('Go back to the live dashboard values for this row? Your hand-edited values for this date will be removed.','Reset to live','Reset').then(function(ok){if(ok)resetOverride(le)});
     }
     if(act==='dup'){
       var src=find(id),snap=snapshot();
@@ -1540,6 +1642,7 @@ $('#alertBoxReset').addEventListener('click',function(){
 });
 $('#alertShow').addEventListener('click',function(){logAlertOnly=!logAlertOnly;renderLog()});
 $('#logCsv').addEventListener('click',logCsv);
+$('#logResetEdited').addEventListener('click',resetPartyEdits);
 /* click a log row: open that date in the check sheet (same tab) to correct it */
 $('#logBody').addEventListener('click',function(ev){
   var tr=ev.target.closest('tr[data-d]');if(!tr)return;
@@ -1549,9 +1652,11 @@ $('#logBody').addEventListener('click',function(ev){
 $('#clearBtn').addEventListener('click',function(){
   if(!canEdit())return;
   if(!entries().length){toast('There is nothing saved for this date (live rows are not deleted)');return}
-  if(!confirm('Delete every saved rake for this date from the database? Live rows stay.'))return;
-  var snap=snapshot();store.days[date]=[];persist();renderAll();
-  toast('Day cleared',function(){restore(snap)});
+  uiConfirm('Delete every saved rake for this date from the database? Live rows stay.','Clear day','Clear').then(function(ok){
+    if(!ok)return;
+    var snap=snapshot();store.days[date]=[];persist();renderAll();
+    toast('Day cleared',function(){restore(snap)});
+  });
 });
 
 /* ============ DATE NAV ============ */
@@ -1609,11 +1714,13 @@ function formEntry(){
 }
 function updatePreview(){
   if(liveMode){
-    var le={live:true,gU:num($('#fLU').value),gO:num($('#fLO').value),freight:num($('#fLFr').value),gUp:0,gOp:num($('#fLOp').value),gEn:num($('#fLEn').value)};
+    var cur=findLive(editId)||{};
+    var le={live:true,party:cur.party,gU:num($('#fLU').value),gO:num($('#fLO').value),freight:num($('#fLFr').value),gUp:cur.gUp||0,gOp:num($('#fLOp').value),gEn:num($('#fLEn').value)};
     var lc=calc(le);
     $('#cUq').textContent=fmt(lc.uq);
     $('#cUqF').textContent='Underload qty − Overload qty';
-    $('#cUp').textContent=money(lc.up);$('#cUpF').textContent=fmt(le.gU)+' × '+fmt(le.freight);
+    $('#cUp').textContent=money(lc.up);
+    $('#cUpF').textContent=le.party===GUJP?'Final charge from ul_on_us (not recalculated)':fmt(le.gU)+' × '+fmt(le.freight);
     $('#cOp').textContent=money(lc.op);$('#cOpF').textContent='Typed in';
     $('#cEn').textContent=money(lc.en);
     $('#cTot').textContent=money(lc.total);
@@ -1721,7 +1828,10 @@ function saveLive(){
     return;
   }
   e.rakes=rk;e.box=$('#fBox').value.trim().toUpperCase();e.rr=num($('#fRR').value);e.ch=num($('#fCH').value);
-  e.gU=num($('#fLU').value);e.gO=num($('#fLO').value);e.freight=num($('#fLFr').value);e.gUp=r2(e.gU*e.freight);e.gOp=num($('#fLOp').value);e.gEn=num($('#fLEn').value);
+  e.gU=num($('#fLU').value);e.gO=num($('#fLO').value);e.freight=num($('#fLFr').value);
+  /* GUJRAT POWER: the underload penalty is the stored ul_on_us charge, so it is not recalculated here */
+  if(e.party!==GUJP)e.gUp=r2(e.gU*e.freight);
+  e.gOp=num($('#fLOp').value);e.gEn=num($('#fLEn').value);
   saveOverride(e);
   toast('Saved for this date only. The '+e.party+' source records are not changed.');
   renderAll();closeDrawer();
