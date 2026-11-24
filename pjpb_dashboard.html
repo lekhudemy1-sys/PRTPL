@@ -1,755 +1,540 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <script src="activity-tracker.js?v=4"></script>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PJPB MIS | Log &amp; Excel Upload</title>
+<title>PJPB Dashboard | AMM PJPB</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
 @import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Instrument+Sans:wght@400;500;600;700&display=swap");
-:root{
-  --bg:#f3f1fa; --card:#fff; --line:#e0def0; --ink:#1a1840; --mute:#6b6a8a;
-  --navy:#1b2559; --navy2:#3b3f9e; --saffron:#ff9f5a; --teal:#0f9d8a; --rose:#c2334a; --gold:#e0b03c;
-  --head:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
-  --body:"Instrument Sans","Segoe UI",system-ui,sans-serif;
-  --sh:0 1px 2px rgba(27,37,89,.06),0 10px 24px -12px rgba(27,37,89,.22);
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){ --bg:#141332; --card:#1d1c42; --line:#34336a; --ink:#ecebff; --mute:#a9a8d6; }
-}
-:root[data-theme="dark"]{ --bg:#141332; --card:#1d1c42; --line:#34336a; --ink:#ecebff; --mute:#a9a8d6; }
+:root{--bg:#f2eefa;--card:#fff;--line:#e4dcf3;--ink:#1d1236;--p1:#2a1650;--p2:#6a3fb5;--amb:#f2a33a;
+--head:"Bricolage Grotesque",system-ui,sans-serif;--body:"Instrument Sans","Segoe UI",system-ui,sans-serif;
+--sh:0 1px 2px rgba(42,22,80,.06),0 10px 24px -12px rgba(42,22,80,.25)}
 *{margin:0;padding:0;box-sizing:border-box}
-[hidden]{display:none!important}
-body{font-family:var(--body);color:var(--ink);background:var(--bg);background-color:var(--bg);min-height:100vh;font-size:14px;line-height:1.4}
-button,input,select{font:inherit;color:inherit}
-input,select{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:.45rem .6rem;outline:none}
-input:focus,select:focus{box-shadow:0 0 0 3px rgba(59,63,158,.35)}
+body{font-family:var(--body);color:var(--ink);background:var(--bg);min-height:100vh;font-size:14px}
+.nav{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:100;display:flex;align-items:center;gap:1rem;background:rgba(42,22,80,.95);backdrop-filter:blur(12px);border-radius:999px;padding:.35rem .5rem .35rem 1rem;max-width:calc(100% - 1.5rem);color:#fff;box-shadow:0 12px 32px -10px rgba(42,22,80,.55),0 0 0 1px rgba(255,255,255,.08)}
+.nav .links{display:flex;gap:.2rem;flex-wrap:wrap}
+.chip{display:flex;align-items:center;gap:.5rem;font-size:.8rem;font-weight:600;padding:.2rem .5rem;color:#d9ccf5}
+.chip button{border:0;background:rgba(255,255,255,.14);color:#fff;border-radius:999px;padding:.3rem .75rem;cursor:pointer}
+body:not(.unlocked) .pro{display:none}
+.nav b{font:700 1.05rem var(--head);display:flex;gap:.5rem;align-items:center;white-space:nowrap}
+.nav b i{width:9px;height:9px;border-radius:50%;background:var(--amb)}
+.tab,.btn{border:0;border-radius:999px;padding:.45rem .9rem;font:600 .85rem var(--body);cursor:pointer;color:#e3d8fb;background:none;text-decoration:none;display:inline-flex;gap:.4rem;align-items:center}
+.tab.on{background:rgba(242,163,58,.3);color:#fff}
+.btn{background:var(--amb);color:#2d1700;border-radius:12px}.btn.s{background:#fff;color:var(--p1);border:1px solid var(--line)}
+main{max-width:1500px;margin:0 auto;padding:4.4rem 1rem 1rem}
+.view{display:none}.view.on{display:block}
+.hero{display:flex;flex-wrap:wrap;gap:.8rem;align-items:center;padding:.8rem 1.2rem;margin-bottom:.8rem;border-radius:16px;color:#fff;background:linear-gradient(120deg,var(--p1),var(--p2) 70%,#9a63d6)}
+.hero h1{font:700 1.4rem var(--head)}.hero .act{margin-left:auto;display:flex;gap:.5rem;flex-wrap:wrap}
+select,input,textarea{font:inherit;color:var(--ink);padding:.5rem .7rem;border:1px solid var(--line);border-radius:10px;background:#fff}
+.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;align-items:start;margin-bottom:.8rem}.col{display:flex;flex-direction:column;gap:.8rem}
+.card{--c:#6a3fb5;--t:#efe9fb;background:var(--card);border:1px solid var(--line);border-top:4px solid var(--c);border-radius:14px;padding:.8rem .9rem;box-shadow:var(--sh);overflow:hidden;display:flex;flex-direction:column}
+.bd{flex:1;display:flex;flex-direction:column}.bd>.r{flex:1}.bd>.r.tot{flex:none}.bd>.tw{flex:1;display:flex}.bd>.tw table{flex:1}
+.card h3{font:700 .95rem var(--head);margin-bottom:.4rem;padding-bottom:.45rem;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:.5rem}.card h3 i{color:var(--c)}
+.a1{--c:#0e8f8a;--t:#dff4f2}.a2{--c:#6a3fb5;--t:#efe9fb}.a3{--c:#d9486f;--t:#fde8ee}.a4{--c:#e08a14;--t:#fdf0da}.a5{--c:#2f5fd0;--t:#e6edfc}
+.r{display:flex;justify-content:space-between;align-items:center;gap:.5rem;padding:.28rem .1rem;border-bottom:1px dashed var(--line)}
+.r:last-child{border:0}.r span:first-child{font-weight:700;font-size:.8rem}
+.v{min-width:6rem;text-align:right;font-weight:700;background:var(--t);padding:.3rem .6rem;border-radius:9px;font-variant-numeric:tabular-nums}
+.v.neg{color:#b3162b}.hd{display:flex;justify-content:flex-end;gap:.4rem;font-size:.68rem;font-weight:700;color:#6b5a8e}.hd span{min-width:6rem;text-align:right}
+.tot{background:var(--p1);color:#fff;border-radius:12px;padding:.5rem .6rem;margin-top:.3rem}.tot .v{background:rgba(255,255,255,.15);color:#ffd9a0}
+.tw{overflow:auto;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:.82rem}
+th{background:var(--p1);color:#fff;padding:.5rem;font-size:.72rem;white-space:nowrap}
+td{padding:.45rem .6rem;text-align:center;border-bottom:1px solid var(--line);font-weight:600;white-space:nowrap}
+td:first-child{text-align:left;font-weight:700;background:#f7f3fd}
+.ntc{white-space:pre-wrap;background:#fff6df;border:1px solid #f1d98f;border-radius:12px;padding:.8rem;font-weight:600}
+.pn{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:.9rem 1rem;margin-bottom:.8rem;box-shadow:var(--sh)}
+.pn h2{font:700 1rem var(--head);margin-bottom:.6rem;display:flex;align-items:center;gap:.5rem}.pn h2 i{color:var(--p2)}
+.fg{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.8rem}.fg label{display:flex;flex-direction:column;gap:.3rem;font-weight:700;font-size:.8rem}
+.st{margin-top:.6rem;font-weight:600;min-height:1.2em}
+.toast{position:fixed;bottom:1rem;right:1rem;background:var(--p1);color:#fff;padding:.7rem 1rem;border-radius:12px;display:none;z-index:50}
+[hidden]{display:none!important}input[type=checkbox]{padding:0;width:auto}
+.drop{border:2px dashed var(--line);border-radius:12px;padding:1.1rem;text-align:center;cursor:pointer;color:#6b5a8e}.drop:hover,.drop.over{border-color:var(--p2);background:#f7f3fd}.drop i{font-size:1.7rem;color:var(--p2);display:block;margin-bottom:.3rem}
+.new{color:#b3162b;font-weight:700}.known{color:#0c6b4a;font-weight:700}.mu{color:#6b5a8e;font-size:.82rem}.fa-row{display:flex;gap:.6rem;align-items:center;margin-top:.6rem;flex-wrap:wrap}
+.mk{position:fixed;inset:0;z-index:200;background:rgba(29,18,54,.55);display:grid;place-items:center}
+.tb{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-bottom:.7rem}
+#lTbl{width:max-content;min-width:100%}#lTbl th{position:sticky;top:0;z-index:2}#lTbl td input{width:118px;padding:.25rem .4rem;font-size:.8rem}
+#lTbl td:first-child{position:sticky;left:0;z-index:1;background:#f7f3fd}#lTbl tr.dirty td{background:#fff6e3}
+#lTbl tfoot td{position:sticky;bottom:0;z-index:2;background:var(--p1);color:#fff;font-weight:700;text-align:right}
+.del{background:none;border:0;color:#b3162b;cursor:pointer;padding:.3rem}
+@media(max-width:1000px){.cols{grid-template-columns:1fr}}
+@media(max-width:800px){.nav{left:.5rem;right:.5rem;transform:none;flex-wrap:wrap;justify-content:center;border-radius:18px;max-width:none}main{padding-top:7rem}}
+</style></head><body>
+<div class="nav"><b><i></i> PJPB</b>
+<div class="links"><button class="tab on" data-v="dash"><i class="fas fa-gauge"></i> Dashboard</button><button class="tab pro" data-v="up"><i class="fas fa-file-excel"></i> Excel Upload</button><button class="tab pro" data-v="log"><i class="fas fa-list"></i> Records Log</button><button class="tab pro" data-v="set"><i class="fas fa-gear"></i> Settings</button></div>
+<div class="chip"><span id="ulab">Locked</span><button id="lock" title="Unlock"><i class="fas fa-lock"></i></button></div></div>
+<main>
+<section class="view on" id="v-dash"><div style="margin-bottom:.8rem"><a class="btn" href="amm_home.html"><i class="fas fa-arrow-left"></i> Back</a></div><div id="cap">
+<div class="hero"><div><h1>PJPB AMM Performance Dashboard</h1><div id="plab"></div><div id="upto" style="font-size:.85rem;opacity:.85"></div></div>
+<div class="act"><select id="per"></select><button class="btn s" id="rl"><i class="fas fa-rotate"></i> Reload</button><button class="btn" id="png"><i class="fas fa-image"></i> Export PNG</button></div></div>
+<div class="cols" id="cols"></div>
+<div class="card a5" style="margin-bottom:.8rem"><h3><i class="fas fa-industry"></i> Area Wise Performance</h3><div class="tw"><table id="mines"></table></div></div>
+<div class="card a1" style="margin-bottom:.8rem"><h3><i class="fas fa-calendar"></i> Quarter Performance</h3><div class="tw"><table><thead><tr><th>Quarter</th><th>Rakes</th><th>Quantity (RR Wt)</th><th>Billing (Service Charge)</th><th>Bonus (GCV + Qty Reco)</th><th>Deduction (Penalty)</th><th>Amount (Bonus − Deduction)</th></tr></thead><tbody id="qtr"></tbody></table></div></div>
+<div class="card a4" id="ncard" style="display:none"><h3><i class="fas fa-bullhorn"></i> Notice</h3><div class="ntc" id="ntc"></div></div>
+</div></section>
 
-.err{color:var(--rose);font-size:.85rem;min-height:1em}
-
-/* top bar */
-.topbar{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;align-items:center;gap:.8rem;padding:.8rem 1.2rem;color:#fff;
-  background:linear-gradient(120deg,var(--navy) 0%,var(--navy2) 70%,#5a5fc4 100%);box-shadow:0 10px 24px -14px rgba(27,37,89,.7)}
-.brand{font:700 1.15rem var(--head);display:flex;align-items:center;gap:.5rem;margin-right:auto}
-.brand .dot{width:9px;height:9px;border-radius:50%;background:var(--saffron);box-shadow:0 0 0 3px rgba(255,159,90,.25)}
-.nav{background:none;border:0;color:#c9ccf0;padding:.5rem .95rem;border-radius:999px;cursor:pointer;font-weight:600}
-.nav:hover{background:rgba(255,255,255,.12);color:#fff}
-.nav.active{background:rgba(255,159,90,.25);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,159,90,.45)}
-
-main{max-width:1800px;margin:0 auto;padding:1.1rem}
-.view{display:none}.view.active{display:block}
-.back-btn{display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .85rem;border-radius:999px;color:#fff;font-weight:600;font-size:.85rem;white-space:nowrap;background:rgba(255,255,255,.12);transition:.2s}
-.back-btn:hover{background:rgba(255,255,255,.22)}
-.back-row .back-btn{background:linear-gradient(120deg,var(--navy),var(--navy2));padding:.6rem 1.1rem;border-radius:12px;font-weight:700;box-shadow:0 10px 18px -10px rgba(31,27,77,.6)}
-.back-row{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:.8rem}
-.back-group{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
-.sub-group-btn{display:inline-flex;align-items:center;gap:.5rem;padding:.6rem 1.1rem;border-radius:12px;font:700 .85rem var(--body);color:var(--navy);background:linear-gradient(135deg,#fff3d6,#ffe2a8);border:1px solid #f1cf86;box-shadow:0 10px 18px -12px rgba(217,164,65,.8);transition:.2s;white-space:nowrap}
-.sub-group-btn:hover{transform:translateY(-2px);box-shadow:0 14px 22px -12px rgba(217,164,65,.9)}
-.sub-group-btn i{color:#b7791f}
-.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:1rem 1.1rem;box-shadow:var(--sh);margin-bottom:1rem}
-.panel h2{font:700 1rem var(--head);margin-bottom:.6rem;display:flex;align-items:center;gap:.5rem}
-.muted{color:var(--mute);font-size:.85rem}
-.status{font-size:.85rem;color:var(--mute);margin-top:.5rem;min-height:1.1em}
-
-.btn{display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1rem;border-radius:12px;border:1px solid transparent;cursor:pointer;font-weight:600;font-size:.85rem}
-.btn:disabled{opacity:.55;cursor:wait}
-.btn.go{background:var(--saffron);color:#3a1a00}
-.btn.soft{background:var(--bg);border-color:var(--line);color:var(--ink)}
-.btn.danger{background:#fbe6ea;color:#a3142b;border-color:#f1b3bd}
-
-.toolbar{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-bottom:.8rem}
-.toolbar input[type=search]{min-width:260px;flex:1}
-
-.tbl-wrap{overflow:auto;max-height:70vh;border:1px solid var(--line);border-radius:12px}
-.tbl{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%}
-.tbl th,.tbl td{padding:.3rem .4rem;border-bottom:1px solid var(--line);white-space:nowrap;text-align:left;font-size:.8rem}
-.tbl th{position:sticky;top:0;background:var(--navy);color:#fff;font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.3px;z-index:2}
-.tbl td input{width:118px;padding:.3rem .4rem;border-radius:8px;font-size:.8rem}
-.tbl td input[data-key="sr_no"]{width:64px}
-.tbl td input[data-key="source"],.tbl td input[data-key="fnot_no"]{width:170px}
-.tbl tr.dirty td{background:#fff6e3}
-.tbl td.act{position:sticky;left:0;background:var(--card);z-index:1}
-.tbl th.act{position:sticky;left:0;z-index:3}
-.tbl tr:hover td{background:rgba(59,63,158,.05)}
-.del{background:none;border:0;color:var(--rose);cursor:pointer;padding:.3rem .4rem;border-radius:8px}
-.del:hover{background:#fbe6ea}
-.tag{font-size:.6rem;background:var(--gold);color:#3a2a00;border-radius:6px;padding:0 .3rem;margin-left:.2rem;vertical-align:middle}
-
-/* totals row (sticks to the bottom of the table area) */
-.tbl tfoot td{position:sticky;bottom:0;z-index:2;background:var(--navy);color:#fff;font-weight:700;border-top:2px solid var(--saffron);border-bottom:0;text-align:right;padding:.45rem .55rem}
-.tbl tfoot td.act{left:0;z-index:4;text-align:left;background:var(--navy);color:#fff}
-.tbl tfoot tr:hover td{background:var(--navy)}
-
-.drop{border:2px dashed var(--line);border-radius:16px;padding:1.6rem;text-align:center;cursor:pointer;color:var(--mute)}
-.drop:hover,.drop.over{border-color:var(--navy2);background:rgba(59,63,158,.05)}
-.drop i{font-size:2rem;color:var(--navy2);display:block;margin-bottom:.4rem}
-.new{color:#a3142b;font-weight:700}
-.known{color:#0c6b4a;font-weight:600}
-.form-actions{display:flex;gap:.6rem;align-items:center;margin-top:.8rem;flex-wrap:wrap}
-
-.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--navy);color:#fff;padding:.7rem 1.1rem;border-radius:12px;box-shadow:var(--sh);transition:transform .3s;z-index:60;max-width:90vw}
-.toast.show{transform:translateX(-50%) translateY(0)}
-.toast.error{background:var(--rose)}
-
-@media (max-width:700px){
-  .brand{width:100%}
-  .toolbar input[type=search]{min-width:0;width:100%}
-}
-</style>
-</head>
-<body>
-
-<div id="app">
-  <header class="topbar">
-    <div class="brand"><span class="dot"></span> PJPB MIS</div>
-    <button class="nav active" data-view="log"><i class="fas fa-table-list"></i> Records Log</button>
-    <button class="nav" data-view="upload"><i class="fas fa-file-excel"></i> Excel Upload</button>
-  </header>
-
-  <main>
-    <div class="back-row"><div class="back-group"><a class="back-btn" href="home_page.html"><i class="fas fa-arrow-left"></i> Back</a><a class="sub-group-btn" href="jhabua_sub_group.html"><i class="fas fa-layer-group"></i> Sub Group</a></div></div>
-    <!-- ================= RECORDS LOG ================= -->
-    <section class="view active" id="view-log">
-      <div class="panel">
-        <h2><i class="fas fa-table-list"></i> Records Log</h2>
-        <div class="toolbar">
-          <select id="logMonth" aria-label="Month"></select>
-          <select id="logArea" aria-label="Area"><option value="">All areas</option></select>
-          <select id="logSource" aria-label="Source"><option value="">All sources</option></select>
-          <input type="date" id="logFrom" aria-label="From date" title="From loading date">
-          <input type="date" id="logTo" aria-label="To date" title="To loading date">
-          <input type="search" id="logSearch" placeholder="Search RR no, source, FNOT, invoice, rake, sample ID...">
-          <button class="btn soft" id="logClear"><i class="fas fa-filter-circle-xmark"></i> Clear filters</button>
-          <button class="btn soft" id="logReload"><i class="fas fa-rotate"></i> Reload</button>
-          <button class="btn go" id="logSaveAll"><i class="fas fa-floppy-disk"></i> Save All</button>
-          <span class="muted" id="logCount"></span>
-        </div>
-        <div class="tbl-wrap"><table class="tbl" id="logTbl"></table></div>
-        <div class="status" id="logStatus"></div>
-      </div>
-    </section>
-
-    <!-- ================= EXCEL UPLOAD ================= -->
-    <section class="view" id="view-upload">
-      <div class="panel">
-        <h2><i class="fas fa-file-excel"></i> 1. Choose workbook</h2>
-        <div class="drop" id="drop">
-          <i class="fas fa-cloud-arrow-up"></i>
-          <div>Drop your MIS .xlsx here or click to browse</div>
-          <div class="muted">Only rows that have an RR Number are imported. Columns the database doesn't know yet are saved automatically and shown in the log.</div>
-          <input type="file" id="fileInput" accept=".xlsx,.xlsm,.xls,.csv" hidden>
-        </div>
-        <div class="status" id="uploadStatus"></div>
-      </div>
-
-      <div class="panel" id="sheetsPanel" hidden>
-        <h2><i class="fas fa-layer-group"></i> 2. Sheets found</h2>
-        <div class="tbl-wrap" style="max-height:45vh"><table class="tbl" id="sheetTbl"></table></div>
-        <p class="muted" style="margin-top:.5rem">PJPB sheets are pre-selected. Untick any you don't want imported.</p>
-      </div>
-
-      <div class="panel" id="mapPanel" hidden>
-        <h2><i class="fas fa-diagram-project"></i> 3. Column mapping</h2>
-        <div class="status" id="mapSummary" style="margin:0 0 .6rem"></div>
-        <div class="tbl-wrap" style="max-height:45vh"><table class="tbl" id="mapTbl"></table></div>
-      </div>
-
-      <div class="panel" id="previewPanel" hidden>
-        <h2><i class="fas fa-eye"></i> 4. Preview (first 15 rows of first selected sheet)</h2>
-        <div class="tbl-wrap" style="max-height:45vh"><table class="tbl" id="previewTbl"></table></div>
-        <div class="form-actions">
-          <button class="btn go" id="importBtn"><i class="fas fa-database"></i> Save to database</button>
-          <span class="muted" id="importNote"></span>
-        </div>
-      </div>
-    </section>
-  </main>
-  <div class="toast" id="toast"></div>
+<section class="view" id="v-set">
+<div class="hero"><div><h1>Settings</h1><div>Targets, rates and notice. Values for targets, service charge, GCV Reco and GCV cost apply to the quarter chosen below.</div></div></div>
+<div class="pn"><h2>Quarter</h2><select id="sper"></select></div>
+<div class="pn"><h2>Area targets (rakes in the quarter)</h2><div class="fg">
+<label>SECL<input type="number" id="s_tgtSECL" min="0"></label><label>CCL<input type="number" id="s_tgtCCL" min="0"></label><label>MCL<input type="number" id="s_tgtMCL" min="0"></label><label>NCL<input type="number" id="s_tgtNCL" min="0"></label></div></div>
+<div class="pn" id="svPanel"><h2><i class="fas fa-indian-rupee-sign"></i> Service charge (quarter)</h2>
+<div class="fg">
+<label>Carry forward from last quarter (rakes)<input type="number" id="sv_carry" min="0"></label>
+<label><span id="svL0">Payment rakes</span><input type="number" id="sv_r0" min="0"></label>
+<label><span id="svL1">Payment rakes</span><input type="number" id="sv_r1" min="0"></label>
+<label><span id="svL2">Payment rakes</span><input type="number" id="sv_r2" min="0"></label>
+<label>Rate multiplier (₹ / MT)<input type="number" id="sv_mult" step="0.01"></label>
+<label>Materialization bands (% below limit : factor)<input id="sv_bands" placeholder="60:0.25, 70:0.5, 80:0.7, 90:0.8, 100:0.9, above:1"></label>
 </div>
+<p style="font-size:.8rem;margin-top:.5rem">Window: 4th of the first month to 3rd of the month after the quarter. Materialization = rakes loaded from the log × 100 ÷ total rakes; the factor is the first band where it is below the limit. Service charge = total RR weight × factor × multiplier.</p>
+<div class="tw" style="margin-top:.6rem"><table id="svTbl"></table></div>
+<div class="tw" style="margin-top:.6rem"><table id="svSum"></table></div>
+<div class="fa-row"><button class="btn" id="svSave"><i class="fas fa-floppy-disk"></i> Save service charge</button><span class="st" id="svSt"></span></div>
+</div>
+<div class="pn" id="seclPanel"><h2><i class="fas fa-chart-line"></i> Performance for SECL (quantity reco)</h2>
+<div class="tw"><table id="seclTbl"></table></div>
+<div class="fg" style="margin-top:.6rem">
+<label>Carry forward from last quarter (rakes)<input type="number" id="pf_carry" min="0"></label>
+<label><span id="pfL0">Payment made</span><input type="number" id="pf_t0" min="0"></label>
+<label><span id="pfL1">Payment made</span><input type="number" id="pf_t1" min="0"></label>
+<label><span id="pfL2">Payment made</span><input type="number" id="pf_t2" min="0"></label>
+</div>
+<p style="font-size:.8rem;margin-top:.5rem">Materialization comes from the service charge box. Factor: above 90 → 0.5, above 80 → 0.25, otherwise 0; rate = factor × rate multiplier. Incentive = rate × total RR weight (MT).</p>
+<div class="tw" style="margin-top:.6rem"><table id="seclSum"></table></div>
+<div class="fa-row"><button class="btn" id="pfSave"><i class="fas fa-floppy-disk"></i> Save SECL performance</button><span class="st" id="pfSt"></span></div>
+</div>
+<div class="pn" id="gcvPanel"><h2><i class="fas fa-fire"></i> GCV performance (auto from log, quarter)</h2>
+<p style="font-size:.8rem;margin-bottom:.5rem">Weighted GCV = Σ(GCV × RR wt) ÷ Σ RR wt, per area and month. Difference = loading-end − plant-end. Less 200 kcal. 20% per 100 kcal, max 75%. Rate = − % × 4.73 per MT. Amount = rate × RR wt.</p>
+<div class="tw" style="max-height:65vh"><table id="gcvTbl"></table></div></div>
+<div class="pn"><h2>Dashboard notice</h2><label style="display:flex;gap:.5rem;font-weight:700;margin-bottom:.5rem"><input type="checkbox" id="s_nOn"> Show on dashboard</label><textarea id="s_nTxt" rows="3" style="width:100%"></textarea></div>
+<button class="btn" id="save"><i class="fas fa-floppy-disk"></i> Save settings</button><div class="st" id="sst"></div>
+</section>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<section class="view" id="v-up">
+<div class="hero"><div><h1>Excel Upload</h1><div>Import the PJPB MIS workbook. Only rows that have an RR Number are saved.</div></div></div>
+<div class="pn"><h2><i class="fas fa-file-excel"></i> 1. Choose workbook</h2>
+<div class="drop" id="drop"><i class="fas fa-cloud-arrow-up"></i><div>Drop your MIS .xlsx here or click to browse</div><div class="mu">Columns the database doesn't know yet are saved automatically and shown in the Records Log.</div><input type="file" id="fileInput" accept=".xlsx,.xlsm,.xls,.csv" hidden></div><div class="st" id="uploadStatus"></div></div>
+<div class="pn" id="sheetsPanel" hidden><h2><i class="fas fa-layer-group"></i> 2. Sheets found</h2><div class="tw" style="max-height:45vh"><table id="sheetTbl"></table></div><p class="mu" style="margin-top:.5rem">PJPB sheets are pre-selected. Untick any you don't want imported.</p></div>
+<div class="pn" id="mapPanel" hidden><h2><i class="fas fa-diagram-project"></i> 3. Column mapping</h2><div class="st" id="mapSummary" style="margin:0 0 .5rem"></div><div class="tw" style="max-height:45vh"><table id="mapTbl"></table></div></div>
+<div class="pn" id="previewPanel" hidden><h2><i class="fas fa-eye"></i> 4. Preview (first 15 rows of first selected sheet)</h2><div class="tw" style="max-height:45vh"><table id="previewTbl"></table></div><div class="fa-row"><button class="btn" id="importBtn"><i class="fas fa-database"></i> Save to database</button><span class="mu" id="importNote"></span></div></div>
+</section>
+
+<section class="view" id="v-log">
+<div class="hero"><div><h1>Records Log</h1><div>Edit or delete saved rake records. New sheets are added from Excel Upload.</div></div></div>
+<div class="pn"><div class="tb"><select id="lMon"></select><select id="lArea"><option value="">All areas</option></select><select id="lSrc"><option value="">All sources</option></select><input type="date" id="lFrom" title="From loading date"><input type="date" id="lTo" title="To loading date"><input type="search" id="lQ" placeholder="Search RR no, source, FNOT, invoice, rake, sample ID..." style="flex:1;min-width:220px"><button class="btn s" id="lClr">Clear</button><button class="btn s" id="lRl"><i class="fas fa-rotate"></i> Reload</button><button class="btn" id="lSave"><i class="fas fa-floppy-disk"></i> Save All</button><span id="lCnt" style="font-size:.85rem"></span></div>
+<div class="tw" style="max-height:70vh"><table id="lTbl"></table></div><div class="st" id="lSt"></div></div>
+</section></main><div class="mk" id="lk" hidden><div class="pn" style="width:min(340px,92vw);text-align:center;margin:0"><h2 style="justify-content:center"><i class="fas fa-lock"></i> Enter password</h2>
+<input type="password" id="pw" placeholder="••••" autocomplete="off" style="width:100%;text-align:center;letter-spacing:.3em;margin:.2rem 0 .6rem">
+<button class="btn" id="pwOk" style="width:100%;justify-content:center"><i class="fas fa-unlock"></i> Unlock</button>
+<div class="st" id="pwErr" style="color:#b3162b;margin-top:.4rem"></div><button class="btn s" id="pwNo" style="margin-top:.2rem">Cancel</button></div></div>
+<div class="toast" id="toast"></div>
+
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
-/* ==================== CONFIG ==================== */
-const SUPABASE_URL = 'https://pycmkjrmdieaqsbgrher.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5Y21ranJtZGllYXFzYmdyaGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwMjMxNzAsImV4cCI6MjEwNjU5OTE3MH0.9IE2c2FZ4BPv6Rvhfa_VniQ7LJvQ_c4EGDXFihYR4Lc';
-const T = 'pjpb_mis_rows';        // one row per rake record
-const COLS_T = 'pjpb_mis_columns'; // registry of extra (non-standard) columns
-const IMP = 'pjpb_mis_imports';    // one row per imported sheet
-const LOG_MAX = 300;
+const db=supabase.createClient('https://pycmkjrmdieaqsbgrher.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5Y21ranJtZGllYXFzYmdyaGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwMjMxNzAsImV4cCI6MjEwNjU5OTE3MH0.9IE2c2FZ4BPv6Rvhfa_VniQ7LJvQ_c4EGDXFihYR4Lc');
+const up=x=>String(x||'').trim().toUpperCase(),MCLN=['IB','CKP'];
+const PASSWORD='1234',ST='hzl_dashboard_values',AREAS=['SECL','MCL','CCL','NCL'];   // settings are kept in the existing settings table under period_key 'pjpb:...'
+// IB and CKP rows belong to MCL
+const areaOf=r=>{const a=up(r.area),x=up(r.source);if(a==='MCL'||MCLN.includes(a))return'MCL';if(!AREAS.includes(a)&&MCLN.includes(x))return'MCL';return a};
+const $=id=>document.getElementById(id),n=v=>v===''||v==null||isNaN(+v)?0:+v,sum=(a,f)=>a.reduce((s,r)=>s+n(f(r)),0);
+const p2=x=>String(x).padStart(2,'0'),MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const fmt=(v,d=0)=>!isFinite(v)||Math.abs(v)<.005?'-':(v<0?'-':'')+Math.abs(v).toLocaleString('en-IN',{minimumFractionDigits:d,maximumFractionDigits:d});
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function toast(m){const t=$('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',3000)}
+const shift=(k,i)=>{const[Y,M]=k.split('-').map(Number),d=new Date(Date.UTC(Y,M-1+i,1));return d.getUTCFullYear()+'-'+p2(d.getUTCMonth()+1)};
+const plab=k=>MO[+k.slice(5)-1]+' '+k.slice(0,4);
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate())};
+const qkey=d=>d.slice(0,7);
+const KEYS=Array.from({length:24},(_,i)=>shift('2026-04',i)),fyStart=k=>{const[Y,M]=k.split('-').map(Number);return M>=4?Y+'-04':(Y-1)+'-04'};
+let PER=(()=>{const[Y,M]=qkey(today()).split('-').map(Number);return M>=5&&M<=7?Y+'-05':M>=8&&M<=10?Y+'-08':M>=11?Y+'-11':M===1?(Y-1)+'-11':Y+'-02'})();
 
-const { createClient } = supabase;
-const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+/* ---- settings ---- */
+const DEF={qtyPerRake:3900,bands:'0.05:5, 0.3:0, 0.5:-1, 1:-2, 1.5:-3, above:-4'};
+async function getSet(k){const{data}=await db.from(ST).select('field_key,field_value').in('period_key',['pjpb:'+k,'pjpb:global']);const o={...DEF};(data||[]).forEach(r=>{if(r.field_value!=null&&r.field_value!=='')o[r.field_key]=r.field_value});return o}
+function rateOf(s,txt){let above=-4;for(const part of String(txt).split(',')){const[a,b]=part.split(':').map(x=>x.trim());if(a==='above'){above=n(b);continue}if(s<=n(a))return n(b)}return above}
 
-/* ==================== PARSING (pure, no DOM) ==================== */
-/*PARSE-START*/
-const norm = s => String(s ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
+/* ---- calculation ---- */
+async function rows(from,to){const o=[];for(let f=0;;f+=1000){const{data,error}=await db.from('pjpb_mis_rows').select('area,source,loading_date,chargeable_wt,rr_weight,recv_qty,plant_end_gcv,loading_end_gcv,total_amount,final_charges').gte('loading_date',from).lt('loading_date',to).range(f,f+999);if(error)throw error;o.push(...data);if(data.length<1000)break}return o}
+async function compute(k){
+ const from=k+'-04',to=shift(k,3)+'-04',DAY=864e5,qs=new Date(from+'T00:00:00'),qe=new Date(to+'T00:00:00');
+ const total=Math.round((qe-qs)/DAY),t0=new Date();t0.setHours(0,0,0,0);
+ const passed=Math.min(total,Math.max(0,Math.floor((t0-qs)/DAY)+1)),left=Math.max(0,Math.round((qe-t0)/DAY));
+ const [recs,S]=await Promise.all([rows(from,to),getSet(k)]),o={};
+ const rr=sum(recs,r=>r.rr_weight),recv=sum(recs,r=>r.recv_qty),pm=v=>rr?v/rr:0;
+ o._recs=recs;o._last=recs.map(r=>r.loading_date).filter(Boolean).sort().pop()||'';
+ // GCV weighted by received qty (rows with a Plant End GCV only)
+ const g=recs.filter(r=>r.plant_end_gcv!=null&&n(r.recv_qty)>0),gW=sum(g,r=>r.recv_qty);
+ const gcvOf=a=>{const x=a.filter(r=>r.plant_end_gcv!=null&&n(r.recv_qty)>0),w=sum(x,r=>r.recv_qty);return w?sum(x,r=>n(r.plant_end_gcv)*n(r.recv_qty))/w:0};
+ const costOf=a=>{const d=sum(a,r=>n(r.plant_end_gcv)*n(r.recv_qty));return d?sum(a,r=>r.total_amount)/d:0};
+ const norm=rr?(recv-rr)/rr*100:0,rate=rateOf(norm,S.bands);
+ o.billQty=rate*recv;o.billQtyMt=rate;o.billGcv=n(S.gcvReco);o.billGcvMt=pm(o.billGcv);
+ let svc=0,asks=0,tgts=0,loads=0;
+ AREAS.forEach(a=>{const A=recs.filter(r=>areaOf(r)===a),t=n(S['tgt'+a]),l=A.length;
+  o['tgt'+a]=t;o['load'+a]=l;o['bal'+a]=t-l;o['ask'+a]=left?Math.round((t-l)/left*100)/100:0;
+  o['svc'+a]=sum(A,r=>r.recv_qty)*n(S.svcRate);o['svc'+a+'Mt']=pm(o['svc'+a]);o['gcv'+a]=gcvOf(A);o['cost'+a]=costOf(A);
+  svc+=o['svc'+a];asks+=o['ask'+a];tgts+=t;loads+=l});
+ const pen=sum(recs,r=>r.final_charges);
+ o.totalPen=-pen;o.totalPenMt=pm(-pen);
+ 
+ o.pen5=-pen;o.pen5Mt=pm(-pen);o.totalBill=o.billQty+o.billGcv+svc-pen;o.totalBillMt=pm(o.totalBill);
+ o.expBill=passed?o.totalBill/passed*total:0;o.svcAll=svc;o.svcAllMt=pm(svc);
+ o.pdRakeAch=total?recs.length/total:0;o.pdRakeTgt=asks;o.pdQtyAch=total?rr/total:0;o.pdQtyTgt=recs.length*n(S.qtyPerRake);
+ o.pdGcvAch=costOf(recs);o.pdGcvTgt=n(S.gcvCostTarget);
+ const av=f=>recs.length?sum(recs,f)/recs.length:0;
+ o.avgCh=av(r=>r.chargeable_wt);o.avgRr=av(r=>r.rr_weight);o.avgPlant=av(r=>r.recv_qty);o.avgGcv=gcvOf(recs);o.totRr=rr;o.totRecv=recv;
+ o._tgts=tgts;o._S=S;o._days=[passed,total];
+ o.srcs=AREAS.map(s=>{const m=recs.filter(r=>areaOf(r)===s);return{s,n:m.length,gcv:gcvOf(m),rr:sum(m,r=>r.rr_weight),sh:sum(m,r=>r.recv_qty)-sum(m,r=>r.rr_weight),pen:sum(m,r=>r.final_charges)}});
+ return o}
 
-// [db column, label, type, header names seen in the MIS sheets]
-const FIELDS = [
-  ['sr_no','Sr No','int',['Sr No']],
-  ['loading_date','Loading Date','date',['Loading Date']],
-  ['area','AREA','text',['AREA']],
-  ['source','Source','text',['Source']],
-  ['unit','UNIT','text',['UNIT']],
-  ['allotment_time','Allotment date','text',['Allotment date']],
-  ['seq_no','Sr Seq no.','text',['Sr Seq no.','Rlw Seq. No.']],
-  ['reprogram_month','Reprogram Month of Loaded Rake','text',['Reprogram Month of Loaded rake, if Carryforward.','Reprogram Month of Loaded Rake']],
-  ['pt','P/T','text',['P/T']],
-  ['ct','C/T','text',['C/T']],
-  ['d_o','D/O','text',['D/O']],
-  ['supply_wagons','Supply Wagons','int',['Supply Wagons']],
-  ['load_wagons','Load Wagons','int',['Load Wagons']],
-  ['sick_wagons','Sick Wagons','int',['Sick Wagons']],
-  ['box_type','Box Type','text',['Box Type']],
-  ['net_wt','Net Wt.','num',['Net wt.']],
-  ['recv_qty','Recv Qty','num',['Billing / Rec Qty','Recv Qty','Recv Weight','Recv Wt','Received Qty']],
-  ['chargeable_wt','Chargeable Wt.','num',['Chargable Wt.','Chargeable Wt.']],
-  ['rr_weight','RR Weight','num',['RR Weight']],
-  ['rr_number','RR Number','text',['RR Number']],
-  ['plant_end_gcv','Plant End GCV','num',['PLANT END GCV']],
-  ['tm_pct','TM%','num',['TM%']],
-  ['rr_date','RR Date','date',['RR Date']],
-  ['fnot_no','FNOT No.','text',['FNOT No.']],
-  ['invoice_no','Invoice No.','text',['Invoice No.']],
-  ['ul','U/L','num',['U/L']],
-  ['ol','O/L','num',['O/L']],
-  ['chbl_pun_rate','CHBL at Pun Rate','num',['CHBL AT PUN RATE.']],
-  ['pol1','POL1','num',['POL1']],
-  ['pol2','POL2','num',['POL2']],
-  ['pola','POLA','num',['POLA']],
-  ['krba','KRBA','num',['KRBA']],
-  ['ladc','LADC','num',['LADC']],
-  ['pcla','PCLA','num',['PCLA']],
-  ['dcla','DCLA','num',['DCLA']],
-  ['pun_sum','Punitive Sum','num',['PUN SUM','Punitative Sum','POL1/PO2/POLA/PCLA/DCLA','POL1/PO2/POLA/PCLA/DCLA']],
-  ['sd','SD','num',['SD']],
-  ['sdcc','SDCC','num',['SDCC']],
-  ['st','ST','num',['ST']],
-  ['tc','TC','num',['TC']],
-  ['fauc','FAUC','num',['FAUC']],
-  ['gst','GST','num',['GST']],
-  ['enhc','ENHC','num',['ENHC']],
-  ['dc_sum','DC Sum','num',['DC sum','EHBC/FAUC/TC/ST']],
-  ['ehbc','EHBC','num',['EHBC']],
-  ['rr_freight_base','RR Freight Base Value','num',['RR Freight Base Value']],
-  ['railway_total_freight','Railway Total Freight','num',['Railway Total Freight']],
-  ['invoice_date','Invoice Date','date',['Invoice Date']],
-  ['invoice_number','Invoice Number','text',['Invoice Number']],
-  ['sample_collection_date','Date of Sample Collection','date',['Date of Sample Collection']],
-  ['rake_no','Rake No.','text',['Rake No.']],
-  ['prep_start_date','Sample Prep Commenced','date',['DATE OF SAMPLE PREPARATION COMMENCED']],
-  ['prep_50mm','Prep for 50 mm','text',['Preparation for 50 mm ( YES/NO)']],
-  ['prep_12_5mm','Prep for 12.5 mm','text',['Preparation for 12.5 mm ( YES/NO)']],
-  ['prep_3_35mm','Prep for 3.35 mm','text',['Preparation for 3.35 mm ( YES / NO)']],
-  ['prep_212_micron','Prep for 212 micron','text',['Preparation for 212 micron (YES/NO)']],
-  ['prep_end_date','Sample Prep Completed','date',['DATE OF SAMPLE PREPARATION COMPLETED']],
-  ['sample_id','Sample ID','text',['Sample ID']],
-  ['powder_status','Powder Status','text',['Powder Status']],
-  ['billed_qty','Billed Qty.','num',['Billed Qty.']],
-  ['basic_rate','Basic Rate','num',['Basic Rate']],
-  ['basic_price','Basic Price','num',['Basic Price']],
-  ['total_amount','Total Amount','num',['Total Amount']],
-  // ---- charge columns (PJPB NOV'26 sheet, AV to BC) ----
-  ['five_pct_freight','5% of Total Freight','num',['5% of Total Freight']],
-  ['ul_rate','UL Rate','num',['UL Rate']],
-  ['rate','Rate','num',['Rate']],
-  ['ul_charge','UL Charge','num',['UL Charge']],
-  ['puntative_sum','Puntative Sum','num',['Puntative Sum']],
-  ['per_ton_freight','Per ton Freight','num',['Per ton Freight']],
-  ['total_charges','Total Charges','num',['Total Charges']],
-  ['final_charges','Final Charges','num',['Final Charges','Final Charge']],
-];
-const FIELD_BY_DB = Object.fromEntries(FIELDS.map(f => [f[0], { db: f[0], label: f[1], type: f[2] }]));
-const ALIAS = {};
-FIELDS.forEach(([db, label, , names]) => {
-  [db, label, ...names].forEach(n => { const k = norm(n); if (k && !(k in ALIAS)) ALIAS[k] = db; });
-});
+/* ---- render ---- */
+const R=(l,a,b,cls='')=>`<div class="r ${cls}"><span>${l}</span><span style="display:flex;gap:.4rem"><span class="v" id="${a}"></span>${b?`<span class="v" id="${b}"></span>`:''}</span></div>`;
+const H=(a,b)=>`<div class="hd"><span>${a}</span><span>${b}</span></div>`;
+function build(){
+ const C=(c,ic,t,b)=>`<div class="card ${c}"><h3><i class="fas ${ic}"></i> ${t}</h3><div class="bd">${b}</div></div>`;
+ const area=C('a1','fa-map-pin','Area Targets (Quarter)',`<div class="tw"><table><thead><tr><th></th>${AREAS.map(a=>`<th>${a}</th>`).join('')}</tr></thead><tbody>${[['Target of Quarter','tgt'],['Rake Loaded Till','load'],['Balance Rake','bal'],['Asking Per Day','ask']].map(([l,k])=>`<tr><td>${l}</td>${AREAS.map(a=>`<td id="${k+a}"></td>`).join('')}</tr>`).join('')}</tbody></table></div>`);
+ const gcv=C('a2','fa-fire','Avg. Wt. GCV &amp; Per GCV Cost',H('Avg. Wt. GCV','Per GCV Cost')+AREAS.map(a=>R(`(${a})`,'gcv'+a,'cost'+a)).join(''));
+ const rake=C('a4','fa-train','Rake Performance',H('Achieve','Target')+R('Per Day Rakes','pdRakeAch','pdRakeTgt'));
+ const wts=C('a5','fa-weight-hanging','Weights &amp; GCV',R('Avg. CH.Wt.','avgCh')+R('Avg. RR.Wt.','avgRr')+R('Total RR Weight','totRr'));
+ const bill=C('a2','fa-indian-rupee-sign','Billing Performance',H('Billing','Per MT')+R('Service Charge (Quarter)','svcAll','svcAllMt')+R('Performance on Quantity Reco (SECL)','seclInc','seclIncMt')+R('Performance on GCV Reco','billGcv','billGcvMt')+R('TOTAL PENALTY','pen5','pen5Mt')+R('TOTAL BILLING','totalBill','totalBillMt','tot')+R('Expected Billing of the Quarter','expBill'));
+ const pen=C('a3','fa-triangle-exclamation','Railway Freight Penalties',H('Amount','Per MT')+R('TOTAL PENALTY','totalPen','totalPenMt','tot'));
+ $('cols').innerHTML=`<div class="col">${bill}${rake}</div><div class="col">${area}${wts}</div><div class="col">${gcv}${pen}</div>`}
+const D2=new Set(['gcvSECL','gcvCCL','gcvMCL','gcvNCL','costSECL','costCCL','costMCL','costNCL','pdGcvAch','pdGcvTgt','pdRakeAch','pdRakeTgt','pdQtyAch','billQtyMt','avgCh','avgRr','avgGcv','totRr']);
+function paint(o){
+ Object.entries(o).forEach(([id,v])=>{if(typeof v!=='number')return;const el=$(id);if(!el)return;
+  el.textContent=fmt(v,D2.has(id)||/Mt$/.test(id)?2:0);el.classList.toggle('neg',v<0)});
+ $('upto').textContent=o._last?'Performance report updated upto '+new Date(o._last+'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'}):'';
+ $('mines').innerHTML='<thead><tr><th>AREA</th>'+o.srcs.map(x=>`<th>${esc(x.s)}</th>`).join('')+'</tr></thead><tbody>'+
+  [['No. of Rakes',x=>fmt(x.n)],['GCV (Plant End)',x=>fmt(x.gcv,2)],['RR Weight',x=>fmt(x.rr,2)],['Final Charges',x=>fmt(x.pen)]]
+  .map(([l,f])=>`<tr><td>${l}</td>${o.srcs.map(x=>`<td>${f(x)}</td>`).join('')}</tr>`).join('')+'</tbody>';
+ const nt=o._S.notice?JSON.parse(o._S.notice):{};$('ncard').style.display=nt.on&&nt.text?'block':'none';$('ntc').textContent=nt.text||''}
+let seq=0;
+const cycleOf=k=>{const y=+k.slice(0,4),st=+k.slice(5)>=5?y:y-1;return[st+'-05',st+'-08',st+'-11',(st+1)+'-02']};
+async function load(){const s=++seq;$('plab').textContent='AMM PJPB • '+qlab(PER);
+ try{const o=await compute(PER);if(s!==seq)return;const q=await svcQ(PER);if(s!==seq)return;svcApply(o,q);const pf=pfCalc(await getPf(PER),q.D,q.S);if(s!==seq)return;o.seclInc=pf.inc;o.seclIncMt=o.totRr?pf.inc/o.totRr:0;o.totalBill+=pf.inc-o.billQty;o.totalBillMt=o.totRr?o.totalBill/o.totRr:0;paint(o);
+  const QF=cycleOf(PER),xs=await Promise.all(QF.map(qs=>qs===PER?o:compute(qs))),qv=await Promise.all(QF.map(qs=>qs===PER?q:svcQ(qs))),qp=await Promise.all(QF.map(qs=>getPf(qs))),pfs=QF.map((qs,i)=>pfCalc(qp[i],qv[i].D,qv[i].S));
+  $('qtr').innerHTML=QF.map((qs,i)=>{const x=xs[i],bonus=x.billGcv+pfs[i].inc,ded=x.pen5,amt=bonus+ded,sc=qv[i].res.sc;
+   return `<tr${qs===PER?' style="background:#efe9fb"':''}><td>${qlab(qs)}</td><td>${fmt(x._recs.length)}</td><td>${fmt(x.totRr)}</td><td>${fmt(sc)}</td><td>${fmt(bonus)}</td><td style="color:#b3162b">${fmt(ded)}</td><td style="color:${amt<0?'#b3162b':'#0c7a55'}">${fmt(amt)}</td></tr>`}).join('')}
+ catch(e){console.error(e);toast('Could not load: '+(e.message||'error'))}}
 
-const MON = { jan:1, feb:2, mar:3, apr:4, may:5, jun:6, jul:7, aug:8, sep:9, oct:10, nov:11, dec:12 };
-const isoOf = (y, m, d) => {
-  if (m < 1 || m > 12 || d < 1 || d > 31) return null;
-  const dt = new Date(Date.UTC(y, m - 1, d));
-  if (dt.getUTCMonth() !== m - 1) return null;
-  return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-};
-// Returns 'YYYY-MM-DD', null for empty, undefined if it cannot be read as a date.
-function toDateStr(v) {
-  if (v == null || v === '') return null;
-  if (v instanceof Date) return isNaN(v) ? undefined : isoOf(v.getFullYear(), v.getMonth() + 1, v.getDate()) ?? undefined;
-  if (typeof v === 'number') {
-    if (!isFinite(v) || v < 1) return undefined;
-    const d = new Date(Date.UTC(1899, 11, 30) + Math.floor(v) * 86400000);
-    return isoOf(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate()) ?? undefined;
-  }
-  let s = String(v).trim();
-  if (!s || s === '0') return null;            // "0" is a placeholder in the MIS, not a date
-  let m;
-  if ((m = s.match(/(\d{1,2}[./-]\d{1,2}[./-]\d{4})/)) && /[A-Za-z]/.test(s)) s = m[1];  // e.g. "COMPLETED/04.07.2026"
-  if ((m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/))) return isoOf(+m[1], +m[2], +m[3]) ?? undefined;
-  if ((m = s.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{2}|\d{4})\b/))) {       // dd.mm.yyyy (Indian order)
-    let y = +m[3]; if (y < 100) y += 2000;
-    return isoOf(y, +m[2], +m[1]) ?? undefined;
-  }
-  if ((m = s.match(/^(\d{1,2})[- ]([A-Za-z]{3})[A-Za-z]*[- ,]+(\d{2}|\d{4})/))) {  // 1-Nov-26
-    const mo = MON[m[2].toLowerCase()]; if (!mo) return undefined;
-    let y = +m[3]; if (y < 100) y += 2000;
-    return isoOf(y, mo, +m[1]) ?? undefined;
-  }
-  return undefined;
-}
-// Returns a number, null for empty, undefined if not numeric.
-function toNumVal(v) {
-  if (v == null || v === '') return null;
-  if (typeof v === 'number') return isFinite(v) ? v : undefined;
-  // strip thousands separators, currency (₹, Rs) and % before reading the number
-  const s = String(v).trim().replace(/₹|Rs\.?|%/gi, '').replace(/[,\s]/g, '');
-  if (!s) return null;
-  if (!/^-?\d+(\.\d+)?$/.test(s)) return undefined;
-  return Number(s);
-}
-function toText(v) {
-  if (v == null) return null;
-  const s = String(v).replace(/\s+/g, ' ').trim();
-  return s === '' ? null : s;
-}
-// Returns { ok, value }. ok=false means the value did not fit the column type.
-function coerce(type, raw) {
-  if (raw == null || (typeof raw === 'string' && raw.trim() === '')) return { ok: true, value: null };
-  if (type === 'date') { const d = toDateStr(raw); return d === undefined ? { ok: false } : { ok: true, value: d }; }
-  if (type === 'int' || type === 'num') {
-    const n = toNumVal(raw);
-    if (n === undefined) return { ok: false };
-    return { ok: true, value: n === null ? null : (type === 'int' ? Math.round(n) : n) };
-  }
-  return { ok: true, value: toText(raw) };
-}
-function periodFromName(name) {
-  const m = String(name).match(/(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)[A-Z]*\W*(\d{2}|\d{4})/i);
-  if (!m) return null;
-  let y = +m[2]; if (y < 100) y += 2000;
-  return `${y}-${String(MON[m[1].toLowerCase()]).padStart(2, '0')}`;
-}
+/* ---- settings screen ---- */
+const SF=['tgtSECL','tgtCCL','tgtMCL','tgtNCL'],GF=[];
+async function fillSet(){const S=await getSet($('sper').value);[...SF,...GF].forEach(k=>$('s_'+k).value=S[k]??'');
+ let nt={};try{nt=JSON.parse(S.notice||'{}')}catch(e){}$('s_nOn').checked=!!nt.on;$('s_nTxt').value=nt.text||''}
+$('save').onclick=async()=>{const k=$('sper').value,rows=[];
+ SF.forEach(f=>rows.push({period_key:'pjpb:'+k,field_key:f,field_value:$('s_'+f).value,sort_order:0}));
+ GF.forEach(f=>rows.push({period_key:'pjpb:global',field_key:f,field_value:$('s_'+f).value,sort_order:0}));
+ rows.push({period_key:'pjpb:global',field_key:'notice',field_value:JSON.stringify({on:$('s_nOn').checked,text:$('s_nTxt').value.trim()}),sort_order:0});
+ const{error}=await db.from(ST).upsert(rows,{onConflict:'period_key,field_key'});
+ $('sst').textContent=error?'Save failed: '+error.message:'Settings saved for '+plab(k);if(!error){toast('Saved');PER=k;$('per').value=k;load()}};
 
-// grid = array of rows (arrays) from sheet_to_json(ws, { header: 1, raw: false, defval: null, blankrows: true })
-function parseGrid(grid, sheetName) {
-  const hdrIdx = grid.findIndex((r, i) => i < 20 && Array.isArray(r) && r.some(c => norm(c) === 'srno'));
-  if (hdrIdx < 0) return { sheetName, error: 'No "Sr No" header row found in the first 20 rows' };
-  const hdr = grid[hdrIdx];
-  const dataRows = grid.slice(hdrIdx + 1).filter(r => Array.isArray(r));
+/* ---- service charge by quarter (same logic as TARGET SEPT rows 77-85) ---- */
+const qStartOf=k=>{const[Y,M]=k.split('-').map(Number);return M>=5&&M<=7?Y+'-05':M>=8&&M<=10?Y+'-08':M>=11?Y+'-11':M===1?(Y-1)+'-11':Y+'-02'};
+const qlab=s=>plab(s)+' – '+plab(shift(s,2));
+const QS=[...new Set(KEYS.map(qStartOf))];
+const SVQ_DEF={mult:'4.73',bands:'60:0.25, 70:0.5, 80:0.7, 90:0.8, 100:0.9, above:1'};
+const svIn=['carry','r0','r1','r2'];
+async function getSvc(s){const{data}=await db.from(ST).select('period_key,field_key,field_value').in('period_key',['pjpb:svq:'+s,'pjpb:global']);
+ const o={carry:'',r0:'',r1:'',r2:'',loaded:'',mult:SVQ_DEF.mult,bands:SVQ_DEF.bands};
+ (data||[]).forEach(r=>{if(r.field_value==null||r.field_value==='')return;
+  if(r.period_key==='pjpb:global'){if(r.field_key==='svcMult')o.mult=r.field_value;if(r.field_key==='svcBands')o.bands=r.field_value}
+  else o[r.field_key]=r.field_value});return o}
+async function svcData(s){const recs=(await rows(s+'-04',shift(s,3)+'-04')).filter(r=>AREAS.includes(areaOf(r)));
+ const months=[0,1,2,3].map(i=>shift(s,i)),by={},tot={},mt={};
+ AREAS.forEach(a=>{by[a]={};tot[a]=0;months.forEach(m=>by[a][m]=0)});
+ months.forEach(m=>mt[m]=0);const cm={};months.forEach(m=>cm[m]=0);const scn={};months.forEach(m=>scn[m]=0);
+ recs.forEach(r=>{const a=areaOf(r),m=String(r.loading_date).slice(0,7),w=n(r.rr_weight);if(m in by[a]){by[a][m]+=w;tot[a]+=w;mt[m]+=w;cm[m]++;if(a==='SECL')scn[m]++}});
+ return{months,by,tot,mt,cm,secl:scn,count:recs.length,rr:AREAS.reduce((t,a)=>t+tot[a],0)}}
+const bandOf=(x,txt)=>{let above=1;for(const part of String(txt).split(',')){const[a,b]=part.split(':').map(v=>(v||'').trim());if(a==='above'){above=n(b);continue}if(x<n(a))return n(b)}return above};
+function svcRes(S,D){const rr=D.rr,rakes=n(S.carry)+n(S.r0)+n(S.r1)+n(S.r2),mat=rakes?D.count*100/rakes:0,factor=bandOf(mat,S.bands),rate=factor*n(S.mult);return{rakes,mat,factor,rate,rr,sc:rr*rate}}
+async function svcQ(s){const[D,S]=await Promise.all([svcData(s),getSvc(s)]);return{D,S,res:svcRes(S,D)}}
+function svcApply(o,q){const sv=q.res.sc,[pa,tot]=o._days;o.svcAll=sv;o.svcAllMt=q.res.rate;o.totalBill=o.billQty+o.billGcv+sv+o.pen5;o.totalBillMt=o.totRr?o.totalBill/o.totRr:0;o.expBill=pa?(o.totalBill-sv)/pa*tot+sv:0}
+function svcShow(S,D){const r=svcRes(S,D),ms=D.months;
+ $('svTbl').innerHTML='<thead><tr><th>Area</th>'+ms.map(m=>`<th>${plab(m)}</th>`).join('')+'<th>Quarter</th></tr></thead><tbody>'+
+  AREAS.map(a=>`<tr><td>${a}</td>${ms.map(m=>`<td>${fmt(D.by[a][m],2)}</td>`).join('')}<td>${fmt(D.tot[a],2)}</td></tr>`).join('')+
+  `<tr><td>Total RR Wt</td>${ms.map(m=>`<td>${fmt(D.mt[m],2)}</td>`).join('')}<td>${fmt(D.rr,2)}</td></tr><tr><td>Rakes loaded</td>${ms.map(m=>`<td>${fmt(D.cm[m])}</td>`).join('')}<td>${fmt(D.count)}</td></tr></tbody>`;
+ $('svSum').innerHTML=[['Total no. of rakes (carry + payment rakes)',fmt(r.rakes)],['Rakes loaded in quarter (from log)',fmt(D.count)],['Materialization %',fmt(r.mat,2)],['Factor',fmt(r.factor,2)],['Rate ₹/MT (factor × multiplier)',fmt(r.rate,2)],['Total RR weight (MT)',fmt(r.rr,2)],['Service charge (₹)',fmt(r.sc,2)]]
+  .map(([l,v],i,a)=>`<tr${i===a.length-1?' style="background:#efe9fb;font-weight:700"':''}><td>${l}</td><td>${v}</td></tr>`).join('')}
+let SVD=null;
+function svRead(){const S={};svIn.forEach(f=>S[f]=$('sv_'+f).value);S.mult=$('sv_mult').value;S.bands=$('sv_bands').value;return S}
+async function fillSvc(){const s=$('sper').value;const[D,S]=await Promise.all([svcData(s),getSvc(s)]);SVD=D;
+ ['0','1','2'].forEach((i)=>$('svL'+i).textContent='Payment rakes – '+plab(shift(s,+i)));
+ svIn.forEach(f=>$('sv_'+f).value=S[f]??'');$('sv_mult').value=S.mult;$('sv_bands').value=S.bands;
+ svcShow(S,D);fillPf();fillGcv()}
+$('sper').innerHTML=QS.map(s=>`<option value="${s}">${qlab(s)}</option>`).join('');$('sper').value=qStartOf(PER);
+$('svPanel').addEventListener('input',e=>{if(SVD&&e.target.id!=='svq')svcShow(svRead(),SVD)});
+$('svSave').onclick=async()=>{const k=$('sper').value,S=svRead(),items=svIn.map(f=>({period_key:'pjpb:svq:'+k,field_key:f,field_value:S[f],sort_order:0}));
+ items.push({period_key:'pjpb:global',field_key:'svcMult',field_value:S.mult,sort_order:0},{period_key:'pjpb:global',field_key:'svcBands',field_value:S.bands,sort_order:0});
+ const{error}=await db.from(ST).upsert(items,{onConflict:'period_key,field_key'});
+ $('svSt').textContent=error?'Save failed: '+error.message:'Service charge saved for '+qlab(k);
+ if(!error){toast('Saved');load()}};
 
-  // Map every column: known -> database column, anything else -> extra (kept as-is)
-  const used = new Set(), seenSlug = new Set(), cols = [];
-  for (let j = 0; j < hdr.length; j++) {
-    const hasData = dataRows.some(r => r[j] != null && String(r[j]).trim() !== '');
-    const label = hdr[j] == null || String(hdr[j]).trim() === '' ? null : String(hdr[j]).replace(/\s+/g, ' ').trim();
-    if (!label && !hasData) continue;
-    const name = label || `Column ${j + 1}`;
-    const db = ALIAS[norm(name)];
-    if (db && !used.has(db)) {
-      used.add(db);
-      cols.push({ j, label: FIELD_BY_DB[db].label, db, type: FIELD_BY_DB[db].type, slug: null });
-    } else {
-      let slug = norm(name) || `col${j + 1}`;
-      if (seenSlug.has(slug)) slug += `_${j + 1}`;
-      seenSlug.add(slug);
-      cols.push({ j, label: name, db: null, type: null, slug });
-    }
-  }
-  if (!used.has('rr_number')) return { sheetName, error: 'No "RR Number" column found, so no rows can be imported' };
+/* ---- SECL performance (TARGET SEPT rows 77-85) ---- */
+const pfIn=['carry','t0','t1','t2'];
+async function getPf(s){const{data}=await db.from(ST).select('field_key,field_value').eq('period_key','pjpb:secl:'+s);const o={carry:'',t0:'',t1:'',t2:''};(data||[]).forEach(r=>{if(r.field_value!=null&&r.field_value!=='')o[r.field_key]=r.field_value});return o}
+function pfCalc(P,D,S){const r=svcRes(S,D),tgt=n(P.carry)+n(P.t0)+n(P.t1)+n(P.t2),act=D.months.reduce((t,m)=>t+D.secl[m],0),factor=r.mat>90?0.5:r.mat>80?0.25:0,rate=factor*n(S.mult);
+ return{tgt,act,mat:r.mat,factor,rate,rr:D.rr,inc:rate*D.rr}}
+function pfShow(P,D,S){const c=pfCalc(P,D,S),ms=D.months;
+ $('seclTbl').innerHTML='<thead><tr><th>SECL</th><th>Target (input)</th><th>Actual (log)</th></tr></thead><tbody>'+
+  '<tr><td>Carry forward</td><td>'+fmt(n(P.carry))+'</td><td>-</td></tr>'+
+  [0,1,2].map(i=>`<tr><td>Payment made – ${plab(ms[i])}</td><td>${fmt(n(P['t'+i]))}</td><td>${fmt(D.secl[ms[i]])}</td></tr>`).join('')+
+  `<tr><td>${plab(ms[3])} (1–3 only)</td><td>-</td><td>${fmt(D.secl[ms[3]])}</td></tr>`+
+  `<tr><td>Total</td><td>${fmt(c.tgt)}</td><td>${fmt(c.act)}</td></tr></tbody>`;
+ $('seclSum').innerHTML=[['Materialization % (from service charge)',fmt(c.mat,2)],['Factor',fmt(c.factor,2)],['Rate ₹/MT (factor × multiplier)',fmt(c.rate,2)],['Total RR weight (MT)',fmt(c.rr,2)],['SECL incentive (₹)',fmt(c.inc,2)]]
+  .map(([l,v],i,a)=>`<tr${i===a.length-1?' style="background:#efe9fb;font-weight:700"':''}><td>${l}</td><td>${v}</td></tr>`).join('')}
+let PFD=null,PFS=null;
+function pfRead(){const P={};pfIn.forEach(f=>P[f]=$('pf_'+f).value);return P}
+async function fillPf(){const s=$('sper').value;const[P,D,S]=await Promise.all([getPf(s),svcData(s),getSvc(s)]);PFD=D;PFS=S;
+ ['0','1','2'].forEach(i=>$('pfL'+i).textContent='Payment made – '+plab(shift(s,+i)));
+ pfIn.forEach(f=>$('pf_'+f).value=P[f]??'');pfShow(P,D,S)}
+$('seclPanel').addEventListener('input',()=>{if(PFD)pfShow(pfRead(),PFD,PFS)});
+$('pfSave').onclick=async()=>{const k=$('sper').value,P=pfRead(),items=pfIn.map(f=>({period_key:'pjpb:secl:'+k,field_key:f,field_value:P[f],sort_order:0}));
+ const{error}=await db.from(ST).upsert(items,{onConflict:'period_key,field_key'});
+ $('pfSt').textContent=error?'Save failed: '+error.message:'SECL performance saved for '+qlab(k);
+ if(!error){toast('Saved');load()}};
 
-  const period = periodFromName(sheetName);
-  const rows = [], extraLabels = {};
-  let skipped = 0;
-  for (const r of dataRows) {
-    if (!r.some(c => c != null && String(c).trim() !== '')) continue;
-    const rec = Object.fromEntries(FIELDS.map(f => [f[0], null]));
-    const extra = {}, labels = {};
-    for (const c of cols) {
-      const raw = r[c.j];
-      if (raw == null || String(raw).trim() === '') continue;
-      if (c.db) {
-        const k = coerce(c.type, raw);
-        if (k.ok) { rec[c.db] = k.value; continue; }
-        // value does not fit the column type: keep the original text, do not lose it
-        const slug = c.db + '_raw';
-        extra[slug] = toText(raw); labels[slug] = c.label + ' (raw)';
-      } else {
-        extra[c.slug] = toText(raw); labels[c.slug] = c.label;
-      }
-    }
-    // Only rows that have an RR Number are taken (drops blank-RR rows, totals and footers)
-    if (rec.rr_number == null || rec.rr_number === '0') { skipped++; continue; }
-    rec.sheet_name = sheetName;
-    rec.extra = extra;
-    rows.push(rec);
-    Object.assign(extraLabels, labels);   // register only columns that were actually stored
-  }
+/* ---- GCV performance per area and month (auto from log) ---- */
+async function gcvCalc(s){const recs=(await rows(s+'-04',shift(s,3)+'-04')).filter(r=>AREAS.includes(areaOf(r)));
+ const S=await getSvc(s),months=[0,1,2,3].map(i=>shift(s,i)),out=[],mult=n(S.mult)||4.73;
+ AREAS.forEach(a=>months.forEach(m=>{
+  const R=recs.filter(r=>areaOf(r)===a&&String(r.loading_date).slice(0,7)===m);
+  const lr=R.filter(r=>r.loading_end_gcv!=null),pr=R.filter(r=>r.plant_end_gcv!=null);
+  const dl=sum(lr,r=>r.rr_weight),dp=sum(pr,r=>r.rr_weight);
+  const Lw=dl?sum(lr,r=>n(r.loading_end_gcv)*n(r.rr_weight))/dl:0,Pw=dp?sum(pr,r=>n(r.plant_end_gcv)*n(r.rr_weight))/dp:0;
+  const D=dl&&dp?Lw-Pw:0,Rx=D-200,pct=Math.min(Math.max(0,Rx)/100*0.2,0.75),rate=-pct*mult,rrw=sum(R,r=>r.rr_weight);
+  out.push({a,m,rrw,Lw,Pw,D,Rx,pct,rate,amt:rate*rrw})}));
+ return{out,AREAS,months}}
+function gcvShow(G){const hd='<thead><tr><th>Area</th><th>Month</th><th>RR wt (MT)</th><th>Loading-end GCV</th><th>Plant-end GCV</th><th>Difference</th><th>Less 200</th><th>%</th><th>₹ / MT</th><th>Amount (₹)</th></tr></thead>';
+ const line=x=>`<td>${plab(x.m)}</td><td>${fmt(x.rrw,2)}</td><td>${fmt(x.Lw,2)}</td><td>${fmt(x.Pw,2)}</td><td>${fmt(x.D,2)}</td><td>${fmt(x.Rx,2)}</td><td>${fmt(x.pct*100,2)}%</td><td style="color:#b3162b">${fmt(x.rate,4)}</td><td style="color:#b3162b">${fmt(x.amt,2)}</td>`;
+ let body='';G.AREAS.forEach(a=>{const L=G.out.filter(x=>x.a===a);
+  body+=L.map(x=>`<tr><td>${a}</td>${line(x)}</tr>`).join('');
+  const t=L.reduce((q,x)=>q+x.amt,0),rw=L.reduce((q,x)=>q+x.rrw,0);
+  body+=`<tr style="background:#efe9fb;font-weight:700"><td>${a}</td><td>Quarter</td><td>${fmt(rw,2)}</td><td colspan="6"></td><td style="color:#b3162b">${fmt(t,2)}</td></tr>`});
+ const T=G.out.reduce((q,x)=>q+x.amt,0);
+ $('gcvTbl').innerHTML=hd+'<tbody>'+body+`<tr style="background:#1d1236;color:#fff;font-weight:700"><td colspan="9">Total of all areas</td><td>${fmt(T,2)}</td></tr></tbody>`}
+async function fillGcv(){gcvShow(await gcvCalc($('sper').value))}
+/* ---- nav, init ---- */
+let ok=false;
+function view(v){if(v!=='dash'&&!ok)v='dash';
+ document.querySelectorAll('.view').forEach(e=>e.classList.toggle('on',e.id==='v-'+v));
+ document.querySelectorAll('.tab[data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===v));if(v==='set'){$('sper').value=PER;fillSet();$('sper').value=qStartOf(PER);fillSvc()}if(v==='log')loadLog()}
+document.querySelectorAll('.tab[data-v]').forEach(b=>b.onclick=()=>view(b.dataset.v));
+const opts=QS.map(k=>`<option value="${k}">${qlab(k)}</option>`).join('');$('per').innerHTML=opts;$('sper').innerHTML=opts;$('per').value=PER;
+$('per').onchange=e=>{PER=e.target.value;load()};$('sper').onchange=()=>{fillSet();fillSvc()};$('rl').onclick=load;
+$('png').onclick=async()=>{const b=$('png');b.disabled=true;try{await load();const el=$('cap'),c=await html2canvas(el,{scale:2,backgroundColor:'#f2eefa',useCORS:true,logging:false,onclone:d=>{d.querySelectorAll('.tw').forEach(x=>x.style.overflow='visible')}});
+ const a=document.createElement('a');a.href=c.toDataURL('image/png');a.download=`PJPB-Performance-${PER}.png`;a.click()}catch(e){toast('PNG failed: '+e.message)}b.disabled=false};
 
-  // Period: from the sheet name (e.g. PJPB NOV'26), otherwise the most common loading month
-  let finalPeriod = period;
-  if (!finalPeriod) {
-    const cnt = {};
-    rows.forEach(r => { if (r.loading_date) { const p = r.loading_date.slice(0, 7); cnt[p] = (cnt[p] || 0) + 1; } });
-    finalPeriod = Object.entries(cnt).sort((a, b) => b[1] - a[1])[0]?.[0] || null;
-  }
-  rows.forEach(r => { r.period = finalPeriod; });
+$('lock').onclick=()=>{if(ok){ok=false;document.body.classList.remove('unlocked');$('ulab').textContent='Locked';$('lock').innerHTML='<i class="fas fa-lock"></i>';view('dash')}
+ else{$('pw').value='';$('pwErr').textContent='';$('lk').hidden=false;$('pw').focus()}};
+function unlock(){if($('pw').value!==PASSWORD){$('pwErr').textContent='Wrong password';$('pw').select();return}
+ ok=true;$('lk').hidden=true;document.body.classList.add('unlocked');$('ulab').textContent='Unlocked';$('lock').innerHTML='<i class="fas fa-lock-open"></i>'}
+$('pwOk').onclick=unlock;$('pwNo').onclick=()=>{$('lk').hidden=true};
+$('pw').onkeydown=e=>{if(e.key==='Enter')unlock();if(e.key==='Escape')$('lk').hidden=true};
 
-  return {
-    sheetName, period: finalPeriod, headerRow: hdrIdx + 1, cols, rows, extraLabels, skipped,
-    unmapped: cols.filter(c => !c.db).map(c => c.label)
-  };
-}
-/*PARSE-END*/
+/* ---- records log ---- */
+const T='pjpb_mis_rows',CT='pjpb_mis_columns',IMP='pjpb_mis_imports',LMAX=300;
+const DATEC=new Set(['loading_date','rr_date','invoice_date','sample_collection_date','prep_start_date','prep_end_date']);
+const TEXTC=new Set(['area','source','unit','allotment_time','seq_no','reprogram_month','pt','ct','d_o','box_type','rr_number','fnot_no','invoice_no','invoice_number','rake_no','prep_50mm','prep_12_5mm','prep_3_35mm','prep_212_micron','sample_id','powder_status']);
+const HIDE=new Set(['id','extra','created_at','updated_at','sheet_name','period']),NOTOT=new Set(['sr_no','plant_end_gcv','loading_end_gcv','tm_pct','basic_rate','ul_rate','rate','per_ton_freight','chbl_pun_rate']);
+const UP=new Set(['rr','ul','ol','gst','gcv','tm','pt','ct','fnot','sd','sdcc','st','tc','fauc','ehbc','enhc','krba','ladc','pcla','dcla','pola','pol1','pol2','dc','pun']);
+const ptxt=k=>k.split('_').map(w=>UP.has(w)?w.toUpperCase():w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
+let LR=[],LX=[],LV=[],lcols=[],pend=new Map(),lastM='';
+function cv(c,v){v=String(v).trim();if(v==='')return{ok:1,v:null};
+ if(DATEC.has(c)){let m=v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);if(m)return{ok:1,v:`${m[1]}-${p2(m[2])}-${p2(m[3])}`};
+  m=v.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})$/);if(m)return{ok:1,v:`${m[3].length==2?'20'+m[3]:m[3]}-${p2(m[2])}-${p2(m[1])}`};return{ok:0}}
+ if(TEXTC.has(c))return{ok:1,v};
+ const x=Number(v.replace(/[,₹%\s]|Rs\.?/gi,''));return isNaN(x)?{ok:0}:{ok:1,v:x}}
+async function lrows(m){const o=[];for(let f=0;;f+=1000){let q=db.from(T).select('*');if(m)q=q.eq('period',m);
+ const{data,error}=await q.order('loading_date',{ascending:true,nullsFirst:false}).order('id',{ascending:true}).range(f,f+999);if(error)throw error;o.push(...data);if(data.length<1000)break}return o}
+async function loadLog(){
+ try{if(!$('lMon').options.length){const{data}=await db.from(IMP).select('period').order('period',{ascending:false});
+   const ps=[...new Set((data||[]).map(i=>i.period).filter(Boolean))];$('lMon').innerHTML='<option value="">All months</option>'+ps.map(x=>`<option value="${x}">${plab(x)}</option>`).join('');$('lMon').value=ps[0]||''}
+  LR=await lrows($('lMon').value);const{data:cx}=await db.from(CT).select('*').order('created_at',{ascending:true});LX=cx||[]}
+ catch(e){toast('Could not load records: '+(e.message||'error'));return}
+ pend.clear();lastM=$('lMon').value;
+ lcols=[...Object.keys(LR[0]||{}).filter(k=>!HIDE.has(k)).map(k=>({k,l:ptxt(k),x:0})),...LX.map(c=>({k:c.slug,l:c.label,x:1}))];
+ const keep=[$('lArea').value,$('lSrc').value],u=f=>[...new Set(LR.map(f).filter(Boolean))].sort();
+ $('lArea').innerHTML='<option value="">All areas</option>'+u(r=>r.area).map(a=>`<option>${esc(a)}</option>`).join('');
+ $('lSrc').innerHTML='<option value="">All sources</option>'+u(r=>r.source).map(a=>`<option>${esc(a)}</option>`).join('');
+ $('lArea').value=keep[0];$('lSrc').value=keep[1];lrender()}
+function lfoot(){const S={};LV.forEach(r=>{const e=pend.get(r.id)||{};lcols.forEach(c=>{if(c.x||DATEC.has(c.k)||TEXTC.has(c.k)||NOTOT.has(c.k))return;
+  const k='f:'+c.k,v=k in e?e[k]:r[c.k],x=Number(String(v).replace(/,/g,''));if(v!==''&&v!=null&&!isNaN(x))S[c.k]=(S[c.k]||0)+x})});
+ return `<tr><td>Count: ${LV.length}</td>${lcols.map(c=>`<td>${!c.x&&c.k in S?fmt(S[c.k],2):''}</td>`).join('')}</tr>`}
+function lrender(){
+ const a=$('lArea').value,s=$('lSrc').value,f=$('lFrom').value,t=$('lTo').value,q=$('lQ').value.trim().toLowerCase();
+ LV=LR.filter(r=>(!a||r.area===a)&&(!s||r.source===s)&&(!f||(r.loading_date&&r.loading_date>=f))&&(!t||(r.loading_date&&r.loading_date<=t))&&
+  (!q||[r.sr_no,r.area,r.source,r.rr_number,r.fnot_no,r.invoice_no,r.rake_no,r.sample_id,r.rr_date,r.box_type].join(' ').toLowerCase().includes(q)));
+ const sh=LV.length>LMAX?LV.slice(-LMAX):LV;
+ $('lCnt').textContent=`${LV.length} of ${LR.length} records`+(LV.length>LMAX?` (showing latest ${LMAX}; totals cover all)`:'')+(pend.size?` · ${pend.size} unsaved`:'');
+ const val=(r,c)=>{const e=pend.get(r.id),key=(c.x?'x:':'f:')+c.k;return e&&key in e?e[key]:((c.x?(r.extra||{})[c.k]:r[c.k])??'')};
+ $('lTbl').innerHTML=`<thead><tr><th>Actions</th>${lcols.map(c=>`<th>${esc(c.l)}${c.x?' (extra)':''}</th>`).join('')}</tr></thead><tbody>`+
+  (sh.map(r=>`<tr data-id="${r.id}"${pend.has(r.id)?' class="dirty"':''}><td><button class="del" data-del="${r.id}" title="Delete row"><i class="fas fa-trash"></i></button></td>${lcols.map(c=>`<td><input data-x="${c.x}" data-k="${esc(c.k)}" value="${esc(val(r,c))}"></td>`).join('')}</tr>`).join('')||'<tr><td>No records.</td></tr>')+
+  `</tbody><tfoot id="lFoot">${lfoot()}</tfoot>`}
+$('lTbl').addEventListener('input',e=>{const i=e.target,tr=i.closest('tr[data-id]');if(!tr||!i.dataset.k)return;
+ const id=+tr.dataset.id,m=pend.get(id)||{};m[(i.dataset.x==='1'?'x:':'f:')+i.dataset.k]=i.value;pend.set(id,m);tr.classList.add('dirty');
+ $('lSt').textContent=pend.size+' row(s) edited, not saved yet';$('lFoot').innerHTML=lfoot()});
+$('lTbl').addEventListener('click',async e=>{const b=e.target.closest('[data-del]');if(!b||!confirm('Delete this record?'))return;
+ const id=+b.dataset.del,{error}=await db.from(T).delete().eq('id',id);if(error)return toast('Delete failed: '+error.message);
+ LR=LR.filter(r=>r.id!==id);pend.delete(id);toast('Record deleted');lrender()});
+['lArea','lSrc','lFrom','lTo'].forEach(id=>$(id).onchange=lrender);$('lQ').oninput=lrender;
+$('lMon').onchange=()=>{if(!pend.size||confirm('Discard unsaved edits?'))loadLog();else $('lMon').value=lastM};
+$('lRl').onclick=()=>{if(!pend.size||confirm('Discard unsaved edits?'))loadLog()};
+$('lClr').onclick=()=>{['lArea','lSrc','lFrom','lTo','lQ'].forEach(id=>$(id).value='');lrender()};
+$('lSave').onclick=async()=>{if(!pend.size)return toast('Nothing to save');const jobs=[];
+ for(const[id,ed]of pend){const row=LR.find(r=>r.id===id);if(!row)continue;const patch={},ex={...(row.extra||{})};
+  for(const[key,val]of Object.entries(ed)){const k=key.slice(2);
+   if(key[0]==='x'){if(val.trim()==='')delete ex[k];else ex[k]=val.trim()}
+   else{const c=cv(k,val);if(!c.ok)return toast(`Sr ${row.sr_no??id}: "${val}" is not valid for ${ptxt(k)}`);patch[k]=c.v}}
+  patch.extra=ex;jobs.push([id,patch])}
+ $('lSave').disabled=true;
+ try{for(let i=0;i<jobs.length;i+=10)await Promise.all(jobs.slice(i,i+10).map(async([id,p])=>{const{error}=await db.from(T).update(p).eq('id',id);if(error)throw error}));
+  toast(`Saved ${jobs.length} row(s)`);pend.clear();await loadLog()}catch(e){toast('Save failed: '+e.message)}
+ $('lSave').disabled=false};
 
-/* ==================== HELPERS ==================== */
-const $ = id => document.getElementById(id);
-const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const unwrap = ({ data, error }) => { if (error) throw error; return data; };
-const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-const monthLabel = p => { const [y, m] = p.split('-'); return `${MONTHS[+m - 1]} ${y}`; };
+/* ---- excel upload (same parsing rules as the PJPB MIS page) ---- */
+const norm=s=>String(s??'').toLowerCase().replace(/[^a-z0-9]/g,'');
+const FIELDS=[
+['sr_no','Sr No','int',['Sr No']],['loading_date','Loading Date','date',['Loading Date']],['area','AREA','text',['AREA']],['source','Source','text',['Source']],['unit','UNIT','text',['UNIT']],
+['allotment_time','Allotment date','text',['Allotment date']],['seq_no','Sr Seq no.','text',['Sr Seq no.','Rlw Seq. No.']],
+['reprogram_month','Reprogram Month of Loaded Rake','text',['Reprogram Month of Loaded rake, if Carryforward.','Reprogram Month of Loaded Rake']],
+['pt','P/T','text',['P/T']],['ct','C/T','text',['C/T']],['d_o','D/O','text',['D/O']],['supply_wagons','Supply Wagons','int',['Supply Wagons']],['load_wagons','Load Wagons','int',['Load Wagons']],
+['sick_wagons','Sick Wagons','int',['Sick Wagons']],['box_type','Box Type','text',['Box Type']],['net_wt','Net Wt.','num',['Net wt.']],
+['recv_qty','Recv Qty','num',['Billing / Rec Qty','Recv Qty','Recv Weight','Recv Wt','Received Qty']],['chargeable_wt','Chargeable Wt.','num',['Chargable Wt.','Chargeable Wt.']],
+['rr_weight','RR Weight','num',['RR Weight']],['rr_number','RR Number','text',['RR Number']],['plant_end_gcv','Plant End GCV','num',['PLANT END GCV','PLANT END GCV2']],['loading_end_gcv','Loading End GCV','num',['LOADING END GCV','LOAD END GCV']],['tm_pct','TM%','num',['TM%']],
+['rr_date','RR Date','date',['RR Date']],['fnot_no','FNOT No.','text',['FNOT No.']],['invoice_no','Invoice No.','text',['Invoice No.']],['ul','U/L','num',['U/L']],['ol','O/L','num',['O/L']],
+['chbl_pun_rate','CHBL at Pun Rate','num',['CHBL AT PUN RATE.']],['pol1','POL1','num',['POL1']],['pol2','POL2','num',['POL2']],['pola','POLA','num',['POLA']],['krba','KRBA','num',['KRBA']],
+['ladc','LADC','num',['LADC']],['pcla','PCLA','num',['PCLA']],['dcla','DCLA','num',['DCLA']],
+['pun_sum','Punitive Sum','num',['PUN SUM','Punitative Sum','POL1/PO2/POLA/PCLA/DCLA','POL1/PO2/POLA/PCLA/DCLA']],
+['sd','SD','num',['SD']],['sdcc','SDCC','num',['SDCC']],['st','ST','num',['ST']],['tc','TC','num',['TC']],['fauc','FAUC','num',['FAUC']],['gst','GST','num',['GST']],['enhc','ENHC','num',['ENHC']],
+['dc_sum','DC Sum','num',['DC sum','EHBC/FAUC/TC/ST']],['ehbc','EHBC','num',['EHBC']],['rr_freight_base','RR Freight Base Value','num',['RR Freight Base Value']],
+['railway_total_freight','Railway Total Freight','num',['Railway Total Freight']],['invoice_date','Invoice Date','date',['Invoice Date']],['invoice_number','Invoice Number','text',['Invoice Number']],
+['sample_collection_date','Date of Sample Collection','date',['Date of Sample Collection']],['rake_no','Rake No.','text',['Rake No.']],
+['prep_start_date','Sample Prep Commenced','date',['DATE OF SAMPLE PREPARATION COMMENCED']],['prep_50mm','Prep for 50 mm','text',['Preparation for 50 mm ( YES/NO)']],
+['prep_12_5mm','Prep for 12.5 mm','text',['Preparation for 12.5 mm ( YES/NO)']],['prep_3_35mm','Prep for 3.35 mm','text',['Preparation for 3.35 mm ( YES / NO)']],
+['prep_212_micron','Prep for 212 micron','text',['Preparation for 212 micron (YES/NO)']],['prep_end_date','Sample Prep Completed','date',['DATE OF SAMPLE PREPARATION COMPLETED']],
+['sample_id','Sample ID','text',['Sample ID']],['powder_status','Powder Status','text',['Powder Status']],['billed_qty','Billed Qty.','num',['Billed Qty.']],['basic_rate','Basic Rate','num',['Basic Rate']],
+['basic_price','Basic Price','num',['Basic Price']],['total_amount','Total Amount','num',['Total Amount']],
+['five_pct_freight','5% of Total Freight','num',['5% of Total Freight']],['ul_rate','UL Rate','num',['UL Rate']],['rate','Rate','num',['Rate']],['ul_charge','UL Charge','num',['UL Charge']],
+['puntative_sum','Puntative Sum','num',['Puntative Sum']],['per_ton_freight','Per ton Freight','num',['Per ton Freight']],['total_charges','Total Charges','num',['Total Charges']],
+['final_charges','Final Charges','num',['Final Charges','Final Charge']]];
+const FIELD_BY_DB=Object.fromEntries(FIELDS.map(f=>[f[0],{db:f[0],label:f[1],type:f[2]}])),ALIAS={};
+FIELDS.forEach(([db,label,,names])=>{[db,label,...names].forEach(x=>{const k=norm(x);if(k&&!(k in ALIAS))ALIAS[k]=db})});
+const MON={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
+const isoOf=(y,m,d)=>{if(m<1||m>12||d<1||d>31)return null;const dt=new Date(Date.UTC(y,m-1,d));if(dt.getUTCMonth()!==m-1)return null;return `${y}-${p2(m)}-${p2(d)}`};
+function toDateStr(v){
+ if(v==null||v==='')return null;
+ if(v instanceof Date)return isNaN(v)?undefined:isoOf(v.getFullYear(),v.getMonth()+1,v.getDate())??undefined;
+ if(typeof v==='number'){if(!isFinite(v)||v<1)return undefined;const d=new Date(Date.UTC(1899,11,30)+Math.floor(v)*86400000);return isoOf(d.getUTCFullYear(),d.getUTCMonth()+1,d.getUTCDate())??undefined}
+ let s=String(v).trim();if(!s||s==='0')return null;let m;
+ if((m=s.match(/(\d{1,2}[./-]\d{1,2}[./-]\d{4})/))&&/[A-Za-z]/.test(s))s=m[1];
+ if((m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/)))return isoOf(+m[1],+m[2],+m[3])??undefined;
+ if((m=s.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{2}|\d{4})\b/))){let y=+m[3];if(y<100)y+=2000;return isoOf(y,+m[2],+m[1])??undefined}
+ if((m=s.match(/^(\d{1,2})[- ]([A-Za-z]{3})[A-Za-z]*[- ,]+(\d{2}|\d{4})/))){const mo=MON[m[2].toLowerCase()];if(!mo)return undefined;let y=+m[3];if(y<100)y+=2000;return isoOf(y,mo,+m[1])??undefined}
+ return undefined}
+function toNumVal(v){if(v==null||v==='')return null;if(typeof v==='number')return isFinite(v)?v:undefined;
+ const s=String(v).trim().replace(/₹|Rs\.?|%/gi,'').replace(/[,\s]/g,'');if(!s)return null;if(!/^-?\d+(\.\d+)?$/.test(s))return undefined;return Number(s)}
+function toText(v){if(v==null)return null;const s=String(v).replace(/\s+/g,' ').trim();return s===''?null:s}
+function coerce(type,raw){
+ if(raw==null||(typeof raw==='string'&&raw.trim()===''))return{ok:true,value:null};
+ if(type==='date'){const d=toDateStr(raw);return d===undefined?{ok:false}:{ok:true,value:d}}
+ if(type==='int'||type==='num'){const x=toNumVal(raw);if(x===undefined)return{ok:false};return{ok:true,value:x===null?null:(type==='int'?Math.round(x):x)}}
+ return{ok:true,value:toText(raw)}}
+function periodFromName(name){const m=String(name).match(/(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)[A-Z]*\W*(\d{2}|\d{4})/i);if(!m)return null;let y=+m[2];if(y<100)y+=2000;return `${y}-${p2(MON[m[1].toLowerCase()])}`}
+function parseGrid(grid,sheetName){
+ const hdrIdx=grid.findIndex((r,i)=>i<20&&Array.isArray(r)&&r.some(c=>norm(c)==='srno'));
+ if(hdrIdx<0)return{sheetName,error:'No "Sr No" header row found in the first 20 rows'};
+ const hdr=grid[hdrIdx],dataRows=grid.slice(hdrIdx+1).filter(r=>Array.isArray(r));
+ const used=new Set(),seenSlug=new Set(),cols=[];
+ for(let j=0;j<hdr.length;j++){
+  const hasData=dataRows.some(r=>r[j]!=null&&String(r[j]).trim()!==''),label=hdr[j]==null||String(hdr[j]).trim()===''?null:String(hdr[j]).replace(/\s+/g,' ').trim();
+  if(!label&&!hasData)continue;
+  const name=label||`Column ${j+1}`,db=ALIAS[norm(name)];
+  if(db&&!used.has(db)){used.add(db);cols.push({j,label:FIELD_BY_DB[db].label,db,type:FIELD_BY_DB[db].type,slug:null})}
+  else{let slug=norm(name)||`col${j+1}`;if(seenSlug.has(slug))slug+=`_${j+1}`;seenSlug.add(slug);cols.push({j,label:name,db:null,type:null,slug})}}
+ if(!used.has('rr_number'))return{sheetName,error:'No "RR Number" column found, so no rows can be imported'};
+ const period=periodFromName(sheetName),rows=[],extraLabels={};let skipped=0;
+ for(const r of dataRows){
+  if(!r.some(c=>c!=null&&String(c).trim()!==''))continue;
+  const rec=Object.fromEntries(FIELDS.map(f=>[f[0],null])),extra={},labels={};
+  for(const c of cols){const raw=r[c.j];if(raw==null||String(raw).trim()==='')continue;
+   if(c.db){const k=coerce(c.type,raw);if(k.ok){rec[c.db]=k.value;continue}const slug=c.db+'_raw';extra[slug]=toText(raw);labels[slug]=c.label+' (raw)'}
+   else{extra[c.slug]=toText(raw);labels[c.slug]=c.label}}
+  if(rec.rr_number==null||rec.rr_number==='0'){skipped++;continue}
+  rec.sheet_name=sheetName;rec.extra=extra;rows.push(rec);Object.assign(extraLabels,labels)}
+ let finalPeriod=period;
+ if(!finalPeriod){const cnt={};rows.forEach(r=>{if(r.loading_date){const q=r.loading_date.slice(0,7);cnt[q]=(cnt[q]||0)+1}});finalPeriod=Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0]?.[0]||null}
+ rows.forEach(r=>{r.period=finalPeriod});
+ return{sheetName,period:finalPeriod,headerRow:hdrIdx+1,cols,rows,extraLabels,skipped,unmapped:cols.filter(c=>!c.db).map(c=>c.label)}}
 
-let toastTimer;
-function toast(msg, err) {
-  const t = $('toast');
-  t.textContent = msg;
-  t.classList.toggle('error', !!err);
-  t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), err ? 6000 : 3000);
-}
-const setStatus = (id, msg) => { $(id).textContent = msg; };
+const unwrap=({data,error})=>{if(error)throw error;return data},setSt=(id,m)=>{$(id).textContent=m};
+const loadReg=async()=>unwrap(await db.from(CT).select('*').order('created_at',{ascending:true}));
+let wbSheets=[],fileName='',knownImports={},registry={};
+const drop=$('drop'),fileInput=$('fileInput');
+drop.onclick=()=>fileInput.click();
+fileInput.onchange=e=>e.target.files[0]&&readFile(e.target.files[0]);
+['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('over')}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('over')}));
+drop.addEventListener('drop',e=>e.dataTransfer.files[0]&&readFile(e.dataTransfer.files[0]));
+async function readFile(file){
+ try{setSt('uploadStatus',`Reading ${file.name}...`);
+  const wb=XLSX.read(await file.arrayBuffer(),{type:'array'});fileName=file.name;
+  const[imps,reg]=await Promise.all([db.from(IMP).select('*').then(unwrap),loadReg()]);
+  knownImports=Object.fromEntries(imps.map(i=>[i.sheet_name,i]));registry=Object.fromEntries(reg.map(c=>[c.slug,c.label]));
+  wbSheets=wb.SheetNames.map(name=>{const grid=XLSX.utils.sheet_to_json(wb.Sheets[name],{header:1,raw:false,defval:null,blankrows:true}),res=parseGrid(grid,name);
+   return{...res,selected:!res.error&&/^PJPB/i.test(name.trim())}});
+  setSt('uploadStatus',`${file.name}: ${wbSheets.length} sheet(s) read. Tick the sheets to import.`);
+  $('sheetsPanel').hidden=false;renderSheets();renderMapping();renderPreview()}
+ catch(e){setSt('uploadStatus','Could not read file: '+e.message)}}
+function renderSheets(){
+ const head='<thead><tr><th>Use</th><th>Sheet</th><th>Period</th><th>Header row</th><th>Rows</th><th>Extra columns</th><th>Status</th></tr></thead>';
+ const body=wbSheets.map((s,i)=>{
+  if(s.error)return `<tr><td></td><td>${esc(s.sheetName)}</td><td colspan="5" class="mu">${esc(s.error)}</td></tr>`;
+  const imp=knownImports[s.sheetName],newCount=Object.keys(s.extraLabels).filter(k=>!registry[k]).length;
+  return `<tr><td><input type="checkbox" data-sheet="${i}" ${s.selected?'checked':''}></td><td>${esc(s.sheetName)}</td><td>${s.period?plab(s.period):'<span class="new">unknown</span>'}</td><td>${s.headerRow}</td>
+  <td>${s.rows.length}${s.skipped?` <span class="mu">(${s.skipped} rows without RR Number skipped)</span>`:''}</td>
+  <td>${Object.keys(s.extraLabels).length}${newCount?` <span class="new">(${newCount} new)</span>`:''}</td>
+  <td>${imp?'<span class="mu">Already imported, will be replaced</span>':'<span class="known">New</span>'}</td></tr>`}).join('');
+ $('sheetTbl').innerHTML=head+`<tbody>${body}</tbody>`}
+$('sheetTbl').addEventListener('change',e=>{const i=e.target.dataset.sheet;if(i===undefined)return;wbSheets[i].selected=e.target.checked;renderMapping();renderPreview()});
+const selectedSheets=()=>wbSheets.filter(s=>s.selected&&!s.error&&s.rows.length);
+function renderMapping(){
+ const sel=selectedSheets();if(!sel.length){$('mapPanel').hidden=true;return}
+ $('mapPanel').hidden=false;const seen=new Map();
+ sel.forEach(s=>s.cols.forEach(c=>{if(!seen.has(c.label))seen.set(c.label,{label:c.label,db:c.db,slug:c.slug,sheets:[]});seen.get(c.label).sheets.push(s.sheetName)}));
+ const items=[...seen.values()],newCount=items.filter(c=>!c.db&&!registry[c.slug]).length,extraCount=items.filter(c=>!c.db).length;
+ $('mapSummary').innerHTML=`${items.length} columns across ${sel.length} sheet(s): ${items.length-extraCount} matched to standard fields, ${extraCount} extra`+(newCount?` — <span class="new">${newCount} new, will be added to the log automatically</span>`:' — no new columns');
+ const body=items.map(c=>{let st,tg;
+  if(c.db){st='<span class="known">Standard field</span>';tg=esc(FIELD_BY_DB[c.db].label)}
+  else if(registry[c.slug]){st='<span class="mu">Extra (already known)</span>';tg='extra: '+esc(c.slug)}
+  else{st='<span class="new">NEW</span>';tg='extra: '+esc(c.slug)}
+  return `<tr><td>${esc(c.label)}</td><td>${tg}</td><td>${st}</td><td class="mu">${esc(c.sheets.join(', '))}</td></tr>`}).join('');
+ $('mapTbl').innerHTML='<thead><tr><th>Column in Excel</th><th>Stored as</th><th>Status</th><th>In sheets</th></tr></thead>'+`<tbody>${body}</tbody>`}
+const PCOLS=['sr_no','loading_date','area','source','supply_wagons','load_wagons','sick_wagons','rr_number','rr_date','fnot_no','invoice_no','total_amount','final_charges'];
+function renderPreview(){
+ const sel=selectedSheets();if(!sel.length){$('previewPanel').hidden=true;return}
+ $('previewPanel').hidden=false;const rows=sel[0].rows.slice(0,15);
+ $('previewTbl').innerHTML=`<thead><tr>${PCOLS.map(c=>`<th>${esc(FIELD_BY_DB[c].label)}</th>`).join('')}<th>Extra values</th></tr></thead><tbody>`+
+  rows.map(r=>`<tr>${PCOLS.map(c=>`<td>${esc(r[c]??'')}</td>`).join('')}<td class="mu">${Object.keys(r.extra).length}</td></tr>`).join('')+'</tbody>';
+ $('importNote').textContent=`${sel.reduce((t,s)=>t+s.rows.length,0)} rows (with RR Number) from ${sel.length} sheet(s) will be saved.`}
+async function importSelected(){
+ const sel=selectedSheets();if(!sel.length)return toast('Tick at least one sheet');
+ const existing=sel.filter(s=>knownImports[s.sheetName]).map(s=>s.sheetName);
+ if(existing.length&&!confirm(`These sheets were imported before and will be replaced with this file's data:\n\n${existing.join('\n')}\n\nContinue?`))return;
+ $('importBtn').disabled=true;
+ try{for(const s of sel){
+   setSt('importNote',`Saving ${s.sheetName} (${s.rows.length} rows)...`);
+   unwrap(await db.from(T).delete().eq('sheet_name',s.sheetName));
+   for(let i=0;i<s.rows.length;i+=500)unwrap(await db.from(T).insert(s.rows.slice(i,i+500)));
+   const newCols=Object.entries(s.extraLabels).map(([slug,label])=>({slug,label,first_period:s.period}));
+   if(newCols.length)unwrap(await db.from(CT).upsert(newCols,{onConflict:'slug',ignoreDuplicates:true}));
+   unwrap(await db.from(IMP).upsert({sheet_name:s.sheetName,period:s.period,file_name:fileName,row_count:s.rows.length,imported_at:new Date().toISOString()},{onConflict:'sheet_name'}))}
+  toast(`Saved ${sel.reduce((t,s)=>t+s.rows.length,0)} rows from ${sel.length} sheet(s)`);setSt('importNote','Done. Open Records Log or Dashboard to view.');
+  knownImports=Object.fromEntries(unwrap(await db.from(IMP).select('*')).map(i=>[i.sheet_name,i]));
+  registry=Object.fromEntries((await loadReg()).map(c=>[c.slug,c.label]));
+  $('lMon').innerHTML='';renderSheets();renderMapping();load()}
+ catch(e){toast('Import failed: '+e.message);setSt('importNote','Import stopped. Rows saved before the error remain in the database; re-run to replace them.')}
+ finally{$('importBtn').disabled=false}}
+$('importBtn').onclick=importSelected;
 
-/* ==================== NAV ==================== */
-
-initLog();
-
-document.querySelectorAll('.nav').forEach(btn => btn.onclick = () => {
-  document.querySelectorAll('.nav').forEach(b => b.classList.toggle('active', b === btn));
-  document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + btn.dataset.view));
-  if (btn.dataset.view === 'upload') loadRegistry().catch(() => {});
-});
-
-/* ==================== RECORDS LOG ==================== */
-let logRows = [], rowsById = new Map(), extraCols = [];
-let pending = new Map();   // id -> { 'f:key' | 'x:key' : edited text }  (survives filter changes until saved)
-let viewRows = [];         // rows matching the current filters (the totals row is calculated from these)
-const LOG_FIELDS = FIELDS.map(([db, label, type]) => ({ kind: 'f', key: db, label, type }));
-// numeric columns that make no sense to add up (rates, percentages, serial no.)
-const NO_TOTAL = new Set(['sr_no','plant_end_gcv','tm_pct','basic_rate','ul_rate','rate','per_ton_freight','chbl_pun_rate']);
-
-async function fetchAllRows(build) {
-  const out = [], PAGE = 1000;
-  for (let from = 0; ; from += PAGE) {
-    const rows = unwrap(await build(db.from(T).select('*'))
-      .order('loading_date', { ascending: true, nullsFirst: false })
-      .order('id', { ascending: true })
-      .range(from, from + PAGE - 1));
-    out.push(...rows);
-    if (rows.length < PAGE) break;
-  }
-  return out;
-}
-async function loadRegistry() {
-  extraCols = unwrap(await db.from(COLS_T).select('*').order('created_at', { ascending: true }));
-  return extraCols;
-}
-async function initLog() {
-  try {
-    const imports = unwrap(await db.from(IMP).select('period').order('period', { ascending: false }));
-    const periods = [...new Set(imports.map(i => i.period).filter(Boolean))];
-    $('logMonth').innerHTML = '<option value="">All months</option>' + periods.map(p => `<option value="${p}">${monthLabel(p)}</option>`).join('');
-    $('logMonth').value = periods[0] || '';
-  } catch (e) { toast('Could not load months: ' + e.message, true); }
-  await loadLog();
-}
-// Ask before throwing away unsaved edits
-function canDiscard() {
-  return pending.size === 0 || confirm(`You have unsaved edits on ${pending.size} row(s). Discard them?`);
-}
-async function loadLog() {
-  setStatus('logStatus', 'Loading...');
-  const month = $('logMonth').value;
-  try {
-    logRows = await fetchAllRows(q => month ? q.eq('period', month) : q);
-    await loadRegistry();
-  } catch (e) { toast('Could not load records: ' + e.message, true); setStatus('logStatus', ''); return; }
-  pending.clear();
-  lastMonth = month;
-  rowsById = new Map(logRows.map(r => [r.id, r]));
-  fillFilterOptions();
-  setStatus('logStatus', '');
-  renderLog();
-}
-function fillFilterOptions() {
-  const keep = { area: $('logArea').value, source: $('logSource').value };
-  const areas = [...new Set(logRows.map(r => r.area).filter(Boolean))].sort();
-  const sources = [...new Set(logRows.map(r => r.source).filter(Boolean))].sort();
-  $('logArea').innerHTML = '<option value="">All areas</option>' + areas.map(a => `<option>${esc(a)}</option>`).join('');
-  $('logSource').innerHTML = '<option value="">All sources</option>' + sources.map(s => `<option>${esc(s)}</option>`).join('');
-  $('logArea').value = keep.area; $('logSource').value = keep.source;
-}
-function logColumns() {
-  return [...LOG_FIELDS, ...extraCols.map(c => ({ kind: 'x', key: c.slug, label: c.label, type: 'text' }))];
-}
-function filteredRows() {
-  const area = $('logArea').value, src = $('logSource').value;
-  const from = $('logFrom').value, to = $('logTo').value;
-  const q = $('logSearch').value.trim().toLowerCase();
-  return logRows.filter(r => {
-    if (area && r.area !== area) return false;
-    if (src && r.source !== src) return false;
-    if (from && (!r.loading_date || r.loading_date < from)) return false;
-    if (to && (!r.loading_date || r.loading_date > to)) return false;
-    if (q) {
-      const hay = [r.sr_no, r.loading_date, r.area, r.source, r.rr_number, r.fnot_no, r.invoice_no, r.rake_no, r.sample_id, r.rr_date, r.box_type].join(' ').toLowerCase();
-      if (!hay.includes(q)) return false;
-    }
-    return true;
-  });
-}
-// Totals row: count of filtered rows at the left, sums of the numeric columns (all filtered rows, not only the 300 shown)
-function footHtml(cols) {
-  const sums = {};
-  for (const r of viewRows) {
-    const edits = pending.get(r.id) || {};
-    for (const c of cols) {
-      if (c.kind !== 'f' || (c.type !== 'num' && c.type !== 'int') || NO_TOTAL.has(c.key)) continue;
-      const k = 'f:' + c.key;
-      const n = toNumVal(k in edits ? edits[k] : r[c.key]);
-      if (typeof n === 'number') sums[c.key] = (sums[c.key] || 0) + n;
-    }
-  }
-  const fmt = n => n.toLocaleString('en-IN', { maximumFractionDigits: 2 });
-  return `<tr><td class="act">Count: ${viewRows.length}</td>${cols.map(c => `<td>${c.kind === 'f' && c.key in sums ? fmt(sums[c.key]) : ''}</td>`).join('')}</tr>`;
-}
-function renderLog() {
-  const cols = logColumns();
-  const rows = filteredRows();
-  viewRows = rows;
-  const shown = rows.length > LOG_MAX ? rows.slice(-LOG_MAX) : rows;
-  $('logCount').textContent = `${rows.length} of ${logRows.length} records` +
-    (rows.length > LOG_MAX ? ` (showing latest ${LOG_MAX}, search to narrow; totals cover all ${rows.length})` : '') +
-    (pending.size ? ` · ${pending.size} unsaved` : '');
-  const head = `<thead><tr><th class="act">Actions</th>${cols.map(c => `<th>${esc(c.label)}${c.kind === 'x' ? ' <span class="tag">extra</span>' : ''}</th>`).join('')}</tr></thead>`;
-  const body = shown.map(r => {
-    const edits = pending.get(r.id) || {};
-    const cells = cols.map(c => {
-      const k = `${c.kind}:${c.key}`;
-      const stored = c.kind === 'f' ? r[c.key] : (r.extra || {})[c.key];
-      const v = k in edits ? edits[k] : (stored ?? '');
-      return `<td><input data-kind="${c.kind}" data-key="${esc(c.key)}" value="${esc(v)}"></td>`;
-    }).join('');
-    return `<tr data-id="${r.id}"${pending.has(r.id) ? ' class="dirty"' : ''}><td class="act"><button class="del" data-del="${r.id}" title="Delete row"><i class="fas fa-trash"></i></button></td>${cells}</tr>`;
-  }).join('');
-  $('logTbl').innerHTML = head + `<tbody>${body}</tbody><tfoot id="logFoot">${footHtml(cols)}</tfoot>`;
-}
-
-// Turn one row's pending edits into a database update
-function patchFromEdits(row, edits) {
-  const patch = {};
-  const extra = { ...(row.extra || {}) };
-  let error = null;
-  for (const [k, val] of Object.entries(edits)) {
-    const [kind, key] = [k.slice(0, 1), k.slice(2)];
-    if (kind === 'f') {
-      const f = FIELD_BY_DB[key];
-      const res = coerce(f.type, val.trim() === '' ? null : val);
-      if (!res.ok) { error = error || `${f.label}: "${val}" is not a valid ${f.type === 'date' ? 'date (dd.mm.yyyy)' : 'number'}`; continue; }
-      patch[key] = res.value;
-    } else {
-      if (val.trim() === '') delete extra[key]; else extra[key] = val.trim();
-    }
-  }
-  patch.extra = extra;
-  return error ? { error } : { patch };
-}
-
-async function saveAll() {
-  if (!pending.size) return toast('Nothing to save');
-  const jobs = [];
-  for (const [id, edits] of pending) {
-    const row = rowsById.get(id);
-    if (!row) continue;
-    const res = patchFromEdits(row, edits);
-    if (res.error) return toast(`Sr ${row.sr_no ?? id}: ${res.error}`, true);
-    jobs.push([id, res.patch]);
-  }
-  $('logSaveAll').disabled = true;
-  try {
-    for (let i = 0; i < jobs.length; i += 10) {
-      await Promise.all(jobs.slice(i, i + 10).map(([id, p]) => db.from(T).update(p).eq('id', id).then(unwrap)));
-    }
-    toast(`Saved ${jobs.length} row(s)`);
-    await loadLog();
-  } catch (e) { toast('Save failed: ' + e.message, true); }
-  finally { $('logSaveAll').disabled = false; }
-}
-
-$('logTbl').addEventListener('input', e => {
-  const inp = e.target, tr = inp.closest('tr[data-id]');
-  if (!tr || !inp.dataset.kind) return;
-  const id = Number(tr.dataset.id);
-  const edits = pending.get(id) || {};
-  edits[`${inp.dataset.kind}:${inp.dataset.key}`] = inp.value;
-  pending.set(id, edits);
-  tr.classList.add('dirty');
-  setStatus('logStatus', `${pending.size} row(s) edited, not saved yet`);
-  const foot = $('logFoot'); if (foot) foot.innerHTML = footHtml(logColumns());   // keep totals in step with edits
-});
-$('logTbl').addEventListener('click', async e => {
-  const btn = e.target.closest('[data-del]');
-  if (!btn) return;
-  const id = Number(btn.dataset.del);
-  if (!confirm('Delete this record?')) return;
-  try {
-    unwrap(await db.from(T).delete().eq('id', id));
-    toast('Record deleted');
-    logRows = logRows.filter(r => r.id !== id); rowsById.delete(id); pending.delete(id);
-    renderLog();
-  } catch (err) { toast('Delete failed: ' + err.message, true); }
-});
-['logArea', 'logSource', 'logFrom', 'logTo'].forEach(id => $(id).addEventListener('change', renderLog));
-$('logSearch').addEventListener('input', renderLog);
-let lastMonth = '';
-$('logMonth').addEventListener('change', () => { if (canDiscard()) { lastMonth = $('logMonth').value; loadLog(); } else { $('logMonth').value = lastMonth; } });
-$('logReload').onclick = () => { if (canDiscard()) loadLog(); };
-$('logClear').onclick = () => {
-  $('logArea').value = ''; $('logSource').value = ''; $('logFrom').value = ''; $('logTo').value = ''; $('logSearch').value = '';
-  renderLog();
-};
-$('logSaveAll').onclick = saveAll;
-
-/* ==================== EXCEL UPLOAD ==================== */
-let wbSheets = [], fileName = '', knownImports = {}, registry = {};
-
-const drop = $('drop'), fileInput = $('fileInput');
-drop.onclick = () => fileInput.click();
-fileInput.onchange = e => e.target.files[0] && readFile(e.target.files[0]);
-['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
-['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
-drop.addEventListener('drop', e => e.dataTransfer.files[0] && readFile(e.dataTransfer.files[0]));
-
-async function readFile(file) {
-  try {
-    setStatus('uploadStatus', `Reading ${file.name}...`);
-    const wb = XLSX.read(await file.arrayBuffer(), { type: 'array' });
-    fileName = file.name;
-    const [imps] = await Promise.all([db.from(IMP).select('*').then(unwrap), loadRegistry()]);
-    knownImports = Object.fromEntries(imps.map(i => [i.sheet_name, i]));
-    registry = Object.fromEntries(extraCols.map(c => [c.slug, c.label]));
-    wbSheets = wb.SheetNames.map(name => {
-      const grid = XLSX.utils.sheet_to_json(wb.Sheets[name], { header: 1, raw: false, defval: null, blankrows: true });
-      const res = parseGrid(grid, name);
-      return { ...res, selected: !res.error && /^PJPB/i.test(name.trim()) };
-    });
-    setStatus('uploadStatus', `${file.name}: ${wbSheets.length} sheet(s) read. Tick the sheets to import.`);
-    $('sheetsPanel').hidden = false;
-    renderSheets(); renderMapping(); renderPreview();
-  } catch (e) {
-    setStatus('uploadStatus', 'Could not read file: ' + e.message);
-  }
-}
-
-function renderSheets() {
-  const head = '<thead><tr><th>Use</th><th>Sheet</th><th>Period</th><th>Header row</th><th>Rows</th><th>Extra columns</th><th>Status</th></tr></thead>';
-  const body = wbSheets.map((s, i) => {
-    if (s.error) return `<tr><td></td><td>${esc(s.sheetName)}</td><td colspan="5" class="muted">${esc(s.error)}</td></tr>`;
-    const imp = knownImports[s.sheetName];
-    const newCount = Object.keys(s.extraLabels).filter(k => !registry[k]).length;
-    return `<tr>
-      <td><input type="checkbox" data-sheet="${i}" ${s.selected ? 'checked' : ''}></td>
-      <td>${esc(s.sheetName)}</td>
-      <td>${s.period ? monthLabel(s.period) : '<span class="new">unknown</span>'}</td>
-      <td>${s.headerRow}</td>
-      <td>${s.rows.length}${s.skipped ? ` <span class="muted">(${s.skipped} rows without RR Number skipped)</span>` : ''}</td>
-      <td>${Object.keys(s.extraLabels).length}${newCount ? ` <span class="new">(${newCount} new)</span>` : ''}</td>
-      <td>${imp ? `<span class="muted">Already imported, will be replaced</span>` : '<span class="known">New</span>'}</td>
-    </tr>`;
-  }).join('');
-  $('sheetTbl').innerHTML = head + `<tbody>${body}</tbody>`;
-}
-$('sheetTbl').addEventListener('change', e => {
-  const i = e.target.dataset.sheet;
-  if (i === undefined) return;
-  wbSheets[i].selected = e.target.checked;
-  renderMapping(); renderPreview();
-});
-
-function selectedSheets() { return wbSheets.filter(s => s.selected && !s.error && s.rows.length); }
-
-function renderMapping() {
-  const sel = selectedSheets();
-  if (!sel.length) { $('mapPanel').hidden = true; return; }
-  $('mapPanel').hidden = false;
-  const seen = new Map();
-  sel.forEach(s => s.cols.forEach(c => {
-    if (!seen.has(c.label)) seen.set(c.label, { label: c.label, db: c.db, slug: c.slug, sheets: [] });
-    seen.get(c.label).sheets.push(s.sheetName);
-  }));
-  const items = [...seen.values()];
-  const newCount = items.filter(c => !c.db && !registry[c.slug]).length;
-  const extraCount = items.filter(c => !c.db).length;
-  $('mapSummary').innerHTML = `${items.length} columns across ${sel.length} sheet(s): ${items.length - extraCount} matched to standard fields, ${extraCount} extra` +
-    (newCount ? ` — <span class="new">${newCount} new, will be added to the log automatically</span>` : ' — no new columns');
-  const head = '<thead><tr><th>Column in Excel</th><th>Stored as</th><th>Status</th><th>In sheets</th></tr></thead>';
-  const body = items.map(c => {
-    let status, target;
-    if (c.db) { status = '<span class="known">Standard field</span>'; target = esc(FIELD_BY_DB[c.db].label); }
-    else if (registry[c.slug]) { status = '<span class="muted">Extra (already known)</span>'; target = `extra: ${esc(c.slug)}`; }
-    else { status = '<span class="new">NEW</span>'; target = `extra: ${esc(c.slug)}`; }
-    return `<tr><td>${esc(c.label)}</td><td>${target}</td><td>${status}</td><td class="muted">${esc(c.sheets.join(', '))}</td></tr>`;
-  }).join('');
-  $('mapTbl').innerHTML = head + `<tbody>${body}</tbody>`;
-}
-
-const PREVIEW_COLS = ['sr_no','loading_date','area','source','supply_wagons','load_wagons','sick_wagons','rr_number','rr_date','fnot_no','invoice_no','total_amount','final_charges'];
-function renderPreview() {
-  const sel = selectedSheets();
-  if (!sel.length) { $('previewPanel').hidden = true; return; }
-  $('previewPanel').hidden = false;
-  const rows = sel[0].rows.slice(0, 15);
-  const head = `<thead><tr>${PREVIEW_COLS.map(c => `<th>${esc(FIELD_BY_DB[c].label)}</th>`).join('')}<th>Extra values</th></tr></thead>`;
-  const body = rows.map(r => `<tr>${PREVIEW_COLS.map(c => `<td>${esc(r[c] ?? '')}</td>`).join('')}<td class="muted">${Object.keys(r.extra).length}</td></tr>`).join('');
-  $('previewTbl').innerHTML = head + `<tbody>${body}</tbody>`;
-  const total = sel.reduce((n, s) => n + s.rows.length, 0);
-  $('importNote').textContent = `${total} rows (with RR Number) from ${sel.length} sheet(s) will be saved.`;
-}
-
-async function importSelected() {
-  const sel = selectedSheets();
-  if (!sel.length) return toast('Tick at least one sheet', true);
-  const existing = sel.filter(s => knownImports[s.sheetName]).map(s => s.sheetName);
-  if (existing.length && !confirm(`These sheets were imported before and will be replaced with this file's data:\n\n${existing.join('\n')}\n\nContinue?`)) return;
-  $('importBtn').disabled = true;
-  try {
-    for (const s of sel) {
-      setStatus('importNote', `Saving ${s.sheetName} (${s.rows.length} rows)...`);
-      unwrap(await db.from(T).delete().eq('sheet_name', s.sheetName));
-      for (let i = 0; i < s.rows.length; i += 500) {
-        unwrap(await db.from(T).insert(s.rows.slice(i, i + 500)));
-      }
-      const newCols = Object.entries(s.extraLabels).map(([slug, label]) => ({ slug, label, first_period: s.period }));
-      if (newCols.length) unwrap(await db.from(COLS_T).upsert(newCols, { onConflict: 'slug', ignoreDuplicates: true }));
-      unwrap(await db.from(IMP).upsert({
-        sheet_name: s.sheetName, period: s.period, file_name: fileName,
-        row_count: s.rows.length, imported_at: new Date().toISOString()
-      }, { onConflict: 'sheet_name' }));
-    }
-    toast(`Saved ${sel.reduce((n, s) => n + s.rows.length, 0)} rows from ${sel.length} sheet(s)`);
-    setStatus('importNote', 'Done. Open Records Log to view.');
-    const imps = unwrap(await db.from(IMP).select('*'));
-    knownImports = Object.fromEntries(imps.map(i => [i.sheet_name, i]));
-    await loadRegistry();
-    registry = Object.fromEntries(extraCols.map(c => [c.slug, c.label]));
-    renderSheets(); renderMapping();
-  } catch (e) {
-    toast('Import failed: ' + e.message, true);
-    setStatus('importNote', 'Import stopped. Rows saved before the error remain in the database; re-run to replace them.');
-  } finally { $('importBtn').disabled = false; }
-}
-$('importBtn').onclick = importSelected;
-</script>
-</body>
-</html>
+build();load();setInterval(()=>{if(!document.hidden&&$('v-dash').classList.contains('on'))load()},60000);
+</script></body></html>
