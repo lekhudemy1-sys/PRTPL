@@ -67,7 +67,7 @@ td:first-child{text-align:left;font-weight:700;background:#f7f3fd}
 <div class="act"><select id="per"></select><button class="btn s" id="rl"><i class="fas fa-rotate"></i> Reload</button><button class="btn" id="png"><i class="fas fa-image"></i> Export PNG</button></div></div>
 <div class="cols" id="cols"></div>
 <div class="card a5" style="margin-bottom:.8rem"><h3><i class="fas fa-industry"></i> Area Wise Performance</h3><div class="tw"><table id="mines"></table></div></div>
-<div class="card a1" style="margin-bottom:.8rem"><h3><i class="fas fa-calendar"></i> Quarter Performance</h3><div class="tw"><table><thead><tr><th>Quarter</th><th>Rakes</th><th>Quantity (RR Wt)</th><th>Billing (Service Charge)</th><th>Bonus (GCV + Qty Reco)</th><th>Deduction (Penalty)</th><th>Amount (Bonus − Deduction)</th></tr></thead><tbody id="qtr"></tbody></table></div></div>
+<div class="card a1" style="margin-bottom:.8rem"><h3><i class="fas fa-calendar"></i> Quarter Performance</h3><div class="tw"><table><thead><tr><th>Quarter</th><th>Rakes</th><th>Quantity (RR Wt)</th><th>Billing (Service Charge)</th><th>Deduction (GCV + Qty Reco + Penalty)</th><th>Amount (Billing + Deduction)</th></tr></thead><tbody id="qtr"></tbody></table></div></div>
 <div class="card a4" id="ncard" style="display:none"><h3><i class="fas fa-bullhorn"></i> Notice</h3><div class="ntc" id="ntc"></div></div>
 </div></section>
 
@@ -193,7 +193,7 @@ const H=(a,b)=>`<div class="hd"><span>${a}</span><span>${b}</span></div>`;
 function build(){
  const C=(c,ic,t,b)=>`<div class="card ${c}"><h3><i class="fas ${ic}"></i> ${t}</h3><div class="bd">${b}</div></div>`;
  const area=C('a1','fa-map-pin','Area Targets (Quarter)',`<div class="tw"><table><thead><tr><th></th>${AREAS.map(a=>`<th>${a}</th>`).join('')}</tr></thead><tbody>${[['Target of Quarter','tgt'],['Rake Loaded Till','load'],['Balance Rake','bal'],['Asking Per Day','ask']].map(([l,k])=>`<tr><td>${l}</td>${AREAS.map(a=>`<td id="${k+a}"></td>`).join('')}</tr>`).join('')}</tbody></table></div>`);
- const gcv=C('a2','fa-fire','Avg. Wt. GCV &amp; Per GCV Cost',H('Avg. Wt. GCV','Per GCV Cost')+AREAS.map(a=>R(`(${a})`,'gcv'+a,'cost'+a)).join(''));
+ const gcv=C('a2','fa-fire','Avg. Wt. GCV',H('Avg. Wt. GCV','')+AREAS.map(a=>R(`(${a})`,'gcv'+a)).join(''));
  const rake=C('a4','fa-train','Rake Performance',H('Achieve','Target')+R('Per Day Rakes','pdRakeAch','pdRakeTgt'));
  const wts=C('a5','fa-weight-hanging','Weights &amp; GCV',R('Avg. CH.Wt.','avgCh')+R('Avg. RR.Wt.','avgRr')+R('Total RR Weight','totRr'));
  const bill=C('a2','fa-indian-rupee-sign','Billing Performance',H('Billing','Per MT')+R('Service Charge (Quarter)','svcAll','svcAllMt')+R('Performance on Quantity Reco (SECL)','seclInc','seclIncMt')+R('Performance on GCV Reco','billGcv','billGcvMt')+R('TOTAL PENALTY','pen5','pen5Mt')+R('TOTAL BILLING','totalBill','totalBillMt','tot')+R('Expected Billing of the Quarter','expBill'));
@@ -211,10 +211,11 @@ function paint(o){
 let seq=0;
 const cycleOf=k=>{const y=+k.slice(0,4),st=+k.slice(5)>=5?y:y-1;return[st+'-05',st+'-08',st+'-11',(st+1)+'-02']};
 async function load(){const s=++seq;$('plab').textContent='AMM PJPB • '+qlab(PER);
- try{const o=await compute(PER);if(s!==seq)return;const q=await svcQ(PER);if(s!==seq)return;svcApply(o,q);const pf=pfCalc(await getPf(PER),q.D,q.S);if(s!==seq)return;o.seclInc=pf.inc;o.seclIncMt=o.totRr?pf.inc/o.totRr:0;o.totalBill+=pf.inc-o.billQty;const gp=await gcvCalc(PER),gT=gp.out.reduce((t,x)=>t+x.amt,0);if(s!==seq)return;o.billGcv=gT;o.billGcvMt=o.totRr?gT/o.totRr:0;o.totalBill+=gT;o.totalBillMt=o.totRr?o.totalBill/o.totRr:0;paint(o);
+ try{const o=await compute(PER);if(s!==seq)return;const q=await svcQ(PER);if(s!==seq)return;svcApply(o,q);const pf=pfCalc(await getPf(PER),q.D,q.S);if(s!==seq)return;o.seclInc=pf.inc;o.seclIncMt=o.totRr?pf.inc/o.totRr:0;o.totalBill+=pf.inc-o.billQty;const gp=await gcvCalc(PER),gT=gp.out.reduce((t,x)=>t+x.amt,0);if(s!==seq)return;o.billGcv=gT;o.billGcvMt=o.totRr?gT/o.totRr:0;o.totalBill+=gT;o.totalBillMt=o.totRr?o.totalBill/o.totRr:0;{const[pa,tot]=o._days;o.expBill=pa?(o.totalBill-o.svcAll)/pa*tot+o.svcAll:0};paint(o);
   const QF=cycleOf(PER),xs=await Promise.all(QF.map(qs=>qs===PER?o:compute(qs))),qv=await Promise.all(QF.map(qs=>qs===PER?q:svcQ(qs))),qp=await Promise.all(QF.map(qs=>getPf(qs))),pfs=QF.map((qs,i)=>pfCalc(qp[i],qv[i].D,qv[i].S)),gq=await Promise.all(QF.map(qs=>gcvCalc(qs)));
-  $('qtr').innerHTML=QF.map((qs,i)=>{const x=xs[i],bonus=gq[i].out.reduce((t,y)=>t+y.amt,0)+pfs[i].inc,ded=x.pen5,amt=bonus+ded,sc=qv[i].res.sc;
-   return `<tr${qs===PER?' style="background:#efe9fb"':''}><td>${qlab(qs)}</td><td>${fmt(x._recs.length)}</td><td>${fmt(x.totRr)}</td><td>${fmt(sc)}</td><td>${fmt(bonus)}</td><td style="color:#b3162b">${fmt(ded)}</td><td style="color:${amt<0?'#b3162b':'#0c7a55'}">${fmt(amt)}</td></tr>`}).join('')}
+  $('qtr').innerHTML=QF.map((qs,i)=>{const x=xs[i],gT=gq[i].out.reduce((t,y)=>t+y.amt,0),qI=pfs[i].inc,ded=x.pen5+gT+qI,sc=qv[i].res.sc,amt=sc+ded;
+   return `<tr${qs===PER?' style="background:#efe9fb"':''}><td>${qlab(qs)}</td><td>${fmt(x._recs.length)}</td><td>${fmt(x.totRr)}</td><td>${fmt(sc)}</td><td style="color:#b3162b">${fmt(ded)}</td><td style="color:${amt<0?'#b3162b':'#0c7a55'}">${fmt(amt)}</td></tr>`}).join('');
+ }
  catch(e){console.error(e);toast('Could not load: '+(e.message||'error'))}}
 
 /* ---- settings screen ---- */
