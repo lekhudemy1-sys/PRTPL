@@ -211,9 +211,9 @@ function paint(o){
 let seq=0;
 const cycleOf=k=>{const y=+k.slice(0,4),st=+k.slice(5)>=5?y:y-1;return[st+'-05',st+'-08',st+'-11',(st+1)+'-02']};
 async function load(){const s=++seq;$('plab').textContent='AMM PJPB • '+qlab(PER);
- try{const o=await compute(PER);if(s!==seq)return;const q=await svcQ(PER);if(s!==seq)return;svcApply(o,q);const pf=pfCalc(await getPf(PER),q.D,q.S);if(s!==seq)return;o.seclInc=pf.inc;o.seclIncMt=o.totRr?pf.inc/o.totRr:0;o.totalBill+=pf.inc-o.billQty;o.totalBillMt=o.totRr?o.totalBill/o.totRr:0;paint(o);
-  const QF=cycleOf(PER),xs=await Promise.all(QF.map(qs=>qs===PER?o:compute(qs))),qv=await Promise.all(QF.map(qs=>qs===PER?q:svcQ(qs))),qp=await Promise.all(QF.map(qs=>getPf(qs))),pfs=QF.map((qs,i)=>pfCalc(qp[i],qv[i].D,qv[i].S));
-  $('qtr').innerHTML=QF.map((qs,i)=>{const x=xs[i],bonus=x.billGcv+pfs[i].inc,ded=x.pen5,amt=bonus+ded,sc=qv[i].res.sc;
+ try{const o=await compute(PER);if(s!==seq)return;const q=await svcQ(PER);if(s!==seq)return;svcApply(o,q);const pf=pfCalc(await getPf(PER),q.D,q.S);if(s!==seq)return;o.seclInc=pf.inc;o.seclIncMt=o.totRr?pf.inc/o.totRr:0;o.totalBill+=pf.inc-o.billQty;const gp=await gcvCalc(PER),gT=gp.out.reduce((t,x)=>t+x.amt,0);if(s!==seq)return;o.billGcv=gT;o.billGcvMt=o.totRr?gT/o.totRr:0;o.totalBill+=gT;o.totalBillMt=o.totRr?o.totalBill/o.totRr:0;paint(o);
+  const QF=cycleOf(PER),xs=await Promise.all(QF.map(qs=>qs===PER?o:compute(qs))),qv=await Promise.all(QF.map(qs=>qs===PER?q:svcQ(qs))),qp=await Promise.all(QF.map(qs=>getPf(qs))),pfs=QF.map((qs,i)=>pfCalc(qp[i],qv[i].D,qv[i].S)),gq=await Promise.all(QF.map(qs=>gcvCalc(qs)));
+  $('qtr').innerHTML=QF.map((qs,i)=>{const x=xs[i],bonus=gq[i].out.reduce((t,y)=>t+y.amt,0)+pfs[i].inc,ded=x.pen5,amt=bonus+ded,sc=qv[i].res.sc;
    return `<tr${qs===PER?' style="background:#efe9fb"':''}><td>${qlab(qs)}</td><td>${fmt(x._recs.length)}</td><td>${fmt(x.totRr)}</td><td>${fmt(sc)}</td><td>${fmt(bonus)}</td><td style="color:#b3162b">${fmt(ded)}</td><td style="color:${amt<0?'#b3162b':'#0c7a55'}">${fmt(amt)}</td></tr>`}).join('')}
  catch(e){console.error(e);toast('Could not load: '+(e.message||'error'))}}
 
