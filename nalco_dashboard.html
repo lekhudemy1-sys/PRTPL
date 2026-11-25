@@ -53,11 +53,17 @@ body:not(.unlocked) .pro{display:none}
 .mt th{background:linear-gradient(120deg,var(--navy),var(--navy2));color:#fff;font-size:.72rem;text-transform:uppercase;padding:.6rem .5rem}
 .mt td{border-bottom:1px solid var(--line);text-align:center;font-weight:700;font-size:.85rem;padding:.5rem;font-variant-numeric:tabular-nums}.mt td.neg{color:var(--neg)}.mt td:first-child{text-align:left;padding-left:.8rem}
 .mt tbody tr:nth-child(even) td{background:var(--zebra)}
-/* Area Wise + Tracker + Notice: small, centred, side by side */
-.aw-row{display:flex;justify-content:center;align-items:flex-start;gap:1.2rem;flex-wrap:wrap;margin-bottom:1.2rem}
-.aw-card{flex:0 1 620px;min-width:280px}.aw-card .mt{min-width:0}.aw-card .mt th{padding:.4rem .4rem;font-size:.66rem}.aw-card .mt td{padding:.3rem .4rem;font-size:.78rem}
-.c-tracker{flex:0 1 500px;min-width:300px}.c-tracker .mt td.ctr{text-align:center;padding-left:.4rem}.c-tracker .wrap+.wrap{margin-top:.8rem}
-.c-notice{width:100%;min-width:0;margin-top:1rem}.c-notice::before{background:linear-gradient(90deg,#d9a21a,#f1d98f)}
+/* Area Wise Performance and Tracker share the row equally */
+.aw-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.2rem;align-items:start;margin-bottom:1.2rem}
+.aw-card{width:100%;min-width:0}.aw-card .mt{min-width:0}.aw-card .mt th{padding:.4rem .4rem;font-size:.66rem}.aw-card .mt td{padding:.3rem .4rem;font-size:.78rem}
+.c-tracker{min-height:265px;padding-bottom:1.35rem}
+.c-tracker .mt th{font-size:.76rem;padding:.68rem .55rem}
+.c-tracker .mt td{font-size:.91rem;padding:.62rem .5rem;line-height:1.35}
+.c-tracker .mt td.ctr{text-align:center;padding-left:.4rem}
+.c-tracker .wrap+.wrap{margin-top:.9rem}
+.c-tracker #trackerBody>div:first-child{font-size:.8rem!important;margin-bottom:.55rem!important}
+.c-notice{width:100%;min-width:0;margin-top:0}.c-notice::before{background:linear-gradient(90deg,#d9a21a,#f1d98f)}
+@media(max-width:800px){.aw-row{grid-template-columns:1fr}}
 .nbox{white-space:pre-wrap;word-break:break-word;font-size:.9rem;font-weight:600;line-height:1.55;background:#fff8e4;border:1px solid #f1d98f;border-radius:14px;padding:.8rem 1rem}
 .panel{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:1.2rem 1.3rem;box-shadow:var(--sh);margin-bottom:1.2rem}
 .panel h2{font:700 1.15rem var(--head);margin-bottom:.8rem;display:flex;align-items:center;gap:.6rem}.panel h2 i{color:var(--navy2)}
@@ -156,7 +162,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(31,111,209,.28
 <div class="aw-row">
  <div class="card aw-card"><h3><i class="fas fa-industry"></i> Area Wise Performance</h3><div class="wrap"><table class="mt"><thead><tr><th>AREA</th><th>TALCHER</th><th>IB</th><th>CKP</th></tr></thead><tbody id="minesBody"></tbody></table></div></div>
  <div class="card aw-card c-tracker"><h3 style="justify-content:space-between;flex-wrap:wrap"><span><i class="fas fa-bullseye"></i> Tracker</span><select id="trackerPeriod" aria-label="Tracker period" style="max-width:190px;padding:.4rem .65rem;border:1px solid var(--line);border-radius:10px;background:#f5f9fe;color:var(--ink);font:600 .8rem var(--body)"><option value="overall">Overall · 10 Oct – 12 Dec</option><option value="contract1">Contract 1 · 10 Oct – 18 Nov</option></select></h3><div id="trackerBody"></div>
- <div class="card c-notice hidden" id="noticeCard"><h3><i class="fas fa-bullhorn"></i> Notice</h3><div class="nbox" id="noticeText"></div></div></div>
+</div>
 </div>
 <div class="card"><h3><i class="fas fa-calendar-alt"></i> Contract Performance</h3><div class="wrap"><table class="mt"><thead><tr><th>Contract</th><th>Total Rakes</th><th>Total Qty</th><th>Billing</th><th>Deduction</th><th>Amount</th></tr></thead><tbody id="trendBody"></tbody></table></div></div>
 </section>
@@ -223,7 +229,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(31,111,209,.28
 <div class="tw" style="max-height:none;margin-top:.8rem"><table class="tbl" id="slipTbl"></table></div>
 <div class="fg" style="margin-top:1rem"><div><label for="fSlipAbove">Rate for slippage above 3 grades (%)</label><input type="number" step="0.01" id="fSlipAbove"></div></div></div>
 <div class="panel"><h2><i class="fas fa-info-circle"></i> How every dashboard value is calculated</h2>
-<p class="muted">Contract period is 10 Oct to 12 Dec 2026 (63 days). RR = RR weight, Recv = received weight.</p>
+<p class="muted">Contract period is 10 Oct to 08 Dec 2026 (60 days). RR = RR weight, Recv = received weight.</p>
 <ul class="formula-list">
 <li>Target of Contract, Rake Loaded Till, Balance Rake, Asking Per Day = per area (TALCHER, IB, CKP). Loaded counts rakes up to the report date. Asking per day = balance ÷ days from today to the end of the contract.</li>
 <li>Materialisation % = total RR Qty ÷ 194,000 × 100. Rake Performance shows achieved RR Qty against the 194,000 quantity target. Quantity Reco = total RR weight × Quantity base rate × tier % (tiers above).</li>
@@ -313,8 +319,8 @@ const unwrap=r=>{if(r.error)throw r.error;return r.data||[]};
 const today=()=>new Date().toLocaleDateString('en-CA');
 const shiftMonth=(p,k)=>{const[Y,M]=p.split('-').map(Number),d=new Date(Date.UTC(Y,M-1+k,1));return d.getUTCFullYear()+'-'+pad(d.getUTCMonth()+1)};
 const daysBetween=(a,b)=>{const d=Math.round((new Date(b+'T00:00:00Z')-new Date(a+'T00:00:00Z'))/864e5);return d>0?d:0};
-// Contract: 63 days from 10 Oct 2026 (10 Oct to 12 Dec 2026). Change this when the NALCO extension is approved.
-const CONTRACT_END='2026-12-12';
+// Contract: 60 days from 10 Oct 2026 (10 Oct to 08 Dec 2026). Change this when the NALCO extension is approved.
+const CONTRACT_END='2026-12-08';
 const CONTRACTS=[{key:'C-2026-10-10',start:'2026-10-10',end:CONTRACT_END}];   // add future contracts here
 const ctOf=d=>(CONTRACTS.find(c=>d>=c.start&&d<=c.end)||{}).key||null;
 const cycleKey=d=>ctOf(d)||CONTRACTS[CONTRACTS.length-1].key;
@@ -408,7 +414,7 @@ function render(o,trend){
  const wt=card('fa-weight-scale','Weights',row1('Avg. CH.Wt.',W.ch,f2,'','w-ch')+row1('Avg. RR.Wt.',W.rr,f2,'','w-rr')+row1('Avg. Plant Rec. Wt.',W.recv,f2,'','w-recv')+row1('TOTAL RR WEIGHT',W.totrr,f2,'tot','w-totrr')+row1('PLANT RECEIVE',W.totrecv,f2,'tot','w-totrecv'));
  const sh=card('fa-balance-scale','Shortage / Excess Coal',row1('Avg Shrt / Excess (%)',o.shPct,f2,'','s-pct')+row1('Shortage / Excess MT per rake',o.shMt,f2,'','s-mt')+gtab(AREAS,[['Loading GCV',AREAS.map(a=>A[a].lg),f2],['Unloading GCV',AREAS.map(a=>A[a].ug),f2],['GCV Difference',AREAS.map(a=>A[a].lg&&A[a].ug?A[a].lg-A[a].ug:0),f2]])+row1('Avg Unloading GCV',wAvgArr(o.L),f2,'tot'));
  const pn=card('fa-exclamation-triangle','Railway Freight Penalties','<div class="dh"><span>Amount</span><span>Per MT</span></div>'+[['Underload Charge','ul'],['Overload Charge','ol'],['Punitive Sum (POL)','pun'],['EHBC / FAUC / TC','ehbc'],['ENHC Charges','enhc'],['Dead Freight','dead']].map(([l,k])=>row(l,P[k],o.pmp[k],'','p-'+k)).join('')+row('TOTAL PENALTY',o.penT,o.pmp.total,'tot','p-total'));
- $('dashBody').innerHTML=`<div class="col">${bill}${rake}</div><div class="col">${plants}${wt}</div><div class="col">${sh}${pn}</div>`;
+ $('dashBody').innerHTML=`<div class="col">${bill}${rake}</div><div class="col">${plants}${wt}<div class="card c-notice hidden" id="noticeCard"><h3><i class="fas fa-bullhorn"></i> Notice</h3><div class="nbox" id="noticeText"></div></div></div><div class="col">${sh}${pn}</div>`;
  const mr=(l,f,fm)=>`<tr><td>${l}</td>${AREAS.map(a=>{const x=f(A[a]);return`<td class="${x<0?'neg':''}">${fm(x)}</td>`}).join('')}</tr>`;
  $('minesBody').innerHTML=mr('Total Rakes',x=>x.n,fInt)+mr('Loading GCV',x=>x.lg,f2)+mr('GCV (ARB / Unloading)',x=>x.ug,f2)+mr('Quality Diff. (Loading − Unloading)',x=>x.lg&&x.ug?x.lg-x.ug:0,f2)+mr('RR Qty',x=>x.rr,fInt)+mr('Shortage (Avg)',x=>x.sh,f2)+mr('Punitive Sum (POL)',x=>x.pun,fInt)+mr('EHBC / FAUC / SD / TC',x=>x.eh,fInt)+mr('ENHC Charges',x=>x.en,fInt)+mr('Per Ton Cost',x=>x.rr?(x.pun+x.eh+x.en)/x.rr:0,f2);
  // Tracker has its own date window and target; it does not change dashboard calculations.
@@ -446,7 +452,7 @@ $('png').onclick=async()=>{const b=$('png');b.disabled=true;document.body.classL
  c.toBlob(bl=>{const a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download=`NALCO-Performance-${PERIOD}.png`;a.click();toast('PNG saved')})}catch(e){toast('PNG export failed: '+e.message,true)}document.body.classList.remove('exp');b.disabled=false};
 
 /* ---------- notice ---------- */
-function renderNotice(){const show=!!(NOTICE.on&&NOTICE.text);$('noticeCard').classList.toggle('hidden',!show);$('noticeText').textContent=NOTICE.text||''}
+function renderNotice(){const card=$('noticeCard'),text=$('noticeText');if(!card||!text)return;const show=!!(NOTICE.on&&NOTICE.text);card.classList.toggle('hidden',!show);text.textContent=NOTICE.text||''}
 function fillNotice(){$('noticeOn').checked=!!NOTICE.on;if(document.activeElement!==$('noticeInput'))$('noticeInput').value=NOTICE.text||'';renderNotice()}
 async function saveNotice(){const next={on:$('noticeOn').checked,text:$('noticeInput').value.trim()};
  if(!(await saveGlobal('notice',next)))return setSt('noticeStatus','Save failed','err');NOTICE=next;
