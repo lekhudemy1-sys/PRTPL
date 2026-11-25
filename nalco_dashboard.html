@@ -223,7 +223,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(31,111,209,.28
 <div class="tw" style="max-height:none;margin-top:.8rem"><table class="tbl" id="slipTbl"></table></div>
 <div class="fg" style="margin-top:1rem"><div><label for="fSlipAbove">Rate for slippage above 3 grades (%)</label><input type="number" step="0.01" id="fSlipAbove"></div></div></div>
 <div class="panel"><h2><i class="fas fa-info-circle"></i> How every dashboard value is calculated</h2>
-<p class="muted">Contract period is 10 Oct to 08 Dec 2026 (60 days). RR = RR weight, Recv = received weight.</p>
+<p class="muted">Contract period is 10 Oct to 12 Dec 2026 (63 days). RR = RR weight, Recv = received weight.</p>
 <ul class="formula-list">
 <li>Target of Contract, Rake Loaded Till, Balance Rake, Asking Per Day = per area (TALCHER, IB, CKP). Loaded counts rakes up to the report date. Asking per day = balance ÷ days from today to the end of the contract.</li>
 <li>Materialisation % = total RR Qty ÷ 194,000 × 100. Rake Performance shows achieved RR Qty against the 194,000 quantity target. Quantity Reco = total RR weight × Quantity base rate × tier % (tiers above).</li>
@@ -313,7 +313,7 @@ const unwrap=r=>{if(r.error)throw r.error;return r.data||[]};
 const today=()=>new Date().toLocaleDateString('en-CA');
 const shiftMonth=(p,k)=>{const[Y,M]=p.split('-').map(Number),d=new Date(Date.UTC(Y,M-1+k,1));return d.getUTCFullYear()+'-'+pad(d.getUTCMonth()+1)};
 const daysBetween=(a,b)=>{const d=Math.round((new Date(b+'T00:00:00Z')-new Date(a+'T00:00:00Z'))/864e5);return d>0?d:0};
-// Contract: 60 days from 10 Oct 2026 (10 Oct to 08 Dec 2026). Change this when the NALCO extension is approved.
+// Contract: 63 days from 10 Oct 2026 (10 Oct to 12 Dec 2026). Change this when the NALCO extension is approved.
 const CONTRACT_END='2026-12-08';
 const CONTRACTS=[{key:'C-2026-10-10',start:'2026-10-10',end:CONTRACT_END}];   // add future contracts here
 const ctOf=d=>(CONTRACTS.find(c=>d>=c.start&&d<=c.end)||{}).key||null;
