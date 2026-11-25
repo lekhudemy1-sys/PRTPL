@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AMM Backlog Report</title>
+<style>
+:root, [data-theme="light"]{
+  --bg1:#f8f6f7;
+  --bg2:#f1eef2;
+  --glass:rgba(255,255,255,.88);
+  --glass-b:rgba(60,40,55,.22);
+  --border:rgba(40,25,40,.28);
+  --border-strong:rgba(30,20,35,.38);
+  --text:#1e1b2e;
+  --muted:#6b4c5c;
+  --accent:#c0265a;
+  --accent2:#4f46e5;
+  --accent-soft:#e11d48;
+  --gold:#d97706;
+  --shadow:rgba(40,25,60,.12);
+  --shadow-strong:rgba(40,25,60,.18);
+  --th-bg:#6b3a4f;
+  --th-rcv:#4f46e5;
+  --th-bal:#3730a3;
+  --row-hover:rgba(238,242,255,.65);
+  --bal-bg:rgba(238,242,255,.75);
+  --bal-color:#4338ca;
+  --tfoot-bg:linear-gradient(90deg,#ede9fe,#fce7f3);
+  --tfoot-color:#4c1d3a;
+  --input-bg:#fff;
+  --input-border:#d4c4ce;
+  --track-off:#e9d5e0;
+  --blob1:#f9a8d4;
+  --blob2:#a5b4fc;
+  --blob3:#fda4af;
+  --card-h-bg:linear-gradient(90deg,rgba(192,38,90,.10),rgba(79,70,229,.10));
+  --card-h-color:#6b3a4f;
+  --dlg-bg:linear-gradient(160deg,#fff,#f8f6f7);
+  --dlg-ov:rgba(30,27,46,.42);
+  --ok:#059669;
+  --err:#dc2626;
+  --ease:cubic-bezier(.2,.8,.2,1);
+  --pop:.5s;
+}
+[data-theme="dark"]{
+  --bg1:#12101a;
+  --bg2:#1a1625;
+  --glass:rgba(30,26,42,.88);
+  --glass-b:rgba(180,150,200,.18);
+  --border:rgba(200,170,220,.28);
+  --border-strong:rgba(220,190,240,.40);
+  --text:#f0eaf4;
+  --muted:#b8a0b0;
+  --accent:#f43f7a;
+  --accent2:#818cf8;
+  --accent-soft:#fb7185;
+  --gold:#fbbf24;
+  --shadow:rgba(0,0,0,.35);
+  --shadow-strong:rgba(0,0,0,.50);
+  --th-bg:#4a2c3c;
+  --th-rcv:#4338ca;
+  --th-bal:#312e81;
+  --row-hover:rgba(79,70,229,.18);
+  --bal-bg:rgba(79,70,229,.22);
+  --bal-color:#a5b4fc;
+  --tfoot-bg:linear-gradient(90deg,#2e1a3a,#1e1b4b);
+  --tfoot-color:#e9d5ff;
+  --input-bg:#221e30;
+  --input-border:#4a3a55;
+  --track-off:#3d2a38;
+  --blob1:#831843;
+  --blob2:#3730a3;
+  --blob3:#9f1239;
+  --card-h-bg:linear-gradient(90deg,rgba(244,63,122,.15),rgba(129,140,248,.15));
+  --card-h-color:#f9a8d4;
+  --dlg-bg:linear-gradient(160deg,#1e1a2a,#16121f);
+  --dlg-ov:rgba(0,0,0,.55);
+  --ok:#34d399;
+  --err:#f87171;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;min-height:100%}
+body{
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--text);
+  background:linear-gradient(160deg,var(--bg1),var(--bg2));background-attachment:fixed;overflow-x:hidden;
+  transition:background .4s var(--ease),color .3s;
+}
+.blob{position:fixed;border-radius:50%;filter:blur(70px);opacity:.14;z-index:0;pointer-events:none;animation:drift 22s ease-in-out infinite}
+.b1{width:420px;height:420px;background:var(--blob1);top:-120px;left:-100px}
+.b2{width:380px;height:380px;background:var(--blob2);bottom:-120px;right:-80px;animation-delay:-6s}
+.b3{width:260px;height:260px;background:var(--blob3);top:40%;left:55%;animation-delay:-11s}
+@keyframes drift{0%,100%{transform:translate(0,0)}50%{transform:translate(18px,-12px)}}
+@keyframes softfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes popIn{from{opacity:0;transform:scale(.88) translateY(12px)}to{opacity:1;transform:none}}
+@keyframes rowIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes pop{0%{transform:scale(.92)}60%{transform:scale(1.05)}100%{transform:scale(1)}}
+@keyframes boxPop{
+  0%{opacity:0;transform:scale(.92) translateY(14px)}
+  60%{opacity:1;transform:scale(1.02) translateY(-2px)}
+  100%{opacity:1;transform:none}
+}
+@keyframes borderGlow{
+  0%,100%{box-shadow:0 0 0 0 transparent}
+  50%{box-shadow:0 0 0 3px color-mix(in srgb,var(--accent2) 25%,transparent)}
+}
+
+.wrap{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:18px 16px 48px}
+
+/* header */
+header{
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:space-between;
+  background:var(--glass);border:1.5px solid var(--border-strong);backdrop-filter:blur(14px);
+  border-radius:18px;padding:14px 18px;
+  box-shadow:0 10px 32px var(--shadow), inset 0 1px 0 rgba(255,255,255,.06);
+  animation:boxPop .55s var(--ease) both;
+}
+.hright{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.back{
+  text-decoration:none;color:var(--text);font-weight:600;font-size:14px;padding:9px 14px;
+  border-radius:12px;border:1.5px solid var(--border);background:var(--glass);
+  transition:transform .2s var(--ease),background .2s,border-color .2s;
+}
+.back:hover{transform:translateX(3px);border-color:var(--border-strong)}
+h1{margin:0;font-size:clamp(20px,3vw,28px);letter-spacing:.3px;
+  background:linear-gradient(90deg,var(--accent),var(--accent2),var(--accent));background-size:200% auto;
+  -webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 8s linear infinite}
+@keyframes shine{to{background-position:200% center}}
+.sub{color:var(--muted);font-size:13px;margin-top:2px}
+.status{font-size:12px;color:var(--muted);margin-top:4px;word-break:break-word}
+.status.ok{color:var(--ok)}.status.err{color:var(--err)}
+
+/* switches */
+.switch{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;font-weight:600;font-size:14px}
+.switch input{display:none}
+.track{width:54px;height:30px;border-radius:999px;background:var(--track-off);position:relative;transition:background .3s;border:1.5px solid var(--border)}
+.knob{position:absolute;top:2px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;
+  box-shadow:0 2px 6px rgba(0,0,0,.2);transition:transform .35s var(--ease)}
+.switch input:checked + .track{background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.switch input:checked + .track .knob{transform:translateX(24px)}
+[data-theme="dark"] .knob{background:#e8e4f0}
+
+/* theme btn */
+.theme-btn{
+  width:40px;height:40px;border-radius:12px;border:1.5px solid var(--border);
+  background:var(--glass);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:18px;transition:transform .25s var(--ease),border-color .25s,box-shadow .25s;
+  color:var(--text);
+}
+.theme-btn:hover{transform:scale(1.08) rotate(8deg);border-color:var(--border-strong);box-shadow:0 6px 16px var(--shadow)}
+.theme-btn .sun,.theme-btn .moon{line-height:1}
+[data-theme="light"] .theme-btn .moon{display:none}
+[data-theme="dark"] .theme-btn .sun{display:none}
+
+/* tabs */
+.tabs{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0 14px}
+.tab{
+  border:1.5px solid var(--border);background:var(--glass);color:var(--muted);
+  padding:11px 20px;border-radius:999px;font-weight:700;font-size:14px;letter-spacing:.4px;cursor:pointer;
+  transition:all .35s var(--ease);
+  animation:boxPop .5s var(--ease) both;
+}
+.tab:nth-child(1){animation-delay:40ms}.tab:nth-child(2){animation-delay:70ms}
+.tab:nth-child(3){animation-delay:100ms}.tab:nth-child(4){animation-delay:130ms}
+.tab:nth-child(5){animation-delay:160ms}.tab:nth-child(6){animation-delay:190ms}
+.tab:hover{color:var(--text);transform:translateY(-2px);border-color:var(--border-strong);box-shadow:0 8px 20px var(--shadow)}
+.tab.active{color:#fff;background:linear-gradient(120deg,var(--accent),var(--accent2));border-color:transparent;
+  animation:pop .35s var(--ease);box-shadow:0 10px 26px var(--shadow-strong)}
+.srcbar{display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px;margin-bottom:14px;background:var(--glass);border:1.5px solid var(--border);border-radius:14px;
+  animation:boxPop .5s var(--ease) both;animation-delay:80ms}
+
+/* month switch */
+.mswitch{
+  position:relative;display:inline-flex;background:var(--glass);border:1.5px solid var(--border);
+  border-radius:999px;padding:4px;margin-bottom:18px;max-width:100%;overflow-x:auto;
+  animation:boxPop .5s var(--ease) both;animation-delay:100ms;
+}
+.mindicator{
+  position:absolute;top:4px;bottom:4px;left:4px;width:0;border-radius:999px;
+  background:linear-gradient(120deg,var(--accent),var(--accent2));box-shadow:0 6px 18px var(--shadow-strong);
+  transition:left .45s var(--ease),width .45s var(--ease);
+}
+.mbtn{
+  position:relative;z-index:1;border:none;background:transparent;color:var(--muted);
+  padding:9px 18px;border-radius:999px;font-weight:700;cursor:pointer;white-space:nowrap;transition:color .3s;
+}
+.mbtn.active{color:#fff}
+.mbtn:not(.active):hover{color:var(--text)}
+
+/* kpis */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:18px}
+.kpi{
+  background:var(--glass);border:1.5px solid var(--border-strong);border-radius:16px;padding:16px 18px;
+  animation:boxPop .55s var(--ease) both, softfloat 9s ease-in-out infinite;
+  transition:box-shadow .3s,border-color .3s,transform .25s;
+  box-shadow:0 8px 24px var(--shadow);
+}
+.kpi:nth-child(1){animation-delay:60ms,0s}
+.kpi:nth-child(2){animation-delay:120ms,-3s}
+.kpi:nth-child(3){animation-delay:180ms,-6s}
+.kpi:nth-child(4){animation-delay:240ms,-1.5s}
+.kpi:hover{
+  box-shadow:0 14px 32px var(--shadow-strong);
+  border-color:var(--accent2);
+  transform:translateY(-3px);
+}
+.kpi .l{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px}
+.kpi .v{font-size:28px;font-weight:800;margin-top:4px}
+.kpi.g .v{color:var(--ok)}.kpi.y .v{color:var(--gold)}.kpi.c .v{color:var(--accent)}
+
+/* card */
+.card{
+  background:var(--glass);border:1.5px solid var(--border-strong);border-radius:20px;overflow:hidden;
+  box-shadow:0 16px 40px var(--shadow);transform-origin:center top;
+  animation:boxPop .6s var(--ease) both;
+  transition:box-shadow .3s,border-color .3s;
+}
+.card:hover{box-shadow:0 20px 48px var(--shadow-strong)}
+.bsec{margin-bottom:22px;animation:boxPop .55s var(--ease) both}
+.bsec:nth-child(1){animation-delay:80ms}
+.bsec:nth-child(2){animation-delay:140ms}
+.bsec:nth-child(3){animation-delay:200ms}
+.bsec:nth-child(4){animation-delay:260ms}
+.card.pop{animation:popIn var(--pop) var(--ease) both}
+.card-h{
+  display:flex;justify-content:center;align-items:center;
+  padding:16px 20px;background:var(--card-h-bg);
+  border-bottom:1.5px solid var(--border);text-align:center;
+}
+.card-h h2{margin:0;font-size:20px;letter-spacing:.5px;color:var(--card-h-color)}
+.toolbar{display:flex;gap:8px;padding:12px 16px;border-bottom:1.5px solid var(--border)}
+body:not(.editing) .edit-only{display:none}
+.btn{border:none;padding:9px 16px;border-radius:10px;font-weight:700;cursor:pointer;color:#fff;
+  background:linear-gradient(120deg,var(--accent),var(--accent2));transition:transform .2s var(--ease),box-shadow .2s;
+  border:1.5px solid transparent}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 18px var(--shadow-strong)}
+.btn:disabled{opacity:.6;cursor:wait;transform:none;box-shadow:none}
+.btn.ghost{background:var(--glass);color:var(--text);border:1.5px solid var(--border)}
+.btn.ghost:hover{border-color:var(--border-strong)}
+.footbar{display:flex;justify-content:flex-end;padding:12px 16px;border-top:1.5px solid var(--border)}
+
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:separate;border-spacing:0;min-width:900px;font-size:14px}
+thead th{
+  position:sticky;top:0;z-index:2;background:var(--th-bg);color:#fff;padding:12px 10px;font-weight:700;
+  text-align:center;font-size:13px;line-height:1.3;border-bottom:1px solid rgba(255,255,255,.15)
+}
+thead th.sr-h{width:44px;padding:8px 4px;font-size:11px}
+thead th.rcv{background:var(--th-rcv)}
+thead th.bal{background:var(--th-bal)}
+td{padding:10px;text-align:center;border-bottom:1px solid var(--border);transition:background .25s}
+tbody tr{animation:rowIn .35s var(--ease) both;animation-delay:var(--d,0ms)}
+tbody tr:hover td{background:var(--row-hover)}
+td.sr{color:var(--muted);width:44px;font-size:12px;padding:6px 4px}
+td.mine{text-align:left;font-weight:700;min-width:240px}
+td.rcv{color:var(--ok);font-weight:800}
+td.bal{font-weight:800;background:var(--bal-bg);color:var(--bal-color)}
+td.bal.zero{color:var(--muted);background:transparent}
+td.del{width:60px}
+.del button,td.del button{border:none;background:rgba(220,38,38,.12);color:var(--err);border-radius:8px;padding:6px 10px;cursor:pointer;transition:transform .2s}
+.del button:hover,td.del button:hover{transform:scale(1.12);background:rgba(220,38,38,.25)}
+
+input[type=text],input[type=number]{
+  width:100%;background:var(--input-bg);border:1.5px solid var(--input-border);color:var(--text);
+  padding:7px 8px;border-radius:8px;text-align:center;font:inherit;transition:border .2s,box-shadow .2s;
+}
+td.mine input{text-align:left}
+input:focus{outline:none;border-color:var(--accent2);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent2) 22%,transparent)}
+input[type=number]::-webkit-inner-spin-button{opacity:.4}
+
+tfoot td{
+  background:var(--tfoot-bg);color:var(--tfoot-color);font-weight:900;font-size:15px;
+  border-bottom:none;position:sticky;bottom:0
+}
+.empty{padding:40px;text-align:center;color:var(--muted)}
+
+/* themed dialog */
+.dlg-ov{position:fixed;inset:0;background:var(--dlg-ov);backdrop-filter:blur(5px);
+  display:flex;align-items:center;justify-content:center;z-index:100;padding:16px}
+.dlg-box{background:var(--dlg-bg);border:1.5px solid var(--border-strong);border-radius:18px;
+  padding:22px 22px 18px;min-width:300px;max-width:440px;width:100%;box-shadow:0 30px 70px var(--shadow-strong);
+  animation:boxPop .3s var(--ease) both}
+.dlg-box h3{margin:0 0 10px;font-size:17px;color:var(--card-h-color);letter-spacing:.3px}
+.dlg-box p{margin:0;color:var(--text);font-size:14px;line-height:1.5;white-space:pre-line;word-break:break-word}
+.dlg-box input[type=text]{margin-top:12px;text-align:left}
+.dlg-btns{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+.dlg-btns .btn{min-width:92px}
+
+@media (max-width:640px){ .kpi .v{font-size:22px} }
+</style>
+</head>
+<body>
+<div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+
+<div class="wrap">
+  <div id="shot">
+    <header>
+      <div>
+        <h1>AMM Backlog Report</h1>
+        <div class="sub" id="subtitle">Loading…</div>
+        <div class="status" id="status"></div>
+        <button class="btn ghost" id="retryBtn" hidden style="margin-top:8px">↻ Retry now</button>
+      </div>
+      <div class="hright no-capture">
+        <button class="theme-btn" id="themeBtn" title="Toggle light / dark theme" aria-label="Toggle theme">
+          <span class="sun">☀️</span>
+          <span class="moon">🌙</span>
+        </button>
+        <label class="switch" title="Toggle edit mode">
+          <input type="checkbox" id="editToggle">
+          <span class="track"><span class="knob"></span></span>
+          <span>Edit</span>
+        </label>
+        <a class="back" href="home_page.html">← Back to Home</a>
+      </div>
+    </header>
+
+    <div class="tabs no-capture" id="tabs"></div>
+    <div class="srcbar no-capture edit-only">
+      <button class="btn" data-act="add-source">+ Add Source</button>
+    </div>
+    <div class="mswitch no-capture" id="mswitch"><span class="mindicator" id="mind"></span></div>
+    <button class="btn ghost edit-only no-capture" id="newMonthBtn" data-act="add-month" style="margin:-6px 0 18px">+ New Month</button>
+
+    <div class="kpis" id="kpis"></div>
+
+    <!-- BALCO: three report tables -->
+    <div id="balcoPanel" hidden>
+      <div id="balcoEmpty" hidden></div>
+      <div class="card bsec" id="bBox_CPP" hidden></div>
+      <div class="card bsec" id="bBox_EAUC" hidden></div>
+      <div class="card bsec" id="bBox_IPP" hidden></div>
+      <div class="footbar no-capture"><button class="btn ghost" data-act="download">⬇ Download Image</button></div>
+    </div>
+
+    <div class="card" id="card">
+      <div class="card-h">
+        <h2 id="cardTitle">Loading…</h2>
+      </div>
+      <div class="toolbar edit-only no-capture">
+        <button class="btn" data-act="add-row">+ Add Mine / Siding</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr id="thead"></tr></thead>
+          <tbody id="tbody"></tbody>
+          <tfoot><tr id="tfoot"></tr></tfoot>
+        </table>
+      </div>
+      <div class="footbar no-capture">
+        <button class="btn ghost" data-act="download" id="dlBtn">⬇ Download Image</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="dlg" class="dlg-ov" hidden>
+  <div class="dlg-box">
+    <h3 id="dlgTitle">Code</h3>
+    <p id="dlgMsg"></p>
+    <input type="text" id="dlgIn" hidden>
+    <div class="dlg-btns">
+      <button class="btn ghost" id="dlgCancel">Cancel</button>
+      <button class="btn" id="dlgOk">OK</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+/* ---------- Theme ---------- */
+(function initTheme(){
+  const saved = localStorage.getItem("amm-theme");
+  const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const theme = saved || (prefersDark ? "dark" : "light");
+  document.documentElement.setAttribute("data-theme", theme);
+})();
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+  const next = cur === "dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", next);
+  localStorage.setItem("amm-theme", next);
+}
+
+/* ---------- Supabase connection ---------- */
+const SB_URL = "https://jzkrywwrsewchtiqsczk.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6a3J5d3dyc2V3Y2h0aXFzY3prIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE1NDU0MzQsImV4cCI6MjEwNzEyMTQzNH0.IDwfVhqDI9uXfAALCVKBD0pNjsNVu38fW4eEueaKDSs";
+const TABLE = "backlog_rakes";
+
+function sbHeaders(write){
+  const h = {apikey:SB_KEY, Authorization:"Bearer "+SB_KEY};
+  if(write) h["Content-Type"]="application/json";
+  return h;
+}
+async function sbGet(query){
+  const r = await fetch(`${SB_URL}/rest/v1/${TABLE}?${query}`, {headers:sbHeaders(false)});
+  if(!r.ok) throw new Error(`${r.status} ${await r.text()}`);
+  return r.json();
+}
+async function sbWrite(method, query, body, prefer){
+  const h = sbHeaders(true); if(prefer) h.Prefer = prefer;
+  const r = await fetch(`${SB_URL}/rest/v1/${TABLE}?${query}`, {
+    method, headers:h, body: body ? JSON.stringify(body) : undefined
+  });
+  if(!r.ok) throw new Error(`${r.status} ${await r.text()}`);
+  const t = await r.text();
+  return t ? JSON.parse(t) : null;
+}
+
+/* ---------- State ---------- */
+const DEFAULT_SOURCES = ["BALCO","HZL","GUJARAT","NALCO","PJPB"];
+const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const DBCOL = {cf:"carry_fwd", program:"rake_program", endorsed:"endorsed", sanction:"sanction", alloted:"alloted", received:"received"};
+
+const SECTIONS = [
+  {code:"CPP", title:"BALCO CPP RAKES", sr:true, balance:"calc", cols:[
+    {k:"carry_fwd",     t:m=>`Carry Fwd<br>${prevLabel(m)}`},
+    {k:"rake_program",  t:m=>`Rake Program<br>${m}`},
+    {k:"endorsed",      t:m=>`Endrosed Rakes<br>${m}`},
+    {k:"sanction",      t:m=>`Sanction Rakes<br>${m}`},
+    {k:"alloted",       t:m=>`Alloted Rakes<br>${m}`},
+    {k:"received",      t:m=>`Received Rakes<br>${m}`, rcv:true}
+  ]},
+  {code:"EAUC", title:"BALCO E-AUCTION RAKES", sr:true, balance:"x.bal", cols:[
+    {k:"rake_program",  t:m=>`Rake Programme<br>${m}`},
+    {k:"endorsed",      t:m=>`Endorsed Rakes<br>${m}`},
+    {k:"sanction",      t:m=>`Sanction Rakes<br>${m}`},
+    {k:"x.rec_oct",     t:m=>`Rakes Received<br>${prevLabel(m)}`},
+    {k:"x.rec_nov",     t:m=>`Rakes Received<br>${m}`},
+    {k:"x.total_rec",   t:()=>`Total Rakes<br>Received`, rcv:true}
+  ]},
+  {code:"IPP", title:"BALCO IPP RAKES", sr:false, first:"", balance:null, cols:[
+    {k:"rake_program",  t:m=>`${m}<br>Prog.`},
+    {k:"sanction",      t:m=>`${m}<br>Sanction`},
+    {k:"alloted",       t:m=>`${m}<br>Allotment`},
+    {k:"received",      t:m=>`${m}<br>Received`},
+    {k:"x.cur_bal",     t:()=>`Current<br>Bal.`},
+    {k:"x.tot_bal",     t:()=>`Total<br>Bal.`}
+  ]}
+];
+
+let rows = [];
+let view = {tab:"BALCO", month:null, editing:false};
+
+function setStatus(s, cls){ const el=document.getElementById("status"); el.textContent=s; el.className="status "+(cls||""); }
+function bal(r){ return (+r.carry_fwd||0) + (+r.alloted||0) - (+r.received||0); }
+function esc(v){ return String(v ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function fmt(n){ return Number(n||0).toLocaleString("en-IN"); }
+function label(code){ return code==="BALCO" ? "BALCO CPP" : code; }
+function prevLabel(l){
+  const [m,y]=String(l||"").split("'"); const i=MON.indexOf(m);
+  if(i<0) return "";
+  const yy=parseInt(y,10);
+  return i===0 ? MON[11]+"'"+String(yy-1).padStart(2,"0") : MON[i-1]+"'"+y;
+}
+function parseMonth(s){
+  const mm=String(s||"").trim().match(/^([A-Za-z]{3})\s*'\s*(\d{2})$/);
+  if(!mm) return null;
+  const idx=MON.findIndex(x=>x.toLowerCase()===mm[1].toLowerCase());
+  if(idx<0) return null;
+  return {label:MON[idx]+"'"+mm[2], key:(2000+parseInt(mm[2],10))*12+idx};
+}
+function labelFromSortKey(k){
+  const y=Math.floor(k/12), i=k%12;
+  return MON[i]+"'"+String(y%100).padStart(2,"0");
+}
+
+function plantList(){
+  const out=[...DEFAULT_SOURCES];
+  rows.forEach(r=>{ if(!out.includes(r.plant)) out.push(r.plant); });
+  return out;
+}
+function monthsOf(plant){
+  const seen = new Map();
+  rows.filter(r=>r.plant===plant).forEach(r=>{ if(!seen.has(r.month_label)) seen.set(r.month_label, r.sort_key); });
+  return [...seen.entries()].sort((a,b)=>a[1]-b[1]).map(([label,sort_key])=>({label,sort_key}));
+}
+function ensureMonth(){
+  const list=plantList();
+  if(!list.includes(view.tab)) view.tab = list[0] || view.tab;
+  const ms=monthsOf(view.tab);
+  if(!ms.find(m=>m.label===view.month)) view.month = ms.length ? ms[ms.length-1].label : null;
+}
+function rowsOf(){
+  return rows.filter(r=>r.plant===view.tab && r.month_label===view.month && r.section==null)
+             .sort((a,b)=>a.sr-b.sr);
+}
+function totalsOf(list){
+  const t={cf:0,program:0,endorsed:0,sanction:0,alloted:0,received:0,balance:0};
+  list.forEach(r=>{
+    t.cf+=+r.carry_fwd||0; t.program+=+r.rake_program||0; t.endorsed+=+r.endorsed||0;
+    t.sanction+=+r.sanction||0; t.alloted+=+r.alloted||0; t.received+=+r.received||0;
+    t.balance+=bal(r);
+  });
+  return t;
+}
+
+/* ---------- Themed dialog ---------- */
+function dialog({title="Code", msg="", input=null, cancel=true, okText="OK"}={}){
+  return new Promise(resolve=>{
+    const ov=document.getElementById("dlg"), inp=document.getElementById("dlgIn");
+    const ok=document.getElementById("dlgOk"), cn=document.getElementById("dlgCancel");
+    document.getElementById("dlgTitle").textContent=title;
+    document.getElementById("dlgMsg").textContent=msg;
+    inp.hidden = input===null; inp.value = input ?? "";
+    cn.hidden = !cancel; ok.textContent=okText;
+    ov.hidden=false;
+    setTimeout(()=>{ if(input!==null){ inp.focus(); inp.select(); } else ok.focus(); },0);
+    const onKey = e=>{ if(e.key==="Escape") (cn.hidden?ok:cn).click(); };
+    const finish = v => {
+      ov.hidden=true; ok.onclick=null; cn.onclick=null; inp.onkeydown=null;
+      document.removeEventListener("keydown", onKey); resolve(v);
+    };
+    ok.onclick=()=>finish(input!==null ? inp.value : true);
+    cn.onclick=()=>finish(input!==null ? null : false);
+    inp.onkeydown=e=>{ if(e.key==="Enter") ok.click(); };
+    document.addEventListener("keydown", onKey);
+  });
+}
+function notice(msg, title="Code"){ return dialog({title, msg, cancel:false}); }
+
+const MAX_TRIES = 8;
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+
+async function loadAll(){
+  let lastErr = null;
+  document.getElementById("retryBtn").hidden = true;
+  for(let attempt=1; attempt<=MAX_TRIES; attempt++){
+    setStatus(attempt===1 ? "Loading data…" : `Database still warming up… retry ${attempt} of ${MAX_TRIES}`);
+    try{
+      rows = await sbGet("select=*&order=plant,sort_key,sr");
+      ensureMonth();
+      setStatus(`Connected ✓ · ${rows.length} rows`, "ok");
+      lastErr = null;
+      break;
+    }catch(err){
+      lastErr = err;
+      console.error(err);
+      if(!/503|PGRST002|schema cache/i.test(err.message)) break;
+      if(attempt<MAX_TRIES) await sleep(3000 * attempt);
+    }
+  }
+  if(lastErr){
+    setStatus("Could not load data: " + lastErr.message, "err");
+    document.getElementById("retryBtn").hidden = false;
+  }
+  render(); popCard();
+}
+
+/* ---------- Writes ---------- */
+async function saveCell(row, k, val){
+  setStatus("Saving…");
+  try{
+    if(k==="name"){
+      await sbWrite("PATCH", `plant=eq.${encodeURIComponent(row.plant)}&sr=eq.${row.sr}`, {mine_name:val}, "return=minimal");
+      rows.forEach(r=>{ if(r.plant===row.plant && r.sr===row.sr) r.mine_name=val; });
+    } else {
+      await sbWrite("PATCH", `id=eq.${row.id}`, {[DBCOL[k]]:val}, "return=minimal");
+      const r=rows.find(x=>x.id===row.id); if(r) r[DBCOL[k]]=val;
+    }
+    setStatus("Saved ✓","ok");
+  }catch(err){ setStatus("Save failed: "+err.message,"err"); notice("Save failed:\n"+err.message); }
+  render();
+}
+
+async function addMine(){
+  const mos=monthsOf(view.tab).find(m=>m.label===view.month);
+  if(!mos) return;
+  const sr = Math.max(0, ...rows.filter(r=>r.plant===view.tab && r.section==null).map(r=>r.sr)) + 1;
+  setStatus("Saving…");
+  try{
+    const [row] = await sbWrite("POST", "", {
+      plant:view.tab, month_label:view.month, sort_key:mos.sort_key,
+      sr, mine_name:"NEW MINE / SIDING"
+    }, "return=representation");
+    rows.push(row);
+    setStatus("Saved ✓","ok");
+  }catch(err){ setStatus("Save failed: "+err.message,"err"); notice("Save failed:\n"+err.message); }
+  render();
+  const inputs=document.querySelectorAll('td.mine input[data-k="name"]'); inputs[inputs.length-1]?.focus();
+}
+
+async function removeRow(id){
+  setStatus("Saving…");
+  try{
+    await sbWrite("DELETE", `id=eq.${id}`, null, "return=minimal");
+    rows = rows.filter(r=>r.id!==id);
+    setStatus("Saved ✓","ok");
+  }catch(err){ setStatus("Delete failed: "+err.message,"err"); notice("Delete failed:\n"+err.message); }
+  render();
+}
+
+/* ---------- BALCO writes ---------- */
+function balcoRows(m){ return rows.filter(r=>r.plant==="BALCO" && r.month_label===m); }
+function secRows(code,m){ return balcoRows(m).filter(r=>r.section===code).sort((a,b)=>a.sr-b.sr); }
+function getv(r,k){ return k.startsWith("x.") ? (Number((r.extra||{})[k.slice(2)])||0) : (Number(r[k])||0); }
+function rowBal(r,sec){ return sec.balance==="calc" ? bal(r) : (sec.balance ? getv(r,sec.balance) : 0); }
+
+async function saveBalco(id, k, val){
+  const row=rows.find(r=>r.id===id); if(!row) return;
+  setStatus("Saving…");
+  try{
+    if(k.startsWith("x.")){
+      const extra={...(row.extra||{}), [k.slice(2)]:val};
+      await sbWrite("PATCH", `id=eq.${id}`, {extra}, "return=minimal");
+      row.extra=extra;
+    } else if(k==="mine_name"){
+      await sbWrite("PATCH", `plant=eq.BALCO&section=eq.${row.section}&sr=eq.${row.sr}`, {mine_name:val}, "return=minimal");
+      rows.forEach(r=>{ if(r.plant==="BALCO" && r.section===row.section && r.sr===row.sr) r.mine_name=val; });
+    } else {
+      await sbWrite("PATCH", `id=eq.${id}`, {[k]:val}, "return=minimal");
+      row[k]=val;
+    }
+    setStatus("Saved ✓","ok");
+  }catch(err){ setStatus("Save failed: "+err.message,"err"); notice("Save failed:\n"+err.message); }
+  render();
+}
+
+async function addBalcoRow(code){
+  const m=view.month; if(!m) return;
+  const mos=monthsOf("BALCO").find(x=>x.label===m); if(!mos) return;
+  const sr=Math.max(0,...balcoRows(m).map(r=>r.sr))+1;
+  setStatus("Saving…");
+  try{
+    const [row]=await sbWrite("POST","",{
+      plant:"BALCO", month_label:m, sort_key:mos.sort_key, section:code, sr,
+      mine_name:"NEW MINE / SIDING", carry_fwd:0, rake_program:0, endorsed:0,
+      sanction:0, alloted:0, received:0, extra:{}
+    },"return=representation");
+    rows.push(row);
+    setStatus("Saved ✓","ok");
+  }catch(err){ setStatus("Save failed: "+err.message,"err"); notice("Save failed:\n"+err.message); }
+  render();
+}
+
+/* ---------- Render ---------- */
+const COLS = (m) => [
+  {k:"cf", t:`Carry Fwd<br>${prevLabel(m)}`},
+  {k:"program", t:`Rake Program<br>${m}`},
+  {k:"endorsed", t:`Endrosed Rakes<br>${m}`},
+  {k:"sanction", t:`Sanction Rakes<br>${m}`},
+  {k:"alloted", t:`Alloted Rakes<br>${m}`},
+  {k:"received", t:`Received Rakes<br>${m}`, cls:"rcv"},
+];
+
+function renderMonthSwitch(){
+  const ms=monthsOf(view.tab);
+  const box=document.getElementById("mswitch");
+  box.querySelectorAll(".mbtn").forEach(b=>b.remove());
+  ms.forEach(x=>{
+    const b=document.createElement("button");
+    b.className="mbtn"+(x.label===view.month?" active":"");
+    b.dataset.month=x.label; b.textContent=x.label;
+    box.appendChild(b);
+  });
+  moveIndicator();
+}
+function moveIndicator(){
+  const ind=document.getElementById("mind");
+  const act=document.querySelector("#mswitch .mbtn.active");
+  if(!act){ ind.style.width="0"; return; }
+  ind.style.left=act.offsetLeft+"px"; ind.style.width=act.offsetWidth+"px";
+}
+
+function balcoBoxHTML(sec, m, ed){
+  const list=secRows(sec.code, m);
+  const cols=sec.cols;
+  const th = (sec.sr?'<th class="sr-h">SR.NO.</th>':"") +
+    `<th style="text-align:left">${sec.first ?? "Mines (Silo's/Siding)"}</th>` +
+    cols.map(c=>`<th class="${c.rcv?"rcv":""}">${c.t(m)}</th>`).join("") +
+    (sec.balance?`<th class="bal">Balance<br>Rakes</th>`:"") +
+    (ed?`<th></th>`:"");
+  const body = list.length ? list.map((r,i)=>{
+    const b = sec.balance ? rowBal(r,sec) : 0;
+    return `<tr style="--d:${i*25}ms">
+      ${sec.sr?`<td class="sr">${i+1}</td>`:""}
+      <td class="mine">${ed?`<input type="text" data-bid="${r.id}" data-bk="mine_name" value="${esc(r.mine_name)}">`:esc(r.mine_name)}</td>
+      ${cols.map(c=>{ const v=getv(r,c.k);
+        return `<td class="${c.rcv?"rcv":""}">${ed?`<input type="number" min="0" data-bid="${r.id}" data-bk="${c.k}" value="${v}">`:fmt(v)}</td>`; }).join("")}
+      ${sec.balance?`<td class="bal ${b===0?"zero":""}">${ed && sec.balance!=="calc" ? `<input type="number" min="0" data-bid="${r.id}" data-bk="${sec.balance}" value="${b}">` : fmt(b)}</td>`:""}
+      ${ed?`<td class="del"><button data-bdel="${r.id}" title="Remove">✕</button></td>`:""}
+    </tr>`; }).join("")
+    : `<tr><td colspan="${cols.length+4}"><div class="empty">No mines in this section for ${esc(m)}.</div></td></tr>`;
+  const tot = {}; cols.forEach(c=>tot[c.k]=list.reduce((s,r)=>s+getv(r,c.k),0));
+  const totBal = sec.balance ? list.reduce((s,r)=>s+rowBal(r,sec),0) : 0;
+  const foot = `<tr>${sec.sr?"<td></td>":""}<td class="mine">TOTAL</td>${cols.map(c=>`<td>${fmt(tot[c.k])}</td>`).join("")}${sec.balance?`<td>${fmt(totBal)}</td>`:""}${ed?"<td></td>":""}</tr>`;
+  const toolbar = ed ? `<div class="toolbar"><button class="btn" data-badd="${sec.code}">+ Add Mine / Siding</button></div>` : "";
+  return `<div class="card-h"><h2>${sec.title} ${esc(m)}</h2></div>${toolbar}
+    <div class="table-wrap"><table><thead><tr>${th}</tr></thead><tbody>${body}</tbody><tfoot>${foot}</tfoot></table></div>`;
+}
+
+function renderBalco(m, ed){
+  const empty = document.getElementById("balcoEmpty");
+  if(!m){
+    empty.hidden = false;
+    empty.className = "card bsec";
+    empty.innerHTML = `<div class="empty">${ed
+      ? "No BALCO data yet. Click + Add Source, type BALCO, and enter a month like Nov'26."
+      : "No BALCO data yet. Turn on Edit to add it."}</div>`;
+    SECTIONS.forEach(sec=>document.getElementById("bBox_"+sec.code).hidden = true);
+    return;
+  }
+  empty.hidden = true;
+  SECTIONS.forEach(sec=>{
+    const box=document.getElementById("bBox_"+sec.code);
+    box.hidden = false;
+    box.innerHTML = balcoBoxHTML(sec, m, ed);
+  });
+}
+
+async function downloadBalco(){
+  if(!view.month){ notice("There is no report to download yet."); return; }
+  if(typeof html2canvas!=="function"){ notice("The image library did not load. Check your internet connection and refresh."); return; }
+  const isDark = document.documentElement.getAttribute("data-theme")==="dark";
+  const bg = isDark ? "#1a1625" : "#f8f6f7";
+  const node=document.createElement("div");
+  node.style.cssText=`position:fixed;left:0;top:0;z-index:-1;width:1240px;padding:36px;background:${bg};box-sizing:border-box`;
+  node.innerHTML = `<style>.exp-bx *{animation:none!important;transition:none!important}</style>
+    <div style="text-align:center;margin-bottom:18px;color:${isDark?"#f9a8d4":"#6b3a4f"};font-size:28px;font-weight:700">AMM Backlog Report · BALCO · ${esc(view.month)}</div>`;
+  const copy=document.getElementById("balcoPanel").cloneNode(true);
+  copy.hidden=false; copy.classList.add("exp-bx");
+  copy.querySelectorAll(".toolbar,.footbar,td.del,#balcoEmpty,.no-capture").forEach(el=>el.remove());
+  copy.querySelectorAll("[id]").forEach(el=>el.removeAttribute("id"));
+  copy.querySelectorAll("input").forEach(i=>i.replaceWith(document.createTextNode(i.value)));
+  copy.querySelectorAll("thead tr, tfoot tr").forEach(tr=>{
+    const last=tr.lastElementChild; if(last && !last.textContent.trim()) last.remove();
+  });
+  node.appendChild(copy);
+  document.body.appendChild(node);
+  try{
+    if(document.fonts && document.fonts.ready) await document.fonts.ready;
+    await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+    const canvas = await html2canvas(node, {backgroundColor:bg, scale:2, useCORS:true, logging:false});
+    const blob = await new Promise((res,rej)=>canvas.toBlob(b=>b?res(b):rej(new Error("Could not create image")),"image/png"));
+    const url = URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url; a.download=`BALCO_RAKES_${view.month.replace("'","")}.png`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 4000);
+  }catch(err){
+    notice("Image download failed:\n"+err.message);
+  }finally{
+    node.remove();
+  }
+}
+
+function render(){
+  const t=view.tab, m=view.month || "";
+  const ed=view.editing;
+  const isBalco = t==="BALCO";
+  const list=isBalco ? secRows("CPP", m) : rowsOf();
+  const tot=totalsOf(list);
+  document.body.classList.toggle("editing", ed);
+  document.getElementById("editToggle").checked = ed;
+  document.getElementById("subtitle").textContent = m ? `${label(t)} · Rake backlog · ${m}` : "Rake backlog";
+
+  document.getElementById("tabs").innerHTML = plantList().map(p =>
+    `<button class="tab ${p===t?"active":""}" data-tab="${p}">${p}</button>`).join("");
+  renderMonthSwitch();
+
+  document.getElementById("balcoPanel").hidden = !isBalco;
+  document.getElementById("card").hidden = isBalco;
+  document.getElementById("kpis").hidden = false;
+
+  document.getElementById("kpis").innerHTML = `
+    <div class="kpi c"><div class="l">Alloted Rakes</div><div class="v">${fmt(tot.alloted)}</div></div>
+    <div class="kpi g"><div class="l">Received Rakes</div><div class="v">${fmt(tot.received)}</div></div>
+    <div class="kpi y"><div class="l">Balance Rakes</div><div class="v">${fmt(tot.balance)}</div></div>
+    <div class="kpi"><div class="l">Mines / Sidings</div><div class="v">${list.length}</div></div>`;
+
+  document.getElementById("cardTitle").textContent = m ? `${label(t)} RAKES ${m}` : "No data";
+  if(isBalco){ renderBalco(m, ed); return; }
+
+  const cols=COLS(m);
+  document.getElementById("thead").innerHTML =
+    `<th class="sr-h">SR.NO.</th><th style="text-align:left">Mines (Silo's/Siding)</th>` +
+    cols.map(c=>`<th class="${c.cls||""}">${c.t}</th>`).join("") +
+    `<th class="bal">Balance<br>Rakes</th>` + (ed?`<th class="edit-only"></th>`:"");
+
+  if(!list.length){
+    document.getElementById("tbody").innerHTML =
+      `<tr><td colspan="10"><div class="empty">${m ? (ed?'No mines yet. Click "+ Add Mine / Siding" to start.':'No mines for this month. Turn on Edit to add rows.') : 'Nothing to show. Check the connection status above.'}</div></td></tr>`;
+  } else {
+    document.getElementById("tbody").innerHTML = list.map((r,i)=>{
+      const b=bal(r);
+      return `<tr style="--d:${i*25}ms">
+        <td class="sr">${r.sr}</td>
+        <td class="mine">${ed?`<input type="text" data-i="${i}" data-k="name" value="${esc(r.mine_name)}">`:esc(r.mine_name)}</td>
+        ${cols.map(c=>`<td class="${c.cls||""}">${ed?`<input type="number" min="0" data-i="${i}" data-k="${c.k}" value="${esc(r[DBCOL[c.k]])}">`:fmt(r[DBCOL[c.k]])}</td>`).join("")}
+        <td class="bal ${b===0?"zero":""}">${fmt(b)}</td>
+        ${ed?`<td class="del edit-only"><button data-del="${i}" title="Remove from this month">✕</button></td>`:""}
+      </tr>`;
+    }).join("");
+  }
+
+  document.getElementById("tfoot").innerHTML =
+    `<td class="mine">TOTAL</td><td></td>` +
+    cols.map(c=>`<td>${fmt(tot[c.k])}</td>`).join("") +
+    `<td>${fmt(tot.balance)}</td>` + (ed?`<td class="edit-only"></td>`:"");
+}
+
+function popCard(){
+  const el=document.getElementById("card");
+  el.classList.remove("pop"); void el.offsetWidth; el.classList.add("pop");
+}
+
+function switchTab(code){
+  view.tab=code; ensureMonth(); render(); popCard();
+}
+
+/* ---------- Add a month ---------- */
+async function addMonth(){
+  const plant=view.tab;
+  const months=monthsOf(plant);
+  if(!months.length){ notice("This source has no month yet. Click + Add Source first."); return; }
+  const last=months[months.length-1];
+  const mIn = await dialog({title:"New month", msg:`Month for ${label(plant)} (format Nov'26):`, input:labelFromSortKey(last.sort_key+1)});
+  if(mIn===null) return;
+  const p=parseMonth(mIn);
+  if(!p){ notice("Month must look like Oct'26"); return; }
+  if(months.find(m=>m.label===p.label)){ view.month=p.label; render(); popCard(); return; }
+
+  const carry = p.key===last.sort_key+1;
+  const source=rows.filter(r=>r.plant===plant && r.month_label===last.label).sort((a,b)=>a.sr-b.sr);
+  const newRows=source.map(r=>{
+    const base={
+      plant, month_label:p.label, sort_key:p.key, sr:r.sr, mine_name:r.mine_name,
+      carry_fwd: carry ? Math.max(0,bal(r)) : 0, rake_program:0, endorsed:0, sanction:0, alloted:0, received:0
+    };
+    if(r.section!=null){ base.section=r.section; base.carry_fwd=carry && r.section==="CPP" ? Math.max(0,bal(r)) : 0; base.extra={}; }
+    return base;
+  });
+
+  setStatus("Saving new month…");
+  try{
+    if(newRows.length){
+      const inserted = await sbWrite("POST","",newRows,"return=representation");
+      rows.push(...inserted);
+    }
+    view.month=p.label;
+    setStatus(`Saved ✓ · ${p.label} created`,"ok");
+  }catch(err){ setStatus("Save failed: "+err.message,"err"); notice("Save failed:\n"+err.message); return; }
+  render(); popCard();
+}
+
+/* ---------- Add a new source ---------- */
+async function addSource(){
+  const raw = await dialog({title:"New source", msg:"Source name (e.g. HZL, NALCO):", input:""});
+  if(raw===null) return;
+  const name = raw.trim().toUpperCase();
+  if(!name) return;
+
+  if(monthsOf(name).length){
+    view.tab=name; ensureMonth(); render(); popCard();
+    notice(`${name} already exists.`);
+    return;
+  }
+
+  const now=new Date();
+  const defMonth = view.month || labelFromSortKey(now.getFullYear()*12+now.getMonth());
+  const mIn = await dialog({title:"New source", msg:`First month for ${name} (format Nov'26):`, input:defMonth});
+  if(mIn===null) return;
+  const p=parseMonth(mIn);
+  if(!p){ notice("Month must look like Nov'26"); return; }
+
+  setStatus("Saving…");
+  try{
+    const base={plant:name, month_label:p.label, sort_key:p.key, sr:1, mine_name:"NEW MINE / SIDING"};
+    const payload = name==="BALCO"
+      ? ["CPP","EAUC","IPP"].map((s,i)=>({...base, sr:i+1, section:s,carry_fwd:0, rake_program:0, endorsed:0, sanction:0, alloted:0, received:0, extra:{}}))
+      : base;
+    const inserted = await sbWrite("POST", "", payload, "return=representation");
+    rows.push(...(Array.isArray(inserted) ? inserted : [inserted]));
+    view.tab=name; view.month=p.label;
+    setStatus("Saved ✓","ok");
+  }catch(err){ setStatus("Save failed: "+err.message,"err"); notice("Save failed:\n"+err.message); return; }
+  render(); popCard();
+}
+
+/* ---------- Image download (generic sources) – clean, no Edit / Back ---------- */
+function buildExportNode(){
+  const t=view.tab, m=view.month, list=rowsOf(), cols=COLS(m), tot=totalsOf(list);
+  const isDark = document.documentElement.getAttribute("data-theme")==="dark";
+  const node=document.createElement("div");
+  node.className="exp";
+  const bodyRows = list.length ? list.map((r,i)=>`
+    <tr>
+      <td class="sr">${r.sr}</td>
+      <td class="l">${esc(r.mine_name)}</td>
+      ${cols.map(c=>`<td class="${c.cls==="rcv"?"rc":""}">${fmt(r[DBCOL[c.k]])}</td>`).join("")}
+      <td class="bl">${fmt(bal(r))}</td>
+    </tr>`).join("")
+    : `<tr><td colspan="10" style="padding:24px;color:${isDark?"#f9a8d4":"#6b3a4f"}">No mines for this month</td></tr>`;
+
+  const bg = isDark ? "#1a1625" : "#f8f6f7";
+  const text = isDark ? "#f0eaf4" : "#1e1b2e";
+  const muted = isDark ? "#b8a0b0" : "#6b4c5c";
+  const border = isDark ? "rgba(200,170,220,.28)" : "rgba(40,25,40,.28)";
+  const thBg = isDark ? "#4a2c3c" : "#6b3a4f";
+  const thRcv = isDark ? "#4338ca" : "#4f46e5";
+  const thBal = isDark ? "#312e81" : "#3730a3";
+  const balBg = isDark ? "rgba(79,70,229,.22)" : "#eef2ff";
+  const balCol = isDark ? "#a5b4fc" : "#4338ca";
+  const tfootBg = isDark ? "linear-gradient(90deg,#2e1a3a,#1e1b4b)" : "linear-gradient(90deg,#ede9fe,#fce7f3)";
+  const tfootCol = isDark ? "#e9d5ff" : "#4c1d3a";
+  const cardH = isDark ? "linear-gradient(90deg,#3b1f2e,#1e1b4b)" : "linear-gradient(90deg,#fce7f3,#ede9fe)";
+  const cardHCol = isDark ? "#f9a8d4" : "#6b3a4f";
+
+  node.innerHTML = `
+  <style>
+    .exp{position:fixed;left:0;top:0;z-index:-1;width:1240px;padding:36px;background:${bg};color:${text};
+         font-family:"Segoe UI",Arial,Helvetica,sans-serif;box-sizing:border-box}
+    .exp *{box-sizing:border-box;animation:none!important;transition:none!important}
+    .exp .hd{text-align:center;margin-bottom:22px}
+    .exp .hd h1{margin:0;font-size:30px;color:${cardHCol};letter-spacing:.5px}
+    .exp .hd p{margin:6px 0 0;color:${muted};font-size:15px}
+    .exp .kp{display:flex;gap:14px;margin-bottom:22px}
+    .exp .kp div{flex:1;background:${isDark?"#221e30":"#fff"};border:1.5px solid ${border};border-radius:12px;padding:14px 16px}
+    .exp .kp small{display:block;color:${muted};font-size:12px;text-transform:uppercase;letter-spacing:.8px}
+    .exp .kp b{display:block;font-size:26px;margin-top:4px}
+    .exp .card{border:1.5px solid ${border};border-radius:14px;overflow:hidden;background:${isDark?"#221e30":"#fff"}}
+    .exp .ct{background:${cardH};text-align:center;padding:14px;font-size:20px;font-weight:700;letter-spacing:.5px;color:${cardHCol}}
+    .exp table{width:100%;border-collapse:collapse;font-size:14px}
+    .exp th{background:${thBg};color:#fff;padding:10px 6px;font-size:13px;text-align:center;border:1px solid ${thBg};line-height:1.3}
+    .exp th.rc{background:${thRcv}}.exp th.bl{background:${thBal}}
+    .exp td{padding:9px 8px;text-align:center;border:1px solid ${border};color:${text}}
+    .exp td.l{text-align:left;font-weight:700}
+    .exp td.sr{color:${muted};width:40px;font-size:12px}
+    .exp td.rc{color:${isDark?"#34d399":"#059669"};font-weight:700}
+    .exp td.bl{font-weight:800;background:${balBg};color:${balCol}}
+    .exp tr.tf td{background:${tfootBg};color:${tfootCol};font-weight:900;border-color:${border};font-size:15px}
+  </style>
+  <div class="hd">
+    <h1>AMM Backlog Report</h1>
+    <p>${esc(label(t))} · Rake backlog · ${esc(m)}</p>
+  </div>
+  <div class="kp">
+    <div><small>Alloted Rakes</small><b style="color:${isDark?"#f43f7a":"#c0265a"}">${fmt(tot.alloted)}</b></div>
+    <div><small>Received Rakes</small><b style="color:${isDark?"#34d399":"#059669"}">${fmt(tot.received)}</b></div>
+    <div><small>Balance Rakes</small><b style="color:${isDark?"#fbbf24":"#d97706"}">${fmt(tot.balance)}</b></div>
+    <div><small>Mines / Sidings</small><b>${list.length}</b></div>
+  </div>
+  <div class="card">
+    <div class="ct">${esc(label(t))} RAKES ${esc(m)}</div>
+    <table>
+      <thead><tr>
+        <th>SR.NO.</th><th style="text-align:left">Mines (Silo's/Siding)</th>
+        ${cols.map(c=>`<th class="${c.cls==="rcv"?"rc":""}">${c.t}</th>`).join("")}
+        <th class="bl">Balance<br>Rakes</th>
+      </tr></thead>
+      <tbody>${bodyRows}</tbody>
+      <tfoot>
+        <tr class="tf">
+          <td class="l">TOTAL</td><td></td>
+          ${cols.map(c=>`<td>${fmt(tot[c.k])}</td>`).join("")}
+          <td>${fmt(tot.balance)}</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>`;
+  return node;
+}
+
+async function downloadImage(){
+  if(view.tab==="BALCO") return downloadBalco();
+  const btn=document.getElementById("dlBtn");
+  if(!view.month){ notice("There is no report to download yet."); return; }
+  if(typeof html2canvas!=="function"){ notice("The image library did not load. Check your internet connection and refresh."); return; }
+
+  btn.disabled=true; btn.textContent="Preparing image…";
+  let node=null;
+  try{
+    if(document.fonts && document.fonts.ready) await document.fonts.ready;
+    node=buildExportNode();
+    document.body.appendChild(node);
+    await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+    await new Promise(r=>setTimeout(r,120));
+
+    const isDark = document.documentElement.getAttribute("data-theme")==="dark";
+    const canvas = await html2canvas(node, {
+      backgroundColor: isDark ? "#1a1625" : "#f8f6f7", scale:2, useCORS:true, logging:false,
+      width:node.offsetWidth, height:node.offsetHeight,
+      windowWidth:node.offsetWidth, windowHeight:node.offsetHeight,
+      scrollX:0, scrollY:0
+    });
+
+    const blob = await new Promise((res,rej)=>canvas.toBlob(b=>b?res(b):rej(new Error("Could not create image")),"image/png"));
+    const url = URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;
+    a.download=`${view.tab}_RAKES_${view.month.replace("'","")}.png`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 4000);
+  }catch(err){
+    notice("Image download failed:\n"+err.message);
+  }finally{
+    if(node) node.remove();
+    btn.disabled=false; btn.textContent="⬇ Download Image";
+  }
+}
+
+/* ---------- Events ---------- */
+document.getElementById("themeBtn").addEventListener("click", toggleTheme);
+
+document.addEventListener("click", async e=>{
+  const tabBtn=e.target.closest("[data-tab]");
+  if(tabBtn){ if(tabBtn.dataset.tab!==view.tab) switchTab(tabBtn.dataset.tab); return; }
+
+  const mBtn=e.target.closest("[data-month]");
+  if(mBtn){ if(mBtn.dataset.month!==view.month){ view.month=mBtn.dataset.month; render(); popCard(); } return; }
+
+  const badd=e.target.closest("[data-badd]");
+  if(badd){ addBalcoRow(badd.dataset.badd); return; }
+
+  const bdel=e.target.closest("[data-bdel]");
+  if(bdel){
+    const id=+bdel.dataset.bdel; const row=rows.find(r=>r.id===id);
+    if(row && await dialog({title:"Remove row", msg:`Remove "${row.mine_name}" from ${row.month_label}?`})===true) removeRow(id);
+    return;
+  }
+
+  const act=e.target.closest("[data-act]");
+  if(act){
+    if(act.dataset.act==="add-row") addMine();
+    if(act.dataset.act==="add-source") addSource();
+    if(act.dataset.act==="add-month") addMonth();
+    if(act.dataset.act==="download") downloadImage();
+    return;
+  }
+
+  const del=e.target.closest("[data-del]");
+  if(del){
+    const row=rowsOf()[+del.dataset.del];
+    if(row && await dialog({title:"Remove row", msg:`Remove "${row.mine_name}" from ${view.month}?`})===true) removeRow(row.id);
+  }
+});
+
+document.getElementById("editToggle").addEventListener("change", e=>{
+  view.editing=e.target.checked; render();
+});
+
+document.getElementById("card").addEventListener("change", e=>{
+  const inp=e.target.closest("input[data-k]"); if(!inp) return;
+  const row=rowsOf()[+inp.dataset.i]; if(!row) return;
+  const k=inp.dataset.k;
+  const val = k==="name" ? inp.value.trim() : Math.max(0, parseInt(inp.value,10)||0);
+  saveCell(row, k, val);
+});
+
+document.getElementById("balcoPanel").addEventListener("change", e=>{
+  const inp=e.target.closest("input[data-bid]"); if(!inp) return;
+  const k=inp.dataset.bk;
+  const val = k==="mine_name" ? inp.value.trim() : Math.max(0, parseInt(inp.value,10)||0);
+  saveBalco(+inp.dataset.bid, k, val);
+});
+
+document.getElementById("retryBtn").addEventListener("click", ()=>loadAll());
+window.addEventListener("resize", moveIndicator);
+loadAll();
+</script>
+</body>
+</html>
