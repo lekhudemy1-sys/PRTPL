@@ -155,7 +155,7 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(31,111,209,.28
 <div class="dash" id="dashBody"></div>
 <div class="aw-row">
  <div class="card aw-card"><h3><i class="fas fa-industry"></i> Area Wise Performance</h3><div class="wrap"><table class="mt"><thead><tr><th>AREA</th><th>TALCHER</th><th>IB</th><th>CKP</th></tr></thead><tbody id="minesBody"></tbody></table></div></div>
- <div class="card aw-card c-tracker"><h3><i class="fas fa-bullseye"></i> Tracker</h3><div id="trackerBody"></div></div>
+ <div class="card aw-card c-tracker"><h3 style="justify-content:space-between;flex-wrap:wrap"><span><i class="fas fa-bullseye"></i> Tracker</span><select id="trackerPeriod" aria-label="Tracker period" style="max-width:190px;padding:.4rem .65rem;border:1px solid var(--line);border-radius:10px;background:#f5f9fe;color:var(--ink);font:600 .8rem var(--body)"><option value="overall">Overall · 10 Oct – 12 Dec</option><option value="contract1">Contract 1 · 10 Oct – 18 Nov</option></select></h3><div id="trackerBody"></div></div>
  <div class="card c-notice hidden" id="noticeCard"><h3><i class="fas fa-bullhorn"></i> Notice</h3><div class="nbox" id="noticeText"></div></div>
 </div>
 <div class="card"><h3><i class="fas fa-calendar-alt"></i> Contract Performance</h3><div class="wrap"><table class="mt"><thead><tr><th>Contract</th><th>Total Rakes</th><th>Total Qty</th><th>Billing</th><th>Deduction</th><th>Amount</th></tr></thead><tbody id="trendBody"></tbody></table></div></div>
@@ -363,7 +363,7 @@ function compute(p,recs,tg,ovr=()=>undefined,repForce){
  const pm={qty:mt('b-qty',qty),gcv:pk('b-gcv-mt',gcvRR?gcv/gcvRR:0),pen:pk('b-pen-mt',rrAll?-penT/rrAll:0),tot:mt('b-total',tot)};
  const pmp={};Object.keys(pen).forEach(k=>pmp[k]=mt('p-'+k,pen[k]));pmp.total=mt('p-total',penT);
  const avgCh=m.length?sum(m,'ch_wt')/m.length:0;
- return{p,S,A,L,m,rep,dp,dr,dim:mi.dim,n:m.length,rrAll,rrQty,rrR,recv,chAll:sum(m,'ch_wt'),recvAll:sum(m,'recv_wt'),pen,penT,pm,pmp,qty,gcv,gross,tot,exp,tgAll,ldAll,tier,
+ return{p,S,A,L,m,recs,rep,dp,dr,dim:mi.dim,n:m.length,rrAll,rrQty,rrR,recv,chAll:sum(m,'ch_wt'),recvAll:sum(m,'recv_wt'),pen,penT,pm,pmp,qty,gcv,gross,tot,exp,tgAll,ldAll,tier,
   mat,perDay:dp?ldAll/dp:0,askDay:sum(L,'ask'),reqDay:tgAll/mi.dim,
   shPct:pk('s-pct',rrR?(rrR-recv)*100/rrR:0),shMt:pk('s-mt',wr.length?(rrR-recv)/wr.length:0),
   w:{ch:pk('w-ch',avgCh),rr:pk('w-rr',m.length?rrAll/m.length:0),recv:pk('w-recv',wr.length?recv/wr.length:0),totrr:pk('w-totrr',rrAll),totrecv:pk('w-totrecv',recv)}}}
@@ -385,7 +385,7 @@ async function loadVals(periods){
  renderCustomEntry();renderCustomAdmin();fillNotice()}
 async function fetchState(p){
  const periods=[p];
- const[recs,tg]=await Promise.all([fetchAll(q=>q.gte('date',monthInfo(periods[0]).start).lte('date',monthInfo(p).end)),db.from(TGT).select('*').in('period',periods).then(unwrap)]);
+ const[recs,tg]=await Promise.all([fetchAll(q=>q.gte('date','2026-10-10').lte('date','2026-12-12')),db.from(TGT).select('*').in('period',periods).then(unwrap)]);
  await loadVals(periods);return{periods,recs,tg}}
 
 /* ---------- dashboard ---------- */
@@ -411,13 +411,26 @@ function render(o,trend){
  $('dashBody').innerHTML=`<div class="col">${bill}${rake}</div><div class="col">${plants}${wt}</div><div class="col">${sh}${pn}</div>`;
  const mr=(l,f,fm)=>`<tr><td>${l}</td>${AREAS.map(a=>{const x=f(A[a]);return`<td class="${x<0?'neg':''}">${fm(x)}</td>`}).join('')}</tr>`;
  $('minesBody').innerHTML=mr('Total Rakes',x=>x.n,fInt)+mr('Loading GCV',x=>x.lg,f2)+mr('GCV (ARB / Unloading)',x=>x.ug,f2)+mr('Quality Diff. (Loading − Unloading)',x=>x.lg&&x.ug?x.lg-x.ug:0,f2)+mr('RR Qty',x=>x.rr,fInt)+mr('Shortage (Avg)',x=>x.sh,f2)+mr('Punitive Sum (POL)',x=>x.pun,fInt)+mr('EHBC / FAUC / SD / TC',x=>x.eh,fInt)+mr('ENHC Charges',x=>x.en,fInt)+mr('Per Ton Cost',x=>x.rr?(x.pun+x.eh+x.en)/x.rr:0,f2);
- // Tracker: target / achieve / balance / asking per day for quantity and rakes, plus RR, chargeable and plant received totals
- const qAch=o.rrQty,qBal=TARGET_QTY-qAch,qAsk=o.dr?qBal/o.dr:0,rAch=o.ldAll,rBal=TARGET_RAKES-rAch,rAsk=o.dr?rBal/o.dr:0;
+ // Tracker has its own date window and target; it does not change dashboard calculations.
+ const trackerMode=$('trackerPeriod')?.value||'overall';
+ const trackerCfg=trackerMode==='contract1'?{start:'2026-10-10',end:'2026-11-18',label:'10 OCT – 18 NOV',qty:97000}:{start:'2026-10-10',end:'2026-12-12',label:'10 OCT – 12 DEC',qty:194000};
+ const trackerRows=(o.recs||o.m).filter(r=>r.date>=trackerCfg.start&&r.date<=trackerCfg.end);
+ // Area Wise Performance follows the Tracker date selection only; other dashboard sections keep their existing period.
+ const trackerArea={};
+ AREAS.forEach(a=>{const rs=trackerRows.filter(r=>up(r.area)===a),wr=rs.filter(r=>num(r.recv_wt)>0),rr=sum(rs,'rr_wt');
+  trackerArea[a]={n:rs.length,lg:wAvg(rs,'loading_gcv','rr_wt'),ug:wAvg(rs,'unloading_gcv','rr_wt'),rr,
+   sh:wr.length?(sum(wr,'rr_wt')-sum(wr,'recv_wt'))/wr.length:0,pun:sum(rs,'pol_group'),eh:sum(rs,'ehbc_group'),en:sum(rs,'enhc_charge')};
+ });
+ const trackerMr=(l,f,fm)=>`<tr><td>${l}</td>${AREAS.map(a=>{const x=f(trackerArea[a]);return`<td class="${x<0?'neg':''}">${fm(x)}</td>`}).join('')}</tr>`;
+ $('minesBody').innerHTML=trackerMr('Total Rakes',x=>x.n,fInt)+trackerMr('Loading GCV',x=>x.lg,f2)+trackerMr('GCV (ARB / Unloading)',x=>x.ug,f2)+trackerMr('Quality Diff. (Loading − Unloading)',x=>x.lg&&x.ug?x.lg-x.ug:0,f2)+trackerMr('RR Qty',x=>x.rr,fInt)+trackerMr('Shortage (Avg)',x=>x.sh,f2)+trackerMr('Punitive Sum (POL)',x=>x.pun,fInt)+trackerMr('EHBC / FAUC / SD / TC',x=>x.eh,fInt)+trackerMr('ENHC Charges',x=>x.en,fInt)+trackerMr('Per Ton Cost',x=>x.rr?(x.pun+x.eh+x.en)/x.rr:0,f2);
+ const qAch=trackerRows.reduce((v,r)=>v+num(r.rr_qty!==undefined&&r.rr_qty!==null?r.rr_qty:r.rr_wt),0),qBal=trackerCfg.qty-qAch;
+ const tToday=today(),tFrom=tToday>trackerCfg.end?trackerCfg.end:(tToday<trackerCfg.start?trackerCfg.start:tToday),tDays=daysBetween(tFrom,trackerCfg.end),qAsk=tDays?qBal/tDays:0;
+ const rAch=trackerRows.length,rBal=TARGET_RAKES-rAch,rAsk=tDays?rBal/tDays:0,tRR=sum(trackerRows,'rr_wt'),tCh=sum(trackerRows,'ch_wt'),tRecv=sum(trackerRows,'recv_wt');
  const tc=(x,fm)=>`<td class="ctr ${x<0?'neg':''}">${fm(x)}</td>`;
- $('trackerBody').innerHTML=`<div class="wrap"><table class="mt"><thead><tr><th></th><th>Target</th><th>Achieve</th><th>Balance</th><th>Asking / Day</th></tr></thead><tbody>`+
-  `<tr><td>Quantity (MT)</td>${tc(TARGET_QTY,fInt)}${tc(qAch,fInt)}${tc(qBal,fInt)}${tc(qAsk,f2)}</tr>`+
+ $('trackerBody').innerHTML=`<div style="font-size:.72rem;font-weight:700;color:var(--navy2);margin:-.25rem 0 .45rem">${trackerCfg.label} 2026</div><div class="wrap"><table class="mt"><thead><tr><th></th><th>Target</th><th>Achieve</th><th>Balance</th><th>Asking / Day</th></tr></thead><tbody>`+
+  `<tr><td>Quantity (MT)</td>${tc(trackerCfg.qty,fInt)}${tc(qAch,fInt)}${tc(qBal,fInt)}${tc(qAsk,f2)}</tr>`+
   `<tr><td>Rakes</td>${tc(TARGET_RAKES,fInt)}${tc(rAch,fInt)}${tc(rBal,fInt)}${tc(rAsk,f2)}</tr></tbody></table></div>`+
-  `<div class="wrap"><table class="mt"><thead><tr><th>RR Qty</th><th>Chargeable Qty</th><th>Plant Recv</th></tr></thead><tbody><tr>${tc(o.rrAll,fInt)}${tc(o.chAll,fInt)}${tc(o.recvAll,fInt)}</tr></tbody></table></div>`;
+  `<div class="wrap"><table class="mt"><thead><tr><th>RR Qty</th><th>Chargeable Qty</th><th>Plant Recv</th></tr></thead><tbody><tr>${tc(tRR,fInt)}${tc(tCh,fInt)}${tc(tRecv,fInt)}</tr></tbody></table></div>`;
  $('trendBody').innerHTML=trend.map(t=>`<tr><td>${plabel(t.p)}</td><td>${fInt(t.n)}</td><td>${fInt(t.rrAll)}</td><td>${fInt(t.gross)}</td><td class="${t.penT?'neg':''}">${fInt(-t.penT)}</td><td>${fInt(t.tot)}</td></tr>`).join('');
  const y=new Date();y.setDate(y.getDate()-1);$('upto').textContent=y.toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});
  const nov=Object.keys(OVR['ovr-m:'+o.p]||{}).length;
@@ -425,7 +438,7 @@ function render(o,trend){
 let seq=0;
 async function loadDash(){const s=++seq;try{const st=await fetchState(PERIOD);if(s!==seq)return;render(C(PERIOD,st.recs,st.tg),st.periods.map(p=>C(p,st.recs,st.tg)));loadAlerts()}catch(e){console.error(e);toast('Could not load dashboard: '+(e.message||'Supabase error'),true)}}
 function fillPick(){$('pick').innerHTML=CONTRACTS.map(c=>`<option value="${c.key}">${plabel(c.key)}</option>`).join('');$('pick').value=PERIOD;$('pick').onchange=()=>{PERIOD=$('pick').value;loadDash()}}
-$('reload').onclick=loadDash;
+$('reload').onclick=loadDash;$('trackerPeriod').value='overall';$('trackerPeriod').onchange=()=>loadDash();
 $('png').onclick=async()=>{const b=$('png');b.disabled=true;document.body.classList.add('exp');try{toast('Preparing image...');await loadDash();if(document.fonts)await document.fonts.ready;window.scrollTo(0,0);
  const c=await html2canvas($('view-dash'),{scale:2,backgroundColor:'#eef4fb',useCORS:true,logging:false,windowWidth:1500});
  c.toBlob(bl=>{const a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download=`NALCO-Performance-${PERIOD}.png`;a.click();toast('PNG saved')})}catch(e){toast('PNG export failed: '+e.message,true)}document.body.classList.remove('exp');b.disabled=false};
