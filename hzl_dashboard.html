@@ -1917,8 +1917,9 @@ async function computeDashboard(period = PERIOD) {
     out['svc' + key] = areaRecv * SERVICE_RATE;
     out['svc' + key + 'Mt'] = areaRr ? out['svc' + key] / areaRr : 0;
     out['gcvPos' + key] = sumOf(aR, r => r.gcv_adb) - sumOf(aR, r => r.gcv_arb);
-    const arb = aR.filter(r => r.gcv_arb != null);
-    out[key.toLowerCase() + 'Gcv'] = arb.length ? sumOf(arb, r => r.gcv_arb) / arb.length : 0;
+    const arb = aR.filter(r => r.gcv_arb != null && r.rr_wt != null);
+    const arbRr = sumOf(arb, r => r.rr_wt);
+    out[key.toLowerCase() + 'Gcv'] = arbRr ? sumProd(arb, 'gcv_arb', 'rr_wt') / arbRr : 0;
     const arbT = sumOf(aR, r => r.gcv_arb);
     out[key.toLowerCase() + 'GcvCost'] = arbT ? sumOf(aR, r => r.landed_cost) / arbT : 0;
   });
