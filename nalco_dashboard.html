@@ -57,7 +57,7 @@ body:not(.unlocked) .pro{display:none}
 .aw-row{display:flex;justify-content:center;align-items:flex-start;gap:1.2rem;flex-wrap:wrap;margin-bottom:1.2rem}
 .aw-card{flex:0 1 620px;min-width:280px}.aw-card .mt{min-width:0}.aw-card .mt th{padding:.4rem .4rem;font-size:.66rem}.aw-card .mt td{padding:.3rem .4rem;font-size:.78rem}
 .c-tracker{flex:0 1 500px;min-width:300px}.c-tracker .mt td.ctr{text-align:center;padding-left:.4rem}.c-tracker .wrap+.wrap{margin-top:.8rem}
-.c-notice{flex:0 1 420px;min-width:260px}.c-notice::before{background:linear-gradient(90deg,#d9a21a,#f1d98f)}
+.c-notice{width:100%;min-width:0;margin-top:1rem}.c-notice::before{background:linear-gradient(90deg,#d9a21a,#f1d98f)}
 .nbox{white-space:pre-wrap;word-break:break-word;font-size:.9rem;font-weight:600;line-height:1.55;background:#fff8e4;border:1px solid #f1d98f;border-radius:14px;padding:.8rem 1rem}
 .panel{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:1.2rem 1.3rem;box-shadow:var(--sh);margin-bottom:1.2rem}
 .panel h2{font:700 1.15rem var(--head);margin-bottom:.8rem;display:flex;align-items:center;gap:.6rem}.panel h2 i{color:var(--navy2)}
@@ -155,8 +155,8 @@ input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(31,111,209,.28
 <div class="dash" id="dashBody"></div>
 <div class="aw-row">
  <div class="card aw-card"><h3><i class="fas fa-industry"></i> Area Wise Performance</h3><div class="wrap"><table class="mt"><thead><tr><th>AREA</th><th>TALCHER</th><th>IB</th><th>CKP</th></tr></thead><tbody id="minesBody"></tbody></table></div></div>
- <div class="card aw-card c-tracker"><h3 style="justify-content:space-between;flex-wrap:wrap"><span><i class="fas fa-bullseye"></i> Tracker</span><select id="trackerPeriod" aria-label="Tracker period" style="max-width:190px;padding:.4rem .65rem;border:1px solid var(--line);border-radius:10px;background:#f5f9fe;color:var(--ink);font:600 .8rem var(--body)"><option value="overall">Overall · 10 Oct – 12 Dec</option><option value="contract1">Contract 1 · 10 Oct – 18 Nov</option></select></h3><div id="trackerBody"></div></div>
- <div class="card c-notice hidden" id="noticeCard"><h3><i class="fas fa-bullhorn"></i> Notice</h3><div class="nbox" id="noticeText"></div></div>
+ <div class="card aw-card c-tracker"><h3 style="justify-content:space-between;flex-wrap:wrap"><span><i class="fas fa-bullseye"></i> Tracker</span><select id="trackerPeriod" aria-label="Tracker period" style="max-width:190px;padding:.4rem .65rem;border:1px solid var(--line);border-radius:10px;background:#f5f9fe;color:var(--ink);font:600 .8rem var(--body)"><option value="overall">Overall · 10 Oct – 12 Dec</option><option value="contract1">Contract 1 · 10 Oct – 18 Nov</option></select></h3><div id="trackerBody"></div>
+ <div class="card c-notice hidden" id="noticeCard"><h3><i class="fas fa-bullhorn"></i> Notice</h3><div class="nbox" id="noticeText"></div></div></div>
 </div>
 <div class="card"><h3><i class="fas fa-calendar-alt"></i> Contract Performance</h3><div class="wrap"><table class="mt"><thead><tr><th>Contract</th><th>Total Rakes</th><th>Total Qty</th><th>Billing</th><th>Deduction</th><th>Amount</th></tr></thead><tbody id="trendBody"></tbody></table></div></div>
 </section>
@@ -413,7 +413,7 @@ function render(o,trend){
  $('minesBody').innerHTML=mr('Total Rakes',x=>x.n,fInt)+mr('Loading GCV',x=>x.lg,f2)+mr('GCV (ARB / Unloading)',x=>x.ug,f2)+mr('Quality Diff. (Loading − Unloading)',x=>x.lg&&x.ug?x.lg-x.ug:0,f2)+mr('RR Qty',x=>x.rr,fInt)+mr('Shortage (Avg)',x=>x.sh,f2)+mr('Punitive Sum (POL)',x=>x.pun,fInt)+mr('EHBC / FAUC / SD / TC',x=>x.eh,fInt)+mr('ENHC Charges',x=>x.en,fInt)+mr('Per Ton Cost',x=>x.rr?(x.pun+x.eh+x.en)/x.rr:0,f2);
  // Tracker has its own date window and target; it does not change dashboard calculations.
  const trackerMode=$('trackerPeriod')?.value||'overall';
- const trackerCfg=trackerMode==='contract1'?{start:'2026-10-10',end:'2026-11-18',label:'10 OCT – 18 NOV',qty:97000}:{start:'2026-10-10',end:'2026-12-12',label:'10 OCT – 12 DEC',qty:194000};
+ const trackerCfg=trackerMode==='contract1'?{start:'2026-10-10',end:'2026-11-18',label:'10 OCT – 18 NOV',qty:97000,rakes:28}:{start:'2026-10-10',end:'2026-12-12',label:'10 OCT – 12 DEC',qty:194000,rakes:57};
  const trackerRows=(o.recs||o.m).filter(r=>r.date>=trackerCfg.start&&r.date<=trackerCfg.end);
  // Area Wise Performance follows the Tracker date selection only; other dashboard sections keep their existing period.
  const trackerArea={};
@@ -422,14 +422,16 @@ function render(o,trend){
    sh:wr.length?(sum(wr,'rr_wt')-sum(wr,'recv_wt'))/wr.length:0,pun:sum(rs,'pol_group'),eh:sum(rs,'ehbc_group'),en:sum(rs,'enhc_charge')};
  });
  const trackerMr=(l,f,fm)=>`<tr><td>${l}</td>${AREAS.map(a=>{const x=f(trackerArea[a]);return`<td class="${x<0?'neg':''}">${fm(x)}</td>`}).join('')}</tr>`;
- $('minesBody').innerHTML=trackerMr('Total Rakes',x=>x.n,fInt)+trackerMr('Loading GCV',x=>x.lg,f2)+trackerMr('GCV (ARB / Unloading)',x=>x.ug,f2)+trackerMr('Quality Diff. (Loading − Unloading)',x=>x.lg&&x.ug?x.lg-x.ug:0,f2)+trackerMr('RR Qty',x=>x.rr,fInt)+trackerMr('Shortage (Avg)',x=>x.sh,f2)+trackerMr('Punitive Sum (POL)',x=>x.pun,fInt)+trackerMr('EHBC / FAUC / SD / TC',x=>x.eh,fInt)+trackerMr('ENHC Charges',x=>x.en,fInt)+trackerMr('Per Ton Cost',x=>x.rr?(x.pun+x.eh+x.en)/x.rr:0,f2);
+ const areaTargetRow=`<tr><td>Target Rakes</td>${AREAS.map(a=>`<td>${fInt(trackerMode==='contract1'?({TALCHER:8,IB:12,CKP:8}[a]):A[a].tg)}</td>`).join('')}</tr>`;
+ const areaAskingRow=`<tr><td>Asking / Day</td>${AREAS.map(a=>`<td>${trackerMode==='contract1'?'-':f2(A[a].ask)}</td>`).join('')}</tr>`;
+ $('minesBody').innerHTML=areaTargetRow+trackerMr('Total Rakes',x=>x.n,fInt)+trackerMr('Loading GCV',x=>x.lg,f2)+trackerMr('GCV (ARB / Unloading)',x=>x.ug,f2)+trackerMr('Quality Diff. (Loading − Unloading)',x=>x.lg&&x.ug?x.lg-x.ug:0,f2)+trackerMr('RR Qty',x=>x.rr,fInt)+trackerMr('Shortage (Avg)',x=>x.sh,f2)+trackerMr('Punitive Sum (POL)',x=>x.pun,fInt)+trackerMr('EHBC / FAUC / SD / TC',x=>x.eh,fInt)+trackerMr('ENHC Charges',x=>x.en,fInt)+trackerMr('Per Ton Cost',x=>x.rr?(x.pun+x.eh+x.en)/x.rr:0,f2)+areaAskingRow;
  const qAch=trackerRows.reduce((v,r)=>v+num(r.rr_qty!==undefined&&r.rr_qty!==null?r.rr_qty:r.rr_wt),0),qBal=trackerCfg.qty-qAch;
  const tToday=today(),tFrom=tToday>trackerCfg.end?trackerCfg.end:(tToday<trackerCfg.start?trackerCfg.start:tToday),tDays=daysBetween(tFrom,trackerCfg.end),qAsk=tDays?qBal/tDays:0;
- const rAch=trackerRows.length,rBal=TARGET_RAKES-rAch,rAsk=tDays?rBal/tDays:0,tRR=sum(trackerRows,'rr_wt'),tCh=sum(trackerRows,'ch_wt'),tRecv=sum(trackerRows,'recv_wt');
+ const rAch=trackerRows.length,rBal=trackerCfg.rakes-rAch,rAsk=tDays?rBal/tDays:0,tRR=sum(trackerRows,'rr_wt'),tCh=sum(trackerRows,'ch_wt'),tRecv=sum(trackerRows,'recv_wt');
  const tc=(x,fm)=>`<td class="ctr ${x<0?'neg':''}">${fm(x)}</td>`;
  $('trackerBody').innerHTML=`<div style="font-size:.72rem;font-weight:700;color:var(--navy2);margin:-.25rem 0 .45rem">${trackerCfg.label} 2026</div><div class="wrap"><table class="mt"><thead><tr><th></th><th>Target</th><th>Achieve</th><th>Balance</th><th>Asking / Day</th></tr></thead><tbody>`+
   `<tr><td>Quantity (MT)</td>${tc(trackerCfg.qty,fInt)}${tc(qAch,fInt)}${tc(qBal,fInt)}${tc(qAsk,f2)}</tr>`+
-  `<tr><td>Rakes</td>${tc(TARGET_RAKES,fInt)}${tc(rAch,fInt)}${tc(rBal,fInt)}${tc(rAsk,f2)}</tr></tbody></table></div>`+
+  `<tr><td>Rakes</td>${tc(trackerCfg.rakes,fInt)}${tc(rAch,fInt)}${tc(rBal,fInt)}${tc(rAsk,f2)}</tr></tbody></table></div>`+
   `<div class="wrap"><table class="mt"><thead><tr><th>RR Qty</th><th>Chargeable Qty</th><th>Plant Recv</th></tr></thead><tbody><tr>${tc(tRR,fInt)}${tc(tCh,fInt)}${tc(tRecv,fInt)}</tr></tbody></table></div>`;
  $('trendBody').innerHTML=trend.map(t=>`<tr><td>${plabel(t.p)}</td><td>${fInt(t.n)}</td><td>${fInt(t.rrAll)}</td><td>${fInt(t.gross)}</td><td class="${t.penT?'neg':''}">${fInt(-t.penT)}</td><td>${fInt(t.tot)}</td></tr>`).join('');
  const y=new Date();y.setDate(y.getDate()-1);$('upto').textContent=y.toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});
