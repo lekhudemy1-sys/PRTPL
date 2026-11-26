@@ -105,7 +105,7 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--pr-a,#1d4ed8);outli
 }
 
 /* ---------- Route: one station per group ---------- */
-.route{display:block;position:relative;padding-top:clamp(.75rem,2vh,1.25rem);clip-path:inset(0 -200px -200px -200px)}
+.route{display:block;position:relative;padding-top:clamp(.75rem,2vh,1.25rem);overflow:clip}
 
 /* The coal rake: three wagons pulled by an engine, seen from above. Its nose points down the track. */
 .train{
@@ -269,6 +269,13 @@ html[data-motion="full"] .group::after{animation:pop .45s var(--ease) both;anima
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
+
+/* ---------- Scroll containment: no sideways scroll, page ends at the footer ---------- */
+html,body{overflow-x:clip}
+.group>*,.g-tiles>*,.txt{min-width:0}
+.g-tiles{grid-template-columns:repeat(auto-fill,minmax(min(290px,100%),1fr))}
+.site-footer{margin-bottom:0}
+body>*:last-child{margin-bottom:0}
 </style>
 <meta name="pr-hub" content="grid" />
 <meta name="pr-access" content="" />
@@ -1457,7 +1464,7 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
 
     <section class="group" data-group="data" style="--c:#7c3aed;--g:1" aria-labelledby="g-data">
       <header class="g-head">
-        <h2 id="g-data">Railway data</h2>
+        <h2 id="g-data">Source data</h2>
         <p>Railway and coal company data</p>
       </header>
       <div class="g-tiles">
