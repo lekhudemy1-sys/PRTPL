@@ -258,6 +258,8 @@ td.rcv{color:var(--ok);font-weight:800}
 td.bal{font-weight:800;background:var(--bal-bg);color:var(--bal-color)}
 td.bal.zero{color:var(--muted);background:transparent}
 td.del{width:60px}
+td.rem{text-align:left;min-width:180px;font-size:13px;font-weight:600}
+td.rem input{text-align:left}
 .del button,td.del button{border:none;background:rgba(220,38,38,.12);color:var(--err);border-radius:8px;padding:6px 10px;cursor:pointer;transition:transform .2s}
 .del button:hover,td.del button:hover{transform:scale(1.12);background:rgba(220,38,38,.25)}
 
@@ -653,6 +655,8 @@ async function removeRow(id){
 /* ---------- BALCO writes ---------- */
 function secRows(code,m,plant="BALCO"){ return rows.filter(r=>r.plant===plant && r.month_label===m && r.section===code).sort((a,b)=>a.sr-b.sr); }
 function getv(r,k){ return k.startsWith("x.") ? (Number((r.extra||{})[k.slice(2)])||0) : (Number(r[k])||0); }
+/* Permanent remark per row, stored in the existing extra JSON column. */
+function getRemark(r){ return String((r.extra||{}).remark ?? ""); }
 function rowBal(r,sec){ return sec.balance==="calc" ? bal(r) : (sec.balance ? getv(r,sec.balance) : 0); }
 
 async function addBalcoRow(code){
@@ -709,7 +713,9 @@ function balcoBoxHTML(sec, m, ed, plant){
     `<th style="text-align:left">${sec.first ?? "Mines (Silo's/Siding)"}</th>` +
     cols.map(c=>`<th class="${c.rcv?"rcv":""}">${c.t(m)}</th>`).join("") +
     (sec.balance?`<th class="bal">Balance<br>Rakes</th>`:"") +
+    `<th class="rem-h">Remark</th>` +
     (ed?`<th></th>`:"");
+  const nCols=(sec.sr?1:0)+1+cols.length+(sec.balance?1:0)+1+(ed?1:0);
   const body = list.length ? list.map((r,i)=>{
     const b = sec.balance ? rowBal(r,sec) : 0;
     return `<tr style="--d:${i*25}ms">
@@ -718,12 +724,13 @@ function balcoBoxHTML(sec, m, ed, plant){
       ${cols.map(c=>{ const v=getv(r,c.k);
         return `<td class="${c.rcv?"rcv":""}">${ed?`<input type="number" min="0" data-bid="${r.id}" data-bk="${c.k}" value="${v}">`:fmt(v)}</td>`; }).join("")}
       ${sec.balance?`<td class="bal ${b===0?"zero":""}">${ed && sec.balance!=="calc" ? `<input type="number" min="0" data-bid="${r.id}" data-bk="${sec.balance}" value="${b}">` : fmt(b)}</td>`:""}
+      <td class="rem">${ed?`<input type="text" data-bid="${r.id}" data-bk="x.remark" value="${esc(getRemark(r))}">`:esc(getRemark(r))}</td>
       ${ed?`<td class="del"><button data-bdel="${r.id}" title="Remove">✕</button></td>`:""}
     </tr>`; }).join("")
-    : `<tr><td colspan="${cols.length+4}"><div class="empty">No mines in this section for ${esc(m)}.</div></td></tr>`;
+    : `<tr><td colspan="${nCols}"><div class="empty">No mines in this section for ${esc(m)}.</div></td></tr>`;
   const tot = {}; cols.forEach(c=>tot[c.k]=list.reduce((s,r)=>s+getv(r,c.k),0));
   const totBal = sec.balance ? list.reduce((s,r)=>s+rowBal(r,sec),0) : 0;
-  const foot = `<tr>${sec.sr?"<td></td>":""}<td class="mine">TOTAL</td>${cols.map(c=>`<td>${fmt(tot[c.k])}</td>`).join("")}${sec.balance?`<td>${fmt(totBal)}</td>`:""}${ed?"<td></td>":""}</tr>`;
+  const foot = `<tr>${sec.sr?"<td></td>":""}<td class="mine">TOTAL</td>${cols.map(c=>`<td>${fmt(tot[c.k])}</td>`).join("")}${sec.balance?`<td>${fmt(totBal)}</td>`:""}<td></td>${ed?"<td></td>":""}</tr>`;
   const toolbar = ed ? `<div class="toolbar"><button class="btn" data-badd="${sec.code}">+ Add Mine / Siding</button></div>` : "";
   return `<div class="card-h"><h2>${sec.title} ${esc(m)}</h2></div>${toolbar}
     <div class="table-wrap"><table><thead><tr>${th}</tr></thead><tbody>${body}</tbody><tfoot>${foot}</tfoot></table></div>`;
@@ -814,11 +821,11 @@ function render(){
   document.getElementById("thead").innerHTML =
     `<th class="sr-h">SR.NO.</th><th style="text-align:left">Mines (Silo's/Siding)</th>` +
     cols.map(c=>`<th class="${c.cls||""}">${c.t}</th>`).join("") +
-    `<th class="bal">Balance<br>Rakes</th>` + (ed?`<th class="edit-only"></th>`:"");
+    `<th class="bal">Balance<br>Rakes</th><th class="rem-h">Remark</th>` + (ed?`<th class="edit-only"></th>`:"");
 
   if(!list.length){
     document.getElementById("tbody").innerHTML =
-      `<tr><td colspan="10"><div class="empty">${m ? (ed?'No mines yet. Click "+ Add Mine / Siding" to start.':'No mines for this month. Turn on Edit to add rows.') : 'Nothing to show. Check the connection status above.'}</div></td></tr>`;
+      `<tr><td colspan="11"><div class="empty">${m ? (ed?'No mines yet. Click "+ Add Mine / Siding" to start.':'No mines for this month. Turn on Edit to add rows.') : 'Nothing to show. Check the connection status above.'}</div></td></tr>`;
   } else {
     document.getElementById("tbody").innerHTML = list.map((r,i)=>{
       const b=bal(r);
@@ -827,6 +834,7 @@ function render(){
         <td class="mine">${ed?`<input type="text" data-i="${i}" data-k="name" value="${esc(r.mine_name)}">`:esc(r.mine_name)}</td>
         ${cols.map(c=>`<td class="${c.cls||""}">${ed?`<input type="number" min="0" data-i="${i}" data-k="${c.k}" value="${esc(r[DBCOL[c.k]])}">`:fmt(r[DBCOL[c.k]])}</td>`).join("")}
         <td class="bal ${b===0?"zero":""}">${fmt(b)}</td>
+        <td class="rem">${ed?`<input type="text" data-i="${i}" data-k="x.remark" value="${esc(getRemark(r))}">`:esc(getRemark(r))}</td>
         ${ed?`<td class="del edit-only"><button data-del="${i}" title="Remove from this month">✕</button></td>`:""}
       </tr>`;
     }).join("");
@@ -835,7 +843,7 @@ function render(){
   document.getElementById("tfoot").innerHTML =
     `<td class="mine">TOTAL</td><td></td>` +
     cols.map(c=>`<td>${fmt(tot[c.k])}</td>`).join("") +
-    `<td>${fmt(tot.balance)}</td>` + (ed?`<td class="edit-only"></td>`:"");
+    `<td>${fmt(tot.balance)}</td><td></td>` + (ed?`<td class="edit-only"></td>`:"");
 }
 
 function popCard(){
@@ -867,6 +875,8 @@ async function addMonth(){
       carry_fwd: carry ? Math.max(0,bal(r)) : 0, rake_program:0, endorsed:0, sanction:0, alloted:0, received:0
     };
     if(r.section!=null){ base.section=r.section; base.extra={}; }
+    // Remarks are permanent: carry them into the new month
+    if((r.extra||{}).remark){ base.extra={...(base.extra||{}), remark:r.extra.remark}; }
     // BALCO IPP has no carry-forward; every other section carries its balance forward
     const carryOK = r.plant!=="BALCO" || r.section==null || r.section==="CPP";
     base.carry_fwd = carry && carryOK ? Math.max(0,bal(r)) : 0;
@@ -953,7 +963,7 @@ function refreshFooter(table){
   const sums = {};
   [...body.rows].forEach(tr=>{
     [...tr.cells].forEach((td,j)=>{
-      if(td.classList.contains("mine") || td.classList.contains("sr") || td.classList.contains("del")) return;
+      if(td.classList.contains("mine") || td.classList.contains("sr") || td.classList.contains("del") || td.classList.contains("rem")) return;
       const inp = td.querySelector("input[type=number]");
       const v = inp ? (parseInt(inp.value,10) || 0)
                     : td.querySelector("input") ? 0
@@ -1012,14 +1022,14 @@ document.getElementById("card").addEventListener("change", e=>{
   const inp=e.target.closest("input[data-k]"); if(!inp) return;
   const row=rowsOf()[+inp.dataset.i]; if(!row) return;
   const k=inp.dataset.k;
-  const val = k==="name" ? inp.value.trim() : Math.max(0, parseInt(inp.value,10)||0);
+  const val = (k==="name" || k==="x.remark") ? inp.value.trim() : Math.max(0, parseInt(inp.value,10)||0);
   queueEdit(row.id, k, val);
 });
 
 document.getElementById("sectPanel").addEventListener("change", e=>{
   const inp=e.target.closest("input[data-bid]"); if(!inp) return;
   const k=inp.dataset.bk;
-  const val = k==="mine_name" ? inp.value.trim() : Math.max(0, parseInt(inp.value,10)||0);
+  const val = (k==="mine_name" || k==="x.remark") ? inp.value.trim() : Math.max(0, parseInt(inp.value,10)||0);
   queueEdit(inp.dataset.bid, k, val);
 });
 
