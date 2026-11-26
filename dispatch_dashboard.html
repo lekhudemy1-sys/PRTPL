@@ -3062,9 +3062,10 @@ function renderSummary(){
   }
   $("sm-csv").disabled = false; $("sm-img").disabled = false;
   const dateCell = g => L.single ? dmy(L.from) : L.brk ? dmy(g.date) : `${dmy(L.from)} to ${dmy(L.to)}`;
-  t.innerHTML = `<thead><tr><th>Sr No.</th><th>Date</th><th>Subsidiary</th><th>Destination</th><th>No. of rakes</th><th>Power / Non-power</th></tr></thead><tbody>` +
-    L.list.map((g,i) => `<tr><td>${i+1}</td><td>${dateCell(g)}</td><td>${esc(g.sub)}</td><td>${esc(g.dest)}</td><td><b>${fmt(g.n)}</b></td><td>${TK_LABEL[g.tk]}</td></tr>`).join("") +
-    `</tbody><tfoot><tr style="background:#faf7fe"><td colspan="4" style="font-weight:800;text-align:right">TOTAL RAKES</td><td style="font-weight:800">${fmt(total)}</td><td></td></tr></tfoot>`;
+  const pctOf = n => total ? (n * 100 / total).toFixed(2) + "%" : "0%";
+  t.innerHTML = `<thead><tr><th>Sr No.</th><th>Date</th><th>Subsidiary</th><th>Destination</th><th>No. of rakes</th><th>% of total</th><th>Power / Non-power</th></tr></thead><tbody>` +
+    L.list.map((g,i) => `<tr><td>${i+1}</td><td>${dateCell(g)}</td><td>${esc(g.sub)}</td><td>${esc(g.dest)}</td><td><b>${fmt(g.n)}</b></td><td>${pctOf(g.n)}</td><td>${TK_LABEL[g.tk]}</td></tr>`).join("") +
+    `</tbody><tfoot><tr style="background:#faf7fe"><td colspan="4" style="font-weight:800;text-align:right">TOTAL RAKES</td><td style="font-weight:800">${fmt(total)}</td><td style="font-weight:800">${total ? "100.00%" : "0%"}</td><td></td></tr></tfoot>`;
 }
 
 async function downloadSummaryImage(){
