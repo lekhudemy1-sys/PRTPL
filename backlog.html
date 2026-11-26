@@ -312,6 +312,7 @@ tfoot td{
           <span class="track"><span class="knob"></span></span>
           <span>Edit</span>
         </label>
+        <button class="btn" id="saveAllBtn" hidden disabled>💾 Save Changes</button>
         <a class="back" href="home_page.html">← Back to Home</a>
       </div>
     </header>
@@ -325,12 +326,10 @@ tfoot td{
 
     <div class="kpis" id="kpis"></div>
 
-    <!-- BALCO: three report tables -->
-    <div id="balcoPanel" hidden>
+    <!-- Multi-section plants (BALCO, PJPB, GUJARAT, NALCO, HZL): one table per section -->
+    <div id="sectPanel" hidden>
       <div id="balcoEmpty" hidden></div>
-      <div class="card bsec" id="bBox_CPP" hidden></div>
-      <div class="card bsec" id="bBox_EAUC" hidden></div>
-      <div class="card bsec" id="bBox_IPP" hidden></div>
+      <div id="sectBoxes"></div>
       <div class="footbar no-capture"><button class="btn ghost" data-act="download">⬇ Download Image</button></div>
     </div>
 
@@ -440,7 +439,41 @@ const SECTIONS = [
   ]}
 ];
 
+/* Plants split into one table per section/coal field. BALCO uses SECTIONS above. */
+const MULTI_SECTIONS = {
+  PJPB:["SECL","MCL","CCL","NCL"],
+  GUJARAT:["SECL","WCF"],
+  NALCO:["IB","CKP","TALCHER"],
+  HZL:["SECL","CCL","MCL"]
+};
+function stdCols(){
+  return [
+    {k:"carry_fwd",    t:m=>`Carry Fwd<br>${prevLabel(m)}`},
+    {k:"rake_program", t:m=>`Rake Program<br>${m}`},
+    {k:"endorsed",     t:m=>`Endorsed Rakes<br>${m}`},
+    {k:"sanction",     t:m=>`Sanction Rakes<br>${m}`},
+    {k:"alloted",      t:m=>`Alloted Rakes<br>${m}`},
+    {k:"received",     t:m=>`Received Rakes<br>${m}`, rcv:true}
+  ];
+}
+function sectionsFor(plant){
+  if(plant==="BALCO") return SECTIONS;
+  if(MULTI_SECTIONS[plant]) return MULTI_SECTIONS[plant].map(code=>({
+    code, title:`${plant} ${code} RAKES`, sr:true, balance:"calc", cols:stdCols()
+  }));
+  return null;
+}
+function allSecRows(plant,m){
+  return rows.filter(r=>r.plant===plant && r.month_label===m && r.section!=null);
+}
+/* Maps a UI field key to the database column it is saved to. */
+function colFor(k){
+  if(k==="name" || k==="mine_name") return "mine_name";
+  return DBCOL[k] || k;
+}
+
 let rows = [];
+let pendingEdits = new Map();
 let view = {tab:"BALCO", month:null, editing:false};
 
 function setStatus(s, cls){ const el=document.getElementById("status"); el.textContent=s; el.className="status "+(cls||""); }
@@ -549,18 +582,44 @@ async function loadAll(){
 }
 
 /* ---------- Writes ---------- */
-async function saveCell(row, k, val){
-  setStatus("Saving…");
+function queueEdit(id, k, val){
+  const key = `${id}::${k}`;
+  pendingEdits.set(key, {id, k, val});
+  const btn=document.getElementById("saveAllBtn");
+  btn.hidden=false; btn.disabled=false;
+  btn.textContent=`💾 Save Changes (${pendingEdits.size})`;
+  setStatus(`${pendingEdits.size} unsaved change(s)`, "");
+}
+
+async function saveAllChanges(){
+  if(!pendingEdits.size) return;
+  const btn=document.getElementById("saveAllBtn");
+  btn.disabled=true; setStatus("Saving changes…");
+  const edits=[...pendingEdits.values()];
   try{
-    if(k==="name"){
-      await sbWrite("PATCH", `plant=eq.${encodeURIComponent(row.plant)}&sr=eq.${row.sr}`, {mine_name:val}, "return=minimal");
-      rows.forEach(r=>{ if(r.plant===row.plant && r.sr===row.sr) r.mine_name=val; });
-    } else {
-      await sbWrite("PATCH", `id=eq.${row.id}`, {[DBCOL[k]]:val}, "return=minimal");
-      const r=rows.find(x=>x.id===row.id); if(r) r[DBCOL[k]]=val;
+    for(const edit of edits){
+      const {id,k,val}=edit;
+      const row=rows.find(r=>String(r.id)===String(id));
+      if(!row) continue;
+      const col = colFor(k);
+      const payload = k.startsWith("x.")
+        ? {extra:{...(row.extra||{}),[k.slice(2)]:val}}
+        : {[col]:val};
+      // return=representation lets us confirm the database actually changed a row
+      const saved = await sbWrite("PATCH", `id=eq.${id}`, payload, "return=representation");
+      if(!Array.isArray(saved) || !saved.length)
+        throw new Error(`Row ${id} was not updated. Check the table's permissions.`);
+      Object.assign(row, saved[0]);
+      pendingEdits.delete(`${id}::${k}`);
+      btn.textContent=`💾 Save Changes (${pendingEdits.size})`;
     }
-    setStatus("Saved ✓","ok");
-  }catch(err){ setStatus("Save failed: "+err.message,"err"); notice("Save failed:\n"+err.message); }
+    setStatus("All changes saved ✓","ok");
+  }catch(err){
+    setStatus("Save failed: "+err.message,"err");
+    notice("Some changes may not have been saved. Click Save Changes to retry.\n"+err.message);
+  }
+  btn.disabled=false;
+  btn.hidden=pendingEdits.size===0;
   render();
 }
 
@@ -592,39 +651,19 @@ async function removeRow(id){
 }
 
 /* ---------- BALCO writes ---------- */
-function balcoRows(m){ return rows.filter(r=>r.plant==="BALCO" && r.month_label===m); }
-function secRows(code,m){ return balcoRows(m).filter(r=>r.section===code).sort((a,b)=>a.sr-b.sr); }
+function secRows(code,m,plant="BALCO"){ return rows.filter(r=>r.plant===plant && r.month_label===m && r.section===code).sort((a,b)=>a.sr-b.sr); }
 function getv(r,k){ return k.startsWith("x.") ? (Number((r.extra||{})[k.slice(2)])||0) : (Number(r[k])||0); }
 function rowBal(r,sec){ return sec.balance==="calc" ? bal(r) : (sec.balance ? getv(r,sec.balance) : 0); }
 
-async function saveBalco(id, k, val){
-  const row=rows.find(r=>r.id===id); if(!row) return;
-  setStatus("Saving…");
-  try{
-    if(k.startsWith("x.")){
-      const extra={...(row.extra||{}), [k.slice(2)]:val};
-      await sbWrite("PATCH", `id=eq.${id}`, {extra}, "return=minimal");
-      row.extra=extra;
-    } else if(k==="mine_name"){
-      await sbWrite("PATCH", `plant=eq.BALCO&section=eq.${row.section}&sr=eq.${row.sr}`, {mine_name:val}, "return=minimal");
-      rows.forEach(r=>{ if(r.plant==="BALCO" && r.section===row.section && r.sr===row.sr) r.mine_name=val; });
-    } else {
-      await sbWrite("PATCH", `id=eq.${id}`, {[k]:val}, "return=minimal");
-      row[k]=val;
-    }
-    setStatus("Saved ✓","ok");
-  }catch(err){ setStatus("Save failed: "+err.message,"err"); notice("Save failed:\n"+err.message); }
-  render();
-}
-
 async function addBalcoRow(code){
-  const m=view.month; if(!m) return;
-  const mos=monthsOf("BALCO").find(x=>x.label===m); if(!mos) return;
-  const sr=Math.max(0,...balcoRows(m).map(r=>r.sr))+1;
+  const plant=view.tab, m=view.month; if(!m) return;
+  const mos=monthsOf(plant).find(x=>x.label===m); if(!mos) return;
+  // sr must be unique per plant+month (DB constraint unique_plant_month_sr), so take the max across ALL sections
+  const sr=Math.max(0,...rows.filter(r=>r.plant===plant && r.month_label===m).map(r=>+r.sr||0))+1;
   setStatus("Saving…");
   try{
     const [row]=await sbWrite("POST","",{
-      plant:"BALCO", month_label:m, sort_key:mos.sort_key, section:code, sr,
+      plant, month_label:m, sort_key:mos.sort_key, section:code, sr,
       mine_name:"NEW MINE / SIDING", carry_fwd:0, rake_program:0, endorsed:0,
       sanction:0, alloted:0, received:0, extra:{}
     },"return=representation");
@@ -663,8 +702,8 @@ function moveIndicator(){
   ind.style.left=act.offsetLeft+"px"; ind.style.width=act.offsetWidth+"px";
 }
 
-function balcoBoxHTML(sec, m, ed){
-  const list=secRows(sec.code, m);
+function balcoBoxHTML(sec, m, ed, plant){
+  const list=secRows(sec.code, m, plant);
   const cols=sec.cols;
   const th = (sec.sr?'<th class="sr-h">SR.NO.</th>':"") +
     `<th style="text-align:left">${sec.first ?? "Mines (Silo's/Siding)"}</th>` +
@@ -690,26 +729,24 @@ function balcoBoxHTML(sec, m, ed){
     <div class="table-wrap"><table><thead><tr>${th}</tr></thead><tbody>${body}</tbody><tfoot>${foot}</tfoot></table></div>`;
 }
 
-function renderBalco(m, ed){
+function renderSections(plant, m, ed){
   const empty = document.getElementById("balcoEmpty");
+  const box = document.getElementById("sectBoxes");
   if(!m){
     empty.hidden = false;
     empty.className = "card bsec";
     empty.innerHTML = `<div class="empty">${ed
-      ? "No BALCO data yet. Click + Add Source, type BALCO, and enter a month like Nov'26."
-      : "No BALCO data yet. Turn on Edit to add it."}</div>`;
-    SECTIONS.forEach(sec=>document.getElementById("bBox_"+sec.code).hidden = true);
+      ? `No ${esc(plant)} data yet. Click + Add Source, type ${esc(plant)}, and enter a month like Nov'26.`
+      : `No ${esc(plant)} data yet. Turn on Edit to add it.`}</div>`;
+    box.innerHTML = "";
     return;
   }
   empty.hidden = true;
-  SECTIONS.forEach(sec=>{
-    const box=document.getElementById("bBox_"+sec.code);
-    box.hidden = false;
-    box.innerHTML = balcoBoxHTML(sec, m, ed);
-  });
+  box.innerHTML = sectionsFor(plant).map(sec=>
+    `<div class="card bsec">${balcoBoxHTML(sec, m, ed, plant)}</div>`).join("");
 }
 
-async function downloadBalco(){
+async function downloadSections(){
   if(!view.month){ notice("There is no report to download yet."); return; }
   if(typeof html2canvas!=="function"){ notice("The image library did not load. Check your internet connection and refresh."); return; }
   const isDark = document.documentElement.getAttribute("data-theme")==="dark";
@@ -717,8 +754,8 @@ async function downloadBalco(){
   const node=document.createElement("div");
   node.style.cssText=`position:fixed;left:0;top:0;z-index:-1;width:1240px;padding:36px;background:${bg};box-sizing:border-box`;
   node.innerHTML = `<style>.exp-bx *{animation:none!important;transition:none!important}</style>
-    <div style="text-align:center;margin-bottom:18px;color:${isDark?"#f9a8d4":"#6b3a4f"};font-size:28px;font-weight:700">AMM Backlog Report · BALCO · ${esc(view.month)}</div>`;
-  const copy=document.getElementById("balcoPanel").cloneNode(true);
+    <div style="text-align:center;margin-bottom:18px;color:${isDark?"#f9a8d4":"#6b3a4f"};font-size:28px;font-weight:700">AMM Backlog Report · ${esc(view.tab)} · ${esc(view.month)}</div>`;
+  const copy=document.getElementById("sectPanel").cloneNode(true);
   copy.hidden=false; copy.classList.add("exp-bx");
   copy.querySelectorAll(".toolbar,.footbar,td.del,#balcoEmpty,.no-capture").forEach(el=>el.remove());
   copy.querySelectorAll("[id]").forEach(el=>el.removeAttribute("id"));
@@ -735,7 +772,7 @@ async function downloadBalco(){
     const blob = await new Promise((res,rej)=>canvas.toBlob(b=>b?res(b):rej(new Error("Could not create image")),"image/png"));
     const url = URL.createObjectURL(blob);
     const a=document.createElement("a");
-    a.href=url; a.download=`BALCO_RAKES_${view.month.replace("'","")}.png`;
+    a.href=url; a.download=`${view.tab}_RAKES_${view.month.replace("'","")}.png`;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(()=>URL.revokeObjectURL(url), 4000);
   }catch(err){
@@ -749,9 +786,14 @@ function render(){
   const t=view.tab, m=view.month || "";
   const ed=view.editing;
   const isBalco = t==="BALCO";
-  const list=isBalco ? secRows("CPP", m) : rowsOf();
+  const multi = !!sectionsFor(t);
+  const list = isBalco ? secRows("CPP", m, "BALCO") : multi ? allSecRows(t, m) : rowsOf();
   const tot=totalsOf(list);
   document.body.classList.toggle("editing", ed);
+  const saveBtn=document.getElementById("saveAllBtn");
+  saveBtn.hidden=!ed || pendingEdits.size===0;
+  saveBtn.disabled=false;
+  saveBtn.textContent=pendingEdits.size ? `💾 Save Changes (${pendingEdits.size})` : "💾 Save Changes";
   document.getElementById("editToggle").checked = ed;
   document.getElementById("subtitle").textContent = m ? `${label(t)} · Rake backlog · ${m}` : "Rake backlog";
 
@@ -759,8 +801,8 @@ function render(){
     `<button class="tab ${p===t?"active":""}" data-tab="${p}">${p}</button>`).join("");
   renderMonthSwitch();
 
-  document.getElementById("balcoPanel").hidden = !isBalco;
-  document.getElementById("card").hidden = isBalco;
+  document.getElementById("sectPanel").hidden = !multi;
+  document.getElementById("card").hidden = multi;
   document.getElementById("kpis").hidden = false;
 
   document.getElementById("kpis").innerHTML = `
@@ -770,7 +812,7 @@ function render(){
     <div class="kpi"><div class="l">Mines / Sidings</div><div class="v">${list.length}</div></div>`;
 
   document.getElementById("cardTitle").textContent = m ? `${label(t)} RAKES ${m}` : "No data";
-  if(isBalco){ renderBalco(m, ed); return; }
+  if(multi){ renderSections(t, m, ed); return; }
 
   const cols=COLS(m);
   document.getElementById("thead").innerHTML =
@@ -828,7 +870,10 @@ async function addMonth(){
       plant, month_label:p.label, sort_key:p.key, sr:r.sr, mine_name:r.mine_name,
       carry_fwd: carry ? Math.max(0,bal(r)) : 0, rake_program:0, endorsed:0, sanction:0, alloted:0, received:0
     };
-    if(r.section!=null){ base.section=r.section; base.carry_fwd=carry && r.section==="CPP" ? Math.max(0,bal(r)) : 0; base.extra={}; }
+    if(r.section!=null){ base.section=r.section; base.extra={}; }
+    // BALCO IPP has no carry-forward; every other section carries its balance forward
+    const carryOK = r.plant!=="BALCO" || r.section==null || r.section==="CPP";
+    base.carry_fwd = carry && carryOK ? Math.max(0,bal(r)) : 0;
     return base;
   });
 
@@ -867,8 +912,9 @@ async function addSource(){
   setStatus("Saving…");
   try{
     const base={plant:name, month_label:p.label, sort_key:p.key, sr:1, mine_name:"NEW MINE / SIDING"};
-    const payload = name==="BALCO"
-      ? ["CPP","EAUC","IPP"].map((s,i)=>({...base, sr:i+1, section:s,carry_fwd:0, rake_program:0, endorsed:0, sanction:0, alloted:0, received:0, extra:{}}))
+    const secs = sectionsFor(name);
+    const payload = secs
+      ? secs.map((s,i)=>({...base, sr:i+1, section:s.code, carry_fwd:0, rake_program:0, endorsed:0, sanction:0, alloted:0, received:0, extra:{}}))
       : base;
     const inserted = await sbWrite("POST", "", payload, "return=representation");
     rows.push(...(Array.isArray(inserted) ? inserted : [inserted]));
@@ -963,7 +1009,7 @@ function buildExportNode(){
 }
 
 async function downloadImage(){
-  if(view.tab==="BALCO") return downloadBalco();
+  if(sectionsFor(view.tab)) return downloadSections();
   const btn=document.getElementById("dlBtn");
   if(!view.month){ notice("There is no report to download yet."); return; }
   if(typeof html2canvas!=="function"){ notice("The image library did not load. Check your internet connection and refresh."); return; }
@@ -999,6 +1045,49 @@ async function downloadImage(){
     btn.disabled=false; btn.textContent="⬇ Download Image";
   }
 }
+
+/* ---------- Live balance (edit mode) ---------- */
+// Recomputes one row's Balance cell and the table's TOTAL row while typing.
+// Values are only written to the database on Save Changes, as before.
+function liveRecalc(input){
+  const tr = input.closest("tr"); if(!tr) return;
+  const vals = {};
+  tr.querySelectorAll("input[type=number]").forEach(i=>{
+    vals[i.dataset.k || i.dataset.bk] = Math.max(0, parseInt(i.value,10) || 0);
+  });
+  const cf = vals.cf ?? vals.carry_fwd ?? 0;
+  const al = vals.alloted ?? 0;
+  const rc = vals.received ?? 0;
+  const balTd = tr.querySelector("td.bal");
+  // EAUC's balance is a typed value (not a formula), so leave it alone
+  if(balTd && !balTd.querySelector("input") && vals.alloted !== undefined){
+    const b = cf + al - rc;
+    balTd.textContent = fmt(b);
+    balTd.classList.toggle("zero", b === 0);
+  }
+  refreshFooter(input.closest("table"));
+}
+function refreshFooter(table){
+  const body = table && table.tBodies[0];
+  const foot = table && table.tFoot && table.tFoot.rows[0];
+  if(!body || !foot) return;
+  const sums = {};
+  [...body.rows].forEach(tr=>{
+    [...tr.cells].forEach((td,j)=>{
+      if(td.classList.contains("mine") || td.classList.contains("sr") || td.classList.contains("del")) return;
+      const inp = td.querySelector("input[type=number]");
+      const v = inp ? (parseInt(inp.value,10) || 0)
+                    : td.querySelector("input") ? 0
+                    : (parseInt(td.textContent.replace(/,/g,""),10) || 0);
+      sums[j] = (sums[j] || 0) + v;
+    });
+  });
+  [...foot.cells].forEach((td,j)=>{ if(sums[j] !== undefined) td.textContent = fmt(sums[j]); });
+}
+document.addEventListener("input", e=>{
+  const inp = e.target;
+  if(inp.matches && inp.matches("input[type=number]") && inp.closest("#card, #sectPanel")) liveRecalc(inp);
+});
 
 /* ---------- Events ---------- */
 document.getElementById("themeBtn").addEventListener("click", toggleTheme);
@@ -1045,15 +1134,17 @@ document.getElementById("card").addEventListener("change", e=>{
   const row=rowsOf()[+inp.dataset.i]; if(!row) return;
   const k=inp.dataset.k;
   const val = k==="name" ? inp.value.trim() : Math.max(0, parseInt(inp.value,10)||0);
-  saveCell(row, k, val);
+  queueEdit(row.id, k, val);
 });
 
-document.getElementById("balcoPanel").addEventListener("change", e=>{
+document.getElementById("sectPanel").addEventListener("change", e=>{
   const inp=e.target.closest("input[data-bid]"); if(!inp) return;
   const k=inp.dataset.bk;
   const val = k==="mine_name" ? inp.value.trim() : Math.max(0, parseInt(inp.value,10)||0);
-  saveBalco(+inp.dataset.bid, k, val);
+  queueEdit(inp.dataset.bid, k, val);
 });
+
+document.getElementById("saveAllBtn").addEventListener("click", saveAllChanges);
 
 document.getElementById("retryBtn").addEventListener("click", ()=>loadAll());
 window.addEventListener("resize", moveIndicator);
