@@ -3022,7 +3022,7 @@ async function runSummary(){
   const single = from === to, brk = !single && $("sm-break").checked;
   const btn = $("sm-go"); btn.disabled = true;
   try {
-    const rows = await fetchRows(from, to, "entry_date,subsidiary,destination,type");
+    const rows = await fetchRows(from, to, "entry_date,subsidiary,siding,destination,type");
     const groups = new Map();
     rows.forEach(r => {
       const sub = effSub(r), dk = nk(r.destination);
@@ -3031,14 +3031,15 @@ async function runSummary(){
       const tk = cat === "p" ? "p" : cat === "np" ? "np" : cat === "p_wc" ? "wc" : "other";
       if (types.size && !types.has(tk)) return;
       const date = (single || brk) ? r.entry_date : "";
-      const key = [date, sub, dk, tk].join("|");
+      const sid = (r.siding || "").trim() || "(blank)";
+      const key = [date, sub, dk, nk(sid), tk].join("|");
       let g = groups.get(key);
-      if (!g) { g = { date, sub, dest: (r.destination || "").trim(), tk, n: 0 }; groups.set(key, g); }
+      if (!g) { g = { date, sub, dest: (r.destination || "").trim(), siding: sid, tk, n: 0 }; groups.set(key, g); }
       g.n++;
     });
     const list = [...groups.values()].sort((a,b) =>
       (a.date || "").localeCompare(b.date || "") || a.sub.localeCompare(b.sub) ||
-      a.dest.localeCompare(b.dest) || a.tk.localeCompare(b.tk));
+      a.dest.localeCompare(b.dest) || a.siding.localeCompare(b.siding) || a.tk.localeCompare(b.tk));
     SM_LAST = { list, from, to, single, brk,
       filterText: `Subsidiary: ${selNames(SMS_SUB)}   |   Destination: ${selNames(SMS_DEST)}   |   Type: ${[...types].map(k => TK_LABEL[k]).join(" + ") || "All"}` };
     renderSummary();
@@ -3071,9 +3072,9 @@ function renderSummary(){
   $("sm-csv").disabled = false; $("sm-img").disabled = false;
   const dateCell = g => L.single ? dmy(L.from) : L.brk ? dmy(g.date) : `${dmy(L.from)} to ${dmy(L.to)}`;
   const pctOf = n => total ? (n * 100 / total).toFixed(2) + "%" : "0%";
-  t.innerHTML = `<thead><tr><th>Sr No.</th><th>Date</th><th>Subsidiary</th><th>Destination</th><th>No. of rakes</th><th>% of total</th><th>Power / Non-power</th></tr></thead><tbody>` +
-    L.list.map((g,i) => `<tr><td>${i+1}</td><td>${dateCell(g)}</td><td>${esc(g.sub)}</td><td>${esc(g.dest)}</td><td><b>${fmt(g.n)}</b></td><td>${pctOf(g.n)}</td><td>${TK_LABEL[g.tk]}</td></tr>`).join("") +
-    `</tbody><tfoot><tr style="background:#faf7fe"><td colspan="4" style="font-weight:800;text-align:right">TOTAL RAKES</td><td style="font-weight:800">${fmt(total)}</td><td style="font-weight:800">${total ? "100.00%" : "0%"}</td><td></td></tr></tfoot>`;
+  t.innerHTML = `<thead><tr><th>Sr No.</th><th>Date</th><th>Subsidiary</th><th>Destination</th><th>Siding</th><th>No. of rakes</th><th>% of total</th><th>Power / Non-power</th></tr></thead><tbody>` +
+    L.list.map((g,i) => `<tr><td>${i+1}</td><td>${dateCell(g)}</td><td>${esc(g.sub)}</td><td>${esc(g.dest)}</td><td>${esc(g.siding)}</td><td><b>${fmt(g.n)}</b></td><td>${pctOf(g.n)}</td><td>${TK_LABEL[g.tk]}</td></tr>`).join("") +
+    `</tbody><tfoot><tr style="background:#faf7fe"><td colspan="5" style="font-weight:800;text-align:right">TOTAL RAKES</td><td style="font-weight:800">${fmt(total)}</td><td style="font-weight:800">${total ? "100.00%" : "0%"}</td><td></td></tr></tfoot>`;
 }
 
 async function downloadSummaryImage(){
