@@ -554,7 +554,7 @@ td.party{border-left-width:10px}
         <tfoot id="tfoot"></tfoot>
       </table>
     </div>
-    <div class="hint">Rows marked LIVE are the GUJRAT POWER (Gujarat dashboard), HZL (HZL dashboard), NALCO (NALCO dashboard) and JHABUA (PJPB MIS sheet) rakes read live, grouped by area, siding and party (for example SECL · BGCK TO GETS and SECL · BGCK TO TPHS are separate rows) for the date, and refreshed every 30 seconds. For each live rake: Underload qty = CH weight − RR weight (when CH is more), Overload qty = RR weight − CH weight (when RR is more). <b>GUJRAT POWER</b> rows take the Underload Penalty straight from the <b>ul_on_us</b> column of the Gujarat records (the final underload charge). It is never recalculated: where ul_on_us is empty the penalty is 0, and no box-type rate is applied. <b>JHABUA</b> rows come from the PJPB MIS records of the loading date that have an RR Number: area, siding (source), box type, RR weight and chargeable weight are fetched, and the <b>Overload Penalty is the Final Charges column</b>. JHABUA has no other charge, so its Underload Penalty and ENCH stay 0 unless you type a value. <b>Live rows can be edited here too</b> (pencil button, or click RR QTY, CHARBALE QTY, Freight, Overload Penalty or ENCH). For HZL, NALCO and JHABUA, Underload Penalty = Underload qty × Freight where a freight rate is set; otherwise the dashboard charge is used. Where a live row (other than GUJRAT POWER and JHABUA) has no underload charge from the dashboard, its Freight may use a saved box-type rate when one exists. A hand-edited row is marked EDITED, is saved for that date only, is never overwritten by the live refresh, and does <b>not</b> change the Gujarat, HZL, NALCO or PJPB records. The arrow button on an EDITED row goes back to the live values. All other rows come from the database: click RR QTY, CHARBALE QTY, Freight or ENCH to change them in place. Per M/T = TOTAL ÷ RR QTY.</div>
+    <div class="hint">Rows marked LIVE are the GUJRAT POWER (Gujarat dashboard), HZL (HZL dashboard), NALCO (NALCO dashboard) and JHABUA (PJPB MIS sheet) rakes read live, grouped by area, siding and party (for example SECL · BGCK TO GETS and SECL · BGCK TO TPHS are separate rows) for the date, and refreshed every 30 seconds. For each live rake: Underload qty = CH weight − RR weight (when CH is more), Overload qty = RR weight − CH weight (when RR is more). <b>GUJRAT POWER</b> and <b>HZL</b> rows take the Underload Penalty straight from the <b>ul_on_us</b> column of their records (the final underload charge). It is never recalculated: where ul_on_us is empty the penalty is 0, and no box-type rate is applied. <b>JHABUA</b> rows come from the PJPB MIS records of the loading date that have an RR Number: area, siding (source), box type, RR weight and chargeable weight are fetched, and the <b>Overload Penalty is the Final Charges column</b>. JHABUA has no other charge, so its Underload Penalty and ENCH stay 0 unless you type a value. <b>Live rows can be edited here too</b> (pencil button, or click RR QTY, CHARBALE QTY, Freight, Overload Penalty or ENCH). For NALCO, Underload Penalty = Underload qty × Freight where a freight rate is set; otherwise the dashboard charge is used. Where a live row (other than GUJRAT POWER, HZL and JHABUA) has no underload charge from the dashboard, its Freight may use a saved box-type rate when one exists. A hand-edited row is marked EDITED, is saved for that date only, is never overwritten by the live refresh, and does <b>not</b> change the Gujarat, HZL, NALCO or PJPB records. The arrow button on an EDITED row goes back to the live values. All other rows come from the database: click RR QTY, CHARBALE QTY, Freight or ENCH to change them in place. Per M/T = TOTAL ÷ RR QTY.</div>
   </section>
 
   <!-- ================= INSIGHTS ================= -->
@@ -695,10 +695,12 @@ var NALCO_URL='https://gcedsyxvfmlyujhftiyf.supabase.co';
 var NALCO_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdjZWRzeXh2Zm1seXVqaGZ0aXlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ2Mjg5ODMsImV4cCI6MjExMDIwNDk4M30.QsFXFMT1zS62UIfdbgtpXJHEicCVglvXHqgvik5Q5Rk';
 var NALCO_CFG={url:NALCO_URL,key:NALCO_KEY};
 var GUJP='GUJRAT POWER';
+/* parties whose underload penalty is the stored ul_on_us charge: never recalculated, no box-type rate */
+var STORED_UL={'GUJRAT POWER':1,HZL:1};
 /* parties fed live from their dashboards / MIS sheets.
    JHABUA is read from the PJPB MIS table (pjpb_mis_rows, same Supabase project): only rows that have an RR Number,
    by loading date. Its one charge is the Final Charges column, shown as the Overload Penalty.
-   GUJRAT POWER is read from gujarat_rake_records; its Underload Penalty is the ul_on_us column (final charge, never recalculated). */
+   GUJRAT POWER and HZL are read from their records; their Underload Penalty is the ul_on_us column (final charge, never recalculated). */
 var LIVE_SRC=[
   {party:'GUJRAT POWER',table:'gujarat_rake_records'},
   {party:'HZL',table:'hzl_rake_records'},
@@ -709,8 +711,8 @@ var LIVE_SRC=[
     map:function(r){return {date:r.loading_date,area:r.area,siding:r.source,box_type:r.box_type,rr_wt:r.rr_weight,ch_wt:r.chargeable_wt,pol_group:r.final_charges,rr_no:r.rr_number}}}
 ];
 /* parties whose underload penalty must never be filled from a box-type rate, or recalculated from freight.
-   GUJRAT POWER: its underload penalty is the ul_on_us final charge as stored. JHABUA: only Final Charges is charged. */
-var NO_BOX_RATE={JHABUA:1,'GUJRAT POWER':1};
+   GUJRAT POWER and HZL: the underload penalty is the ul_on_us final charge as stored. JHABUA: only Final Charges is charged. */
+var NO_BOX_RATE={JHABUA:1,'GUJRAT POWER':1,HZL:1};
 var EXTRA_PCT={HZL:5};
 function liveSel(s){return s.table+'?select='+(s.select||'*')+(s.extra||'')}
 function liveFix(s,rows){return (rows||[]).map(function(r){if(s.map)r=s.map(r);r._p=s.party;return r})}
@@ -744,7 +746,7 @@ var DAY=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
    LIVE rows (per area and siding, per date, read from gujarat_rake_records / hzl_rake_records / nalco_rake_records / pjpb_mis_rows):
    Underload qty = sum of (CH wt - RR wt) of rakes where CH wt is more
    Overload qty  = sum of (RR wt - CH wt) of rakes where RR wt is more
-   GUJRAT POWER: Underload penalty = sum of ul_on_us (the final underload charge). It is taken as stored and never
+   GUJRAT POWER and HZL: Underload penalty = sum of ul_on_us (the final underload charge). It is taken as stored and never
                  recalculated from quantity x freight. Where ul_on_us is empty it counts as 0.
    Other parties: Underload penalty = sum of underload charge, or underload qty x freight where a freight rate is set,
                  or underload qty x box-type rate when the dashboard has no charge (not for JHABUA)
@@ -754,8 +756,8 @@ var DAY=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
 function calc(e){
   if(e.live){
     var net=e.gU-e.gO;
-    /* GUJRAT POWER: ul_on_us is the final charge, so the stored penalty is used as it is */
-    var lup=(e.party===GUJP)?e.gUp:(hasN(e.freight)?e.gU*e.freight:e.gUp);
+    /* GUJRAT POWER and HZL: ul_on_us is the final charge, taken as stored */
+    var lup=STORED_UL[e.party]?e.gUp:(hasN(e.freight)?e.gU*e.freight:e.gUp);
     return {uq:net,uU:e.gU,uO:e.gO,up:lup,op:e.gOp,en:e.gEn,total:lup+e.gOp+e.gEn,status:e.gU>e.gO?'under':(e.gO>e.gU?'over':'exact')};
   }
   var uq=num(e.ch)-num(e.rr);
@@ -764,9 +766,9 @@ function calc(e){
   var en=num(e.ench);
   return {uq:uq,uU:uq>0?uq:0,uO:uq<0?-uq:0,up:up,op:op,en:en,total:up+op+en,status:uq>0?'under':(uq<0?'over':'exact')};
 }
-/* the freight shown for a live row. For GUJRAT POWER it is the freight column of gujarat_rake_records, as stored (display only, not used for the penalty) */
+/* the freight shown for a live row. For GUJRAT POWER and HZL it is the freight column of the records, as stored (display only, not used for the penalty) */
 function liveFreight(e){
-  if(e.party===GUJP&&!e.edited)return hasN(e.freight)?+e.freight:0;
+  if(STORED_UL[e.party]&&!e.edited)return hasN(e.freight)?+e.freight:0;
   return hasN(e.freight)?+e.freight:(e.gU>0?Math.round(e.gUp/e.gU*10000)/10000:0);
 }
 function num(v){v=parseFloat(v);return isNaN(v)?0:v}
@@ -1369,10 +1371,10 @@ function buildLive(g,d){
       var rr=num(r.rr_wt),ch=num(r.ch_wt);
       if(ch>rr)x.gU+=ch-rr;else if(rr>ch)x.gO+=rr-ch;
     }
-    /* GUJRAT POWER: ul_on_us is the final underload charge, taken as it is. Other parties: the dashboard underload charge */
-    x.gUp+=(r._p===GUJP)?num(r.ul_on_us):num(r.ul_ch);
-    /* GUJRAT POWER: freight is the freight column of the record, shown as stored (first record of the group that has one) */
-    if(r._p===GUJP&&x.freight===null&&hasN(r.freight))x.freight=num(r.freight);
+    /* GUJRAT POWER and HZL: ul_on_us is the final underload charge, taken as it is. Other parties: the dashboard underload charge */
+    x.gUp+=STORED_UL[r._p]?num(r.ul_on_us):num(r.ul_ch);
+    /* GUJRAT POWER and HZL: freight is the freight column of the record, shown as stored (first record of the group that has one) */
+    if(STORED_UL[r._p]&&x.freight===null&&hasN(r.freight))x.freight=num(r.freight);
     x.gOp+=num(r.pol_group)+num(r.ehbc_group);x.gEn+=num(r.enhc_charge);
   });
   Object.keys(m).forEach(function(k){
@@ -1381,7 +1383,7 @@ function buildLive(g,d){
     if(xp){x.gOp=x.gOp*(xp/100);x.gEn=x.gEn*(xp/100)}
     ['rr','ch','gU','gO','gUp','gOp','gEn'].forEach(function(f){x[f]=r2(x[f])});
     seen[x.id]=1;x.rakes=x.keys.length;
-    /* no underload charge on the dashboard for this row: use the box type rate, if one is set (never for GUJRAT POWER or JHABUA) */
+    /* no underload charge on the dashboard for this row: use the box type rate, if one is set (never for GUJRAT POWER, HZL or JHABUA) */
     if(!x.gUp&&x.gU>0&&!NO_BOX_RATE[x.party]){var br=rateFor(x.box);if(br!==null)x.freight=br}
     if(ov[x.id])applyOv(x,ov[x.id]);
   });
@@ -1720,7 +1722,7 @@ function updatePreview(){
     $('#cUq').textContent=fmt(lc.uq);
     $('#cUqF').textContent='Underload qty − Overload qty';
     $('#cUp').textContent=money(lc.up);
-    $('#cUpF').textContent=le.party===GUJP?'Final charge from ul_on_us (not recalculated)':fmt(le.gU)+' × '+fmt(le.freight);
+    $('#cUpF').textContent=STORED_UL[le.party]?'Final charge from ul_on_us (not recalculated)':fmt(le.gU)+' × '+fmt(le.freight);
     $('#cOp').textContent=money(lc.op);$('#cOpF').textContent='Typed in';
     $('#cEn').textContent=money(lc.en);
     $('#cTot').textContent=money(lc.total);
@@ -1829,8 +1831,8 @@ function saveLive(){
   }
   e.rakes=rk;e.box=$('#fBox').value.trim().toUpperCase();e.rr=num($('#fRR').value);e.ch=num($('#fCH').value);
   e.gU=num($('#fLU').value);e.gO=num($('#fLO').value);e.freight=num($('#fLFr').value);
-  /* GUJRAT POWER: the underload penalty is the stored ul_on_us charge, so it is not recalculated here */
-  if(e.party!==GUJP)e.gUp=r2(e.gU*e.freight);
+  /* GUJRAT POWER and HZL: the underload penalty is the stored ul_on_us charge, so it is not recalculated here */
+  if(!STORED_UL[e.party])e.gUp=r2(e.gU*e.freight);
   e.gOp=num($('#fLOp').value);e.gEn=num($('#fLEn').value);
   saveOverride(e);
   toast('Saved for this date only. The '+e.party+' source records are not changed.');
