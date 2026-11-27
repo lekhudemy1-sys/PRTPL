@@ -251,6 +251,11 @@
   nav.tabs button:hover svg{transform:translateY(-2px)}
   nav.tabs button::after{content:"";position:absolute;left:10px;right:10px;bottom:0;height:3px;border-radius:3px 3px 0 0;background:#fff;transform:scaleX(0);transform-origin:center;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
   nav.tabs button.active::after{transform:scaleX(1)}
+    nav.tabs a.fois-link{position:relative;display:flex;align-items:center;gap:7px;padding:0 14px;color:#cfe5df;text-decoration:none;font:600 14px system-ui,sans-serif;border-radius:10px 10px 0 0;transition:color .15s,background .2s}
+  nav.tabs a.fois-link:hover{color:#fff;background:rgba(255,255,255,.08)}
+  nav.tabs a.fois-link svg{width:15px;height:15px;transition:transform .25s ease}
+  nav.tabs a.fois-link:hover svg{transform:translate(1px,-1px)}
+  nav.tabs a.fois-link:focus-visible{outline:3px solid #fff;outline-offset:-3px}
   .hseg{background:rgba(255,255,255,.14);border-radius:12px}
   .hseg button{border-radius:9px}
   .hseg button.active{color:var(--brand-deep);box-shadow:0 2px 8px rgba(0,0,0,.18)}
@@ -1512,9 +1517,12 @@ html[data-motion=lite] :where(.pr-dlg-box,#pr-menu){transition-duration:.12s!imp
       <button data-tab="search">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
         Search</button>
-      <button data-tab="upload">
+            <button data-tab="upload">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg>
         Upload</button>
+            <a class="fois-link" href="https://www.fois.indianrail.gov.in/FOISWebPortal/pages/FWP_SttnHelp.jsp" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3h7v7"/><path d="M21 3l-9 9"/><path d="M19 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h5"/></svg>
+        FOIS</a>
     </nav>
 
     <div class="hctl" id="hctl">
